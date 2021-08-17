@@ -1,1 +1,0 @@
-# WirelessConnectivity-SDK_STM32
