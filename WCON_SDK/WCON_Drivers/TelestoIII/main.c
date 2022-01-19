@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,64 +18,71 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+#include <stdio.h>
 #include <string.h>
+
 #include "../../WCON_Drivers/TelestoIII/TelestoIII.h"
 #include "../../WCON_Drivers/global/global.h"
 
 /* callback for data reception */
-static void RXcallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
 {
     int i = 0;
-    printf ("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
+    printf("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
     printf("0x ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%02x ", *(payload+i)) ;
+        printf("%02x ", *(payload+i));
     }
-    printf ("\n-> ") ;
+    printf("\n-> ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%c", *(payload+i)) ;
+        printf("%c", *(payload+i));
     }
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("\n");
+    fflush(stdout);
 }
 
 int main(void)
 {
   bool ret = false;
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+  WE_Platform_Init();
 
-  /* Configure the system clock */
-  SystemClock_Config();
+#ifdef WE_DEBUG
+  WE_Debug_Init();
+#endif
 
-  TelestoIII_Init(115200, No_flow_control, AddressMode_0, RXcallback);
+  uint8_t driverVersion[3];
+  WE_GetDriverVersion(driverVersion);
+  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+
+  TelestoIII_Init(115200, WE_FlowControl_NoFlowControl, AddressMode_0, RxCallback);
 
   while (1)
   {
 	uint8_t version[3];
 	memset(version,0,sizeof(version));
 	ret = TelestoIII_GetFirmwareVersion(version);
-	delay(500);
+	WE_Delay(500);
 
 	uint8_t SN[4];
 	memset(SN,0,sizeof(SN));
 	ret = TelestoIII_GetSerialNumber(SN);
-	delay(500);
+	WE_Delay(500);
 
 	uint8_t payload[4*16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 	ret = TelestoIII_Transmit(payload, sizeof(payload));
-	delay(500);
+	WE_Delay(500);
 
 	ret = TelestoIII_PinReset();
-	delay(500);
+	WE_Delay(500);
   }
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,14 +18,18 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+#include <stdio.h>
 #include <string.h>
+
+
 #include "../../WCON_Drivers/Metis/Metis.h"
 #include "../../WCON_Drivers/global/global.h"
+
 static uint8_t APP_Data[140] =
     {
         0x48, /* Length Field*/
@@ -108,56 +112,63 @@ static uint8_t APP_Data[140] =
         0x2F
     };
 
-/* callback for data reception */
-static void RXcallback(uint8_t* payload, uint8_t payload_length, int8_t rssi)
+/**
+ * @brief Callback for data reception
+ */
+static void RxCallback(uint8_t* payload, uint8_t payload_length, int8_t rssi)
 {
     int i = 0;
-    printf ("Received data with %d dBm:\n-> ",rssi);
+    printf("Received data with %d dBm:\n-> ", rssi);
     printf("0x ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%02x ", *(payload+i)) ;
+        printf("%02x ", *(payload+i));
     }
-    printf ("\n-> ") ;
+    printf("\n-> ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%c", *(payload+i)) ;
+        printf("%c", *(payload+i));
     }
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("\n");
+    fflush(stdout);
 }
 
 
 int main(void)
 {
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+  WE_Platform_Init();
 
-  /* Configure the system clock */
-  SystemClock_Config();
+#ifdef WE_DEBUG
+  WE_Debug_Init();
+#endif
 
-  Metis_Init(9600, No_flow_control, MBus_Frequency_868, MBus_Mode_868_S2, true, RXcallback);
+  uint8_t driverVersion[3];
+  WE_GetDriverVersion(driverVersion);
+  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+
+  Metis_Init(9600, WE_FlowControl_NoFlowControl, MBus_Frequency_868, MBus_Mode_868_S2, true, RxCallback);
 
   while (1)
   {
 	  uint8_t serial_number[4];
 	  memset(serial_number,0,sizeof(serial_number));
 	  bool ret = Metis_GetSerialNumber(serial_number);
-	  delay(500);
+	  WE_Delay(500);
 
 	  uint8_t firmware_version[3];
 	  memset(firmware_version,0,sizeof(firmware_version));
 	  ret = Metis_GetFirmwareVersion(firmware_version);
-	  delay(500);
+	  WE_Delay(500);
 
 	  ret = Metis_Transmit(APP_Data);
-	  delay(500);
+	  WE_Delay(500);
 
 	  ret = Metis_PinReset();
-	  delay(500);
+	  WE_Delay(500);
 
 	  ret = Metis_Reset();
-	  delay(500);
+	  WE_Delay(500);
   }
 }
 

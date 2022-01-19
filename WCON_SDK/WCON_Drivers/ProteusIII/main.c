@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,64 +18,66 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+#include <stdio.h>
 #include <string.h>
+
 #include "../../WCON_Drivers/ProteusIII/ProteusIII.h"
 #include "../../WCON_Drivers/global/global.h"
 
-static void RXcallback(uint8_t* payload, uint16_t payload_length, uint8_t* BTMAC, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint16_t payload_length, uint8_t* BTMAC, int8_t rssi)
 {
     int i = 0;
-    printf (COLOR_RED "Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI: %d dBm:\n-> " COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], rssi);
+    printf("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI: %d dBm:\n-> ", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], rssi);
     printf("0x ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%02x ", *(payload+i)) ;
+        printf("%02x ", *(payload+i));
     }
-    printf ("\n-> ") ;
+    printf("\n-> ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%c", *(payload+i)) ;
+        printf("%c", *(payload+i));
     }
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("\n");
+    fflush(stdout);
 }
 
-static void Connectcallback(uint8_t* BTMAC)
+static void ConnectCallback(uint8_t* BTMAC)
 {
-    printf (COLOR_RED "Connected to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) " COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Connected to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
+    printf("\n");
+    fflush(stdout);
 }
 
-static void Securitycallback(uint8_t* BTMAC, ProteusIII_Security_t security_state)
+static void SecurityCallback(uint8_t* BTMAC, ProteusIII_Security_t security_state)
 {
-    printf (COLOR_RED "Security to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established " COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Security to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established ", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
+    printf("\n");
+    fflush(stdout);
 }
 
-static void Passkeycallback(uint8_t* BTMAC)
+static void PasskeyCallback(uint8_t* BTMAC)
 {
-    printf (COLOR_RED "Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) " COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
+    printf("\n");
+    fflush(stdout);
 
     uint8_t passkey[6] = {'1','2','3','1','2','3'};
 
     ProteusIII_Passkey(passkey);
 }
 
-static void DisplayPasskeycallback(ProteusIII_DisplayPasskeyAction_t action, uint8_t* BTMAC, uint8_t* passkey)
+static void DisplayPasskeyCallback(ProteusIII_DisplayPasskeyAction_t action, uint8_t* BTMAC, uint8_t* passkey)
 {
-    printf (COLOR_RED "Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) " COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
-    printf (COLOR_RED "and pass key (%c%c%c%c%c%c) " COLOR_CYAN, passkey[0],passkey[1],passkey[2],passkey[3],passkey[4],passkey[5]);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5]);
+    printf("and pass key (%c%c%c%c%c%c) ", passkey[0],passkey[1],passkey[2],passkey[3],passkey[4],passkey[5]);
+    printf("\n");
+    fflush(stdout);
 
     if(ProteusIII_DisplayPasskeyAction_PleaseConfirm == action)
 	{
@@ -84,62 +86,67 @@ static void DisplayPasskeycallback(ProteusIII_DisplayPasskeyAction_t action, uin
 	}
 }
 
-static void Disconnectcallback()
+static void DisconnectCallback()
 {
-    printf (COLOR_RED "Disconnected" COLOR_CYAN);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Disconnected");
+    printf("\n");
+    fflush(stdout);
 }
 
-static void Channelopencallback(uint8_t* BTMAC, uint16_t max_payload)
+static void ChannelOpenCallback(uint8_t* BTMAC, uint16_t max_payload)
 {
-    printf (COLOR_RED "Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload: %d" COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], max_payload);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload: %d", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], max_payload);
+    printf("\n");
+    fflush(stdout);
 }
 
-static void Phyupdatecallback(uint8_t* BTMAC, uint8_t phy_rx, uint8_t phy_tx)
+static void PhyUpdateCallback(uint8_t* BTMAC, uint8_t phy_rx, uint8_t phy_tx)
 {
-    printf (COLOR_RED "Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)" COLOR_CYAN, BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], phy_rx,phy_tx);
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)", BTMAC[0],BTMAC[1],BTMAC[2],BTMAC[3],BTMAC[4],BTMAC[5], phy_rx,phy_tx);
+    printf("\n");
+    fflush(stdout);
 }
 
 int main(void)
 {
   bool ret = false;
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+  WE_Platform_Init();
 
-  /* Configure the system clock */
-  SystemClock_Config();
+#ifdef WE_DEBUG
+  WE_Debug_Init();
+#endif
+
+  uint8_t driverVersion[3];
+  WE_GetDriverVersion(driverVersion);
+  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
   ProteusIII_CallbackConfig_t callbackConfig;
-  callbackConfig.rxCb = RXcallback;
-  callbackConfig.connectCp = Connectcallback;
-  callbackConfig.disconnectCb = Disconnectcallback;
-  callbackConfig.channelOpenCb = Channelopencallback;
-  callbackConfig.securityCb = Securitycallback;
-  callbackConfig.passkeyCb = Passkeycallback;
-  callbackConfig.displayPasskeyCb = DisplayPasskeycallback;
-  callbackConfig.phyUpdateCb = Phyupdatecallback;
+  callbackConfig.rxCb = RxCallback;
+  callbackConfig.connectCb = ConnectCallback;
+  callbackConfig.disconnectCb = DisconnectCallback;
+  callbackConfig.channelOpenCb = ChannelOpenCallback;
+  callbackConfig.securityCb = SecurityCallback;
+  callbackConfig.passkeyCb = PasskeyCallback;
+  callbackConfig.displayPasskeyCb = DisplayPasskeyCallback;
+  callbackConfig.phyUpdateCb = PhyUpdateCallback;
 
-  ProteusIII_Init(ProteusIII_DEFAULT_BAUDRATE, No_flow_control, callbackConfig);
+  ProteusIII_Init(ProteusIII_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, callbackConfig);
 
   while (1)
   {
 	uint8_t version[3];
 	memset(version,0,sizeof(version));
 	ret = ProteusIII_GetFWVersion(version);
-	delay(500);
+	WE_Delay(500);
 
 	uint8_t BTMac[6];
 	memset(BTMac,0,sizeof(BTMac));
 	ret = ProteusIII_GetBTMAC(BTMac);
-	delay(500);
+	WE_Delay(500);
 
 	//ret = ProteusIII_PinReset();
-	//delay(500);
+	//WE_Delay(500);
   }
 }

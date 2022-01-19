@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,10 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
+
+/**
+ * @file
+ * @brief ThyoneI driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -71,12 +76,14 @@ typedef enum ThyoneI_GPIO_Input_t
     ThyoneI_GPIO_Input_PullUp   = (uint8_t)0x02
 } ThyoneI_GPIO_Input_t;
 
-typedef struct ThyoneI_GPIO_PwmValue_t{
+typedef struct ThyoneI_GPIO_PwmValue_t
+{
     uint16_t period; /* in ms */
     uint8_t ratio;  /* 0-255 (0%-100%)*/
 } ThyoneI_GPIO_PwmValue_t;
 
-typedef struct ThyoneI_GPIOConfigBlock_t{
+typedef struct ThyoneI_GPIOConfigBlock_t
+{
     ThyoneI_GPIO_t    GPIO_ID;
     ThyoneI_GPIO_IO_t function;
 	union /* 3Byte */
@@ -87,7 +94,8 @@ typedef struct ThyoneI_GPIOConfigBlock_t{
     } value;
 } ThyoneI_GPIOConfigBlock_t;
 
-typedef struct ThyoneI_GPIOControlBlock_t{
+typedef struct ThyoneI_GPIOControlBlock_t
+{
     ThyoneI_GPIO_t GPIO_ID;
     union /* 1Byte */
     {
@@ -96,7 +104,8 @@ typedef struct ThyoneI_GPIOControlBlock_t{
     } value;
 } ThyoneI_GPIOControlBlock_t;
 
-typedef enum ThyoneI_ResetReason_t {
+typedef enum ThyoneI_ResetReason_t
+{
     ThyoneI_ResetReason_PowerOn   = (uint8_t)0x01,
     ThyoneI_ResetReason_PinReset  = (uint8_t)0x02,
     ThyoneI_ResetReason_SoftReset = (uint8_t)0x04,
@@ -104,7 +113,8 @@ typedef enum ThyoneI_ResetReason_t {
     ThyoneI_ResetReason_Invalid   = (uint8_t)0xFF,
 } ThyoneI_ResetReason_t;
 
-typedef enum ThyoneI_States_t {
+typedef enum ThyoneI_States_t
+{
     ThyoneI_State_Application = (uint8_t)0x00,
     ThyoneI_State_Test        = (uint8_t)0x01,
     ThyoneI_State_Invalid     = (uint8_t)0xFF,
@@ -119,7 +129,8 @@ typedef enum ThyoneI_OperatingMode_t
 }  ThyoneI_OperatingMode_t;
 
 /* user settings */
-typedef enum ThyoneI_UserSettings_t {
+typedef enum ThyoneI_UserSettings_t
+{
     ThyoneI_USERSETTING_INDEX_SERIAL_NUMBER               = (uint8_t)0x01,
     ThyoneI_USERSETTING_INDEX_FW_VERSION                  = (uint8_t)0x02,
     ThyoneI_USERSETTING_INDEX_UART_CONFIG                 = (uint8_t)0x04,
@@ -140,7 +151,8 @@ typedef enum ThyoneI_UserSettings_t {
     ThyoneI_USERSETTING_INDEX_MODULE_MODE                 = (uint8_t)0x20,
 } ThyoneI_UserSettings_t;
 
-typedef enum ThyoneI_TXPower_t {
+typedef enum ThyoneI_TXPower_t
+{
     ThyoneI_TXPower_8       = (int8_t) 8,
     ThyoneI_TXPower_4       = (int8_t) 4,
     ThyoneI_TXPower_0       = (int8_t) 0,
@@ -152,7 +164,8 @@ typedef enum ThyoneI_TXPower_t {
     ThyoneI_TXPower_minus40 = (int8_t)-40,
 } ThyoneI_TXPower_t;
 
-typedef enum ThyoneI_BaudRateIndex_t {
+typedef enum ThyoneI_BaudRateIndex_t
+{
     ThyoneI_BaudRateIndex_1200    = (uint8_t)0,
     ThyoneI_BaudRateIndex_2400    = (uint8_t)2,
     ThyoneI_BaudRateIndex_4800    = (uint8_t)4,
@@ -178,7 +191,8 @@ typedef enum ThyoneI_UartParity_t
     ThyoneI_UartParity_None
 } ThyoneI_UartParity_t;
 
-typedef enum ThyoneI_EncryptionMode_t{
+typedef enum ThyoneI_EncryptionMode_t
+{
     ThyoneI_EncryptionMode_Unencrypted   = (uint8_t)0,
     ThyoneI_EncryptionMode_TxEncrypted   = (uint8_t)1, /* Transmit encrypted messages */
     ThyoneI_EncryptionMode_RxEncrypted   = (uint8_t)2, /* Receive only encrypted messages. Discard all other messages*/
@@ -186,7 +200,8 @@ typedef enum ThyoneI_EncryptionMode_t{
     ThyoneI_EncryptionMode_Invalid       = (uint8_t)0xFF,
 } ThyoneI_EncryptionMode_t;
 
-typedef enum ThyoneI_Profile_t {
+typedef enum ThyoneI_Profile_t
+{
     ThyoneI_Profile_125kbit  = (uint8_t)0,
     ThyoneI_Profile_500kbit  = (uint8_t)1,
     ThyoneI_Profile_1000kbit = (uint8_t)2,
@@ -201,7 +216,7 @@ typedef enum ThyoneI_AddressMode_t
     ThyoneI_AddressMode_Unicast   = (uint8_t)2,
 } ThyoneI_AddressMode_t;
 
-extern bool ThyoneI_Init(uint32_t baudrate, FlowControl_t flow_control, void(*RXcb)(uint8_t*,uint16_t,uint32_t,int8_t));
+extern bool ThyoneI_Init(uint32_t baudrate, WE_FlowControl_t flow_control, void(*RXcb)(uint8_t*,uint16_t,uint32_t,int8_t));
 extern bool ThyoneI_Deinit(void);
 
 extern bool ThyoneI_PinReset(void);
@@ -217,7 +232,7 @@ extern bool ThyoneI_TransmitUnicast(uint8_t* payloadP, uint16_t length);
 extern bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t* payloadP, uint16_t length);
 extern bool ThyoneI_TransmitUnicastExtended(uint32_t address, uint8_t* payloadP, uint16_t length);
 
-/* functions to control the GPIO feature */
+/* Functions to control the GPIO feature */
 extern bool ThyoneI_GPIOLocalSetConfig(ThyoneI_GPIOConfigBlock_t* configP, uint16_t number_of_configs);
 extern bool ThyoneI_GPIOLocalGetConfig(ThyoneI_GPIOConfigBlock_t* configP, uint16_t* number_of_configsP);
 extern bool ThyoneI_GPIOLocalWrite(ThyoneI_GPIOControlBlock_t* controlP, uint16_t number_of_controls);
@@ -228,9 +243,9 @@ extern bool ThyoneI_GPIORemoteGetConfig(uint32_t destAddress, ThyoneI_GPIOConfig
 extern bool ThyoneI_GPIORemoteWrite(uint32_t destAddress, ThyoneI_GPIOControlBlock_t* controlP, uint16_t number_of_controls);
 extern bool ThyoneI_GPIORemoteRead(uint32_t destAddress, uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, ThyoneI_GPIOControlBlock_t* controlP, uint16_t* number_of_controlsP);
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool ThyoneI_FactoryReset();
 extern bool ThyoneI_Set(ThyoneI_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length);
@@ -251,7 +266,7 @@ extern bool ThyoneI_SetCCAThreshold(uint8_t ccaThreshold);
 extern bool ThyoneI_SetGPIOBlockRemoteConfig(uint8_t remoteConfig);
 extern bool ThyoneI_SetModuleMode(ThyoneI_OperatingMode_t moduleMode);
 
-/* read the non-volatile settings */
+/* Read the non-volatile settings */
 extern bool ThyoneI_Get(ThyoneI_UserSettings_t userSetting, uint8_t *ResponseP, uint16_t *Response_LengthP);
 extern bool ThyoneI_GetSerialNumber(uint8_t *serialNumberP);
 extern bool ThyoneI_GetFWVersion(uint8_t *versionP);
@@ -272,6 +287,7 @@ extern bool ThyoneI_GetGPIOBlockRemoteConfig(uint8_t *remoteConfigP);
 extern bool ThyoneI_GetModuleMode(ThyoneI_OperatingMode_t *moduleModeP);
 
 #endif // _ThyoneI_defined
+
 #ifdef __cplusplus
 }
 #endif

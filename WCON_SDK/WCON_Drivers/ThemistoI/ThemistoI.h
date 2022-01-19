@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,11 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+/**
+ * @file
+ * @brief ThemistoI driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -72,22 +76,18 @@ typedef enum ThemistoI_UserSettings_t
     ThemistoI_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } ThemistoI_UserSettings_t;
 
-/*
- * Struct repesenting  a usersetting
- * members:
- * -usersetting:  usersetting
- * -value:        value
- * -value-length: length of the value
+/**
+ * @brief Struct representing a user setting.
  */
 typedef struct ThemistoI_Configuration_t
 {
-   ThemistoI_UserSettings_t usersetting;
-   uint8_t value[MAX_USERSETTING_LENGTH];
-   uint8_t value_length;
+   ThemistoI_UserSettings_t usersetting;    /**< user setting */
+   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
+   uint8_t value_length;                    /**< length of the value */
 } ThemistoI_Configuration_t;
 
 
-extern bool ThemistoI_Init(uint32_t baudrate, FlowControl_t flow_control, ThemistoI_AddressMode_t addrmode,  void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
+extern bool ThemistoI_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThemistoI_AddressMode_t addrmode,  void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
 extern bool ThemistoI_Deinit(void);
 
 extern bool ThemistoI_PinReset(void);
@@ -100,7 +100,7 @@ extern bool ThemistoI_Shutdown(void);
 extern bool ThemistoI_Standby(void);
 extern bool ThemistoI_PinWakeup();
 
-/* read the non-volatile settings */
+/* Read the non-volatile settings */
 extern bool ThemistoI_Get(ThemistoI_UserSettings_t us, uint8_t* response, uint8_t* response_length);
 extern bool ThemistoI_GetFirmwareVersion(uint8_t* fw);
 extern bool ThemistoI_GetSerialNumber(uint8_t* sn);
@@ -112,9 +112,9 @@ extern bool ThemistoI_GetDefaultDestNetID(uint8_t* destnetid);
 extern bool ThemistoI_GetDefaultRFChannel(uint8_t* channel);
 extern bool ThemistoI_GetDefaultRFProfile(uint8_t* profile);
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool ThemistoI_FactoryReset(void);
 extern bool ThemistoI_Set(ThemistoI_UserSettings_t us, uint8_t* value, uint8_t length);
@@ -128,7 +128,7 @@ extern bool ThemistoI_SetDefaultRFChannel(uint8_t channel);
 extern bool ThemistoI_SetDefaultRFProfile(uint8_t profile);
 extern bool ThemistoI_EnableSnifferMode();
 
-/* write volatile settings into RAM, these settings are lost after a reset */
+/* Write volatile settings into RAM, these settings are lost after a reset */
 extern bool ThemistoI_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb);
 extern bool ThemistoI_SetVolatile_DestNetID(uint8_t destnetid);
 extern bool ThemistoI_SetVolatile_TXPower(uint8_t power);

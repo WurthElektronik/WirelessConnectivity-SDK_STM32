@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,20 +18,28 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+/**
+ * @file
+ * @brief Metis driver source file.
+ */
+
+#include <stdio.h>
 
 #include "string.h"
 
 #include "Metis.h"
 #include "../global/global.h"
 
-typedef struct Metis_Pins_t {
-	Pin_t reset;
-} Metis_Pins_t;
+typedef enum Metis_Pin_t
+{
+	Metis_Pin_Reset,
+	Metis_Pin_Count
+} Metis_Pin_t;
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
@@ -85,14 +93,16 @@ typedef struct Metis_Pins_t {
 #define Metis_CMD_FACTORYRESET_REQ (Metis_CMD_FACTORYRESET | Metis_CMD_TYPE_REQ)
 #define Metis_CMD_FACTORYRESET_CNF (Metis_CMD_FACTORYRESET | Metis_CMD_TYPE_CNF)
 
-/* type used to check the response, when a command was sent to the module */
-typedef enum CMD_Status_t
+/**
+ * @brief Type used to check the response, when a command was sent to the module
+ */
+typedef enum Metis_CMD_Status_t
 {
     CMD_Status_Success = 0x00,
     CMD_Status_Failed,
     CMD_Status_Invalid,
     CMD_Status_Reset,
-} CMD_Status_t;
+} Metis_CMD_Status_t;
 
 typedef struct
 {
@@ -100,43 +110,46 @@ typedef struct
     uint8_t Cmd;
     uint8_t Length;
     uint8_t Data[MAX_PAYLOAD_LENGTH + 1]; /* +1 for the CS */
-} CMD_Frame_t;
+} Metis_CMD_Frame_t;
 
 typedef struct
 {
     uint8_t cmd;                 /* variable to check if correct CMD has been confirmed */
-    CMD_Status_t status;         /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the TarvosIII */
-} CMD_Confirmation_t;
+    Metis_CMD_Status_t status;         /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the TarvosIII */
+} Metis_CMD_Confirmation_t;
 
 typedef struct
 {
     uint8_t memoryPosition;                 /* memory position of requested usersetting */
     uint8_t lengthGetRequest;               /* length of one or more requested usersetting */
-} US_Confirmation_t;
+} Metis_US_Confirmation_t;
 
 /**************************************
  *          Static variables          *
  **************************************/
 
-static Metis_Pins_t pins;
-static CMD_Frame_t RxPacket;                        /* data buffer for RX */
+static WE_Pin_t Metis_pins[Metis_Pin_Count] = {0};
+
+static Metis_CMD_Frame_t RxPacket;                        /* data buffer for RX */
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
-static CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
-static US_Confirmation_t usConfirmation;            /* variable used to check if GET function was successful */
-static Metis_Frequency_t frequency;               /* frequency used by module */
+static Metis_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
+static Metis_US_Confirmation_t usConfirmation;            /* variable used to check if GET function was successful */
+static Metis_Frequency_t frequency;                       /* frequency used by module */
 static bool rssi_enable = false;
 static uint8_t checksum = 0;
 static uint8_t RxByteCounter = 0;
-static uint8_t BytesToReceive = 0;                     /* read buffer for next available byte*/
-static uint8_t RxBuffer[sizeof(CMD_Frame_t)];   /* data buffer for RX */
-static void(*RXcallback)(uint8_t*,uint8_t,int8_t);  /* callback function */
+static uint8_t BytesToReceive = 0;                        /* read buffer for next available byte*/
+static uint8_t RxBuffer[sizeof(Metis_CMD_Frame_t)];       /* data buffer for RX */
+static void(*RxCallback)(uint8_t*,uint8_t,int8_t);        /* callback function */
 
 /**************************************
  *          Static functions          *
  **************************************/
 
-/* function to calculate the rssi value from the rx level */
+/**
+ * @brief Function to calculate the rssi value from the rx level
+ */
 static int8_t CalculateRSSIValue(uint8_t rxLevel)
 {
     uint8_t offset = 74;
@@ -153,10 +166,12 @@ static int8_t CalculateRSSIValue(uint8_t rxLevel)
     return rssi_value;
 }
 
-/* interpret the valid received data packet */
+/**
+ * @brief Interpret the valid received data packet
+ */
 static void HandleRxPacket(uint8_t*RxBuffer)
 {
-    CMD_Confirmation_t cmdConfirmation;
+    Metis_CMD_Confirmation_t cmdConfirmation;
     cmdConfirmation.cmd = CNFINVALID;
     cmdConfirmation.status = CMD_Status_Invalid;
 
@@ -212,19 +227,19 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     case Metis_CMD_DATA_IND:
     {
-        /* the call of the RXcallback strongly depends on the configuration of the module*/
-    	if(RXcallback != NULL)
+        /* the call of the RxCallback strongly depends on the configuration of the module*/
+    	if(RxCallback != NULL)
     	{
 			if(rssi_enable == 0x01)
 			{
 				/* the following implementation expects that the RSSI_Enable usersetting is enabled */
 				RxPacket.Length = RxPacket.Length - 1;
-				RXcallback(&RxPacket.Length, RxPacket.Length + 1, CalculateRSSIValue(RxPacket.Data[RxPacket.Length]));
+				RxCallback(&RxPacket.Length, RxPacket.Length + 1, CalculateRSSIValue(RxPacket.Data[RxPacket.Length]));
 			}
 			else
 			{
 				/* the following implementation expects that the RSSI_Enable usersetting is disabled */
-				RXcallback(&RxPacket.Length, RxPacket.Length + 1, (int8_t)RSSIINVALID);
+			    RxCallback(&RxPacket.Length, RxPacket.Length + 1, (int8_t)RSSIINVALID);
 			}
     	}
     }
@@ -370,8 +385,10 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
 }
 
-/* function that waits for the return value of Metis (*_CNF), when a command (*_REQ) was sent before */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, CMD_Status_t expectedStatus, bool reset_confirmstate)
+/**
+ * @brief Function that waits for the return value of Metis (*_CNF), when a command (*_REQ) was sent before.
+ */
+static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, Metis_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
     int count = 0;
     int time_step_ms = 5; /* 5ms */
@@ -403,12 +420,14 @@ static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, CMD_Statu
 
         /* wait */
         count++;
-        delay(time_step_ms);
+        WE_Delay(time_step_ms);
     }
     return true;
 }
 
-/* function to add the checksum at the end of the data packet */
+/**
+ * @brief Function to add the checksum at the end of the data packet
+ */
 static bool FillChecksum(uint8_t* array, uint8_t length)
 {
     bool ret = false;
@@ -431,30 +450,11 @@ static bool FillChecksum(uint8_t* array, uint8_t length)
 }
 
 
-static bool InitPins(Metis_Pins_t pins)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, pins.reset.pin, GPIO_PIN_RESET);
-
-	GPIO_InitStruct.Pin = pins.reset.pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    return true;
-}
-
 /**************************************
  *         Global functions           *
  **************************************/
  
-void UART_HandleRxByte(uint8_t received_byte)
+void WE_UART_HandleRxByte(uint8_t received_byte)
 {
 	RxBuffer[RxByteCounter] = received_byte;
 
@@ -506,47 +506,51 @@ void UART_HandleRxByte(uint8_t received_byte)
 	}
 }
 
-/*
- *Initialize the AMB module for serial interface
+/**
+ * @brief Initialize the AMB module for serial interface.
  *
- *input:
- * -baudrate:       baudrate of the interface
- * -flow_control:   enable/disable flowcontrol
- * -frequency:      frequency used by the AMBER module(AMB8xxx-M uses 868Mhz, AMB36xx-M uses 169MHz)
- * -mode:           wMBus-mode preselect of the AMBER module
- * -enable_rssi:    enable rssi in data reception
- * -RXcb:           RX callback function
+ * Caution: The baudrate parameter must match the module's baudrate to perform a successful communication.
+ *          Updating this parameter during runtime may lead to communication errors.
+ *          The mode parameter must match the other participant of the RF communication.
+ *          Check manual of the wM-Bus AMB modules for the suitable modes.
  *
- *Caution:  the baudrate parameter must match the module's baudrate to perform a successful communication
- *          updating this parameter during runtime may lead to communication errors
- *          the mode parameter must match the other participant of the RF communication
- *          Check Manual of the wMBus AMB modules for the suitable modes
+ * @param[in] baudrate       baud rate of the interface
+ * @param[in] flow_control   enable/disable flow control
+ * @param[in] frequency      frequency used by the AMBER module(AMB8xxx-M uses 868Mhz, AMB36xx-M uses 169MHz)
+ * @param[in] mode           wM-Bus mode preselect of the AMBER module
+ * @param[in] enable_rssi    enable rssi in data reception
+ * @param[in] RXcb           RX callback function
  *
- *return true if initialization succeeded
- *       false otherwise
+ * @return true if initialization succeeded,
+ *         false otherwise
  */
-bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t freq, Metis_Mode_Preselect_t mode, bool enable_rssi, void(*RXcb)(uint8_t*,uint8_t,int8_t))
+bool Metis_Init(uint32_t baudrate,
+                WE_FlowControl_t flow_control,
+                Metis_Frequency_t freq,
+                Metis_Mode_Preselect_t mode,
+                bool enable_rssi, void(*RXcb)(uint8_t*,uint8_t,int8_t))
 {
 	/* set frequency used by module */
 	frequency = freq;
 
     /* set RX callback function */
-    RXcallback = RXcb;
+	RxCallback = RXcb;
 
 	/* set rssi_enable */
 	rssi_enable = enable_rssi;
 
-	pins.reset.port = GPIOA;
-	pins.reset.pin = GPIO_PIN_10;
-	if (false == InitPins(pins))
+	Metis_pins[Metis_Pin_Reset].port = GPIOA;
+	Metis_pins[Metis_Pin_Reset].pin = GPIO_PIN_10;
+	Metis_pins[Metis_Pin_Reset].type = WE_Pin_Type_Output;
+	if (false == WE_InitPins(Metis_pins, Metis_Pin_Count))
 	{
 		/* error */
 		return false ;
 	}
-    SetPin(pins.reset, SetPin_Out_High);
+    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_High);
 	
-    UART_Init(baudrate, flow_control);
-    delay(1000);
+    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_Delay(1000);
 
 	/* set recommended settings as described in the manual section 5.1 */
 
@@ -557,10 +561,10 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	bool ret = Metis_GetUartOutEnable(&uartEnable);
 	if(uartEnable != 1)
 	{
-		delay(50);
+		WE_Delay(50);
 		if(Metis_SetUartOutEnable(1))
 		{
-			delay(50);
+			WE_Delay(50);
 		}
 		else
 		{
@@ -577,10 +581,10 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	ret = Metis_GetRSSIEnable(&rssi);
 	if(rssi != rssi_enable)
 	{
-		delay(50);
+		WE_Delay(50);
 		if(Metis_SetRSSIEnable(rssi_enable ? 1 : 0))
 		{
-			delay(50);
+			WE_Delay(50);
 		}
 		else
 		{
@@ -597,10 +601,10 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	ret = Metis_GetAESEnable(&aesEnable);
 	if(aesEnable != 0)
 	{
-		delay(50);
+		WE_Delay(50);
 		if(Metis_SetAESEnable(0))
 		{
-			delay(50);
+			WE_Delay(50);
 		}
 		else
 		{
@@ -617,10 +621,10 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	ret = Metis_GetModePreselect(&modePreselect);
 	if(modePreselect != mode)
 	{
-		delay(50);
+		WE_Delay(50);
 		if(Metis_SetModePreselect(mode))
 		{
-			delay(50);
+			WE_Delay(50);
 		}
 		else
 		{
@@ -633,7 +637,7 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	/* Reset module to apply changes */
 	if(Metis_Reset())
 	{
-		delay(300);
+		WE_Delay(300);
 	}
 	else
 	{
@@ -644,46 +648,46 @@ bool Metis_Init(uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t
 	return true;
 }
 
-/*
- * Deinitialize the Metis interface
+/**
+ * @brief Deinitialize the Metis interface.
  *
- * return true if deinitialization succeeded
- *        false otherwise
+ * @return true if deinitialization succeeded,
+ *         false otherwise
  */
 bool Metis_Deinit()
 {
 	/* close the communication interface to the module */
-	UART_DeInit();
+	WE_UART_DeInit();
 
     /* deinit pins */
-    DeinitPin(pins.reset);
+    WE_DeinitPin(Metis_pins[Metis_Pin_Reset]);
 
     /* deinit RX callback */
-    RXcallback = NULL;
+    RxCallback = NULL;
 
     return true;
 }
 
-/*
- *Reset the Metis by pin
+/**
+ * @brief Reset the Metis by pin
  *
- *return true if reset succeeded
- *       false otherwise
+ * @return true if reset succeeded
+ *         false otherwise
  */
 bool Metis_PinReset()
 {
-    SetPin(pins.reset, SetPin_Out_Low);
-    delay(5);
-    SetPin(pins.reset, SetPin_Out_High);
+    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_Low);
+    WE_Delay(5);
+    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_High);
 
     return true;
 }
 
-/*
- *Reset the Metis by command
+/**
+ * @brief Reset the Metis by command
  *
- *return true if reset succeeded
- *       false otherwise
+ * @return true if reset succeeded,
+ *         false otherwise
  */
 bool Metis_Reset()
 {
@@ -697,7 +701,7 @@ bool Metis_Reset()
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         return Wait4CNF(CMD_WAIT_TIME, Metis_CMD_RESET_CNF, CMD_Status_Success, true);
@@ -705,14 +709,14 @@ bool Metis_Reset()
     return ret;
 }
 
-/*
- *Factory reset the Metis
+/**
+ * @brief Factory reset the Metis
  *
- *note: use them only in rare cases, since flash can be updated only a limited number times
- *      the factory reset must be followed by a reset such that the changes become effective
+ * Note: Use only in rare cases, since flash can be updated only a limited number of times.
+ *       The factory reset must be followed by a reset such that the changes become effective.
  *
- *return true if factory reset succeeded
- *       false otherwise
+ * @return true if factory reset succeeded,
+ *         false otherwise
  */
 bool Metis_FactoryReset()
 {
@@ -726,7 +730,7 @@ bool Metis_FactoryReset()
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, Metis_CMD_FACTORYRESET_CNF, CMD_Status_Success, true);
@@ -734,14 +738,15 @@ bool Metis_FactoryReset()
     return ret;
 }
 
-/*
- *sets the baudrate of the module
- *input:
- *  -baudrate: baudrate
- *note: use them only in rare cases, since flash can be updated only a limited number times
+/**
+ * @brief Sets the baud rate of the module
  *
- *return true if setting baudrate succeeded
- *       false otherwise
+ * Note: Use only in rare cases, since flash can be updated only a limited number of times.
+ *
+ * @param[in] baudrate baud rate
+ *
+ * @return true if setting baud rate succeeded,
+ *         false otherwise
  */
 bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate)
 {
@@ -757,7 +762,7 @@ bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, Metis_CMD_SETUARTSPEED_CNF, CMD_Status_Success, true);
@@ -765,18 +770,15 @@ bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate)
     return ret;
 }
 
-/*
- *Request the current Metis settings
+/**
+ * @brief Request the current Metis settings.
  *
- *input:
- * -us: user setting to be requested
+ * @param[in] us: user setting to be requested
+ * @param[out] response: pointer of the memory to put the request content
+ * @param[out] response_length: length of the request content
  *
- *output:
- * -response: pointer of the memory to put the request content
- * -response_length: length of the request content
- *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_length)
 {
@@ -817,7 +819,7 @@ bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_len
         usConfirmation.lengthGetRequest = CMD_ARRAY[4];
 
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, Metis_CMD_GET_CNF, CMD_Status_Success, true))
@@ -833,19 +835,16 @@ bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_len
     return ret;
 }
 
-/*
- *Request multiple of the current Metis settings
+/**
+ * @brief Request multiple of the current Metis settings
  *
- *input:
- * -startAddress: first usersetting to be read
- * -lengthToRead: Length of memory to be read
+ * @param[in] startAddress: first usersetting to be read
+ * @param[in] lengthToRead: Length of memory to be read
+ * @param[out] response: pointer of the memory to put the request content
+ * @param[out] response_length: length of the request content
  *
- *output:
- * -response: pointer of the memory to put the request content
- * -response_length: length of the request content
- *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *response, uint8_t *response_length)
 {
@@ -864,7 +863,7 @@ bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *resp
         usConfirmation.lengthGetRequest = lengthToRead;
 
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, Metis_CMD_GET_CNF, CMD_Status_Success, true))
@@ -880,19 +879,18 @@ bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *resp
     return ret;
 }
 
-/*
- *Set a special Metis setting
+/**
+ * @brief Set a special Metis setting
  *
- *input:
- * -us:     user setting to be updated
- * -value:  pointer to the new settings value
- * -length: length of the value
+ * Note: Reset the module after the adaption of the setting such that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] us:     user setting to be updated
+ * @param[in] value:  pointer to the new settings value
+ * @param[in] length: length of the value
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_Set(Metis_UserSettings_t us, uint8_t* value, uint8_t length)
 {
@@ -909,7 +907,7 @@ bool Metis_Set(Metis_UserSettings_t us, uint8_t* value, uint8_t length)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, Metis_CMD_SET_CNF, CMD_Status_Success, true);
@@ -917,14 +915,13 @@ bool Metis_Set(Metis_UserSettings_t us, uint8_t* value, uint8_t length)
     return ret;
 }
 
-/*
- *Request the 3 byte firmware version
+/**
+ * @brief Request the 3 byte firmware version.
  *
- *output:
- * -fw: pointer to the 3 byte firmware version
+ * @param[out] fw: pointer to the 3 byte firmware version
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetFirmwareVersion(uint8_t* fw)
 {
@@ -936,7 +933,7 @@ bool Metis_GetFirmwareVersion(uint8_t* fw)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, Metis_CMD_GET_FWRELEASE_CNF, CMD_Status_Success, true))
@@ -948,14 +945,13 @@ bool Metis_GetFirmwareVersion(uint8_t* fw)
     return false;
 }
 
-/*
- *Request the 4 byte serial number
+/**
+ * @brief Request the 4 byte serial number
  *
- *output:
- * -sn: pointer to the 4 byte serial number
+ * @param[out] sn: pointer to the 4 byte serial number
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetSerialNumber(uint8_t* sn)
 {
@@ -967,7 +963,7 @@ bool Metis_GetSerialNumber(uint8_t* sn)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, Metis_CMD_GET_SERIALNO_CNF, CMD_Status_Success, true))
@@ -979,14 +975,13 @@ bool Metis_GetSerialNumber(uint8_t* sn)
     return false;
 }
 
-/*
- *Request the default TX power
+/**
+ * @brief Request the default TX power.
  *
- *output:
- * -txpower: pointer to the TXpower
+ * @param[out] txpower: pointer to the TXpower
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetDefaultTXPower(int8_t* txpower)
 {
@@ -1003,13 +998,13 @@ bool Metis_GetDefaultTXPower(int8_t* txpower)
     }
 }
 
-/*
- *Get the Uart Out Enable byte
- *output:
- * -uartEnable: pointer to uartEnable
+/**
+ * @brief Get the Uart Out Enable byte
  *
- *return true if request succeeded
- *       false otherwise
+ * @param[out] uartEnable: pointer to uartEnable
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetUartOutEnable(uint8_t* uartEnable)
 {
@@ -1017,13 +1012,13 @@ bool Metis_GetUartOutEnable(uint8_t* uartEnable)
     return Metis_Get(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, uartEnable, &length);
 }
 
-/*
- *Get the RSSI Enable byte
- *output:
- * -rssiEnable: pointer to rssiEnable
+/**
+ * @brief Get the RSSI Enable byte
  *
- *return true if request succeeded
- *       false otherwise
+ * @param[out] rssiEnable: pointer to rssiEnable
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetRSSIEnable(uint8_t* rssiEnable)
 {
@@ -1031,13 +1026,13 @@ bool Metis_GetRSSIEnable(uint8_t* rssiEnable)
     return Metis_Get(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, rssiEnable, &length);
 }
 
-/*
- *Get the M-Bus mode preselect byte
- *output:
- * -modePreselect: Pointer to mode Preselect
+/**
+ * @brief Get the M-Bus mode preselect byte
  *
- *return true if request succeeded
- *       false otherwise
+ * @param[out] modePreselect: Pointer to mode Preselect
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 
 bool Metis_GetModePreselect(uint8_t* modePreselect)
@@ -1046,13 +1041,13 @@ bool Metis_GetModePreselect(uint8_t* modePreselect)
     return Metis_Get(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, modePreselect, &length);
 }
 
-/*
- *Get the AES Enable byte
- *output:
- * -aesEnable: pointer to aes enable
+/**
+ * @brief Get the AES Enable byte
  *
- *return true if request succeeded
- *       false otherwise
+ * @param[out] aesEnable: pointer to aes enable
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_GetAESEnable(uint8_t* aesEnable)
 {
@@ -1060,18 +1055,17 @@ bool Metis_GetAESEnable(uint8_t* aesEnable)
     return Metis_Get(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, aesEnable, &length);
 }
 
-/*
- *Set the default TX power
+/**
+ * @brief Set the default TX power
  *
- *input:
- * -txpower: TXpower
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ * Note: Use Metis_SetVolatile_TXPower for frequent adaption of the TX power.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
- *note: use Metis_SetVolatile_TXPower for frequent adaption of the TX power
+ * @param[in] txpower: TXpower
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetDefaultTXPower(int8_t txpower)
 {
@@ -1084,17 +1078,16 @@ bool Metis_SetDefaultTXPower(int8_t txpower)
     return Metis_Set(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER, (uint8_t*)&txpower, 1);
 }
 
-/*
- *Set the Uart Out Enable
+/**
+ * @brief Set the Uart Out Enable
  *
- *input:
- * -uartEnable: uart enable
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] uartEnable: uart enable
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetUartOutEnable(uint8_t uartEnable)
 {
@@ -1104,17 +1097,16 @@ bool Metis_SetUartOutEnable(uint8_t uartEnable)
     }
     return Metis_Set(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, &uartEnable, 1);
 }
-/*
- *Set the RSSI Enable byte
+/**
+ * @brief Set the RSSI Enable byte
  *
- *input:
- * -rssiEnable: rssi Enable
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] rssiEnable: rssi Enable
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetRSSIEnable(uint8_t rssiEnable)
 {
@@ -1125,18 +1117,17 @@ bool Metis_SetRSSIEnable(uint8_t rssiEnable)
     return Metis_Set(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, &rssiEnable,1);
 }
 
-/*
- *Set the AES Enable byte
+/**
+ * @brief Set the AES Enable byte
  *
- *input:
- * -aesEnable: AES enable
+ * Note: Functions for AES are not implemented. Can only be used for disabling AES.
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: functions for AES are not implemented. Can only be used for disabling AES.
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] aesEnable: AES enable
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetAESEnable(uint8_t aesEnable)
 {
@@ -1147,32 +1138,30 @@ bool Metis_SetAESEnable(uint8_t aesEnable)
     return Metis_Set(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, &aesEnable,1);
 }
 
-/*
- *Set the default M-Bus mode preselect
+/**
+ * @brief Set the default M-Bus mode preselect
  *
- *input:
- * -modePreselect: M-Bus mode preselect
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ * Note: Use Metis_SetVolatile_ModePreselect for frequent adaption of the channel.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
- *note: use Metis_SetVolatile_ModePreselect for frequent adaption of the channel
+ * @param[in] modePreselect: M-Bus mode preselect
 
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetModePreselect(Metis_Mode_Preselect_t modePreselect)
 {
     return Metis_Set(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, (uint8_t*)&modePreselect, 1);
 }
 
-/*
- *Set the volatile mode preselect
+/**
+ * @brief Set the volatile mode preselect
  *
- *input:
- * -modePreselect: new mode preselect value
+ * @param[in] modePreselect: new mode preselect value
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect)
 {
@@ -1187,7 +1176,7 @@ bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf*/
         ret = Wait4CNF(CMD_WAIT_TIME, Metis_CMD_SET_CNF, CMD_Status_Success, true);
@@ -1195,14 +1184,13 @@ bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect)
     return ret;
 }
 
-/*
- *Transmit data using the configured settings
+/**
+ * @brief Transmit data using the configured settings
  *
- *input:
- * -payload: pointer to the data
+ * @param[in] payload: pointer to the data
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool Metis_Transmit(uint8_t* payload)
 {
@@ -1223,7 +1211,7 @@ bool Metis_Transmit(uint8_t* payload)
         if(modePreselect == MBus_Mode_868_C2_T2_other)
         {
             /* module can not send in this mode. */
-            fprintf(stdout, "Mode Preselect %x is not suitable for transmiting\n", modePreselect);
+            fprintf(stdout, "Mode Preselect %x is not suitable for transmitting\n", modePreselect);
             return false;
         }
     }
@@ -1238,7 +1226,7 @@ bool Metis_Transmit(uint8_t* payload)
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, Metis_CMD_DATA_CNF, CMD_Status_Success, true);
@@ -1246,16 +1234,15 @@ bool Metis_Transmit(uint8_t* payload)
     return ret;
 }
 
-/*
- *Configure the Metis
+/**
+ * @brief Configure the Metis
  *
- *input:
- * -config: pointer to the configuration struct
- * -config_length: length of the configuration struct
- * -factory_reset: apply a factory reset before or not
+ * @param[in] config: pointer to the configuration struct
+ * @param[in] config_length: length of the configuration struct
+ * @param[in] factory_reset: apply a factory reset before or not
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
 */
 bool Metis_Configure(Metis_Configuration_t* config, uint8_t config_length, bool factory_reset)
 {
@@ -1272,7 +1259,7 @@ bool Metis_Configure(Metis_Configuration_t* config, uint8_t config_length, bool 
             return false;
         }
     }
-    delay(500);
+    WE_Delay(500);
 
     /* now check all settings and update them if necessary */
     for(i=0; i<config_length; i++)
@@ -1283,7 +1270,7 @@ bool Metis_Configure(Metis_Configuration_t* config, uint8_t config_length, bool 
             /* error */
             return false;
         }
-        delay(200);
+        WE_Delay(200);
 
         /* check the value read out */
         if(help_length != config[i].value_length)
@@ -1300,7 +1287,7 @@ bool Metis_Configure(Metis_Configuration_t* config, uint8_t config_length, bool 
                 return false;
             }
         }
-        delay(200);
+        WE_Delay(200);
     }
 
     /* reset to take effect of the updated parameters */

@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,32 +18,34 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+#include <stdio.h>
 #include <string.h>
+
 #include "../../WCON_Drivers/ThyoneI/ThyoneI.h"
 #include "../../WCON_Drivers/global/global.h"
 
 /* callback for data reception */
-static void RXcallback(uint8_t* payload, uint16_t payload_length, uint32_t sourceAddress, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint16_t payload_length, uint32_t sourceAddress, int8_t rssi)
 {
     int i = 0;
-    printf ("Received data from address 0x%02x with %d dBm:\n-> ", sourceAddress, rssi);
+    printf("Received data from address 0x%02lx with %d dBm:\n-> ", sourceAddress, rssi);
     printf("0x ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%02x ", *(payload+i)) ;
+        printf("%02x ", *(payload+i));
     }
-    printf ("\n-> ") ;
+    printf("\n-> ");
     for(i=0; i<payload_length; i++)
     {
-        printf ("%c", *(payload+i)) ;
+        printf("%c", *(payload+i));
     }
-    printf ("\n") ;
-    fflush (stdout) ;
+    printf("\n");
+    fflush(stdout);
 }
 
 /**
@@ -54,27 +56,32 @@ int main(void)
 {
   bool ret = false;
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+  WE_Platform_Init();
 
-  /* Configure the system clock */
-  SystemClock_Config();
+#ifdef WE_DEBUG
+  WE_Debug_Init();
+#endif
 
-  ThyoneI_Init(ThyoneI_DEFAULT_BAUDRATE, No_flow_control, RXcallback);
+  uint8_t driverVersion[3];
+  WE_GetDriverVersion(driverVersion);
+  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+
+  ThyoneI_Init(ThyoneI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, RxCallback);
 
   while (1)
   {
 	uint8_t version[3];
 	memset(version,0,sizeof(version));
 	ret = ThyoneI_GetFWVersion(version);
-	delay(500);
+	WE_Delay(500);
 
 	uint8_t SN[4];
 	memset(SN,0,sizeof(SN));
 	ret = ThyoneI_GetSerialNumber(SN);
-	delay(500);
+	WE_Delay(500);
 
 	ret = ThyoneI_PinReset();
-	delay(500);
+	WE_Delay(500);
   }
 }

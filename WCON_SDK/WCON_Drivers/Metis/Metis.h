@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,10 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
+
+/**
+ * @file
+ * @brief Metis driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,12 +50,17 @@ extern "C" {
 #ifndef _Metis_defined
 #define _Metis_defined
 
+/**
+ * Max. length of user settings (number of bytes).
+ */
 #define MAX_USERSETTING_LENGTH 4
 
-/* enum for wM-Bus Mode
+/**
+ * @brief Enumeration for wM-Bus mode.
+ *
  * By setting the mode preselect all RF parameters are set accordingly
  * and no further adaption is necessary.
- * There are different sets of modes for 868 MHz and 169 MHz respectively
+ * There are different sets of modes for 868 MHz and 169 MHz respectively.
  */
 typedef enum Metis_Mode_Preselect_t
 {
@@ -78,17 +88,22 @@ typedef enum Metis_Mode_Preselect_t
     MBus_Mode_169_N2e = 0x0A,
     MBus_Mode_169_N1f = 0x0B,
     MBus_Mode_169_N2f = 0x0C,
-}Metis_Mode_Preselect_t;
+} Metis_Mode_Preselect_t;
 
+/**
+ * @brief wM-Bus Frequency.
+ */
 typedef enum Metis_Frequency_t
 {
     MBus_Frequency_169,
     MBus_Frequency_868,
 } Metis_Frequency_t;
 
-/* enum for supported baudrates of the module
- * Used to change the baudrate of the module via CMD_SetUartspeed
- * which expects predefined values as set here
+/**
+ * @brief Enumeration for baud rates supported by the module.
+ *
+ * Used to change the baud rate of the module via CMD_SetUartspeed
+ * which expects predefined values as set here.
  */
 typedef enum Metis_UartBaudrate_t
 {
@@ -102,6 +117,9 @@ typedef enum Metis_UartBaudrate_t
     MBus_Baudrate_115200 = 0x07,
 } Metis_UartBaudrate_t;
 
+/**
+ * @brief User settings memory locations.
+ */
 typedef enum Metis_UserSettings_t
 {
     Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE  = 0x05,
@@ -112,25 +130,23 @@ typedef enum Metis_UserSettings_t
     Metis_USERSETTING_MEMPOSITION_CFG_FLAGS            = 0x50,
 } Metis_UserSettings_t;
 
-/*
- * Struct repesenting a usersetting with its value
- * members:
- * -usersetting:  usersetting
- * -value:        value
- * -value-length: length of the value
+/**
+ * @brief Struct representing a user setting with its value.
  */
 typedef struct Metis_Configuration_t
 {
-    Metis_UserSettings_t usersetting;
-    uint8_t value[MAX_USERSETTING_LENGTH];
-    uint8_t value_length;
+    Metis_UserSettings_t usersetting;           /**< User setting */
+    uint8_t value[MAX_USERSETTING_LENGTH];      /**< Value */
+    uint8_t value_length;                       /**< Length of value */
 } Metis_Configuration_t;
 
-/* Functions to initialize/deinitialize the module.
-
- * Deinit can be used for both.
- */
-extern bool Metis_Init( uint32_t baudrate, FlowControl_t flow_control, Metis_Frequency_t frequency, Metis_Mode_Preselect_t mode, bool enable_rssi, void(*RXcb)(uint8_t*,uint8_t,int8_t));
+/* Functions to initialize/deinitialize the module. */
+extern bool Metis_Init(uint32_t baudrate,
+                       WE_FlowControl_t flow_control,
+                       Metis_Frequency_t frequency,
+                       Metis_Mode_Preselect_t mode,
+                       bool enable_rssi,
+                       void(*RXcb)(uint8_t*,uint8_t,int8_t));
 extern bool Metis_Deinit(void);
 
 extern bool Metis_PinReset(void);
@@ -138,7 +154,7 @@ extern bool Metis_Reset(void);
 
 extern bool Metis_Transmit(uint8_t* payload);
 
-/* read the non-volatile settings */
+/* Reading of non-volatile settings */
 extern bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_length);
 extern bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *response, uint8_t *response_length);
 extern bool Metis_GetFirmwareVersion(uint8_t* fw);
@@ -150,9 +166,9 @@ extern bool Metis_GetAESEnable(uint8_t* aesEnable);
 extern bool Metis_GetModePreselect(uint8_t* modePreselect);
 
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool Metis_FactoryReset(void);
 extern bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate);
@@ -164,7 +180,7 @@ extern bool Metis_SetRSSIEnable(uint8_t rssiEnable);
 extern bool Metis_SetAESEnable(uint8_t aesEnable);
 extern bool Metis_SetModePreselect(Metis_Mode_Preselect_t modePreselect);
 
-/* write volatile settings into RAM, these settings are lost after a reset */
+/* Write volatile settings into RAM, these settings are lost after a reset. */
 extern bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect);
 
 #endif // _Metis_defined

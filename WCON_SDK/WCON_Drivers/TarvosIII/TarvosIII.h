@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,11 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+/**
+ * @file
+ * @brief TarvosIII driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -69,22 +73,18 @@ typedef enum TarvosIII_UserSettings_t
     TarvosIII_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } TarvosIII_UserSettings_t;
 
-/*
- * Struct repesenting  a usersetting
- * members:
- * -usersetting:  usersetting
- * -value:        value
- * -value-length: length of the value
+/**
+ * @brief Struct representing a user setting.
  */
 typedef struct TarvosIII_Configuration_t
 {
-   TarvosIII_UserSettings_t usersetting;
-   uint8_t value[MAX_USERSETTING_LENGTH];
-   uint8_t value_length;
+   TarvosIII_UserSettings_t usersetting;    /**< user setting */
+   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
+   uint8_t value_length;                    /**< length of the value */
 } TarvosIII_Configuration_t;
 
 
-extern bool TarvosIII_Init(uint32_t baudrate, FlowControl_t flow_control, TarvosIII_AddressMode_t addrmode, void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
+extern bool TarvosIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, TarvosIII_AddressMode_t addrmode, void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
 extern bool TarvosIII_Deinit(void);
 
 extern bool TarvosIII_PinReset(void);
@@ -97,7 +97,7 @@ extern bool TarvosIII_Shutdown(void);
 extern bool TarvosIII_Standby(void);
 extern bool TarvosIII_PinWakeup();
 
-/* read the non-volatile settings */
+/* Read the non-volatile settings */
 extern bool TarvosIII_Get(TarvosIII_UserSettings_t us, uint8_t* response, uint8_t* response_length);
 extern bool TarvosIII_GetFirmwareVersion(uint8_t* fw);
 extern bool TarvosIII_GetSerialNumber(uint8_t* sn);
@@ -109,9 +109,9 @@ extern bool TarvosIII_GetDefaultDestNetID(uint8_t* destnetid);
 extern bool TarvosIII_GetDefaultRFChannel(uint8_t* channel);
 extern bool TarvosIII_GetDefaultRFProfile(uint8_t* profile);
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool TarvosIII_FactoryReset(void);
 extern bool TarvosIII_Set(TarvosIII_UserSettings_t us, uint8_t* value, uint8_t length);
@@ -134,6 +134,7 @@ extern bool TarvosIII_SetVolatile_Channel(uint8_t channel);
 extern bool TarvosIII_Ping();
 
 #endif // _TarvosIII_defined
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,22 +18,31 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
-#include "string.h"
+/**
+ * @file
+ * @brief ProteusIII driver source file.
+ */
 
 #include "ProteusIII.h"
+
+#include "stdio.h"
+#include "string.h"
+
 #include "../global/global.h"
 
-typedef struct ProteusIII_Pins_t {
-	Pin_t reset;
-	Pin_t sleep_wake_up;
-	Pin_t boot;
-	Pin_t mode;
-} ProteusIII_Pins_t;
+typedef enum ProteusIII_Pin_t
+{
+	ProteusIII_Pin_Reset,
+	ProteusIII_Pin_SleepWakeUp,
+	ProteusIII_Pin_Boot,
+	ProteusIII_Pin_Mode,
+	ProteusIII_Pin_Count
+} ProteusIII_Pin_t;
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
@@ -173,21 +182,26 @@ typedef struct ProteusIII_Pins_t {
 #define CMD_ARRAY_SIZE() ((((uint16_t)CMD_Array[CMD_POSITION_LENGTH_LSB] << 0) | ((uint16_t)CMD_Array[CMD_POSITION_LENGTH_MSB] << 8)) + LENGTH_CMD_OVERHEAD)
 
 
-/* type used to check the response, when a command was sent to the ProteusIII */
-typedef enum CMD_Status_t
+/**
+ * @brief Type used to check the response, when a command was sent to the ProteusIII
+ */
+typedef enum ProteusIII_CMD_Status_t
 {
     CMD_Status_Success = (uint8_t)0x00,
     CMD_Status_Failed = (uint8_t)0x01,
     CMD_Status_Invalid,
     CMD_Status_Reset,
     CMD_Status_NoStatus,
-} CMD_Status_t;
+} ProteusIII_CMD_Status_t;
 
+/**
+ * @brief Command confirmation.
+ */
 typedef struct
 {
-    uint8_t cmd; /* variable to check if correct CMD has been confirmed */
-    CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ProteusIII */
-} CMD_Confirmation_t;
+    uint8_t cmd;            /**< Variable to check if correct CMD has been confirmed */
+    ProteusIII_CMD_Status_t status;    /**< Variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ProteusIII */
+} ProteusIII_CMD_Confirmation_t;
 
 /**************************************
  *          Static variables          *
@@ -196,11 +210,11 @@ static uint8_t CMD_Array[MAX_CMD_LENGTH]; /* for UART TX to module*/
 static uint8_t RxPacket[MAX_CMD_LENGTH];
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
-static CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
+static ProteusIII_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
 static ProteusIII_GetDevices_t* ProteusIII_GetDevicesP = NULL;
 static ProteusIII_States_t ble_state;
 static bool askedForState;
-static ProteusIII_Pins_t pins;
+static WE_Pin_t ProteusIII_pins[ProteusIII_Pin_Count] = {0};
 static ProteusIII_CallbackConfig_t callbacks;
 static uint8_t checksum = 0;
 static uint16_t RxByteCounter = 0;
@@ -212,9 +226,9 @@ static uint8_t RxBuffer[MAX_CMD_LENGTH]; /* For UART RX from module */
  **************************************/
 
 
-static void HandleRxPacket(uint8_t * pRxBuffer)
+static void HandleRxPacket(uint8_t *pRxBuffer)
 {
-    CMD_Confirmation_t cmdConfirmation;
+    ProteusIII_CMD_Confirmation_t cmdConfirmation;
     cmdConfirmation.cmd = CNFINVALID;
     cmdConfirmation.status = CMD_Status_Invalid;
 
@@ -301,22 +315,22 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
     case ProteusIII_CMD_CONNECT_IND:
     {
         ble_state = ProteusIII_State_BLE_Connected;
-        if(callbacks.connectCp != NULL)
+        if(callbacks.connectCb != NULL)
         {
-            callbacks.connectCp(&RxPacket[CMD_POSITION_DATA+1]);
+            callbacks.connectCb(&RxPacket[CMD_POSITION_DATA+1]);
         }
         break;
     }
 
     case ProteusIII_CMD_DISCONNECT_IND:
     {
+        ble_state = ProteusIII_State_BLE_Invalid;
         if(callbacks.disconnectCb != NULL)
         {
             callbacks.disconnectCb();
         }
         break;
     }
-
 
     case ProteusIII_CMD_DATA_IND:
     {
@@ -383,8 +397,11 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
     }
 }
 
-/* function that waits for the return value of ProteusIII (*_CNF), when a command (*_REQ) was sent before */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, CMD_Status_t expectedStatus, bool reset_confirmstate)
+/**
+ * @brief Function that waits for the return value of ProteusIII (*_CNF),
+ * when a command (*_REQ) was sent before.
+ */
+static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ProteusIII_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
     int count = 0;
     int time_step_ms = 5; /* 5ms */
@@ -416,12 +433,14 @@ static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, CMD_Statu
 
         /* wait */
         count++;
-        delay(time_step_ms);
+        WE_Delay(time_step_ms);
     }
     return true;
 }
 
-/* function to add the checksum at the end of the data packet */
+/**
+ * @brief Function to add the checksum at the end of the data packet.
+ */
 static bool FillChecksum(uint8_t* pArray, uint16_t length)
 {
     bool ret = false;
@@ -443,32 +462,11 @@ static bool FillChecksum(uint8_t* pArray, uint16_t length)
     return ret;
 }
 
-static bool InitPins(ProteusIII_Pins_t pins)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, pins.boot.pin|pins.mode.pin|pins.sleep_wake_up.pin
-					  |pins.reset.pin, GPIO_PIN_RESET);
-
-	GPIO_InitStruct.Pin = pins.boot.pin|pins.mode.pin|pins.sleep_wake_up.pin
-			  |pins.reset.pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-    return true;
-}
-
 /**************************************
  *         Global functions           *
  **************************************/
  
-void UART_HandleRxByte(uint8_t received_byte)
+void WE_UART_HandleRxByte(uint8_t received_byte)
 {
 	RxBuffer[RxByteCounter] = received_byte;
 
@@ -527,62 +525,65 @@ void UART_HandleRxByte(uint8_t received_byte)
 
 }
 
-/*
- *Initialize the ProteusIII interface for serial interface
+/**
+ * @brief Initialize the ProteusIII for serial interface.
  *
- *input:
- * -baudrate:       baudrate of the interface
- * -flow_control:   enable/disable flowcontrol
+ * Caution: The parameter baudrate must match the configured UserSettings of the ProteusIII.
+ *          The baudrate parameter must match to perform a successful FTDI communication.
+ *          Updating this parameter during runtime may lead to communication errors.
  *
- *Caution: the parameter baudrate must match the configured UserSettings of the ProteusIII
- *         -the baudrate parameter must match to perform a successful FTDI communication
- *          *updating this parameter during runtime may lead to communication errors
+ * @param[in] baudrate:       baudrate of the interface
+ * @param[in] flow_control:   enable/disable flowcontrol
  *
- *return true if initialization succeeded
- *       false otherwise
+ * @return true if initialization succeeded,
+ *         false otherwise
  */
-bool ProteusIII_Init(uint32_t baudrate, FlowControl_t flow_control, ProteusIII_CallbackConfig_t callbackConfig)
+bool ProteusIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ProteusIII_CallbackConfig_t callbackConfig)
 {
-	pins.reset.port = GPIOA;
-	pins.reset.pin = GPIO_PIN_10;
-	pins.sleep_wake_up.port = GPIOA;
-	pins.sleep_wake_up.pin = GPIO_PIN_9;
-	pins.boot.port = GPIOA;
-	pins.boot.pin = GPIO_PIN_7;
-	pins.mode.port = GPIOA;
-	pins.mode.pin = GPIO_PIN_8;
-
-    /* initialize the boot pin */
-    if (false == InitPins(pins))
+    /* initialize the pins */
+	ProteusIII_pins[ProteusIII_Pin_Reset].port = GPIOA;
+	ProteusIII_pins[ProteusIII_Pin_Reset].pin = GPIO_PIN_10;
+	ProteusIII_pins[ProteusIII_Pin_Reset].type = WE_Pin_Type_Output;
+	ProteusIII_pins[ProteusIII_Pin_SleepWakeUp].port = GPIOA;
+	ProteusIII_pins[ProteusIII_Pin_SleepWakeUp].pin = GPIO_PIN_9;
+	ProteusIII_pins[ProteusIII_Pin_SleepWakeUp].type = WE_Pin_Type_Output;
+	ProteusIII_pins[ProteusIII_Pin_Boot].port = GPIOA;
+	ProteusIII_pins[ProteusIII_Pin_Boot].pin = GPIO_PIN_7;
+	ProteusIII_pins[ProteusIII_Pin_Boot].type = WE_Pin_Type_Output;
+	ProteusIII_pins[ProteusIII_Pin_Mode].port = GPIOA;
+	ProteusIII_pins[ProteusIII_Pin_Mode].pin = GPIO_PIN_8;
+	ProteusIII_pins[ProteusIII_Pin_Mode].type = WE_Pin_Type_Output;
+    if (false == WE_InitPins(ProteusIII_pins, ProteusIII_Pin_Count))
     {
         /* error */
         return false ;
     }
-    SetPin(pins.boot, SetPin_Out_High);
-    SetPin(pins.sleep_wake_up, SetPin_Out_High);
-    SetPin(pins.mode, SetPin_Out_Low);
-    SetPin(pins.reset, SetPin_Out_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_Boot], WE_Pin_Level_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_SleepWakeUp], WE_Pin_Level_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_Reset], WE_Pin_Level_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_Mode], WE_Pin_Level_Low);
 
     /* set RX callback function */
     callbacks.rxCb = callbackConfig.rxCb;
-	callbacks.connectCp = callbackConfig.connectCp;
+	callbacks.connectCb = callbackConfig.connectCb;
 	callbacks.securityCb = callbackConfig.securityCb;
 	callbacks.passkeyCb = callbackConfig.passkeyCb;
+    callbacks.displayPasskeyCb = callbackConfig.displayPasskeyCb;
 	callbacks.disconnectCb = callbackConfig.disconnectCb;
 	callbacks.channelOpenCb = callbackConfig.channelOpenCb;
 	callbacks.phyUpdateCb = callbackConfig.phyUpdateCb;
 
-	UART_Init(baudrate, flow_control);
-    delay(10);
+	WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_Delay(10);
 
 	/* reset module*/
     if(ProteusIII_PinReset())
     {
-        delay(ProteusIII_BOOT_DURATION);
+        WE_Delay(ProteusIII_BOOT_DURATION);
     }
     else
     {
-        fprintf(stdout, "Pin Reset failed\n");
+        fprintf(stdout, "Pin reset failed\n");
         ProteusIII_Deinit();
         return false;
     }
@@ -592,35 +593,35 @@ bool ProteusIII_Init(uint32_t baudrate, FlowControl_t flow_control, ProteusIII_C
 	ProteusIII_GetDevicesP = NULL;
 
 	uint8_t driver_version[3];
-	if(GetDriverVersion(driver_version))
+	if(WE_GetDriverVersion(driver_version))
 	{
-		fprintf (stdout, COLOR_CYAN "ProteusIII driver version %d.%d.%d\n" COLOR_RESET,driver_version[0],driver_version[1],driver_version[2]);
+		fprintf(stdout, "ProteusIII driver version %d.%d.%d\n",driver_version[0],driver_version[1],driver_version[2]);
 	}
-	delay(100);
+	WE_Delay(100);
 
 	return true;
 }
 
-/*
- *Deinitialize the ProteusIII interface
+/**
+ * @brief Deinitialize the ProteusIII interface.
  *
- *return true if deinitialization succeeded
- *       false otherwise
+ * @return true if deinitialization succeeded,
+ *         false otherwise
  */
 bool ProteusIII_Deinit()
 {
 	/* close the communication interface to the module */
-	UART_DeInit();
+	WE_UART_DeInit();
 
     /* deinit pins */
-    DeinitPin(pins.reset);
-    DeinitPin(pins.sleep_wake_up);
-    DeinitPin(pins.boot);
-    DeinitPin(pins.mode);
+    WE_DeinitPin(ProteusIII_pins[ProteusIII_Pin_Reset]);
+    WE_DeinitPin(ProteusIII_pins[ProteusIII_Pin_SleepWakeUp]);
+    WE_DeinitPin(ProteusIII_pins[ProteusIII_Pin_Boot]);
+    WE_DeinitPin(ProteusIII_pins[ProteusIII_Pin_Mode]);
 
     /* reset callbacks */
     callbacks.rxCb = NULL;
-    callbacks.connectCp = NULL;
+    callbacks.connectCb = NULL;
     callbacks.securityCb = NULL;
     callbacks.passkeyCb = NULL;
     callbacks.disconnectCb = NULL;
@@ -631,52 +632,51 @@ bool ProteusIII_Deinit()
     return true;
 }
 
-/*
- *Wakeup the ProteusIII from sleep by pin
+/**
+ * @brief Wakeup the ProteusIII from sleep by pin
  *
- *return true if wakeup succeeded
- *       false otherwise
+ * @return true if wakeup succeeded,
+ *         false otherwise
  */
 bool ProteusIII_PinWakeup()
 {
     int i = 0;
 
-    SetPin(pins.sleep_wake_up, SetPin_Out_Low);
-    delay (5);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_SleepWakeUp], WE_Pin_Level_Low);
+    WE_Delay (5);
     for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
     {
         cmdConfirmation_array[i].status = CMD_Status_Invalid;
         cmdConfirmation_array[i].cmd = CNFINVALID;
     }
-    SetPin(pins.sleep_wake_up, SetPin_Out_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_SleepWakeUp], WE_Pin_Level_High);
 
     /* wait for cnf */
     return Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
 }
 
-/*
- *Reset the ProteusIII by pin
+/**
+ * @brief Reset the ProteusIII by pin.
  *
- *return true if reset succeeded
- *       false otherwise
+ * @return true if reset succeeded,
+ *         false otherwise
  */
 bool ProteusIII_PinReset()
 {
     /* set to output mode */
-    SetPin(pins.reset, SetPin_Out_Low);
-
-    delay(5);
-    SetPin(pins.reset, SetPin_Out_High);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_Reset], WE_Pin_Level_Low);
+    WE_Delay(5);
+    WE_SetPin(ProteusIII_pins[ProteusIII_Pin_Reset], WE_Pin_Level_High);
 
     /* wait for cnf */
     return Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
-/*
- *Reset the ProteusIII by command
+/**
+ * @brief Reset the ProteusIII by command
  *
- *return true if reset succeeded
- *       false otherwise
+ * @return true if reset succeeded,
+ *         false otherwise
  */
 bool ProteusIII_Reset()
 {
@@ -691,7 +691,7 @@ bool ProteusIII_Reset()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         return Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
@@ -699,14 +699,13 @@ bool ProteusIII_Reset()
     return ret;
 }
 
-/*
- *Disconnect the ProteusIII connection if open
+/**
+ * @brief Disconnect the ProteusIII connection if open.
  *
- *return true if disconnection succeeded
- *       false otherwise
+ * @return true if disconnect succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Disconnect()
+bool ProteusIII_Disconnect()
 {
     bool ret = false;
     /* fill CMD_ARRAY packet */
@@ -718,7 +717,7 @@ ProteusIII_Disconnect()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* Confirmation is sent before perfoming the disconnect. After disconnect, module sends dicsonnect indication */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
@@ -726,14 +725,13 @@ ProteusIII_Disconnect()
     return ret;
 }
 
-/*
- *Put the ProteusIII into sleep mode
+/**
+ * @brief Put the ProteusIII into sleep mode.
  *
- *return true if succeeded
- *       false otherwise
+ * @return true if succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Sleep()
+bool ProteusIII_Sleep()
 {
     bool ret = false;
     /* fill CMD_ARRAY packet */
@@ -745,7 +743,7 @@ ProteusIII_Sleep()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit( CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit( CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_SLEEP_CNF, CMD_Status_Success, true);
@@ -753,18 +751,16 @@ ProteusIII_Sleep()
     return ret;
 }
 
-/*
- *Transmit data if a connection is open
+/**
+ * @brief Transmit data if a connection is open
  *
- *input:
- * -PayloadP: pointer to the data to transmit
- * -length:   length of the data to transmit
+ * @brief PayloadP: pointer to the data to transmit
+ * @brief length:   length of the data to transmit
  *
- *return true if succeeded
- *       false otherwise
+ * @return true if succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Transmit(uint8_t *PayloadP, uint16_t length)
+bool ProteusIII_Transmit(uint8_t *PayloadP, uint16_t length)
 {
     bool ret = false;
     if ((length < MAX_PAYLOAD_LENGTH)&&(ProteusIII_State_BLE_Channel_Open == ProteusIII_GetDriverState()))
@@ -778,7 +774,7 @@ ProteusIII_Transmit(uint8_t *PayloadP, uint16_t length)
 
         if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
         {
-            UART_Transmit( CMD_Array, CMD_ARRAY_SIZE());
+            WE_UART_Transmit( CMD_Array, CMD_ARRAY_SIZE());
             ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
         }
     }
@@ -787,13 +783,12 @@ ProteusIII_Transmit(uint8_t *PayloadP, uint16_t length)
 
 
 /*
- *Factory reset the module
+ * @brief Factory reset of the module.
  *
- *return true if succeeded
- *       false otherwise
+ * @return true if succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_FactoryReset()
+bool ProteusIII_FactoryReset()
 {
     bool ret = false;
     /* fill CMD_ARRAY packet */
@@ -805,7 +800,7 @@ ProteusIII_FactoryReset()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for reset after factory reset */
         return Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
@@ -813,22 +808,20 @@ ProteusIII_FactoryReset()
     return ret;
 }
 
-/*
- *Set a special user setting
+/**
+ * @brief Set a special user setting.
  *
- *input:
- * -us:     user setting to be updated
- * -value:  pointer to the new settings value
- * -length: length of the value
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] us:     user setting to be updated
+ * @param[in] value:  pointer to the new settings value
+ * @param[in] length: length of the value
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length)
+bool ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length)
 {
     bool ret = false;
 
@@ -843,7 +836,7 @@ ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *ValueP, uint8_t l
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         return Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_SET_CNF, CMD_Status_Success, true);
@@ -851,150 +844,138 @@ ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *ValueP, uint8_t l
     return ret;
 }
 
-/*
- *Set the BLE device name
+/**
+ * @brief Set the BLE device name.
  *
- *input:
- * -deviceNameP: pointer to the device name
- * -nameLength:  length of the device name
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] deviceNameP: pointer to the device name
+ * @param[in] nameLength:  length of the device name
  *
  *note: reset the module after the adaption of the setting such that it can take effect
  *note: use this function only in rare case, since flash can be updated only a limited number times
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetDeviceName(uint8_t *deviceNameP, uint8_t nameLength)
+bool ProteusIII_SetDeviceName(uint8_t *deviceNameP, uint8_t nameLength)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_DEVICE_NAME, deviceNameP, nameLength);
 }
 
-/*
- *Set the BLE advertising timeout
+/**
+ * @brief Set the BLE advertising timeout.
  *
- *input:
- * -advTimeout: advertising timeout
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] advTimeout: advertising timeout
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetAdvertisingTimeout(uint16_t advTimeout)
+bool ProteusIII_SetAdvertisingTimeout(uint16_t advTimeout)
 {
     uint8_t help[2];
     memcpy(help,(uint8_t*)&advTimeout,2);
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_ADVERTISING_TIMEOUT, help, 2);
 }
 
-/*
- *Set the CFG flags
+/**
+ * @brief Set the CFG flags
  *
- *input:
- * -cfgflags: CFG flags
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] cfgflags: CFG flags
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded
+ *         false otherwise
  */
-bool
-ProteusIII_SetCFGFlags(uint16_t cfgflags)
+bool ProteusIII_SetCFGFlags(uint16_t cfgflags)
 {
     uint8_t help[2];
     memcpy(help,(uint8_t*)&cfgflags,2);
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_CFGFLAGS, help, 2);
 }
 
-/*
- *Set the BLE connection timing
+/**
+ * @brief Set the BLE connection timing.
  *
- *input:
- * -connectionTiming: connection timing
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] connectionTiming: connection timing
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetConnectionTiming(ProteusIII_ConnectionTiming_t connectionTiming)
+bool ProteusIII_SetConnectionTiming(ProteusIII_ConnectionTiming_t connectionTiming)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_CONNECTION_TIMING, (uint8_t*)&connectionTiming, 1);
 }
 
-/*
- *Set the BLE scan timing
+/**
+ * @brief Set the BLE scan timing
  *
- *input:
- * -scanTiming: scan timing
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] scanTiming: scan timing
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetScanTiming(ProteusIII_ScanTiming_t scanTiming)
+bool ProteusIII_SetScanTiming(ProteusIII_ScanTiming_t scanTiming)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_SCAN_TIMING, (uint8_t*)&scanTiming, 1);
 }
 
-/*
- *Set the BLE TX power
+/**
+ * @brief Set the BLE TX power.
  *
- *input:
- * -txpower: TX power
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] txpower: TX power
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetTXPower(ProteusIII_TXPower_t txpower)
+bool ProteusIII_SetTXPower(ProteusIII_TXPower_t txpower)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_TX_POWER, (uint8_t*)&txpower, 1);
 }
 
-/*
- *Set the BLE security flags
+/**
+ * @brief Set the BLE security flags.
  *
- *input:
- * -secflags: security flags
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] secflags: security flags
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetSecFlags(ProteusIII_SecFlags_t secflags)
+bool ProteusIII_SetSecFlags(ProteusIII_SecFlags_t secflags)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_SEC_FLAGS, (uint8_t*)&secflags, 1);
 }
 
-/*
- *Set the UART baudrate index
+/**
+ * @brief Set the UART baudrate index
  *
- *input:
- * -baudrate: UART baudrate
- * -parity: parity bit
- * -flowcontrolEnable: enable/disable flow conrol
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] baudrate: UART baudrate
+ * @param[in] parity: parity bit
+ * @param[in] flowcontrolEnable: enable/disable flow control
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_SetBaudrateIndex(ProteusIII_BaudRate_t baudrate, ProteusIII_UartParity_t parity, bool flowcontrolEnable)
 {
@@ -1015,39 +996,33 @@ bool ProteusIII_SetBaudrateIndex(ProteusIII_BaudRate_t baudrate, ProteusIII_Uart
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_UART_CONFIG_INDEX, (uint8_t*)&baudrateIndex, 1);
 }
 
-/*
- *Set the BLE static passkey
+/**
+ * @brief Set the BLE static passkey
  *
- *input:
- * -staticPasskeyP: pointer to the static passkey
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
+ * @param[in] staticPasskeyP: pointer to the static passkey (6 digits)
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_SetStaticPasskey(uint8_t *staticPasskeyP)
+bool ProteusIII_SetStaticPasskey(uint8_t *staticPasskeyP)
 {
     return ProteusIII_Set(ProteusIII_USERSETTING_POSITION_RF_STATIC_PASSKEY, staticPasskeyP, 6);
 }
 
-/*
- *Request the current user settings
+/**
+ * @brief Request the current user settings
  *
- *input:
- * -userSetting: user setting to be requested
+ * @param[in] userSetting: user setting to be requested
+ * @param[out] responseP: pointer of the memory to put the requested content
+ * @param[out] response_lengthP: length of the requested content
  *
- *output:
- * -responseP: pointer of the memory to put the requested content
- * -response_lengthP: length of the requested content
- *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Get(ProteusIII_UserSettings_t userSetting, uint8_t *ResponseP, uint16_t *Response_LengthP)
+bool ProteusIII_Get(ProteusIII_UserSettings_t userSetting, uint8_t *responseP, uint16_t *response_lengthP)
 {
     bool ret = false;
 
@@ -1061,95 +1036,85 @@ ProteusIII_Get(ProteusIII_UserSettings_t userSetting, uint8_t *ResponseP, uint16
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GET_CNF, CMD_Status_Success, true))
         {
             uint16_t length = ((uint16_t) RxPacket[CMD_POSITION_LENGTH_LSB] << 0) + ((uint16_t) RxPacket[CMD_POSITION_LENGTH_MSB] << 8);
-            memcpy(ResponseP, &RxPacket[CMD_POSITION_DATA + 1], length - 1); /* First Data byte is status, following bytes response*/
-            *Response_LengthP = length - 1;
+            memcpy(responseP, &RxPacket[CMD_POSITION_DATA + 1], length - 1); /* First Data byte is status, following bytes response*/
+            *response_lengthP = length - 1;
             ret = true;
         }
     }
     return ret;
 }
 
-/*
- *Request the 3 byte firmware version
+/**
+ * @brief Request the 3 byte firmware version.
  *
- *output:
- * -versionP: pointer to the 3 byte firmware version
+ * @param[out] versionP: pointer to the 3 byte firmware version
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetFWVersion(uint8_t *versionP)
+bool ProteusIII_GetFWVersion(uint8_t *versionP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_FS_FWVersion, versionP, &length);
 }
 
-/*
- *Request the current BLE device name
+/**
+ * @brief Request the current BLE device name.
  *
- *output:
- * -deviceNameP: pointer to device name
- * -nameLengthP: pointer to the length of the device name
+ * @param[out] deviceNameP: pointer to device name
+ * @param[out] nameLengthP: pointer to the length of the device name
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetDeviceName(uint8_t *deviceNameP, uint16_t *nameLengthP)
+bool ProteusIII_GetDeviceName(uint8_t *deviceNameP, uint16_t *nameLengthP)
 {
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_DEVICE_NAME, deviceNameP, nameLengthP);
 }
 
-/*
- *Request the 8 digit MAC
+/**
+ * @brief Request the 8 digit MAC.
  *
- *output:
- * -macP: pointer to the MAC
+ * @param[out] macP: pointer to the MAC
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetMAC(uint8_t *MacP)
+bool ProteusIII_GetMAC(uint8_t *macP)
 {
     uint16_t length;
-    return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_FS_MAC, MacP, &length);
+    return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_FS_MAC, macP, &length);
 }
 
-/*
- *Request the 6 digit Bluetooth MAC
+/**
+ * @brief Request the 6 digit Bluetooth MAC.
  *
- *output:
- * -BTMacP: pointer to the Bluetooth MAC
+ * @param[out] BTMacP: pointer to the Bluetooth MAC
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetBTMAC(uint8_t *BTMacP)
+bool ProteusIII_GetBTMAC(uint8_t *BTMacP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_FS_BTMAC, BTMacP, &length);
 }
 
-/*
- *Request the advertising timeout
+/**
+ * @brief Request the advertising timeout
  *
- *output:
- * -advTimeoutP: pointer to the advertising timeout
+ * @param[out] advTimeoutP: pointer to the advertising timeout
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetAdvertisingTimeout(uint16_t *advTimeoutP)
+bool ProteusIII_GetAdvertisingTimeout(uint16_t *advTimeoutP)
 {
     uint16_t length;
     bool ret = false;
@@ -1161,79 +1126,72 @@ ProteusIII_GetAdvertisingTimeout(uint16_t *advTimeoutP)
     return ret;
 }
 
-/*
- *Request the connection timing
+/**
+ * @brief Request the connection timing
  *
- *output:
- * -connectionTimingP: pointer to the  connection timing
+ * @param[out] connectionTimingP: pointer to the  connection timing
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetConnectionTiming(ProteusIII_ConnectionTiming_t *connectionTimingP)
+bool ProteusIII_GetConnectionTiming(ProteusIII_ConnectionTiming_t *connectionTimingP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_CONNECTION_TIMING, (uint8_t*)connectionTimingP, &length);
 }
 
-/*
- *Request the scan timing
+/**
+ * @brief Request the scan timing
  *
- *output:
- * -scanTimingP: pointer to the  scan timing
+ * @param[out] scanTimingP: pointer to the  scan timing
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetScanTiming(ProteusIII_ScanTiming_t *scanTimingP)
+bool ProteusIII_GetScanTiming(ProteusIII_ScanTiming_t *scanTimingP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_SCAN_TIMING, (uint8_t*)scanTimingP, &length);
 }
 
-/*
- *Request the TX power
+/**
+ * @brief Request the TX power
  *
- *output:
- * -txpowerP: pointer to the TX power
+ * @param[out] txpowerP: pointer to the TX power
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetTXPower(ProteusIII_TXPower_t *txpowerP)
+bool ProteusIII_GetTXPower(ProteusIII_TXPower_t *txpowerP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_TX_POWER, (uint8_t*)txpowerP, &length);
 }
 
-/*
- *Request the security flags
+/**
+ * @brief Request the security flags
  *
- *output:
- * -secflagsP: pointer to the security flags
+ * @param[out] secflagsP: pointer to the security flags
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetSecFlags(ProteusIII_SecFlags_t *secflagsP)
+bool ProteusIII_GetSecFlags(ProteusIII_SecFlags_t *secflagsP)
 {
     uint16_t length;
     return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_SEC_FLAGS, (uint8_t*)secflagsP, &length);
 }
 
-/*
- *Request the UART baudrate index
+/**
+ * @brief Request the UART baudrate index
  *
- *output:
- * -baudrateIndexP: pointer to the UART baudrate index
+ * @param[out] baudrateP: pointer to the UART baudrate index
+ * @param[out] parityP: pointer to the UART parity
+ * @param[out] flowcontrolEnableP: pointer to the UART flow control parameter
  *
  *return true if request succeeded
-*       false otherwise
-*/
+ *       false otherwise
+ */
 bool ProteusIII_GetBaudrateIndex(ProteusIII_BaudRate_t *baudrateP, ProteusIII_UartParity_t *parityP, bool *flowcontrolEnableP)
 {
     bool ret = false;
@@ -1275,17 +1233,29 @@ bool ProteusIII_GetBaudrateIndex(ProteusIII_BaudRate_t *baudrateP, ProteusIII_Ua
     return ret;
 }
 
-/*
- *Request the CFG flags
+/**
+ * @brief Request the BLE static passkey
  *
- *output:
- * -cfgflags: pointer to the CFG flags
+ * @param[out] staticPasskeyP: pointer to the static passkey (6 digits)
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetCFGFlags(uint16_t *cfgflags)
+bool ProteusIII_GetStaticPasskey(uint8_t *staticPasskeyP)
+{
+    uint16_t length;
+    return ProteusIII_Get(ProteusIII_USERSETTING_POSITION_RF_STATIC_PASSKEY, staticPasskeyP, &length);
+}
+
+/**
+ * @brief Request the CFG flags
+ *
+ * @param[out] cfgflags: pointer to the CFG flags
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusIII_GetCFGFlags(uint16_t *cfgflags)
 {
     uint16_t length;
     bool ret = false;
@@ -1297,20 +1267,18 @@ ProteusIII_GetCFGFlags(uint16_t *cfgflags)
     return ret;
 }
 
-/*
- *Request the module state
+/**
+ * @brief Request the module state
  *
- *output:
- * -BLE_roleP:   pointer to the BLE role of the module
- * -BLE_actionP: pointer to the BLE action of the module
- * -InfoP:       pointer to the state info of the module
- * -LengthP:     pointer to the length of the state info of the module
+ * @param[out] BLE_roleP:   pointer to the BLE role of the module
+ * @param[out] BLE_actionP: pointer to the BLE action of the module
+ * @param[out] InfoP:       pointer to the state info of the module
+ * @param[out] LengthP:     pointer to the length of the state info of the module
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetState(ProteusIII_BLE_Role_t *BLE_roleP, ProteusIII_BLE_Action_t *BLE_actionP, uint8_t *InfoP, uint8_t *LengthP)
+bool ProteusIII_GetState(ProteusIII_BLE_Role_t *BLE_roleP, ProteusIII_BLE_Action_t *BLE_actionP, uint8_t *InfoP, uint8_t *LengthP)
 {
     bool ret = false;
 
@@ -1323,7 +1291,7 @@ ProteusIII_GetState(ProteusIII_BLE_Role_t *BLE_roleP, ProteusIII_BLE_Action_t *B
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
         askedForState = true;
         /* wait for cnf */
         if (Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
@@ -1341,25 +1309,23 @@ ProteusIII_GetState(ProteusIII_BLE_Role_t *BLE_roleP, ProteusIII_BLE_Action_t *B
     return ret;
 }
 
-/*
- *Request the current state of the driver
+/**
+ * @brief Request the current state of the driver
  *
- *
- *return driver state
+ * @return driver state
  */
 ProteusIII_States_t ProteusIII_GetDriverState()
 {
     return ble_state;
 }
 
-/*
- *Start scan
+/**
+ * @brief Start scan
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Scanstart()
+bool ProteusIII_Scanstart()
 {
     bool ret = false;
 
@@ -1372,7 +1338,7 @@ ProteusIII_Scanstart()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_SCANSTART_CNF, CMD_Status_Success, true);
@@ -1380,14 +1346,13 @@ ProteusIII_Scanstart()
     return ret;
 }
 
-/*
- *Stop a scan
+/**
+ * @brief Stop a scan
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Scanstop()
+bool ProteusIII_Scanstop()
 {
     bool ret = false;
 
@@ -1400,7 +1365,7 @@ ProteusIII_Scanstop()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_SCANSTOP_CNF, CMD_Status_Success, true);
@@ -1408,17 +1373,15 @@ ProteusIII_Scanstop()
     return ret;
 }
 
-/*
- *Request the scan results
+/**
+ * @brief Request the scan results
  *
- *output:
- * -devicesP: pointer to scan result struct
+ * @param[out] devicesP: pointer to scan result struct
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_GetDevices(ProteusIII_GetDevices_t* devicesP)
+bool ProteusIII_GetDevices(ProteusIII_GetDevices_t* devicesP)
 {
     bool ret = false;
 
@@ -1437,7 +1400,7 @@ ProteusIII_GetDevices(ProteusIII_GetDevices_t* devicesP)
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GETDEVICES_CNF, CMD_Status_Success, true);
@@ -1448,14 +1411,13 @@ ProteusIII_GetDevices(ProteusIII_GetDevices_t* devicesP)
     return ret;
 }
 
-/*
- *Connect to the BLE device with the corresponding BTMAC
+/**
+ * @brief Connect to the BLE device with the corresponding BTMAC
  *
- *input:
- * -btmac: pointer to btmac
+ * @param[in] btmac: pointer to btmac
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_Connect(uint8_t *btmac)
 {
@@ -1471,7 +1433,7 @@ bool ProteusIII_Connect(uint8_t *btmac)
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(3000, ProteusIII_CMD_CONNECT_CNF, CMD_Status_Success, true);
@@ -1479,14 +1441,13 @@ bool ProteusIII_Connect(uint8_t *btmac)
     return ret;
 }
 
-/*
- *Answer on a passkey request with a passkey to setup a connection
+/**
+ * @brief Answer on a passkey request with a passkey to setup a connection
  *
- *input:
- * -passkey: pointer to passkey
+ * @param[in] passkey: pointer to passkey
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_Passkey(uint8_t* passkey)
 {
@@ -1502,7 +1463,7 @@ bool ProteusIII_Passkey(uint8_t* passkey)
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_PASSKEY_CNF, CMD_Status_Success, true);
@@ -1510,14 +1471,13 @@ bool ProteusIII_Passkey(uint8_t* passkey)
     return ret;
 }
 
-/*
- *Answer on a numeric comparison request
+/**
+ * @brief Answer on a numeric comparison request
  *
- *input:
- * -keyIsOk: boolean to confirm if the key shown is correct
+ * @param[in] keyIsOk: boolean to confirm if the key shown is correct
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_NumericCompareConfirm(bool keyIsOk)
 {
@@ -1545,7 +1505,7 @@ bool ProteusIII_NumericCompareConfirm(bool keyIsOk)
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_NUMERIC_COMP_CNF, CMD_Status_Success, true);
@@ -1553,14 +1513,13 @@ bool ProteusIII_NumericCompareConfirm(bool keyIsOk)
     return ret;
 }
 
-/*
- *Update the phy during an open connection
+/**
+ * @brief Update the phy during an open connection
  *
- *input:
- * -phy: new phy
+ * @param[in] phy: new phy
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_PhyUpdate(ProteusIII_Phy_t phy)
 {
@@ -1578,7 +1537,7 @@ bool ProteusIII_PhyUpdate(ProteusIII_Phy_t phy)
         if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
         {
             /* now send CMD_ARRAY */
-            UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+            WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
             /* wait for cnf */
             ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_PHYUPDATE_CNF, CMD_Status_Success, true);
@@ -1587,14 +1546,14 @@ bool ProteusIII_PhyUpdate(ProteusIII_Phy_t phy)
     return ret;
 }
 
-/*
- *Configure the local GPIO of the module
+/**
+ * @brief Configure the local GPIO of the module
  *
- *input:
- * -configP: pointer to one or more pin configurations
- * -number_of_configs: number of entries in configP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] configP: pointer to one or more pin configurations
+ * @param[in] number_of_configs: number of entries in configP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIOLocalWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uint16_t number_of_configs)
 {
@@ -1660,7 +1619,7 @@ bool ProteusIII_GPIOLocalWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uint
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_LOCAL_WRITECONFIG_CNF, CMD_Status_Success, true);
@@ -1669,14 +1628,14 @@ bool ProteusIII_GPIOLocalWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uint
     return ret;
 }
 
-/*
- *Read the local GPIO configuration of the module
+/**
+ * @brief Read the local GPIO configuration of the module
  *
- *output:
- * -configP: pointer to one or more pin configurations
- * -number_of_configsP: pointer to number of entries in configP array
- *return true if request succeeded
- *       false otherwise
+ * @param[out] configP: pointer to one or more pin configurations
+ * @param[out] number_of_configsP: pointer to number of entries in configP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIOLocalReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint16_t *number_of_configsP)
 {
@@ -1690,7 +1649,7 @@ bool ProteusIII_GPIOLocalReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint1
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_LOCAL_READCONFIG_CNF, CMD_Status_Success, true);
@@ -1774,15 +1733,15 @@ bool ProteusIII_GPIOLocalReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint1
     return ret;
 }
 
-/*
- *Set the output value of the local pin. Pin has to be configured first.
- *See ProteusIII_GPIOLocalWriteConfig
+/**
+ * @brief Set the output value of the local pin. Pin has to be configured first.
+ * See ProteusIII_GPIOLocalWriteConfig
  *
- *input:
- * -controlP: pointer to one or more pin controls
- * -number_of_controls: number of entries in controlP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] controlP: pointer to one or more pin controls
+ * @param[in] number_of_controls: number of entries in controlP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIOLocalWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_t number_of_controls)
 {
@@ -1808,7 +1767,7 @@ bool ProteusIII_GPIOLocalWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_t
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_LOCAL_WRITE_CNF, CMD_Status_Success, true);
@@ -1817,18 +1776,17 @@ bool ProteusIII_GPIOLocalWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_t
     return ret;
 }
 
-/*
- *Read the input of the pin. Pin has to be configured first.
- *See ProteusIII_GPIOLocalWriteConfig
+/**
+ * @brief Read the input of the pin. Pin has to be configured first.
+ * See ProteusIII_GPIOLocalWriteConfig
  *
- *input:
- * -GPIOToReadP: One or more pins to read.
- * -amountGPIOToRead: amount of pins to read and therefore length of GPIOToRead
- *output:
- * -controlP: Pointer to controlBlock
- * -number_of_controlsP: pointer to number of entries in controlP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] GPIOToReadP: One or more pins to read.
+ * @param[in] amountGPIOToRead: amount of pins to read and therefore length of GPIOToRead
+ * @param[out] controlP: Pointer to controlBlock
+ * @param[out] number_of_controlsP: pointer to number of entries in controlP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIOLocalRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, ProteusIII_GPIOControlBlock_t* controlP, uint16_t* number_of_controlsP)
 {
@@ -1844,7 +1802,7 @@ bool ProteusIII_GPIOLocalRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, Pr
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_LOCAL_READ_CNF, CMD_Status_Success, true);
@@ -1878,14 +1836,14 @@ bool ProteusIII_GPIOLocalRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, Pr
     return ret;
 }
 
-/*
- *Configure the remote GPIO of the module
+/**
+ * @brief Configure the remote GPIO of the module
  *
- *input:
- * -configP: pointer to one or more pin configurations
- * -number_of_configs: number of entries in configP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] configP: pointer to one or more pin configurations
+ * @param[in] number_of_configs: number of entries in configP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIORemoteWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uint16_t number_of_configs)
 {
@@ -1949,7 +1907,7 @@ bool ProteusIII_GPIORemoteWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uin
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_REMOTE_WRITECONFIG_CNF, CMD_Status_Success, true);
@@ -1958,14 +1916,14 @@ bool ProteusIII_GPIORemoteWriteConfig(ProteusIII_GPIOConfigBlock_t* configP, uin
     return ret;
 }
 
-/*
- *Read the remote GPIO configuration of the module
+/**
+ * @brief Read the remote GPIO configuration of the module
  *
- *output:
- * -configP: pointer to one or more pin configurations
- * -number_of_configsP: pointer to number of entries in configP array
- *return true if request succeeded
- *       false otherwise
+ * @param[out] configP: pointer to one or more pin configurations
+ * @param[out] number_of_configsP: pointer to number of entries in configP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIORemoteReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint16_t *number_of_configsP)
 {
@@ -1979,7 +1937,7 @@ bool ProteusIII_GPIORemoteReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_REMOTE_READCONFIG_CNF, CMD_Status_Success, true);
@@ -2061,15 +2019,15 @@ bool ProteusIII_GPIORemoteReadConfig(ProteusIII_GPIOConfigBlock_t* configP, uint
     return ret;
 }
 
-/*
- *Set the output value of the remote pin. Pin has to be configured first.
- *See ProteusIII_GPIORemoteWriteConfig
+/**
+ * @brief Set the output value of the remote pin. Pin has to be configured first.
+ * See ProteusIII_GPIORemoteWriteConfig
  *
- *input:
- * -controlP: pointer to one or more pin controls
- * -number_of_controls: number of entries in controlP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] controlP: pointer to one or more pin controls
+ * @param[in] number_of_controls: number of entries in controlP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIORemoteWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_t number_of_controls)
 {
@@ -2093,7 +2051,7 @@ bool ProteusIII_GPIORemoteWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_REMOTE_WRITE_CNF, CMD_Status_Success, true);
@@ -2102,18 +2060,17 @@ bool ProteusIII_GPIORemoteWrite(ProteusIII_GPIOControlBlock_t* controlP, uint16_
     return ret;
 }
 
-/*
- *Read the input of the pins. Pin has to be configured first.
- *See ProteusIII_GPIORemoteWriteConfig
+/**
+ * @brief Read the input of the pins. Pin has to be configured first.
+ * See ProteusIII_GPIORemoteWriteConfig
  *
- *input:
- * -GPIOToReadP: One or more pins to read.
- * -amountGPIOToRead: amount of pins to read and therefore length of GPIOToReadP
- *output:
- * -controlP: Pointer to controlBlock
- * -number_of_controlsP: pointer to number of entries in controlP array
- *return true if request succeeded
- *       false otherwise
+ * @param[in] GPIOToReadP: One or more pins to read.
+ * @param[in] amountGPIOToRead: amount of pins to read and therefore length of GPIOToReadP
+ * @param[out] controlP: Pointer to controlBlock
+ * @param[out] number_of_controlsP: pointer to number of entries in controlP array
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
 bool ProteusIII_GPIORemoteRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, ProteusIII_GPIOControlBlock_t* controlP, uint16_t* number_of_controlsP)
 {
@@ -2129,7 +2086,7 @@ bool ProteusIII_GPIORemoteRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, P
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_GPIO_REMOTE_READ_CNF, CMD_Status_Success, true);
@@ -2159,14 +2116,13 @@ bool ProteusIII_GPIORemoteRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, P
     return ret;
 }
 
-/*
- *Temporarily allow unbonded connections, in case only bonded connections have been configured
+/**
+ * @brief Temporarily allow unbonded connections, in case only bonded connections have been configured
  *
- *return true if request succeeded
- *       false otherwise
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool
-ProteusIII_Allowunbondedconnections()
+bool ProteusIII_Allowunbondedconnections()
 {
     bool ret = false;
 
@@ -2179,7 +2135,7 @@ ProteusIII_Allowunbondedconnections()
     if (FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
     {
         /* now send CMD_ARRAY */
-        UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
 
         /* wait for cnf */
         ret = Wait4CNF(CMD_WAIT_TIME, ProteusIII_CMD_ALLOWUNBONDEDCONNECTIONS_CNF, CMD_Status_Success, true);

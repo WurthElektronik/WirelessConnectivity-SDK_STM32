@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,11 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
 
+/**
+ * @file
+ * @brief ThebeII driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -74,22 +78,18 @@ typedef enum ThebeII_UserSettings_t
     ThebeII_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } ThebeII_UserSettings_t;
 
-/*
- * Struct repesenting  a usersetting
- * members:
- * -usersetting:  usersetting
- * -value:        value
- * -value-length: length of the value
+/**
+ * @brief Struct representing a usersetting
  */
 typedef struct ThebeII_Configuration_t
 {
-   ThebeII_UserSettings_t usersetting;
-   uint8_t value[MAX_USERSETTING_LENGTH];
-   uint8_t value_length;
+   ThebeII_UserSettings_t usersetting;      /**< user setting */
+   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
+   uint8_t value_length;                    /**< length of the value */
 } ThebeII_Configuration_t;
 
 
-extern bool ThebeII_Init(uint32_t baudrate, FlowControl_t flow_control, ThebeII_AddressMode_t addrmode,  void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
+extern bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_AddressMode_t addrmode,  void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t));
 extern bool ThebeII_Deinit(void);
 
 extern bool ThebeII_PinReset(void);
@@ -102,7 +102,7 @@ extern bool ThebeII_Shutdown(void);
 extern bool ThebeII_Standby(void);
 extern bool ThebeII_PinWakeup();
 
-/* read the non-volatile settings */
+/* Read the non-volatile settings */
 extern bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t* response, uint8_t* response_length);
 extern bool ThebeII_GetFirmwareVersion(uint8_t* fw);
 extern bool ThebeII_GetSerialNumber(uint8_t* sn);
@@ -114,9 +114,9 @@ extern bool ThebeII_GetDefaultDestNetID(uint8_t* destnetid);
 extern bool ThebeII_GetDefaultRFChannel(uint8_t* channel);
 extern bool ThebeII_GetDefaultRFProfile(uint8_t* profile);
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool ThebeII_FactoryReset(void);
 extern bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t* value, uint8_t length);
@@ -130,7 +130,7 @@ extern bool ThebeII_SetDefaultRFChannel(uint8_t channel);
 extern bool ThebeII_SetDefaultRFProfile(uint8_t profile);
 extern bool ThebeII_EnableSnifferMode();
 
-/* write volatile settings into RAM, these settings are lost after a reset */
+/* Write volatile settings into RAM, these settings are lost after a reset */
 extern bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb);
 extern bool ThebeII_SetVolatile_DestNetID(uint8_t destnetid);
 extern bool ThebeII_SetVolatile_TXPower(uint8_t power);

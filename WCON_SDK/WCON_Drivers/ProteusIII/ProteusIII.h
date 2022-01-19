@@ -1,4 +1,4 @@
-/**
+/*
  ***************************************************************************************************
  * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
@@ -18,10 +18,15 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2021 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
- **/
+ */
+
+/**
+ * @file
+ * @brief ProteusIII driver header file.
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -40,7 +45,8 @@ extern "C" {
 #define ProteusIII_DEFAULT_BAUDRATE (uint32_t)115200
 
 
-typedef struct ProteusIII_Device_t {
+typedef struct ProteusIII_Device_t
+{
     uint8_t btmac[6];
     int8_t rssi;
     int8_t txpower;
@@ -49,17 +55,21 @@ typedef struct ProteusIII_Device_t {
 } ProteusIII_Device_t;
 
 #define MAX_NUMBER_OF_DEVICES (uint8_t)10
-typedef struct ProteusIII_GetDevices_t {
+
+typedef struct ProteusIII_GetDevices_t
+{
     uint8_t numberofdevices;
     ProteusIII_Device_t devices[MAX_NUMBER_OF_DEVICES];
 } ProteusIII_GetDevices_t;
 
-typedef enum ProteusIII_DisplayPasskeyAction_t{
+typedef enum ProteusIII_DisplayPasskeyAction_t
+{
     ProteusIII_DisplayPasskeyAction_NoAction      = (uint8_t)0x00,
     ProteusIII_DisplayPasskeyAction_PleaseConfirm = (uint8_t)0x01
 } ProteusIII_DisplayPasskeyAction_t;
 
 #define ProteusIII_AMOUNT_GPIO_PINS    6
+
 typedef enum ProteusIII_GPIO_t
 {
     ProteusIII_GPIO_1 = (uint8_t)0x01,
@@ -91,12 +101,14 @@ typedef enum ProteusIII_GPIO_Input_t
     ProteusIII_GPIO_Input_PullUp   = (uint8_t)0x02
 } ProteusIII_GPIO_Input_t;
 
-typedef struct ProteusIII_GPIO_PwmValue_t{
+typedef struct ProteusIII_GPIO_PwmValue_t
+{
     uint16_t period; /* in ms */
     uint8_t  ratio;  /* 0-255 (0%-100%)*/
 } ProteusIII_GPIO_PwmValue_t;
 
-typedef struct ProteusIII_GPIOConfigBlock_t{
+typedef struct ProteusIII_GPIOConfigBlock_t
+{
     ProteusIII_GPIO_t GPIO_ID;
     ProteusIII_GPIO_IO_t function;
     union /* 3Byte */
@@ -107,7 +119,8 @@ typedef struct ProteusIII_GPIOConfigBlock_t{
     } value;
 } ProteusIII_GPIOConfigBlock_t;
 
-typedef struct ProteusIII_GPIOControlBlock_t{
+typedef struct ProteusIII_GPIOControlBlock_t
+{
     ProteusIII_GPIO_t GPIO_ID;
     union /* 1Byte */
     {
@@ -116,26 +129,30 @@ typedef struct ProteusIII_GPIOControlBlock_t{
     } value;
 } ProteusIII_GPIOControlBlock_t;
 
-typedef enum ProteusIII_States_t {
+typedef enum ProteusIII_States_t
+{
     ProteusIII_State_BLE_Invalid =         (uint8_t)0x00,
     ProteusIII_State_BLE_Connected =       (uint8_t)0x01,
     ProteusIII_State_BLE_Channel_Open =    (uint8_t)0x02,
 } ProteusIII_States_t;
 
-typedef enum ProteusIII_Security_t {
+typedef enum ProteusIII_Security_t
+{
     ProteusIII_State_BLE_ReBonded = (uint8_t)0x00,
     ProteusIII_State_BLE_Bonded =   (uint8_t)0x01,
     ProteusIII_State_BLE_Paired =   (uint8_t)0x02,
 } ProteusIII_Security_t;
 
-typedef enum ProteusIII_BLE_Role_t {
+typedef enum ProteusIII_BLE_Role_t
+{
     ProteusIII_BLE_Role_None =         (uint8_t)0x00,
     ProteusIII_BLE_Role_Pheripheral =  (uint8_t)0x01,
     ProteusIII_BLE_Role_Central =      (uint8_t)0x02,
     ProteusIII_BLE_Role_DTM =          (uint8_t)0x10,
 } ProteusIII_BLE_Role_t;
 
-typedef enum ProteusIII_BLE_Action_t {
+typedef enum ProteusIII_BLE_Action_t
+{
     ProteusIII_BLE_Action_None =       (uint8_t)0x00,
     ProteusIII_BLE_Action_Idle =       (uint8_t)0x01,
     ProteusIII_BLE_Action_Scanning =   (uint8_t)0x02,
@@ -146,7 +163,8 @@ typedef enum ProteusIII_BLE_Action_t {
 
 
 /* user settings */
-typedef enum ProteusIII_UserSettings_t {
+typedef enum ProteusIII_UserSettings_t
+{
     ProteusIII_USERSETTING_POSITION_FS_FWVersion =             (uint8_t)0x01,
     ProteusIII_USERSETTING_POSITION_RF_DEVICE_NAME =           (uint8_t)0x02,
     ProteusIII_USERSETTING_POSITION_FS_MAC =                   (uint8_t)0x03,
@@ -180,7 +198,9 @@ typedef enum ProteusIII_UserSettings_t {
 
 #define SEC_MODE_BONDING_ENABLE_MASK          (uint8_t)0x08
 #define SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE (uint8_t)0x10
-typedef enum ProteusIII_SecFlags_t {
+
+typedef enum ProteusIII_SecFlags_t
+{
     ProteusIII_SecFlags_NONE =                       (uint8_t)0x00,
     ProteusIII_SecFlags_LescJustWorks =              (uint8_t)0x01,
     ProteusIII_SecFlags_JustWorks =                  (uint8_t)0x02,
@@ -199,7 +219,8 @@ typedef enum ProteusIII_SecFlags_t {
     ProteusIII_SecFlags_LescPassKey_BondingOnly =    (uint8_t)(ProteusIII_SecFlags_LescPassKey | SEC_MODE_BONDING_ENABLE_MASK | SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE),
 } ProteusIII_SecFlags_t;
 
-typedef enum ProteusIII_ConnectionTiming_t {
+typedef enum ProteusIII_ConnectionTiming_t
+{
     ProteusIII_ConnectionTiming_0 = (uint8_t)0x00,
     ProteusIII_ConnectionTiming_1 = (uint8_t)0x01,
     ProteusIII_ConnectionTiming_2 = (uint8_t)0x02,
@@ -211,7 +232,8 @@ typedef enum ProteusIII_ConnectionTiming_t {
     ProteusIII_ConnectionTiming_8 = (uint8_t)0x08
 } ProteusIII_ConnectionTiming_t;
 
-typedef enum ProteusIII_ScanTiming_t {
+typedef enum ProteusIII_ScanTiming_t
+{
     ProteusIII_ScanTiming_0  = (uint8_t)0x00,
     ProteusIII_ScanTiming_1  = (uint8_t)0x01,
     ProteusIII_ScanTiming_2  = (uint8_t)0x02,
@@ -226,7 +248,8 @@ typedef enum ProteusIII_ScanTiming_t {
     ProteusIII_ScanTiming_11 = (uint8_t)0x0B
 } ProteusIII_ScanTiming_t;
 
-typedef enum ProteusIII_TXPower_t {
+typedef enum ProteusIII_TXPower_t
+{
 	ProteusIII_TXPower_8       = (int8_t) 8,
     ProteusIII_TXPower_7       = (int8_t) 7,
     ProteusIII_TXPower_6       = (int8_t) 6,
@@ -240,7 +263,8 @@ typedef enum ProteusIII_TXPower_t {
     ProteusIII_TXPower_minus12 = (int8_t)-12,
 } ProteusIII_TXPower_t;
 
-typedef enum ProteusIII_BaudRate_t {
+typedef enum ProteusIII_BaudRate_t
+{
     ProteusIII_BaudRateIndex_1200    = (uint8_t)0,
     ProteusIII_BaudRateIndex_2400    = (uint8_t)2,
     ProteusIII_BaudRateIndex_4800    = (uint8_t)4,
@@ -275,27 +299,28 @@ typedef enum ProteusIII_Phy_t
 
 /* Callback definition */
 
-typedef void (*RxCallback)(uint8_t* payload, uint16_t payload_length, uint8_t* BTMAC, int8_t rssi);
-typedef void (*ConnectCallback)(uint8_t* BTMAC);
-typedef void (*SecurityCallback)(uint8_t* BTMAC, ProteusIII_Security_t security_state);
-typedef void (*PasskeyCallback)(uint8_t* BTMAC);
-typedef void (*DisplayPasskeyCallback)(ProteusIII_DisplayPasskeyAction_t action, uint8_t* BTMAC, uint8_t* passkey);
-typedef void (*DisconnectCallback)();
-typedef void (*ChannelopenCallback)(uint8_t* BTMAC, uint16_t max_payload);
-typedef void (*PhyupdateCallback)(uint8_t* BTMAC, uint8_t phy_rx, uint8_t phy_tx);
+typedef void (*ProteusIII_RxCallback)(uint8_t* payload, uint16_t payload_length, uint8_t* BTMAC, int8_t rssi);
+typedef void (*ProteusIII_ConnectCallback)(uint8_t* BTMAC);
+typedef void (*ProteusIII_SecurityCallback)(uint8_t* BTMAC, ProteusIII_Security_t security_state);
+typedef void (*ProteusIII_PasskeyCallback)(uint8_t* BTMAC);
+typedef void (*ProteusIII_DisplayPasskeyCallback)(ProteusIII_DisplayPasskeyAction_t action, uint8_t* BTMAC, uint8_t* passkey);
+typedef void (*ProteusIII_DisconnectCallback)();
+typedef void (*ProteusIII_ChannelopenCallback)(uint8_t* BTMAC, uint16_t max_payload);
+typedef void (*ProteusIII_PhyupdateCallback)(uint8_t* BTMAC, uint8_t phy_rx, uint8_t phy_tx);
 
-typedef struct ProteusIII_CallbackConfig_t {
-    RxCallback              rxCb;
-    ConnectCallback         connectCp;
-    SecurityCallback        securityCb;
-    PasskeyCallback         passkeyCb;
-    DisplayPasskeyCallback  displayPasskeyCb;
-    DisconnectCallback      disconnectCb;
-    ChannelopenCallback     channelOpenCb;
-    PhyupdateCallback       phyUpdateCb;
+typedef struct ProteusIII_CallbackConfig_t
+{
+    ProteusIII_RxCallback              rxCb;
+    ProteusIII_ConnectCallback         connectCb;
+    ProteusIII_SecurityCallback        securityCb;
+    ProteusIII_PasskeyCallback         passkeyCb;
+    ProteusIII_DisplayPasskeyCallback  displayPasskeyCb;
+    ProteusIII_DisconnectCallback      disconnectCb;
+    ProteusIII_ChannelopenCallback     channelOpenCb;
+    ProteusIII_PhyupdateCallback       phyUpdateCb;
 } ProteusIII_CallbackConfig_t;
 
-extern bool ProteusIII_Init(uint32_t baudrate, FlowControl_t flow_control, ProteusIII_CallbackConfig_t callbackConfig);
+extern bool ProteusIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ProteusIII_CallbackConfig_t callbackConfig);
 extern bool ProteusIII_Deinit(void);
 
 extern bool ProteusIII_PinReset(void);
@@ -333,9 +358,9 @@ extern bool ProteusIII_GPIORemoteRead(uint8_t *GPIOToReadP, uint8_t amountGPIOTo
 
 extern bool ProteusIII_Allowunbondedconnections();
 
-/* functions that write the non-volatile settings in the flash,
- * after modification of any non-volatile setting, the module must be reset such that the update takes effect
- * IMPORTANT: use them only in rare cases, since flash can be updated only a limited number times
+/* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
+ * the module must be reset such that the update takes effect.
+ * IMPORTANT: Use only in rare cases, since flash can be written to only a limited number of times.
  */
 extern bool ProteusIII_FactoryReset();
 extern bool ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length);
@@ -349,11 +374,11 @@ extern bool ProteusIII_SetSecFlags(ProteusIII_SecFlags_t secflags);
 extern bool ProteusIII_SetBaudrateIndex(ProteusIII_BaudRate_t baudrate, ProteusIII_UartParity_t parity, bool flowcontrolEnable);
 extern bool ProteusIII_SetStaticPasskey(uint8_t *staticPasskeyP);
 
-/* read the non-volatile settings */
-extern bool ProteusIII_Get(ProteusIII_UserSettings_t userSetting, uint8_t *ResponseP, uint16_t *Response_LengthP);
+/* Read the non-volatile settings */
+extern bool ProteusIII_Get(ProteusIII_UserSettings_t userSetting, uint8_t *responseP, uint16_t *response_LengthP);
 extern bool ProteusIII_GetFWVersion(uint8_t *versionP);
 extern bool ProteusIII_GetDeviceName(uint8_t *deviceNameP, uint16_t *nameLengthP);
-extern bool ProteusIII_GetMAC(uint8_t *MacP);
+extern bool ProteusIII_GetMAC(uint8_t *macP);
 extern bool ProteusIII_GetBTMAC(uint8_t *BTMacP);
 extern bool ProteusIII_GetAdvertisingTimeout(uint16_t *advTimeoutP);
 extern bool ProteusIII_GetCFGFlags(uint16_t *cfgflags);
@@ -366,6 +391,7 @@ extern bool ProteusIII_GetStaticPasskey(uint8_t *staticPasskeyP);
 extern bool ProteusIII_GetState(ProteusIII_BLE_Role_t *BLE_roleP, ProteusIII_BLE_Action_t *BLE_actionP, uint8_t *InfoP, uint8_t *LengthP);
 
 #endif // _ProteusIII_defined
+
 #ifdef __cplusplus
 }
 #endif
