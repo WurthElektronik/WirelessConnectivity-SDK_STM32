@@ -70,6 +70,10 @@ Note that some connections are optional and may not be required depending on the
 |                     |         |                      |
 |           Mode (PA8)|-------->|Mode                  |
 |                     |         |                      |
+|           BUSY (PB8)|<--------|BUSY                  |
+|                     |         |                      |
+| STATUS (LED 2) (PB9)|<--------|LED_2                 |
+|                     |         |                      |
 |       UART1 TX (PB6)|-------->|UART RX               |
 |                     |         |                      |
 |       UART1 RX (PB7)|<--------|UART TX               |
@@ -78,6 +82,29 @@ Note that some connections are optional and may not be required depending on the
 |                     |         |                      |
 |     UART1 CTS (PA11)|<--------|UART RTS              |
 |_____________________|         |______________________|
+```
+
+## Proteus-e pinout
+```
+ _______________________           ______________________
+|         STM32         |         |      Proteus-e       |
+|                       |         |                      |
+|           Reset (PA10)|-------->|Reset                 |
+|                       |         |                      |
+|             Mode (PA8)|-------->|Mode                  |
+|                       |         |                      |
+| BUSY/UART_ENABLE (PB8)|<------->|BUSY/UART_ENABLE      |
+|                       |         |                      |
+|   STATUS (LED 1) (PB9)|<--------|LED_1                 |
+|                       |         |                      |
+|         UART1 TX (PB6)|-------->|UART RX               |
+|                       |         |                      |
+|         UART1 RX (PB7)|<--------|UART TX               |
+|                       |         |                      |
+|       UART1 RTS (PA12)|-------->|UART CTS              |
+|                       |         |                      |
+|       UART1 CTS (PA11)|<--------|UART RTS              |
+|_______________________|         |______________________|
 ```
 
 ## Tarvos-III pinout

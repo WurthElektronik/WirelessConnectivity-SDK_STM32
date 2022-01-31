@@ -23,6 +23,11 @@
  ***************************************************************************************************
  */
 
+/**
+ * @file
+ * @brief Thyone-I example.
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -49,39 +54,38 @@ static void RxCallback(uint8_t* payload, uint16_t payload_length, uint32_t sourc
 }
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief The application's main function.
+ */
 int main(void)
 {
-  bool ret = false;
+    bool ret = false;
 
-  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
-  WE_Platform_Init();
+    /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+    WE_Platform_Init();
 
 #ifdef WE_DEBUG
-  WE_Debug_Init();
+    WE_Debug_Init();
 #endif
 
-  uint8_t driverVersion[3];
-  WE_GetDriverVersion(driverVersion);
-  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+    uint8_t driverVersion[3];
+    WE_GetDriverVersion(driverVersion);
+    printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
-  ThyoneI_Init(ThyoneI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, RxCallback);
+    ThyoneI_Init(THYONEI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, RxCallback);
 
-  while (1)
-  {
-	uint8_t version[3];
-	memset(version,0,sizeof(version));
-	ret = ThyoneI_GetFWVersion(version);
-	WE_Delay(500);
+    while (1)
+    {
+        uint8_t version[3];
+        memset(version,0,sizeof(version));
+        ret = ThyoneI_GetFWVersion(version);
+        WE_Delay(500);
 
-	uint8_t SN[4];
-	memset(SN,0,sizeof(SN));
-	ret = ThyoneI_GetSerialNumber(SN);
-	WE_Delay(500);
+        uint8_t SN[4];
+        memset(SN,0,sizeof(SN));
+        ret = ThyoneI_GetSerialNumber(SN);
+        WE_Delay(500);
 
-	ret = ThyoneI_PinReset();
-	WE_Delay(500);
+        ret = ThyoneI_PinReset();
+        WE_Delay(500);
   }
 }

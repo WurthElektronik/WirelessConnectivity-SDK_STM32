@@ -23,6 +23,11 @@
  ***************************************************************************************************
  */
 
+/**
+ * @file
+ * @brief Thebe-II example.
+ */
+
 #include <stdio.h>
 #include <string.h>
 
@@ -48,41 +53,43 @@ static void RxCallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_ne
     fflush(stdout);
 }
 
+/**
+ * @brief The application's main function.
+ */
 int main(void)
 {
-  bool ret = false;
+    bool ret = false;
 
-  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
-  WE_Platform_Init();
+    /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+    WE_Platform_Init();
 
 #ifdef WE_DEBUG
-  WE_Debug_Init();
+    WE_Debug_Init();
 #endif
 
-  uint8_t driverVersion[3];
-  WE_GetDriverVersion(driverVersion);
-  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+    uint8_t driverVersion[3];
+    WE_GetDriverVersion(driverVersion);
+    printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
-  ThebeII_Init(ThebeII_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, AddressMode_0, RxCallback);
+    ThebeII_Init(THEBEII_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, AddressMode_0, RxCallback);
 
-  while (1)
-  {
-	uint8_t version[3];
-	memset(version,0,sizeof(version));
-	ret = ThebeII_GetFirmwareVersion(version);
-	WE_Delay(500);
+    while (1)
+    {
+        uint8_t version[3];
+        memset(version,0,sizeof(version));
+        ret = ThebeII_GetFirmwareVersion(version);
+        WE_Delay(500);
 
-	uint8_t SN[4];
-	memset(SN,0,sizeof(SN));
-	ret = ThebeII_GetSerialNumber(SN);
-	WE_Delay(500);
+        uint8_t SN[4];
+        memset(SN,0,sizeof(SN));
+        ret = ThebeII_GetSerialNumber(SN);
+        WE_Delay(500);
 
-	uint8_t payload[4*16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-	ret = ThebeII_Transmit(payload, sizeof(payload));
-	WE_Delay(500);
+        uint8_t payload[4*16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+        ret = ThebeII_Transmit(payload, sizeof(payload));
+        WE_Delay(500);
 
-	ret = ThebeII_PinReset();
-	WE_Delay(500);
+        ret = ThebeII_PinReset();
+        WE_Delay(500);
   }
-
 }

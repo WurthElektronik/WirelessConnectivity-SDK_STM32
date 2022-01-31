@@ -25,41 +25,31 @@
 
 /**
  * @file
- * @brief Proteus-III example.
+ * @brief Proteus-e example.
  */
 
 #include <stdio.h>
 #include <string.h>
 
-#include "../../WCON_Drivers/ProteusIII/ProteusIII.h"
+#include "../../WCON_Drivers/ProteusE/ProteusE.h"
 #include "../../WCON_Drivers/global/global.h"
 
-/* Proteus-III examples. Pick the example to be executed in the main function. */
+/* Proteus-e examples. Pick the example to be executed in the main function. */
 static void CommandModeExample();
-static void PeripheralOnlyModeExample();
+static void TransparentModeExample();
 
-/* Callback functions for various indications sent by the Proteus-III. */
+/* Callback functions for various indications sent by the Proteus-e. */
 static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi);
-static void BeaconRxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi);
 static void ConnectCallback(bool success, uint8_t* btMac);
-static void SecurityCallback(uint8_t* btMac, ProteusIII_SecurityState_t securityState);
-static void PasskeyCallback(uint8_t* btMac);
-static void DisplayPasskeyCallback(ProteusIII_DisplayPasskeyAction_t action, uint8_t* btMac, uint8_t* passkey);
-static void DisconnectCallback(ProteusIII_DisconnectReason_t reason);
+static void SecurityCallback(uint8_t* btMac, ProteusE_SecurityState_t securityState);
+static void DisconnectCallback(ProteusE_DisconnectReason_t reason);
 static void ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload);
 static void PhyUpdateCallback(bool success, uint8_t* btMac, uint8_t phyRx, uint8_t phyTx);
 static void SleepCallback();
-static void RssiCallback(uint8_t* btMac, int8_t rssi, int8_t txPower);
 static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value);
-static void GpioRemoteConfigCallback(ProteusIII_GPIOConfigBlock_t *gpioConfig);
+static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t *gpioConfig);
 static void ErrorCallback(uint8_t errorCode);
-static void OnPeripheralOnlyModeByteReceived(uint8_t receivedByte);
-
-/* Is set to true when a passkey indication has been received. */
-bool passkeyRequestReceived = false;
-
-/* Is set to true when a display passkey indication has been received. */
-bool displayPasskeyRequestReceived = false;
+static void OnTransparentModeByteReceived(uint8_t receivedByte);
 
 /**
  * @brief The application's main function.
@@ -78,76 +68,72 @@ int main(void)
     printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
     CommandModeExample();
-//    PeripheralOnlyModeExample();
+//    TransparentModeExample();
 }
 
 /**
- * @brief Proteus-III command mode example.
+ * @brief Proteus-e command mode example.
  *
- * Connects to Proteus-III in command mode registering callbacks for all
+ * Connects to Proteus-e in command mode registering callbacks for all
  * available indications, then prints info when receiving indications.
  */
 void CommandModeExample()
 {
-    ProteusIII_CallbackConfig_t callbackConfig = {0};
+    ProteusE_CallbackConfig_t callbackConfig = {0};
     callbackConfig.rxCb = RxCallback;
-    callbackConfig.beaconRxCb = BeaconRxCallback;
     callbackConfig.connectCb = ConnectCallback;
     callbackConfig.disconnectCb = DisconnectCallback;
     callbackConfig.channelOpenCb = ChannelOpenCallback;
     callbackConfig.securityCb = SecurityCallback;
-    callbackConfig.passkeyCb = PasskeyCallback;
-    callbackConfig.displayPasskeyCb = DisplayPasskeyCallback;
     callbackConfig.phyUpdateCb = PhyUpdateCallback;
     callbackConfig.sleepCb = SleepCallback;
-    callbackConfig.rssiCb = RssiCallback;
     callbackConfig.gpioWriteCb = GpioWriteCallback;
     callbackConfig.gpioRemoteConfigCb = GpioRemoteConfigCallback;
     callbackConfig.errorCb = ErrorCallback;
 
-    ProteusIII_Init(PROTEUSIII_DEFAULT_BAUDRATE,
-                    WE_FlowControl_NoFlowControl,
-                    ProteusIII_OperationMode_CommandMode,
-                    callbackConfig);
+    ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
+                  WE_FlowControl_NoFlowControl,
+                  ProteusE_OperationMode_CommandMode,
+                  callbackConfig);
 
 //    printf("Performing factory reset\n");
-//    bool ret = ProteusIII_FactoryReset();
+//    bool ret = ProteusE_FactoryReset();
 //    printf("Factory reset %s\n", ret ? "OK" : "NOK");
 
-    ProteusIII_DeviceInfo_t deviceInfo;
-    if (ProteusIII_GetDeviceInfo(&deviceInfo))
+    ProteusE_DeviceInfo_t deviceInfo;
+    if (ProteusE_GetDeviceInfo(&deviceInfo))
     {
-      printf("Device info OS version = 0x%04x, "
-              "build code = 0x%08lx, "
-              "package variant = 0x%04x, "
-              "chip ID = 0x%08lx\n",
-              deviceInfo.osVersion,
-              deviceInfo.buildCode,
-              deviceInfo.packageVariant,
-              deviceInfo.chipId);
+        printf("Device info OS version = 0x%04x, "
+                "build code = 0x%08lx, "
+                "package variant = 0x%04x, "
+                "chip ID = 0x%08lx\n",
+                deviceInfo.osVersion,
+                deviceInfo.buildCode,
+                deviceInfo.packageVariant,
+                deviceInfo.chipId);
     }
 
     uint8_t fwVersion[3];
     memset(fwVersion, 0, sizeof(fwVersion));
-    ProteusIII_GetFWVersion(fwVersion);
+    ProteusE_GetFWVersion(fwVersion);
     printf("Firmware version is %u.%u.%u\n", fwVersion[2], fwVersion[1], fwVersion[0]);
     WE_Delay(500);
 
     uint8_t mac[8];
     memset(mac, 0, sizeof(mac));
-    ProteusIII_GetMAC(mac);
+    ProteusE_GetMAC(mac);
     printf("MAC is 0x%02x%02x%02x%02x%02x%02x%02x%02x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7]);
     WE_Delay(500);
 
     uint8_t btMac[6];
     memset(btMac, 0, sizeof(btMac));
-    ProteusIII_GetBTMAC(btMac);
+    ProteusE_GetBTMAC(btMac);
     printf("BTMAC is 0x%02x%02x%02x%02x%02x%02x\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
     WE_Delay(500);
 
     uint8_t serialNr[3];
     memset(serialNr, 0, sizeof(serialNr));
-    ProteusIII_GetSerialNumber(serialNr);
+    ProteusE_GetSerialNumber(serialNr);
     printf("Serial number is 0x%02x%02x%02x\n", serialNr[2], serialNr[1], serialNr[0]);
     WE_Delay(500);
 
@@ -155,53 +141,33 @@ void CommandModeExample()
     {
         uint8_t version[3];
         memset(version, 0, sizeof(version));
-        ProteusIII_GetFWVersion(version);
+        ProteusE_GetFWVersion(version);
         WE_Delay(500);
 
-//        ProteusIII_PinReset();
+//        ProteusE_PinReset();
 //        WE_Delay(500);
-
-        if (passkeyRequestReceived)
-        {
-          /* Respond to passkey request */
-
-          passkeyRequestReceived = false;
-
-          uint8_t passkey[6] = {'1','2','3','1','2','3'};
-          ProteusIII_Passkey(passkey);
-        }
-
-        if (displayPasskeyRequestReceived)
-        {
-          /* Respond to display passkey request */
-
-          displayPasskeyRequestReceived = false;
-
-          /* Confirm key */
-          ProteusIII_NumericCompareConfirm(true);
-        }
     }
 }
 
 /**
- * @brief Proteus-III peripheral only mode example.
+ * @brief Proteus-e transparent mode example.
  *
  * The example consists of two steps:
- * 1) Connect to Proteus-III in command mode to check/set parameters (if required).
- * 2) Disconnect and reconnect in peripheral only mode. In peripheral only mode, the
+ * 1) Connect to Proteus-e in command mode to check/set parameters (if required).
+ * 2) Disconnect and reconnect in transparent mode. In transparent mode, the
  *    status and busy pins are monitored and any received data is echoed back.
  *
- * Note that this example requires pins MODE_1, BUSY and LED_2 to be connected.
+ * Note that this example requires pins MODE_1, BUSY/UART_ENABLE and LED_1 to be connected.
  */
-static void PeripheralOnlyModeExample()
+static void TransparentModeExample()
 {
     /* No callbacks required */
-    ProteusIII_CallbackConfig_t callbackConfig = {0};
+    ProteusE_CallbackConfig_t callbackConfig = {0};
 
-    if (!ProteusIII_Init(PROTEUSIII_DEFAULT_BAUDRATE,
-                         WE_FlowControl_NoFlowControl,
-                         ProteusIII_OperationMode_CommandMode,
-                         callbackConfig))
+    if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
+                       WE_FlowControl_NoFlowControl,
+                       ProteusE_OperationMode_CommandMode,
+                       callbackConfig))
     {
         /* Error */
         while (1)
@@ -213,22 +179,22 @@ static void PeripheralOnlyModeExample()
 
     uint8_t deviceName[32];
     uint16_t deviceNameLength;
-    if (ProteusIII_GetDeviceName(deviceName, &deviceNameLength))
+    if (ProteusE_GetDeviceName(deviceName, &deviceNameLength))
     {
         deviceName[deviceNameLength] = '\0';
         printf("Device name: %s\n", deviceName);
     }
 
-    ProteusIII_Deinit();
+    ProteusE_Deinit();
 
     uint32_t lastStatusPinLowTick = WE_GetTick();
     bool channelOpen = false;
     bool busy = false;
 
-    if (!ProteusIII_Init(PROTEUSIII_DEFAULT_BAUDRATE,
-                         WE_FlowControl_NoFlowControl,
-                         ProteusIII_OperationMode_PeripheralOnlyMode,
-                         callbackConfig))
+    if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
+                       WE_FlowControl_NoFlowControl,
+                       ProteusE_OperationMode_TransparentMode,
+                       callbackConfig))
     {
         /* Error */
         while (1)
@@ -236,15 +202,15 @@ static void PeripheralOnlyModeExample()
         }
     }
 
-    /* In peripheral only mode, all bytes received should be diverted to custom callback OnPeripheralOnlyModeByteReceived() */
-    ProteusIII_SetByteRxCallback(OnPeripheralOnlyModeByteReceived);
+    /* In transparent mode, all bytes received should be diverted to custom callback OnTransparentModeByteReceived() */
+    ProteusE_SetByteRxCallback(OnTransparentModeByteReceived);
 
-    printf("Peripheral only mode started.\n");
+    printf("Transparent mode started.\n");
 
     while (1)
     {
-        /* Check connection status and print message on state change (using status i.e. LED_2 pin) */
-        bool statusPinState = ProteusIII_GetStatusLed2PinLevel();
+        /* Check connection status and print message on state change (using status i.e. LED_1 pin) */
+        bool statusPinState = ProteusE_GetStatusPinLed1Level();
         if (channelOpen)
         {
             if (!statusPinState)
@@ -256,10 +222,10 @@ static void PeripheralOnlyModeExample()
         }
         else if (statusPinState)
         {
-            if (WE_GetTick() - lastStatusPinLowTick > PROTEUSIII_STATUS_LED_CONNECTED_TIMEOUT)
+            if (WE_GetTick() - lastStatusPinLowTick > PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT)
             {
                 /* Status pin has been high for at least
-                 * PROTEUSIII_STATUS_LED_CONNECTED_TIMEOUT ms - channel is now open */
+                 * PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT ms - channel is now open */
                 printf("Channel opened.\n");
                 channelOpen = true;
             }
@@ -272,7 +238,7 @@ static void PeripheralOnlyModeExample()
         }
 
         /* Check state of busy pin and print message on state change */
-        bool b = ProteusIII_IsPeripheralOnlyModeBusy();
+        bool b = ProteusE_IsTransparentModeBusy();
         if (b != busy)
         {
             busy = b;
@@ -283,29 +249,11 @@ static void PeripheralOnlyModeExample()
     }
 }
 
+
 static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi)
 {
     int i = 0;
     printf("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\n-> ",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
-    printf("0x ");
-    for (i = 0; i < payloadLength; i++)
-    {
-        printf("%02x ", *(payload + i));
-    }
-    printf("\n-> ");
-    for (i = 0; i < payloadLength; i++)
-    {
-        printf("%c", *(payload + i));
-    }
-    printf("\n");
-    fflush(stdout);
-}
-
-static void BeaconRxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi)
-{
-    int i = 0;
-    printf("Received beacon data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\n-> ",
            btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
     printf("0x ");
     for (i = 0; i < payloadLength; i++)
@@ -330,7 +278,7 @@ static void ConnectCallback(bool success, uint8_t* btMac)
     fflush(stdout);
 }
 
-static void SecurityCallback(uint8_t* btMac, ProteusIII_SecurityState_t securityState)
+static void SecurityCallback(uint8_t* btMac, ProteusE_SecurityState_t securityState)
 {
     static const char *stateStrings[] =
     {
@@ -346,34 +294,7 @@ static void SecurityCallback(uint8_t* btMac, ProteusIII_SecurityState_t security
     fflush(stdout);
 }
 
-static void PasskeyCallback(uint8_t* btMac)
-{
-    printf("Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
-    printf("\n");
-    fflush(stdout);
-
-    /* Handle passkey request asynchronously in main (must not send response directly from callback) */
-    passkeyRequestReceived = true;
-}
-
-static void DisplayPasskeyCallback(ProteusIII_DisplayPasskeyAction_t action, uint8_t* btMac, uint8_t* passkey)
-{
-    printf("Passkey request from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
-    printf("and pass key (%c%c%c%c%c%c) ",
-           passkey[0], passkey[1], passkey[2], passkey[3], passkey[4], passkey[5]);
-    printf("\n");
-    fflush(stdout);
-
-    if (ProteusIII_DisplayPasskeyAction_PleaseConfirm == action)
-    {
-        /* Handle display passkey request asynchronously in main (must not send response directly from callback) */
-        displayPasskeyRequestReceived = true;
-    }
-}
-
-static void DisconnectCallback(ProteusIII_DisconnectReason_t reason)
+static void DisconnectCallback(ProteusE_DisconnectReason_t reason)
 {
     static const char *reasonStrings[] =
     {
@@ -418,13 +339,6 @@ static void SleepCallback()
     printf("Advertising timeout detected, will go to sleep now\n");
 }
 
-static void RssiCallback(uint8_t* btMac, int8_t rssi, int8_t txPower)
-{
-    printf("Received RSSI indication from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm and TX power = %d dBm.\n",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi, txPower);
-    fflush(stdout);
-}
-
 static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value)
 {
     printf("GPIO write indication received (remote: %s, GPIO: %u, value: %u)\n",
@@ -434,14 +348,13 @@ static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value)
     fflush(stdout);
 }
 
-static void GpioRemoteConfigCallback(ProteusIII_GPIOConfigBlock_t *gpioConfig)
+static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t *gpioConfig)
 {
     static const char *functionStrings[] =
     {
         "disconnected",
         "input",
-        "output",
-        "PWM"
+        "output"
     };
 
     static const char *pullStrings[] =
@@ -457,21 +370,15 @@ static void GpioRemoteConfigCallback(ProteusIII_GPIOConfigBlock_t *gpioConfig)
 
     switch (gpioConfig->function)
     {
-    case ProteusIII_GPIO_IO_Disconnected:
+    case ProteusE_GPIO_IO_Disconnected:
         break;
 
-    case ProteusIII_GPIO_IO_Input:
+    case ProteusE_GPIO_IO_Input:
         printf(", input type: %s", pullStrings[gpioConfig->value.input]);
         break;
 
-    case ProteusIII_GPIO_IO_Output:
-        printf(", output level: %s", gpioConfig->value.output == ProteusIII_GPIO_Output_High ? "HIGH" : "LOW");
-        break;
-
-    case ProteusIII_GPIO_IO_PWM:
-        printf(", PWM period: %u ms, ratio: %u%%",
-               gpioConfig->value.pwm.period,
-               gpioConfig->value.pwm.ratio);
+    case ProteusE_GPIO_IO_Output:
+        printf(", output level: %s", gpioConfig->value.output == ProteusE_GPIO_Output_High ? "HIGH" : "LOW");
         break;
     }
     printf(")\n");
@@ -484,10 +391,10 @@ static void ErrorCallback(uint8_t errorCode)
 }
 
 /**
- * @brief Handles bytes received in peripheral only mode (is set as custom callback
- * for bytes received from Proteus-III).
+ * @brief Handles bytes received in transparent mode (is set as custom callback
+ * for bytes received from Proteus-e).
  */
-static void OnPeripheralOnlyModeByteReceived(uint8_t receivedByte)
+static void OnTransparentModeByteReceived(uint8_t receivedByte)
 {
     printf("Rx 0x%02x ('%c')\n", receivedByte, receivedByte);
 

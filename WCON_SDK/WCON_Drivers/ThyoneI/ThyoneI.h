@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief ThyoneI driver header file.
+ * @brief Thyone-I driver header file.
  */
 
 #include <stdbool.h>
@@ -36,15 +36,16 @@
 extern "C" {
 #endif
 
-#ifndef _ThyoneI_defined
-#define _ThyoneI_defined
+#ifndef THYONEI_H_INCLUDED
+#define THYONEI_H_INCLUDED
 
 /* timings */
-#define ThyoneI_BOOT_DURATION (uint16_t)75
+#define THYONEI_BOOT_DURATION (uint16_t)75
 
-#define ThyoneI_DEFAULT_BAUDRATE (uint32_t)115200
+#define THYONEI_DEFAULT_BAUDRATE (uint32_t)115200
 
-#define ThyoneI_AMOUNT_GPIO_PINS    6
+#define THYONEI_AMOUNT_GPIO_PINS    6
+
 typedef enum ThyoneI_GPIO_t
 {
     ThyoneI_GPIO_1 = (uint8_t)0x01,
@@ -86,7 +87,7 @@ typedef struct ThyoneI_GPIOConfigBlock_t
 {
     ThyoneI_GPIO_t    GPIO_ID;
     ThyoneI_GPIO_IO_t function;
-	union /* 3Byte */
+    union /* 3Byte */
     {
         ThyoneI_GPIO_PwmValue_t pwm;
         ThyoneI_GPIO_Input_t input;
@@ -100,7 +101,7 @@ typedef struct ThyoneI_GPIOControlBlock_t
     union /* 1Byte */
     {
         ThyoneI_GPIO_Output_t output;
-		uint8_t ratio;  /* 0-255 (0%-100%)*/
+        uint8_t ratio;  /* 0-255 (0%-100%)*/
     } value;
 } ThyoneI_GPIOControlBlock_t;
 
@@ -286,7 +287,7 @@ extern bool ThyoneI_GetCCAThreshold(uint8_t *ccaThresholdP);
 extern bool ThyoneI_GetGPIOBlockRemoteConfig(uint8_t *remoteConfigP);
 extern bool ThyoneI_GetModuleMode(ThyoneI_OperatingMode_t *moduleModeP);
 
-#endif // _ThyoneI_defined
+#endif // THYONEI_H_INCLUDED
 
 #ifdef __cplusplus
 }

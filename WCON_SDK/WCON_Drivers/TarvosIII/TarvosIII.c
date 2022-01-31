@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief TarvosIII driver source file.
+ * @brief Tarvos-III driver source file.
  */
 
 #include "TarvosIII.h"
@@ -53,75 +53,75 @@ typedef enum TarvosIII_Pin_t
 #define CHANNELINVALID -1
 
 #define CMD_STX 0x02
-#define TarvosIII_CMD_TYPE_REQ (0 << 6)
-#define TarvosIII_CMD_TYPE_CNF (1 << 6)
-#define TarvosIII_CMD_TYPE_IND (2 << 6)
-#define TarvosIII_CMD_TYPE_RSP (3 << 6)
+#define TARVOSIII_CMD_TYPE_REQ (0 << 6)
+#define TARVOSIII_CMD_TYPE_CNF (1 << 6)
+#define TARVOSIII_CMD_TYPE_IND (2 << 6)
+#define TARVOSIII_CMD_TYPE_RSP (3 << 6)
 
-#define TarvosIII_CMD_DATA 0x00
-#define TarvosIII_CMD_DATA_REQ (TarvosIII_CMD_DATA | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_DATA_CNF (TarvosIII_CMD_DATA | TarvosIII_CMD_TYPE_CNF)
-#define TarvosIII_CMD_REPEAT_IND (TarvosIII_CMD_DATA | TarvosIII_CMD_TYPE_IND)
+#define TARVOSIII_CMD_DATA 0x00
+#define TARVOSIII_CMD_DATA_REQ (TARVOSIII_CMD_DATA | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_DATA_CNF (TARVOSIII_CMD_DATA | TARVOSIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_REPEAT_IND (TARVOSIII_CMD_DATA | TARVOSIII_CMD_TYPE_IND)
 
-#define TarvosIII_CMD_DATAEX 0x01
-#define TarvosIII_CMD_DATAEX_REQ (TarvosIII_CMD_DATAEX | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_DATAEX_IND (TarvosIII_CMD_DATAEX | TarvosIII_CMD_TYPE_IND)
+#define TARVOSIII_CMD_DATAEX 0x01
+#define TARVOSIII_CMD_DATAEX_REQ (TARVOSIII_CMD_DATAEX | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_DATAEX_IND (TARVOSIII_CMD_DATAEX | TARVOSIII_CMD_TYPE_IND)
 
-#define TarvosIII_CMD_RESET 0x05
-#define TarvosIII_CMD_RESET_REQ (TarvosIII_CMD_RESET | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_RESET_CNF (TarvosIII_CMD_RESET | TarvosIII_CMD_TYPE_CNF)
-#define TarvosIII_CMD_RESET_IND (TarvosIII_CMD_RESET | TarvosIII_CMD_TYPE_IND)
+#define TARVOSIII_CMD_RESET 0x05
+#define TARVOSIII_CMD_RESET_REQ (TARVOSIII_CMD_RESET | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_RESET_CNF (TARVOSIII_CMD_RESET | TARVOSIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_RESET_IND (TARVOSIII_CMD_RESET | TARVOSIII_CMD_TYPE_IND)
 
-#define TarvosIII_CMD_SET_CHANNEL 0x06
-#define TarvosIII_CMD_SET_CHANNEL_REQ (TarvosIII_CMD_SET_CHANNEL | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SET_CHANNEL_CNF (TarvosIII_CMD_SET_CHANNEL | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SET_CHANNEL 0x06
+#define TARVOSIII_CMD_SET_CHANNEL_REQ (TARVOSIII_CMD_SET_CHANNEL | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SET_CHANNEL_CNF (TARVOSIII_CMD_SET_CHANNEL | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_SET_DESTNETID 0x07
-#define TarvosIII_CMD_SET_DESTNETID_REQ (TarvosIII_CMD_SET_DESTNETID | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SET_DESTNETID_CNF (TarvosIII_CMD_SET_DESTNETID | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SET_DESTNETID 0x07
+#define TARVOSIII_CMD_SET_DESTNETID_REQ (TARVOSIII_CMD_SET_DESTNETID | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SET_DESTNETID_CNF (TARVOSIII_CMD_SET_DESTNETID | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_SET_DESTADDR 0x08
-#define TarvosIII_CMD_SET_DESTADDR_REQ (TarvosIII_CMD_SET_DESTADDR | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SET_DESTADDR_CNF (TarvosIII_CMD_SET_DESTADDR | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SET_DESTADDR 0x08
+#define TARVOSIII_CMD_SET_DESTADDR_REQ (TARVOSIII_CMD_SET_DESTADDR | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SET_DESTADDR_CNF (TARVOSIII_CMD_SET_DESTADDR | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_SET 0x09
-#define TarvosIII_CMD_SET_REQ (TarvosIII_CMD_SET | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SET_CNF (TarvosIII_CMD_SET | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SET 0x09
+#define TARVOSIII_CMD_SET_REQ (TARVOSIII_CMD_SET | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SET_CNF (TARVOSIII_CMD_SET | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_GET 0x0A
-#define TarvosIII_CMD_GET_REQ (TarvosIII_CMD_GET | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_GET_CNF (TarvosIII_CMD_GET | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_GET 0x0A
+#define TARVOSIII_CMD_GET_REQ (TARVOSIII_CMD_GET | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_GET_CNF (TARVOSIII_CMD_GET | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_RSSI 0x0D
-#define TarvosIII_CMD_RSSI_REQ (TarvosIII_CMD_RSSI | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_RSSI_CNF (TarvosIII_CMD_RSSI | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_RSSI 0x0D
+#define TARVOSIII_CMD_RSSI_REQ (TARVOSIII_CMD_RSSI | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_RSSI_CNF (TARVOSIII_CMD_RSSI | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_SHUTDOWN 0x0E
-#define TarvosIII_CMD_SHUTDOWN_REQ (TarvosIII_CMD_SHUTDOWN | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SHUTDOWN_CNF (TarvosIII_CMD_SHUTDOWN | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SHUTDOWN 0x0E
+#define TARVOSIII_CMD_SHUTDOWN_REQ (TARVOSIII_CMD_SHUTDOWN | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SHUTDOWN_CNF (TARVOSIII_CMD_SHUTDOWN | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_STANDBY 0x0F
-#define TarvosIII_CMD_STANDBY_REQ (TarvosIII_CMD_STANDBY | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_STANDBY_CNF (TarvosIII_CMD_STANDBY | TarvosIII_CMD_TYPE_CNF)
-#define TarvosIII_CMD_STANDBY_IND (TarvosIII_CMD_STANDBY | TarvosIII_CMD_TYPE_IND)
+#define TARVOSIII_CMD_STANDBY 0x0F
+#define TARVOSIII_CMD_STANDBY_REQ (TARVOSIII_CMD_STANDBY | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_STANDBY_CNF (TARVOSIII_CMD_STANDBY | TARVOSIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_STANDBY_IND (TARVOSIII_CMD_STANDBY | TARVOSIII_CMD_TYPE_IND)
 
-#define TarvosIII_CMD_SET_PAPOWER 0x11
-#define TarvosIII_CMD_SET_PAPOWER_REQ (TarvosIII_CMD_SET_PAPOWER | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_SET_PAPOWER_CNF (TarvosIII_CMD_SET_PAPOWER | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_SET_PAPOWER 0x11
+#define TARVOSIII_CMD_SET_PAPOWER_REQ (TARVOSIII_CMD_SET_PAPOWER | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_SET_PAPOWER_CNF (TARVOSIII_CMD_SET_PAPOWER | TARVOSIII_CMD_TYPE_CNF)
 
-#define TarvosIII_CMD_FACTORY_RESET 0x12
-#define TarvosIII_CMD_FACTORY_RESET_REQ (TarvosIII_CMD_FACTORY_RESET | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_FACTORY_RESET_CNF (TarvosIII_CMD_FACTORY_RESET | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_FACTORY_RESET 0x12
+#define TARVOSIII_CMD_FACTORY_RESET_REQ (TARVOSIII_CMD_FACTORY_RESET | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_FACTORY_RESET_CNF (TARVOSIII_CMD_FACTORY_RESET | TARVOSIII_CMD_TYPE_CNF)
 
 /* Test commands */
-#define TarvosIII_CMD_PINGDUT 0x1F
-#define TarvosIII_CMD_PINGDUT_REQ (TarvosIII_CMD_PINGDUT | TarvosIII_CMD_TYPE_REQ)
-#define TarvosIII_CMD_PINGDUT_CNF (TarvosIII_CMD_PINGDUT | TarvosIII_CMD_TYPE_CNF)
+#define TARVOSIII_CMD_PINGDUT 0x1F
+#define TARVOSIII_CMD_PINGDUT_REQ (TARVOSIII_CMD_PINGDUT | TARVOSIII_CMD_TYPE_REQ)
+#define TARVOSIII_CMD_PINGDUT_CNF (TARVOSIII_CMD_PINGDUT | TARVOSIII_CMD_TYPE_CNF)
 
 /* Masks for FLAGS */
 /* Sniffer mode is indicated by bit 1 of cfg-flags */
-#define TarvosIII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
-#define TarvosIII_RPFLAGS_REPEATERENABLE 0X0001
+#define TARVOSIII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
+#define TARVOSIII_RPFLAGS_REPEATERENABLE 0X0001
 
 /**
  * @brief Type used to check the response, when a command was sent to the TarvosIII
@@ -185,7 +185,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     switch (RxPacket.Cmd)
     {
-    case TarvosIII_CMD_FACTORY_RESET_CNF:
+    case TARVOSIII_CMD_FACTORY_RESET_CNF:
     {
         /* check whether the module returns success */
         if ((RxPacket.Data[0] == 0x00))
@@ -200,7 +200,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_RESET_CNF:
+    case TARVOSIII_CMD_RESET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -215,21 +215,21 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_RESET_IND:
+    case TARVOSIII_CMD_RESET_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = TarvosIII_CMD_RESET_IND;
+        cmdConfirmation.cmd = TARVOSIII_CMD_RESET_IND;
     }
     break;
 
-    case TarvosIII_CMD_STANDBY_IND:
+    case TARVOSIII_CMD_STANDBY_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = TarvosIII_CMD_STANDBY_IND;
+        cmdConfirmation.cmd = TARVOSIII_CMD_STANDBY_IND;
     }
     break;
 
-    case TarvosIII_CMD_SHUTDOWN_CNF:
+    case TARVOSIII_CMD_SHUTDOWN_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -244,7 +244,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_STANDBY_CNF:
+    case TARVOSIII_CMD_STANDBY_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -259,7 +259,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_DATA_CNF:
+    case TARVOSIII_CMD_DATA_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -276,7 +276,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_GET_CNF:
+    case TARVOSIII_CMD_GET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -291,7 +291,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_SET_CNF:
+    case TARVOSIII_CMD_SET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -306,46 +306,46 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_DATAEX_IND:
+    case TARVOSIII_CMD_DATAEX_IND:
     {
         /* data received, give it to the RxCallback function */
-    	if(RxCallback != NULL)
-    	{
-			switch (addressmode)
-			{
-			case AddressMode_0:
-			{
-			    RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, TarvosIII_BROADCASTADDRESS, TarvosIII_BROADCASTADDRESS, TarvosIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-			}
-			break;
+        if(RxCallback != NULL)
+        {
+            switch (addressmode)
+            {
+            case AddressMode_0:
+            {
+                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, TARVOSIII_BROADCASTADDRESS, TARVOSIII_BROADCASTADDRESS, TARVOSIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+            }
+            break;
 
-			case AddressMode_1:
-			{
-			    RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, TarvosIII_BROADCASTADDRESS, RxPacket.Data[0], TarvosIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-			}
-			break;
+            case AddressMode_1:
+            {
+                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, TARVOSIII_BROADCASTADDRESS, RxPacket.Data[0], TARVOSIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+            }
+            break;
 
-			case AddressMode_2:
-			{
-			    RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], TarvosIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-			}
-			break;
+            case AddressMode_2:
+            {
+                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], TARVOSIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+            }
+            break;
 
-			case AddressMode_3:
-			{
-			    RxCallback(&RxPacket.Data[3], RxPacket.Length - 4, RxPacket.Data[0], RxPacket.Data[1], RxPacket.Data[2], (int8_t)RxPacket.Data[RxPacket.Length-1]);
-			}
-			break;
+            case AddressMode_3:
+            {
+                RxCallback(&RxPacket.Data[3], RxPacket.Length - 4, RxPacket.Data[0], RxPacket.Data[1], RxPacket.Data[2], (int8_t)RxPacket.Data[RxPacket.Length-1]);
+            }
+            break;
 
-			default:
-				/* wrong address mode */
-				break;
-			}
-    	}
+            default:
+                /* wrong address mode */
+                break;
+            }
+        }
     }
     break;
 
-    case TarvosIII_CMD_SET_CHANNEL_CNF:
+    case TARVOSIII_CMD_SET_CHANNEL_CNF:
     {
         /* check whether the module set value of channel as requested */
         if(RxPacket.Data[0] == channelVolatile)
@@ -360,7 +360,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_SET_DESTADDR_CNF:
+    case TARVOSIII_CMD_SET_DESTADDR_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -375,7 +375,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_SET_DESTNETID_CNF:
+    case TARVOSIII_CMD_SET_DESTNETID_CNF:
     {
         /* check whether the module returns success */
         if(RxPacket.Data[0] == 0x00)
@@ -390,7 +390,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TarvosIII_CMD_SET_PAPOWER_CNF:
+    case TARVOSIII_CMD_SET_PAPOWER_CNF:
     {
         /* check whether the module set value of power output as requested */
         if(RxPacket.Data[0] == powerVolatile)
@@ -406,7 +406,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     break;
 
     /* for internal use only */
-    case TarvosIII_CMD_PINGDUT_CNF:
+    case TARVOSIII_CMD_PINGDUT_CNF:
     {
         /* check the received packets */
         if(RxPacket.Data[4] == 0x0A)
@@ -509,54 +509,54 @@ static bool FillChecksum(uint8_t* array, uint8_t length)
 
 void WE_UART_HandleRxByte(uint8_t received_byte)
 {
-	RxBuffer[RxByteCounter] = received_byte;
+    RxBuffer[RxByteCounter] = received_byte;
 
-	switch (RxByteCounter)
-	{
-	case 0:
-		/* wait for start byte of frame */
-		if (RxBuffer[RxByteCounter] == CMD_STX)
-		{
-			BytesToReceive = 0;
-			RxByteCounter = 1;
-		}
-		break;
+    switch (RxByteCounter)
+    {
+    case 0:
+        /* wait for start byte of frame */
+        if (RxBuffer[RxByteCounter] == CMD_STX)
+        {
+            BytesToReceive = 0;
+            RxByteCounter = 1;
+        }
+        break;
 
-	case 1:
-		/* CMD */
-		RxByteCounter++;
-		break;
+    case 1:
+        /* CMD */
+        RxByteCounter++;
+        break;
 
-	case 2:
-		/* length field */
-		RxByteCounter++;
-		BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-		break;
+    case 2:
+        /* length field */
+        RxByteCounter++;
+        BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+        break;
 
-	default:
-		/* data field */
-		RxByteCounter++;
-		if (RxByteCounter == BytesToReceive)
-		{
-			/* check CRC */
-			checksum = 0;
-			int i = 0;
-			for (i = 0; i < (BytesToReceive - 1); i++)
-			{
-				checksum ^= RxBuffer[i];
-			}
+    default:
+        /* data field */
+        RxByteCounter++;
+        if (RxByteCounter == BytesToReceive)
+        {
+            /* check CRC */
+            checksum = 0;
+            int i = 0;
+            for (i = 0; i < (BytesToReceive - 1); i++)
+            {
+                checksum ^= RxBuffer[i];
+            }
 
-			if (checksum == RxBuffer[BytesToReceive - 1])
-			{
-				/* received frame ok, interpret it now */
-				HandleRxPacket(RxBuffer);
-			}
+            if (checksum == RxBuffer[BytesToReceive - 1])
+            {
+                /* received frame ok, interpret it now */
+                HandleRxPacket(RxBuffer);
+            }
 
-			RxByteCounter = 0;
-			BytesToReceive = 0;
-		}
-		break;
-	}
+            RxByteCounter = 0;
+            BytesToReceive = 0;
+        }
+        break;
+    }
 }
 
 
@@ -583,12 +583,12 @@ bool TarvosIII_Init(uint32_t baudrate,
                     void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t))
 {
     /* set address mode */
-	addressmode = addrmode;
+    addressmode = addrmode;
 
-	/* set RX callback function */
-	RxCallback = RXcb;
+    /* set RX callback function */
+    RxCallback = RXcb;
 
-	/* initialize the pins */
+    /* initialize the pins */
     TarvosIII_pins[TarvosIII_Pin_Reset].port = GPIOA;
     TarvosIII_pins[TarvosIII_Pin_Reset].pin = GPIO_PIN_10;
     TarvosIII_pins[TarvosIII_Pin_Reset].type = WE_Pin_Type_Output;
@@ -611,22 +611,22 @@ bool TarvosIII_Init(uint32_t baudrate,
     WE_SetPin(TarvosIII_pins[TarvosIII_Pin_Reset], WE_Pin_Level_High);
     WE_SetPin(TarvosIII_pins[TarvosIII_Pin_Mode], WE_Pin_Level_Low);
 
-	WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
-	WE_Delay(10);
+    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_Delay(10);
 
-	/* reset module*/
-	if(TarvosIII_PinReset())
-	{
-		WE_Delay(300);
-	}
-	else
-	{
-		fprintf(stdout, "Pin reset failed\n");
-		TarvosIII_Deinit();
-		return false;
-	}
+    /* reset module */
+    if(TarvosIII_PinReset())
+    {
+        WE_Delay(300);
+    }
+    else
+    {
+        fprintf(stdout, "Pin reset failed\n");
+        TarvosIII_Deinit();
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -637,11 +637,11 @@ bool TarvosIII_Init(uint32_t baudrate,
  */
 bool TarvosIII_Deinit()
 {
-	/* close the communication interface to the module */
-	WE_UART_DeInit();
+    /* close the communication interface to the module */
+    WE_UART_DeInit();
 
     /* deinit pins */
-	WE_DeinitPin(TarvosIII_pins[TarvosIII_Pin_Reset]);
+    WE_DeinitPin(TarvosIII_pins[TarvosIII_Pin_Reset]);
     WE_DeinitPin(TarvosIII_pins[TarvosIII_Pin_SleepWakeUp]);
     WE_DeinitPin(TarvosIII_pins[TarvosIII_Pin_Boot]);
     WE_DeinitPin(TarvosIII_pins[TarvosIII_Pin_Mode]);
@@ -671,7 +671,7 @@ bool TarvosIII_PinWakeup()
     WE_SetPin(TarvosIII_pins[TarvosIII_Pin_SleepWakeUp], WE_Pin_Level_Low);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_RESET_IND, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -687,7 +687,7 @@ bool TarvosIII_PinReset()
     WE_SetPin(TarvosIII_pins[TarvosIII_Pin_Reset], WE_Pin_Level_High);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_RESET_IND, CMD_Status_Success, true);
+    return Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
 /**
@@ -703,7 +703,7 @@ bool TarvosIII_Reset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_RESET_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -711,7 +711,7 @@ bool TarvosIII_Reset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -731,7 +731,7 @@ bool TarvosIII_FactoryReset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_FACTORY_RESET_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_FACTORY_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -739,7 +739,7 @@ bool TarvosIII_FactoryReset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(1500, TarvosIII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(1500, TARVOSIII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -757,7 +757,7 @@ bool TarvosIII_Standby()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_STANDBY_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_STANDBY_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -765,7 +765,7 @@ bool TarvosIII_Standby()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_STANDBY_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_STANDBY_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -783,7 +783,7 @@ bool TarvosIII_Shutdown()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_SHUTDOWN_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_SHUTDOWN_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -791,7 +791,7 @@ bool TarvosIII_Shutdown()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -813,7 +813,7 @@ bool TarvosIII_Get(TarvosIII_UserSettings_t us, uint8_t* response, uint8_t* resp
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_GET_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_GET_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = us;
 
@@ -823,7 +823,7 @@ bool TarvosIII_Get(TarvosIII_UserSettings_t us, uint8_t* response, uint8_t* resp
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_GET_CNF, CMD_Status_Success, true))
+        if (Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_GET_CNF, CMD_Status_Success, true))
         {
             int length = RxPacket.Length - 1;
             memcpy(response,&RxPacket.Data[1],length);
@@ -854,7 +854,7 @@ bool TarvosIII_Set(TarvosIII_UserSettings_t us, uint8_t* value, uint8_t length)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_SET_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_SET_REQ;
     CMD_ARRAY[2] = (1 + length);
     CMD_ARRAY[3] = us;
     memcpy(&CMD_ARRAY[4],value,length);
@@ -864,7 +864,7 @@ bool TarvosIII_Set(TarvosIII_UserSettings_t us, uint8_t* value, uint8_t length)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1266,38 +1266,38 @@ bool TarvosIII_EnableSnifferMode()
     uint16_t cfgFlags;
     uint8_t length;
 
-	ret = TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
+    ret = TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
     if(ret == true)
-	{
-		/* set sniffer mode if not set already */
-		if(TarvosIII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & TarvosIII_CFGFLAGS_SNIFFERMODEENABLE))
-		{
-			cfgFlags |= TarvosIII_CFGFLAGS_SNIFFERMODEENABLE;
-			ret = TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
-		}
-		else
-		{
-			ret = true;
-		}
+    {
+        /* set sniffer mode if not set already */
+        if(TARVOSIII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & TARVOSIII_CFGFLAGS_SNIFFERMODEENABLE))
+        {
+            cfgFlags |= TARVOSIII_CFGFLAGS_SNIFFERMODEENABLE;
+            ret = TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
+        }
+        else
+        {
+            ret = true;
+        }
 
-		if(ret == true)
-		{
-			/* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
-			ret = TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
-			if(ret == true)
-			{
-				if(TarvosIII_RPFLAGS_REPEATERENABLE == (rpFlags & TarvosIII_RPFLAGS_REPEATERENABLE))
-				{
-					rpFlags &= ~TarvosIII_RPFLAGS_REPEATERENABLE;
-					ret &= TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
-				}
-				else
-				{
-					ret = true;
-				}
-			}
-		}
-	}
+        if(ret == true)
+        {
+            /* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
+            ret = TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
+            if(ret == true)
+            {
+                if(TARVOSIII_RPFLAGS_REPEATERENABLE == (rpFlags & TARVOSIII_RPFLAGS_REPEATERENABLE))
+                {
+                    rpFlags &= ~TARVOSIII_RPFLAGS_REPEATERENABLE;
+                    ret &= TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
+                }
+                else
+                {
+                    ret = true;
+                }
+            }
+        }
+    }
     return ret;
 }
 
@@ -1323,7 +1323,7 @@ bool TarvosIII_SetVolatile_TXPower(uint8_t power)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_SET_PAPOWER_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_SET_PAPOWER_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = power;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1333,7 +1333,7 @@ bool TarvosIII_SetVolatile_TXPower(uint8_t power)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
         powerVolatile = TXPOWERINVALID;
     }
     return ret;
@@ -1361,7 +1361,7 @@ bool TarvosIII_SetVolatile_Channel(uint8_t channel)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_SET_CHANNEL_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_SET_CHANNEL_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = channel;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1371,7 +1371,7 @@ bool TarvosIII_SetVolatile_Channel(uint8_t channel)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
         channelVolatile = CHANNELINVALID;
     }
     return ret;
@@ -1399,7 +1399,7 @@ bool TarvosIII_SetVolatile_DestNetID(uint8_t destnetid)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_SET_DESTNETID_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_SET_DESTNETID_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = destnetid;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1408,7 +1408,7 @@ bool TarvosIII_SetVolatile_DestNetID(uint8_t destnetid)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1446,7 +1446,7 @@ bool TarvosIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_2:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = TarvosIII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = TARVOSIII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x01;
         CMD_ARRAY[3] = destaddr_lsb;
         ret = FillChecksum(CMD_ARRAY,5);
@@ -1455,7 +1455,7 @@ bool TarvosIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_3:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = TarvosIII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = TARVOSIII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x02;
         CMD_ARRAY[3] = destaddr_lsb;
         CMD_ARRAY[4] = destaddr_msb;
@@ -1472,7 +1472,7 @@ bool TarvosIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1499,7 +1499,7 @@ bool TarvosIII_Transmit(uint8_t* payload, uint8_t length)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_DATA_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_DATA_REQ;
     CMD_ARRAY[2] = length;
     memcpy(&CMD_ARRAY[3],payload,length);
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1509,7 +1509,7 @@ bool TarvosIII_Transmit(uint8_t* payload, uint8_t length)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1540,7 +1540,7 @@ bool TarvosIII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t chann
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + addressmode + 4 + 1];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TarvosIII_CMD_DATAEX_REQ;
+    CMD_ARRAY[1] = TARVOSIII_CMD_DATAEX_REQ;
 
     switch (addressmode)
     {
@@ -1593,7 +1593,7 @@ bool TarvosIII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t chann
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TarvosIII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TARVOSIII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1616,7 +1616,7 @@ bool TarvosIII_Ping()
     WE_UART_Transmit(ping_command,sizeof(ping_command));
 
     /* wait for cnf */
-    return Wait4CNF(10000 /*10s*/, TarvosIII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
+    return Wait4CNF(10000 /*10s*/, TARVOSIII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1633,7 +1633,7 @@ bool TarvosIII_Configure(TarvosIII_Configuration_t* config, uint8_t config_lengt
 {
     int i = 0;
     uint8_t help_length;
-    uint8_t help[MAX_USERSETTING_LENGTH];
+    uint8_t help[TARVOSIII_MAX_USERSETTING_LENGTH];
 
     if(factory_reset)
     {

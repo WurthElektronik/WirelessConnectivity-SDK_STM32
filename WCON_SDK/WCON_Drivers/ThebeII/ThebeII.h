@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief ThebeII driver header file.
+ * @brief Thebe-II driver header file.
  */
 
 #include <stdbool.h>
@@ -36,17 +36,17 @@
 extern "C" {
 #endif
 
-#ifndef _ThebeII_defined
-#define _ThebeII_defined
+#ifndef THEBEII_H_INCLUDED
+#define THEBEII_H_INCLUDED
 
 
-#define ThebeII_BROADCASTADDRESS 0xFF
-#define MAX_USERSETTING_LENGTH 4
+#define THEBEII_BROADCASTADDRESS 0xFF
+#define THEBEII_MAX_USERSETTING_LENGTH 4
 
-#define ThebeII_MIN_RFCHANNEL 128
-#define ThebeII_MAX_RFCHANNEL 133
+#define THEBEII_MIN_RFCHANNEL 128
+#define THEBEII_MAX_RFCHANNEL 133
 
-#define ThebeII_DEFAULT_BAUDRATE (uint32_t)115200
+#define THEBEII_DEFAULT_BAUDRATE (uint32_t)115200
 
 
 typedef enum ThebeII_AddressMode_t
@@ -84,7 +84,7 @@ typedef enum ThebeII_UserSettings_t
 typedef struct ThebeII_Configuration_t
 {
    ThebeII_UserSettings_t usersetting;      /**< user setting */
-   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
+   uint8_t value[THEBEII_MAX_USERSETTING_LENGTH];   /**< value */
    uint8_t value_length;                    /**< length of the value */
 } ThebeII_Configuration_t;
 
@@ -138,7 +138,8 @@ extern bool ThebeII_SetVolatile_Channel(uint8_t channel);
 
 extern bool ThebeII_Ping();
 
-#endif // _ThebeII_defined
+#endif // THEBEII_H_INCLUDED
+
 #ifdef __cplusplus
 }
 #endif

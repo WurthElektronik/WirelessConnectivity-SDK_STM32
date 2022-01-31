@@ -50,7 +50,7 @@ extern "C" {
 /**
  * @brief Driver version
  */
-#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {1,1,0}
+#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {1,2,0}
 
 #if defined(WE_DEBUG) || defined(WE_DEBUG_INIT)
 /* Redirect printf() to UART for testing/debugging purposes */
@@ -124,6 +124,11 @@ extern DMA_TypeDef *WE_dmaWirelessRx;
  */
 extern uint32_t WE_dmaWirelessRxStream;
 
+/**
+ * @brief Last read position in DMA receive buffer (used only if DMA is enabled).
+ * @see WE_CheckIfDmaDataAvailable()
+ */
+extern size_t WE_dmaLastReadPos;
 
 /**
  * @brief Initializes the platform (peripherals, flash interface, Systick, system clock, interrupts etc.)

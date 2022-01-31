@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief TelestoIII driver source file.
+ * @brief Telesto-III driver source file.
  */
 
 #include "TelestoIII.h"
@@ -53,76 +53,76 @@ typedef enum TelestoIII_Pin_t
 #define CHANNELINVALID -1
 
 #define CMD_STX 0x02
-#define TelestoIII_CMD_TYPE_REQ (0 << 6)
-#define TelestoIII_CMD_TYPE_CNF (1 << 6)
-#define TelestoIII_CMD_TYPE_IND (2 << 6)
-#define TelestoIII_CMD_TYPE_RSP (3 << 6)
+#define TELESTOIII_CMD_TYPE_REQ (0 << 6)
+#define TELESTOIII_CMD_TYPE_CNF (1 << 6)
+#define TELESTOIII_CMD_TYPE_IND (2 << 6)
+#define TELESTOIII_CMD_TYPE_RSP (3 << 6)
 
-#define TelestoIII_CMD_DATA 0x00
-#define TelestoIII_CMD_DATA_REQ (TelestoIII_CMD_DATA | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_DATA_CNF (TelestoIII_CMD_DATA | TelestoIII_CMD_TYPE_CNF)
-#define TelestoIII_CMD_REPEAT_IND (TelestoIII_CMD_DATA | TelestoIII_CMD_TYPE_IND)
+#define TELESTOIII_CMD_DATA 0x00
+#define TELESTOIII_CMD_DATA_REQ (TELESTOIII_CMD_DATA | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_DATA_CNF (TELESTOIII_CMD_DATA | TELESTOIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_REPEAT_IND (TELESTOIII_CMD_DATA | TELESTOIII_CMD_TYPE_IND)
 
-#define TelestoIII_CMD_DATAEX 0x01
-#define TelestoIII_CMD_DATAEX_REQ (TelestoIII_CMD_DATAEX | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_DATAEX_IND (TelestoIII_CMD_DATAEX | TelestoIII_CMD_TYPE_IND)
+#define TELESTOIII_CMD_DATAEX 0x01
+#define TELESTOIII_CMD_DATAEX_REQ (TELESTOIII_CMD_DATAEX | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_DATAEX_IND (TELESTOIII_CMD_DATAEX | TELESTOIII_CMD_TYPE_IND)
 
-#define TelestoIII_CMD_RESET 0x05
-#define TelestoIII_CMD_RESET_REQ (TelestoIII_CMD_RESET | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_RESET_CNF (TelestoIII_CMD_RESET | TelestoIII_CMD_TYPE_CNF)
-#define TelestoIII_CMD_RESET_IND (TelestoIII_CMD_RESET | TelestoIII_CMD_TYPE_IND)
+#define TELESTOIII_CMD_RESET 0x05
+#define TELESTOIII_CMD_RESET_REQ (TELESTOIII_CMD_RESET | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_RESET_CNF (TELESTOIII_CMD_RESET | TELESTOIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_RESET_IND (TELESTOIII_CMD_RESET | TELESTOIII_CMD_TYPE_IND)
 
-#define TelestoIII_CMD_SET_CHANNEL 0x06
-#define TelestoIII_CMD_SET_CHANNEL_REQ (TelestoIII_CMD_SET_CHANNEL | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SET_CHANNEL_CNF (TelestoIII_CMD_SET_CHANNEL | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SET_CHANNEL 0x06
+#define TELESTOIII_CMD_SET_CHANNEL_REQ (TELESTOIII_CMD_SET_CHANNEL | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SET_CHANNEL_CNF (TELESTOIII_CMD_SET_CHANNEL | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_SET_DESTNETID 0x07
-#define TelestoIII_CMD_SET_DESTNETID_REQ (TelestoIII_CMD_SET_DESTNETID | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SET_DESTNETID_CNF (TelestoIII_CMD_SET_DESTNETID | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SET_DESTNETID 0x07
+#define TELESTOIII_CMD_SET_DESTNETID_REQ (TELESTOIII_CMD_SET_DESTNETID | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SET_DESTNETID_CNF (TELESTOIII_CMD_SET_DESTNETID | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_SET_DESTADDR 0x08
-#define TelestoIII_CMD_SET_DESTADDR_REQ (TelestoIII_CMD_SET_DESTADDR | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SET_DESTADDR_CNF (TelestoIII_CMD_SET_DESTADDR | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SET_DESTADDR 0x08
+#define TELESTOIII_CMD_SET_DESTADDR_REQ (TELESTOIII_CMD_SET_DESTADDR | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SET_DESTADDR_CNF (TELESTOIII_CMD_SET_DESTADDR | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_SET 0x09
-#define TelestoIII_CMD_SET_REQ (TelestoIII_CMD_SET | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SET_CNF (TelestoIII_CMD_SET | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SET 0x09
+#define TELESTOIII_CMD_SET_REQ (TELESTOIII_CMD_SET | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SET_CNF (TELESTOIII_CMD_SET | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_GET 0x0A
-#define TelestoIII_CMD_GET_REQ (TelestoIII_CMD_GET | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_GET_CNF (TelestoIII_CMD_GET | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_GET 0x0A
+#define TELESTOIII_CMD_GET_REQ (TELESTOIII_CMD_GET | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_GET_CNF (TELESTOIII_CMD_GET | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_RSSI 0x0D
-#define TelestoIII_CMD_RSSI_REQ (TelestoIII_CMD_RSSI | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_RSSI_CNF (TelestoIII_CMD_RSSI | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_RSSI 0x0D
+#define TELESTOIII_CMD_RSSI_REQ (TELESTOIII_CMD_RSSI | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_RSSI_CNF (TELESTOIII_CMD_RSSI | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_SHUTDOWN 0x0E
-#define TelestoIII_CMD_SHUTDOWN_REQ (TelestoIII_CMD_SHUTDOWN | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SHUTDOWN_CNF (TelestoIII_CMD_SHUTDOWN | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SHUTDOWN 0x0E
+#define TELESTOIII_CMD_SHUTDOWN_REQ (TELESTOIII_CMD_SHUTDOWN | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SHUTDOWN_CNF (TELESTOIII_CMD_SHUTDOWN | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_STANDBY 0x0F
-#define TelestoIII_CMD_STANDBY_REQ (TelestoIII_CMD_STANDBY | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_STANDBY_CNF (TelestoIII_CMD_STANDBY | TelestoIII_CMD_TYPE_CNF)
-#define TelestoIII_CMD_STANDBY_IND (TelestoIII_CMD_STANDBY | TelestoIII_CMD_TYPE_IND)
+#define TELESTOIII_CMD_STANDBY 0x0F
+#define TELESTOIII_CMD_STANDBY_REQ (TELESTOIII_CMD_STANDBY | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_STANDBY_CNF (TELESTOIII_CMD_STANDBY | TELESTOIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_STANDBY_IND (TELESTOIII_CMD_STANDBY | TELESTOIII_CMD_TYPE_IND)
 
-#define TelestoIII_CMD_SET_PAPOWER 0x11
-#define TelestoIII_CMD_SET_PAPOWER_REQ (TelestoIII_CMD_SET_PAPOWER | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_SET_PAPOWER_CNF (TelestoIII_CMD_SET_PAPOWER | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_SET_PAPOWER 0x11
+#define TELESTOIII_CMD_SET_PAPOWER_REQ (TELESTOIII_CMD_SET_PAPOWER | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_SET_PAPOWER_CNF (TELESTOIII_CMD_SET_PAPOWER | TELESTOIII_CMD_TYPE_CNF)
 
-#define TelestoIII_CMD_FACTORY_RESET 0x12
-#define TelestoIII_CMD_FACTORY_RESET_REQ (TelestoIII_CMD_FACTORY_RESET | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_FACTORY_RESET_CNF (TelestoIII_CMD_FACTORY_RESET | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_FACTORY_RESET 0x12
+#define TELESTOIII_CMD_FACTORY_RESET_REQ (TELESTOIII_CMD_FACTORY_RESET | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_FACTORY_RESET_CNF (TELESTOIII_CMD_FACTORY_RESET | TELESTOIII_CMD_TYPE_CNF)
 
 
 /* AMBER test commands */
-#define TelestoIII_CMD_PINGDUT 0x1F
-#define TelestoIII_CMD_PINGDUT_REQ (TelestoIII_CMD_PINGDUT | TelestoIII_CMD_TYPE_REQ)
-#define TelestoIII_CMD_PINGDUT_CNF (TelestoIII_CMD_PINGDUT | TelestoIII_CMD_TYPE_CNF)
+#define TELESTOIII_CMD_PINGDUT 0x1F
+#define TELESTOIII_CMD_PINGDUT_REQ (TELESTOIII_CMD_PINGDUT | TELESTOIII_CMD_TYPE_REQ)
+#define TELESTOIII_CMD_PINGDUT_CNF (TELESTOIII_CMD_PINGDUT | TELESTOIII_CMD_TYPE_CNF)
 
 /* Masks for FLAGS */
 /* Sniffer mode is indicated by bit 1 of cfg-flags */
-#define TelestoIII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
-#define TelestoIII_RPFLAGS_REPEATERENABLE 0X0001
+#define TELESTOIII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
+#define TELESTOIII_RPFLAGS_REPEATERENABLE 0X0001
 
 /**
  * @brief Type used to check the response, when a command was sent to the TelestoIII
@@ -186,7 +186,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     switch (RxPacket.Cmd)
     {
-    case TelestoIII_CMD_FACTORY_RESET_CNF:
+    case TELESTOIII_CMD_FACTORY_RESET_CNF:
     {
         /* check whether the module returns success */
         if ((RxPacket.Data[0] == 0x00))
@@ -201,7 +201,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_RESET_CNF:
+    case TELESTOIII_CMD_RESET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -216,21 +216,21 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_RESET_IND:
+    case TELESTOIII_CMD_RESET_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = TelestoIII_CMD_RESET_IND;
+        cmdConfirmation.cmd = TELESTOIII_CMD_RESET_IND;
     }
     break;
 
-    case TelestoIII_CMD_STANDBY_IND:
+    case TELESTOIII_CMD_STANDBY_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = TelestoIII_CMD_STANDBY_IND;
+        cmdConfirmation.cmd = TELESTOIII_CMD_STANDBY_IND;
     }
     break;
 
-    case TelestoIII_CMD_SHUTDOWN_CNF:
+    case TELESTOIII_CMD_SHUTDOWN_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -245,7 +245,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_STANDBY_CNF:
+    case TELESTOIII_CMD_STANDBY_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -260,7 +260,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_DATA_CNF:
+    case TELESTOIII_CMD_DATA_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -277,7 +277,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_GET_CNF:
+    case TELESTOIII_CMD_GET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -292,7 +292,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_SET_CNF:
+    case TELESTOIII_CMD_SET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -307,7 +307,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_DATAEX_IND:
+    case TELESTOIII_CMD_DATAEX_IND:
     {
         /* data received, give it to the RxCallback function */
         if (RxCallback != NULL)
@@ -316,19 +316,19 @@ static void HandleRxPacket(uint8_t*RxBuffer)
             {
             case AddressMode_0:
             {
-                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, TelestoIII_BROADCASTADDRESS, TelestoIII_BROADCASTADDRESS, TelestoIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, TELESTOIII_BROADCASTADDRESS, TELESTOIII_BROADCASTADDRESS, TELESTOIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
             case AddressMode_1:
             {
-                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, TelestoIII_BROADCASTADDRESS, RxPacket.Data[0], TelestoIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, TELESTOIII_BROADCASTADDRESS, RxPacket.Data[0], TELESTOIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
             case AddressMode_2:
             {
-                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], TelestoIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], TELESTOIII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
@@ -346,7 +346,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_SET_CHANNEL_CNF:
+    case TELESTOIII_CMD_SET_CHANNEL_CNF:
     {
         /* check whether the module set value of channel as requested */
         if(RxPacket.Data[0] == channelVolatile)
@@ -361,7 +361,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_SET_DESTADDR_CNF:
+    case TELESTOIII_CMD_SET_DESTADDR_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -376,7 +376,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_SET_DESTNETID_CNF:
+    case TELESTOIII_CMD_SET_DESTNETID_CNF:
     {
         /* check whether the module returns success */
         if(RxPacket.Data[0] == 0x00)
@@ -391,7 +391,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case TelestoIII_CMD_SET_PAPOWER_CNF:
+    case TELESTOIII_CMD_SET_PAPOWER_CNF:
     {
         /* check whether the module set value of power output as requested */
         if(RxPacket.Data[0] == powerVolatile)
@@ -407,7 +407,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     break;
 
     /* for internal use only */
-    case TelestoIII_CMD_PINGDUT_CNF:
+    case TELESTOIII_CMD_PINGDUT_CNF:
     {
         /* check the received packets */
         if(RxPacket.Data[4] == 0x0A)
@@ -511,53 +511,53 @@ static bool FillChecksum(uint8_t* array, uint8_t length)
 
 void WE_UART_HandleRxByte(uint8_t received_byte)
 {
-	RxBuffer[RxByteCounter] = received_byte;
-	switch (RxByteCounter)
-	{
-	case 0:
-		/* wait for start byte of frame */
-		if (RxBuffer[RxByteCounter] == CMD_STX)
-		{
-			BytesToReceive = 0;
-			RxByteCounter = 1;
-		}
-		break;
+    RxBuffer[RxByteCounter] = received_byte;
+    switch (RxByteCounter)
+    {
+    case 0:
+        /* wait for start byte of frame */
+        if (RxBuffer[RxByteCounter] == CMD_STX)
+        {
+            BytesToReceive = 0;
+            RxByteCounter = 1;
+        }
+        break;
 
-	case 1:
-		/* CMD */
-		RxByteCounter++;
-		break;
+    case 1:
+        /* CMD */
+        RxByteCounter++;
+        break;
 
-	case 2:
-		/* length field */
-		RxByteCounter++;
-		BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-		break;
+    case 2:
+        /* length field */
+        RxByteCounter++;
+        BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+        break;
 
-	default:
-		/* data field */
-		RxByteCounter++;
-		if (RxByteCounter == BytesToReceive)
-		{
-			/* check CRC */
-			checksum = 0;
-			int i = 0;
-			for (i = 0; i < (BytesToReceive - 1); i++)
-			{
-				checksum ^= RxBuffer[i];
-			}
+    default:
+        /* data field */
+        RxByteCounter++;
+        if (RxByteCounter == BytesToReceive)
+        {
+            /* check CRC */
+            checksum = 0;
+            int i = 0;
+            for (i = 0; i < (BytesToReceive - 1); i++)
+            {
+                checksum ^= RxBuffer[i];
+            }
 
-			if (checksum == RxBuffer[BytesToReceive - 1])
-			{
-				/* received frame ok, interpret it now */
-				HandleRxPacket(RxBuffer);
-			}
+            if (checksum == RxBuffer[BytesToReceive - 1])
+            {
+                /* received frame ok, interpret it now */
+                HandleRxPacket(RxBuffer);
+            }
 
-			RxByteCounter = 0;
-			BytesToReceive = 0;
-		}
-		break;
-	}
+            RxByteCounter = 0;
+            BytesToReceive = 0;
+        }
+        break;
+    }
 }
 
 /**
@@ -580,12 +580,12 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
 bool TelestoIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, TelestoIII_AddressMode_t addrmode, void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t))
 {
     /* set address mode */
-	addressmode = addrmode;
+    addressmode = addrmode;
 
-	/* set RX callback function */
-	RxCallback = RXcb;
+    /* set RX callback function */
+    RxCallback = RXcb;
 
-	/* initialize the pins */
+    /* initialize the pins */
     TelestoIII_pins[TelestoIII_Pin_Reset].port = GPIOA;
     TelestoIII_pins[TelestoIII_Pin_Reset].pin = GPIO_PIN_10;
     TelestoIII_pins[TelestoIII_Pin_Reset].type = WE_Pin_Type_Output;
@@ -601,29 +601,29 @@ bool TelestoIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, TelestoII
     if (false == WE_InitPins(TelestoIII_pins, TelestoIII_Pin_Count))
     {
         /* error */
-        return false ;
+        return false;
     }
-	WE_SetPin(TelestoIII_pins[TelestoIII_Pin_Boot], WE_Pin_Level_Low);
+    WE_SetPin(TelestoIII_pins[TelestoIII_Pin_Boot], WE_Pin_Level_Low);
     WE_SetPin(TelestoIII_pins[TelestoIII_Pin_SleepWakeUp], WE_Pin_Level_Low);
     WE_SetPin(TelestoIII_pins[TelestoIII_Pin_Reset], WE_Pin_Level_High);
     WE_SetPin(TelestoIII_pins[TelestoIII_Pin_Mode], WE_Pin_Level_Low);
 
-	WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
-	WE_Delay(10);
+    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_Delay(10);
 
-	/* reset module*/
-	if(TelestoIII_PinReset())
-	{
-		WE_Delay(300);
-	}
-	else
-	{
-		fprintf(stdout, "Pin reset failed\n");
-		TelestoIII_Deinit();
-		return false;
-	}
+    /* reset module */
+    if(TelestoIII_PinReset())
+    {
+        WE_Delay(300);
+    }
+    else
+    {
+        fprintf(stdout, "Pin reset failed\n");
+        TelestoIII_Deinit();
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -634,17 +634,17 @@ bool TelestoIII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, TelestoII
  */
 bool TelestoIII_Deinit()
 {
-	/* close the communication interface to the module */
-	WE_UART_DeInit();
+    /* close the communication interface to the module */
+    WE_UART_DeInit();
 
-	/* deinit pins */
-	WE_DeinitPin(TelestoIII_pins[TelestoIII_Pin_Reset]);
+    /* deinit pins */
+    WE_DeinitPin(TelestoIII_pins[TelestoIII_Pin_Reset]);
     WE_DeinitPin(TelestoIII_pins[TelestoIII_Pin_SleepWakeUp]);
     WE_DeinitPin(TelestoIII_pins[TelestoIII_Pin_Boot]);
     WE_DeinitPin(TelestoIII_pins[TelestoIII_Pin_Mode]);
 
-	addressmode = AddressMode_0;
-	RxCallback = NULL;
+    addressmode = AddressMode_0;
+    RxCallback = NULL;
 
     return true;
 }
@@ -668,7 +668,7 @@ bool TelestoIII_PinWakeup()
     WE_SetPin(TelestoIII_pins[TelestoIII_Pin_SleepWakeUp], WE_Pin_Level_Low);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_RESET_IND, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -685,7 +685,7 @@ bool TelestoIII_PinReset()
     WE_SetPin(TelestoIII_pins[TelestoIII_Pin_Reset], WE_Pin_Level_High);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_RESET_IND, CMD_Status_Success, true);
+    return Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
 /**
@@ -701,7 +701,7 @@ bool TelestoIII_Reset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_RESET_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -709,7 +709,7 @@ bool TelestoIII_Reset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -729,7 +729,7 @@ bool TelestoIII_FactoryReset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_FACTORY_RESET_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_FACTORY_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -737,7 +737,7 @@ bool TelestoIII_FactoryReset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(1500, TelestoIII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(1500, TELESTOIII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -755,7 +755,7 @@ bool TelestoIII_Standby()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_STANDBY_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_STANDBY_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -763,7 +763,7 @@ bool TelestoIII_Standby()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_STANDBY_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_STANDBY_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -781,7 +781,7 @@ bool TelestoIII_Shutdown()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_SHUTDOWN_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_SHUTDOWN_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -789,7 +789,7 @@ bool TelestoIII_Shutdown()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -811,7 +811,7 @@ bool TelestoIII_Get(TelestoIII_UserSettings_t us, uint8_t* response, uint8_t* re
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_GET_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_GET_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = us;
 
@@ -821,7 +821,7 @@ bool TelestoIII_Get(TelestoIII_UserSettings_t us, uint8_t* response, uint8_t* re
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_GET_CNF, CMD_Status_Success, true))
+        if (Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_GET_CNF, CMD_Status_Success, true))
         {
             int length = RxPacket.Length - 1;
             memcpy(response,&RxPacket.Data[1],length);
@@ -852,7 +852,7 @@ bool TelestoIII_Set(TelestoIII_UserSettings_t us, uint8_t* value, uint8_t length
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_SET_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_SET_REQ;
     CMD_ARRAY[2] = (1 + length);
     CMD_ARRAY[3] = us;
     memcpy(&CMD_ARRAY[4],value,length);
@@ -862,7 +862,7 @@ bool TelestoIII_Set(TelestoIII_UserSettings_t us, uint8_t* value, uint8_t length
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1264,38 +1264,38 @@ bool TelestoIII_EnableSnifferMode()
     uint16_t cfgFlags;
     uint8_t length;
 
-	ret = TelestoIII_Get(TelestoIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
+    ret = TelestoIII_Get(TelestoIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
     if(ret == true)
-	{
-		/* set sniffer mode if not set already */
-		if(TelestoIII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & TelestoIII_CFGFLAGS_SNIFFERMODEENABLE))
-		{
-			cfgFlags |= TelestoIII_CFGFLAGS_SNIFFERMODEENABLE;
-			ret = TelestoIII_Set(TelestoIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
-		}
-		else
-		{
-			ret = true;
-		}
+    {
+        /* set sniffer mode if not set already */
+        if(TELESTOIII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & TELESTOIII_CFGFLAGS_SNIFFERMODEENABLE))
+        {
+            cfgFlags |= TELESTOIII_CFGFLAGS_SNIFFERMODEENABLE;
+            ret = TelestoIII_Set(TelestoIII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
+        }
+        else
+        {
+            ret = true;
+        }
 
-		if(ret == true)
-		{
-			/* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
-			ret = TelestoIII_Get(TelestoIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
-			if(ret == true)
-			{
-				if(TelestoIII_RPFLAGS_REPEATERENABLE == (rpFlags & TelestoIII_RPFLAGS_REPEATERENABLE))
-				{
-					rpFlags &= ~TelestoIII_RPFLAGS_REPEATERENABLE;
-					ret &= TelestoIII_Set(TelestoIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
-				}
-				else
-				{
-					ret = true;
-				}
-			}
-		}
-	}
+        if(ret == true)
+        {
+            /* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
+            ret = TelestoIII_Get(TelestoIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
+            if(ret == true)
+            {
+                if(TELESTOIII_RPFLAGS_REPEATERENABLE == (rpFlags & TELESTOIII_RPFLAGS_REPEATERENABLE))
+                {
+                    rpFlags &= ~TELESTOIII_RPFLAGS_REPEATERENABLE;
+                    ret &= TelestoIII_Set(TelestoIII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
+                }
+                else
+                {
+                    ret = true;
+                }
+            }
+        }
+    }
     return ret;
 }
 
@@ -1321,7 +1321,7 @@ bool TelestoIII_SetVolatile_TXPower(uint8_t power)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_SET_PAPOWER_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_SET_PAPOWER_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = power;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1331,7 +1331,7 @@ bool TelestoIII_SetVolatile_TXPower(uint8_t power)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
         powerVolatile = TXPOWERINVALID;
     }
     return ret;
@@ -1359,7 +1359,7 @@ bool TelestoIII_SetVolatile_Channel(uint8_t channel)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_SET_CHANNEL_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_SET_CHANNEL_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = channel;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1369,7 +1369,7 @@ bool TelestoIII_SetVolatile_Channel(uint8_t channel)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
         channelVolatile = CHANNELINVALID;
     }
     return ret;
@@ -1397,7 +1397,7 @@ bool TelestoIII_SetVolatile_DestNetID(uint8_t destnetid)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_SET_DESTNETID_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_SET_DESTNETID_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = destnetid;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1406,7 +1406,7 @@ bool TelestoIII_SetVolatile_DestNetID(uint8_t destnetid)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1444,7 +1444,7 @@ bool TelestoIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_2:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = TelestoIII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = TELESTOIII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x01;
         CMD_ARRAY[3] = destaddr_lsb;
         ret = FillChecksum(CMD_ARRAY,5);
@@ -1453,7 +1453,7 @@ bool TelestoIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_3:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = TelestoIII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = TELESTOIII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x02;
         CMD_ARRAY[3] = destaddr_lsb;
         CMD_ARRAY[4] = destaddr_msb;
@@ -1470,7 +1470,7 @@ bool TelestoIII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1497,7 +1497,7 @@ bool TelestoIII_Transmit(uint8_t* payload, uint8_t length)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_DATA_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_DATA_REQ;
     CMD_ARRAY[2] = length;
     memcpy(&CMD_ARRAY[3],payload,length);
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1507,7 +1507,7 @@ bool TelestoIII_Transmit(uint8_t* payload, uint8_t length)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1538,7 +1538,7 @@ bool TelestoIII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t chan
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + addressmode + 4 + 1];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = TelestoIII_CMD_DATAEX_REQ;
+    CMD_ARRAY[1] = TELESTOIII_CMD_DATAEX_REQ;
 
     switch (addressmode)
     {
@@ -1591,7 +1591,7 @@ bool TelestoIII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t chan
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, TelestoIII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, TELESTOIII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1614,7 +1614,7 @@ bool TelestoIII_Ping()
     WE_UART_Transmit(ping_command,sizeof(ping_command));
 
     /* wait for cnf */
-    return Wait4CNF(10000 /*10s*/, TelestoIII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
+    return Wait4CNF(10000 /*10s*/, TELESTOIII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1631,7 +1631,7 @@ bool TelestoIII_Configure(TelestoIII_Configuration_t* config, uint8_t config_len
 {
     int i = 0;
     uint8_t help_length;
-    uint8_t help[MAX_USERSETTING_LENGTH];
+    uint8_t help[TELESTOIII_MAX_USERSETTING_LENGTH];
 
     if(factory_reset)
     {

@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief TarvosIII driver header file.
+ * @brief Tarvos-III driver header file.
  */
 
 #include <stdbool.h>
@@ -36,13 +36,13 @@
 extern "C" {
 #endif
 
-#ifndef _TarvosIII_defined
-#define _TarvosIII_defined
+#ifndef TARVOSIII_H_INCLUDED
+#define TARVOSIII_H_INCLUDED
 
-#define TarvosIII_BROADCASTADDRESS 0xFF
-#define MAX_USERSETTING_LENGTH 4
+#define TARVOSIII_BROADCASTADDRESS 0xFF
+#define TARVOSIII_MAX_USERSETTING_LENGTH 4
 
-#define TarvosIII_DEFAULT_BAUDRATE (uint32_t)115200
+#define TARVOSIII_DEFAULT_BAUDRATE (uint32_t)115200
 
 typedef enum TarvosIII_AddressMode_t
 {
@@ -78,9 +78,9 @@ typedef enum TarvosIII_UserSettings_t
  */
 typedef struct TarvosIII_Configuration_t
 {
-   TarvosIII_UserSettings_t usersetting;    /**< user setting */
-   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
-   uint8_t value_length;                    /**< length of the value */
+   TarvosIII_UserSettings_t usersetting;                /**< user setting */
+   uint8_t value[TARVOSIII_MAX_USERSETTING_LENGTH];     /**< value */
+   uint8_t value_length;                                /**< length of the value */
 } TarvosIII_Configuration_t;
 
 
@@ -133,7 +133,7 @@ extern bool TarvosIII_SetVolatile_Channel(uint8_t channel);
 
 extern bool TarvosIII_Ping();
 
-#endif // _TarvosIII_defined
+#endif // TARVOSIII_H_INCLUDED
 
 #ifdef __cplusplus
 }

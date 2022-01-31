@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief ThemistoI driver header file.
+ * @brief Themisto-I driver header file.
  */
 
 #include <stdbool.h>
@@ -36,16 +36,16 @@
 extern "C" {
 #endif
 
-#ifndef _ThemistoI_defined
-#define _ThemistoI_defined
+#ifndef THEMISTOI_H_INCLUDED
+#define THEMISTOI_H_INCLUDED
 
-#define ThemistoI_BROADCASTADDRESS 0xFF
-#define MAX_USERSETTING_LENGTH 4
+#define THEMISTOI_BROADCASTADDRESS 0xFF
+#define THEMISTOI_MAX_USERSETTING_LENGTH 4
 
-#define ThemistoI_MIN_RFCHANNEL 201
-#define ThemistoI_MAX_RFCHANNEL 251
+#define THEMISTOI_MIN_RFCHANNEL 201
+#define THEMISTOI_MAX_RFCHANNEL 251
 
-#define ThemistoI_DEFAULT_BAUDRATE (uint32_t)115200
+#define THEMISTOI_DEFAULT_BAUDRATE (uint32_t)115200
 
 typedef enum ThemistoI_AddressMode_t
 {
@@ -82,7 +82,7 @@ typedef enum ThemistoI_UserSettings_t
 typedef struct ThemistoI_Configuration_t
 {
    ThemistoI_UserSettings_t usersetting;    /**< user setting */
-   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
+   uint8_t value[THEMISTOI_MAX_USERSETTING_LENGTH];   /**< value */
    uint8_t value_length;                    /**< length of the value */
 } ThemistoI_Configuration_t;
 
@@ -136,7 +136,8 @@ extern bool ThemistoI_SetVolatile_Channel(uint8_t channel);
 
 extern bool ThemistoI_Ping();
 
-#endif // _ThemistoI_defined
+#endif // THEMISTOI_H_INCLUDED
+
 #ifdef __cplusplus
 }
 #endif

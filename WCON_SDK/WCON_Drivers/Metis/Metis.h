@@ -47,13 +47,13 @@ extern "C" {
  * AMB3665-M
  */
 
-#ifndef _Metis_defined
-#define _Metis_defined
+#ifndef METIS_H_INCLUDED
+#define METIS_H_INCLUDED
 
 /**
  * Max. length of user settings (number of bytes).
  */
-#define MAX_USERSETTING_LENGTH 4
+#define METIS_MAX_USERSETTING_LENGTH 4
 
 /**
  * @brief Enumeration for wM-Bus mode.
@@ -136,7 +136,7 @@ typedef enum Metis_UserSettings_t
 typedef struct Metis_Configuration_t
 {
     Metis_UserSettings_t usersetting;           /**< User setting */
-    uint8_t value[MAX_USERSETTING_LENGTH];      /**< Value */
+    uint8_t value[METIS_MAX_USERSETTING_LENGTH];      /**< Value */
     uint8_t value_length;                       /**< Length of value */
 } Metis_Configuration_t;
 
@@ -183,7 +183,7 @@ extern bool Metis_SetModePreselect(Metis_Mode_Preselect_t modePreselect);
 /* Write volatile settings into RAM, these settings are lost after a reset. */
 extern bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect);
 
-#endif // _Metis_defined
+#endif // METIS_H_INCLUDED
 #ifdef __cplusplus
 }
 #endif

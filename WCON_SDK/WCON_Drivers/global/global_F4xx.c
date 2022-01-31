@@ -287,6 +287,7 @@ void WE_DMA_Init()
     /* USART1 DMA Init */
     WE_dmaWirelessRx = DMA2;
     WE_dmaWirelessRxStream = LL_DMA_STREAM_2;
+    WE_dmaLastReadPos = 0;
 
     /* DMA controller clock enable */
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
@@ -337,6 +338,7 @@ void WE_DMA_DeInit()
 
     WE_dmaWirelessRxStream = 0;
     WE_dmaWirelessRx = NULL;
+    WE_dmaLastReadPos = 0;
 }
 
 /**

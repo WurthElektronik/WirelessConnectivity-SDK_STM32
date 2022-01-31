@@ -36,9 +36,8 @@
 #include "Examples/Calypso_Examples.h"
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief The application's main function.
+ */
 int main(void)
 {
     Calypso_Examples();

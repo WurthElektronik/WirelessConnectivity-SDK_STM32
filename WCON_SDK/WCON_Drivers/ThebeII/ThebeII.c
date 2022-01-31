@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief ThebeII driver source file.
+ * @brief Thebe-II driver source file.
  */
 
 #include "ThebeII.h"
@@ -53,76 +53,76 @@ typedef enum ThebeII_Pin_t
 #define CHANNELINVALID -1
 
 #define CMD_STX 0x02
-#define ThebeII_CMD_TYPE_REQ (0 << 6)
-#define ThebeII_CMD_TYPE_CNF (1 << 6)
-#define ThebeII_CMD_TYPE_IND (2 << 6)
-#define ThebeII_CMD_TYPE_RSP (3 << 6)
+#define THEBEII_CMD_TYPE_REQ (0 << 6)
+#define THEBEII_CMD_TYPE_CNF (1 << 6)
+#define THEBEII_CMD_TYPE_IND (2 << 6)
+#define THEBEII_CMD_TYPE_RSP (3 << 6)
 
-#define ThebeII_CMD_DATA 0x00
-#define ThebeII_CMD_DATA_REQ (ThebeII_CMD_DATA | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_DATA_CNF (ThebeII_CMD_DATA | ThebeII_CMD_TYPE_CNF)
-#define ThebeII_CMD_REPEAT_IND (ThebeII_CMD_DATA | ThebeII_CMD_TYPE_IND)
+#define THEBEII_CMD_DATA 0x00
+#define THEBEII_CMD_DATA_REQ (THEBEII_CMD_DATA | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_DATA_CNF (THEBEII_CMD_DATA | THEBEII_CMD_TYPE_CNF)
+#define THEBEII_CMD_REPEAT_IND (THEBEII_CMD_DATA | THEBEII_CMD_TYPE_IND)
 
-#define ThebeII_CMD_DATAEX 0x01
-#define ThebeII_CMD_DATAEX_REQ (ThebeII_CMD_DATAEX | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_DATAEX_IND (ThebeII_CMD_DATAEX | ThebeII_CMD_TYPE_IND)
+#define THEBEII_CMD_DATAEX 0x01
+#define THEBEII_CMD_DATAEX_REQ (THEBEII_CMD_DATAEX | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_DATAEX_IND (THEBEII_CMD_DATAEX | THEBEII_CMD_TYPE_IND)
 
-#define ThebeII_CMD_RESET 0x05
-#define ThebeII_CMD_RESET_REQ (ThebeII_CMD_RESET | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_RESET_CNF (ThebeII_CMD_RESET | ThebeII_CMD_TYPE_CNF)
-#define ThebeII_CMD_RESET_IND (ThebeII_CMD_RESET | ThebeII_CMD_TYPE_IND)
+#define THEBEII_CMD_RESET 0x05
+#define THEBEII_CMD_RESET_REQ (THEBEII_CMD_RESET | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_RESET_CNF (THEBEII_CMD_RESET | THEBEII_CMD_TYPE_CNF)
+#define THEBEII_CMD_RESET_IND (THEBEII_CMD_RESET | THEBEII_CMD_TYPE_IND)
 
-#define ThebeII_CMD_SET_CHANNEL 0x06
-#define ThebeII_CMD_SET_CHANNEL_REQ (ThebeII_CMD_SET_CHANNEL | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SET_CHANNEL_CNF (ThebeII_CMD_SET_CHANNEL | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SET_CHANNEL 0x06
+#define THEBEII_CMD_SET_CHANNEL_REQ (THEBEII_CMD_SET_CHANNEL | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SET_CHANNEL_CNF (THEBEII_CMD_SET_CHANNEL | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_SET_DESTNETID 0x07
-#define ThebeII_CMD_SET_DESTNETID_REQ (ThebeII_CMD_SET_DESTNETID | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SET_DESTNETID_CNF (ThebeII_CMD_SET_DESTNETID | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SET_DESTNETID 0x07
+#define THEBEII_CMD_SET_DESTNETID_REQ (THEBEII_CMD_SET_DESTNETID | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SET_DESTNETID_CNF (THEBEII_CMD_SET_DESTNETID | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_SET_DESTADDR 0x08
-#define ThebeII_CMD_SET_DESTADDR_REQ (ThebeII_CMD_SET_DESTADDR | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SET_DESTADDR_CNF (ThebeII_CMD_SET_DESTADDR | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SET_DESTADDR 0x08
+#define THEBEII_CMD_SET_DESTADDR_REQ (THEBEII_CMD_SET_DESTADDR | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SET_DESTADDR_CNF (THEBEII_CMD_SET_DESTADDR | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_SET 0x09
-#define ThebeII_CMD_SET_REQ (ThebeII_CMD_SET | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SET_CNF (ThebeII_CMD_SET | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SET 0x09
+#define THEBEII_CMD_SET_REQ (THEBEII_CMD_SET | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SET_CNF (THEBEII_CMD_SET | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_GET 0x0A
-#define ThebeII_CMD_GET_REQ (ThebeII_CMD_GET | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_GET_CNF (ThebeII_CMD_GET | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_GET 0x0A
+#define THEBEII_CMD_GET_REQ (THEBEII_CMD_GET | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_GET_CNF (THEBEII_CMD_GET | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_RSSI 0x0D
-#define ThebeII_CMD_RSSI_REQ (ThebeII_CMD_RSSI | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_RSSI_CNF (ThebeII_CMD_RSSI | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_RSSI 0x0D
+#define THEBEII_CMD_RSSI_REQ (THEBEII_CMD_RSSI | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_RSSI_CNF (THEBEII_CMD_RSSI | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_SHUTDOWN 0x0E
-#define ThebeII_CMD_SHUTDOWN_REQ (ThebeII_CMD_SHUTDOWN | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SHUTDOWN_CNF (ThebeII_CMD_SHUTDOWN | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SHUTDOWN 0x0E
+#define THEBEII_CMD_SHUTDOWN_REQ (THEBEII_CMD_SHUTDOWN | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SHUTDOWN_CNF (THEBEII_CMD_SHUTDOWN | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_STANDBY 0x0F
-#define ThebeII_CMD_STANDBY_REQ (ThebeII_CMD_STANDBY | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_STANDBY_CNF (ThebeII_CMD_STANDBY | ThebeII_CMD_TYPE_CNF)
-#define ThebeII_CMD_STANDBY_IND (ThebeII_CMD_STANDBY | ThebeII_CMD_TYPE_IND)
+#define THEBEII_CMD_STANDBY 0x0F
+#define THEBEII_CMD_STANDBY_REQ (THEBEII_CMD_STANDBY | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_STANDBY_CNF (THEBEII_CMD_STANDBY | THEBEII_CMD_TYPE_CNF)
+#define THEBEII_CMD_STANDBY_IND (THEBEII_CMD_STANDBY | THEBEII_CMD_TYPE_IND)
 
-#define ThebeII_CMD_SET_PAPOWER 0x11
-#define ThebeII_CMD_SET_PAPOWER_REQ (ThebeII_CMD_SET_PAPOWER | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_SET_PAPOWER_CNF (ThebeII_CMD_SET_PAPOWER | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_SET_PAPOWER 0x11
+#define THEBEII_CMD_SET_PAPOWER_REQ (THEBEII_CMD_SET_PAPOWER | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_SET_PAPOWER_CNF (THEBEII_CMD_SET_PAPOWER | THEBEII_CMD_TYPE_CNF)
 
-#define ThebeII_CMD_FACTORY_RESET 0x12
-#define ThebeII_CMD_FACTORY_RESET_REQ (ThebeII_CMD_FACTORY_RESET | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_FACTORY_RESET_CNF (ThebeII_CMD_FACTORY_RESET | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_FACTORY_RESET 0x12
+#define THEBEII_CMD_FACTORY_RESET_REQ (THEBEII_CMD_FACTORY_RESET | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_FACTORY_RESET_CNF (THEBEII_CMD_FACTORY_RESET | THEBEII_CMD_TYPE_CNF)
 
 
 /* AMBER test commands */
-#define ThebeII_CMD_PINGDUT 0x1F
-#define ThebeII_CMD_PINGDUT_REQ (ThebeII_CMD_PINGDUT | ThebeII_CMD_TYPE_REQ)
-#define ThebeII_CMD_PINGDUT_CNF (ThebeII_CMD_PINGDUT | ThebeII_CMD_TYPE_CNF)
+#define THEBEII_CMD_PINGDUT 0x1F
+#define THEBEII_CMD_PINGDUT_REQ (THEBEII_CMD_PINGDUT | THEBEII_CMD_TYPE_REQ)
+#define THEBEII_CMD_PINGDUT_CNF (THEBEII_CMD_PINGDUT | THEBEII_CMD_TYPE_CNF)
 
 /* Masks for FLAGS */
 /* Sniffer mode is indicated by bit 1 of cfg-flags */
-#define ThebeII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
-#define ThebeII_RPFLAGS_REPEATERENABLE 0X0001
+#define THEBEII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
+#define THEBEII_RPFLAGS_REPEATERENABLE 0X0001
 
 /**
  * @brief Type used to check the response, when a command was sent to the ThebeII.
@@ -186,7 +186,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     switch (RxPacket.Cmd)
     {
-    case ThebeII_CMD_FACTORY_RESET_CNF:
+    case THEBEII_CMD_FACTORY_RESET_CNF:
     {
         /* check whether the module returns success */
         if ((RxPacket.Data[0] == 0x00))
@@ -201,7 +201,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_RESET_CNF:
+    case THEBEII_CMD_RESET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -216,21 +216,21 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_RESET_IND:
+    case THEBEII_CMD_RESET_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = ThebeII_CMD_RESET_IND;
+        cmdConfirmation.cmd = THEBEII_CMD_RESET_IND;
     }
     break;
 
-    case ThebeII_CMD_STANDBY_IND:
+    case THEBEII_CMD_STANDBY_IND:
     {
         cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = ThebeII_CMD_STANDBY_IND;
+        cmdConfirmation.cmd = THEBEII_CMD_STANDBY_IND;
     }
     break;
 
-    case ThebeII_CMD_SHUTDOWN_CNF:
+    case THEBEII_CMD_SHUTDOWN_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -245,7 +245,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_STANDBY_CNF:
+    case THEBEII_CMD_STANDBY_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -260,7 +260,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_DATA_CNF:
+    case THEBEII_CMD_DATA_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -277,7 +277,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_GET_CNF:
+    case THEBEII_CMD_GET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -292,7 +292,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_SET_CNF:
+    case THEBEII_CMD_SET_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -307,7 +307,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_DATAEX_IND:
+    case THEBEII_CMD_DATAEX_IND:
     {
         /* data received, give it to the RxCallback function */
         if (RxCallback != NULL)
@@ -316,19 +316,19 @@ static void HandleRxPacket(uint8_t*RxBuffer)
             {
             case AddressMode_0:
             {
-                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, ThebeII_BROADCASTADDRESS, ThebeII_BROADCASTADDRESS, ThebeII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
             case AddressMode_1:
             {
-                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, ThebeII_BROADCASTADDRESS, RxPacket.Data[0], ThebeII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, THEBEII_BROADCASTADDRESS, RxPacket.Data[0], THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
             case AddressMode_2:
             {
-                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], ThebeII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
+                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
             }
             break;
 
@@ -346,7 +346,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_SET_CHANNEL_CNF:
+    case THEBEII_CMD_SET_CHANNEL_CNF:
     {
         /* check whether the module set value of channel as requested */
         if(RxPacket.Data[0] == channelVolatile)
@@ -361,7 +361,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_SET_DESTADDR_CNF:
+    case THEBEII_CMD_SET_DESTADDR_CNF:
     {
         /* check whether the module returns success */
         if (RxPacket.Data[0] == 0x00)
@@ -376,7 +376,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_SET_DESTNETID_CNF:
+    case THEBEII_CMD_SET_DESTNETID_CNF:
     {
         /* check whether the module returns success */
         if(RxPacket.Data[0] == 0x00)
@@ -391,7 +391,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     }
     break;
 
-    case ThebeII_CMD_SET_PAPOWER_CNF:
+    case THEBEII_CMD_SET_PAPOWER_CNF:
     {
         /* check whether the module set value of power output as requested */
         if(RxPacket.Data[0] == powerVolatile)
@@ -407,7 +407,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
     break;
 
     /* for internal use only */
-    case ThebeII_CMD_PINGDUT_CNF:
+    case THEBEII_CMD_PINGDUT_CNF:
     {
         /* check the received packets */
         if(RxPacket.Data[4] == 0x0A)
@@ -510,54 +510,54 @@ static bool FillChecksum(uint8_t* array, uint8_t length)
 
 void WE_UART_HandleRxByte(uint8_t received_byte)
 {
-	RxBuffer[RxByteCounter] = received_byte;
+    RxBuffer[RxByteCounter] = received_byte;
 
-	switch (RxByteCounter)
-	{
-	case 0:
-		/* wait for start byte of frame */
-		if (RxBuffer[RxByteCounter] == CMD_STX)
-		{
-			BytesToReceive = 0;
-			RxByteCounter = 1;
-		}
-		break;
+    switch (RxByteCounter)
+    {
+    case 0:
+        /* wait for start byte of frame */
+        if (RxBuffer[RxByteCounter] == CMD_STX)
+        {
+            BytesToReceive = 0;
+            RxByteCounter = 1;
+        }
+        break;
 
-	case 1:
-		/* CMD */
-		RxByteCounter++;
-		break;
+    case 1:
+        /* CMD */
+        RxByteCounter++;
+        break;
 
-	case 2:
-		/* length field */
-		RxByteCounter++;
-		BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-		break;
+    case 2:
+        /* length field */
+        RxByteCounter++;
+        BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+        break;
 
-	default:
-		/* data field */
-		RxByteCounter++;
-		if (RxByteCounter == BytesToReceive)
-		{
-			/* check CRC */
-			checksum = 0;
-			int i = 0;
-			for (i = 0; i < (BytesToReceive - 1); i++)
-			{
-				checksum ^= RxBuffer[i];
-			}
+    default:
+        /* data field */
+        RxByteCounter++;
+        if (RxByteCounter == BytesToReceive)
+        {
+            /* check CRC */
+            checksum = 0;
+            int i = 0;
+            for (i = 0; i < (BytesToReceive - 1); i++)
+            {
+                checksum ^= RxBuffer[i];
+            }
 
-			if (checksum == RxBuffer[BytesToReceive - 1])
-			{
-				/* received frame ok, interpret it now */
-				HandleRxPacket(RxBuffer);
-			}
+            if (checksum == RxBuffer[BytesToReceive - 1])
+            {
+                /* received frame ok, interpret it now */
+                HandleRxPacket(RxBuffer);
+            }
 
-			RxByteCounter = 0;
-			BytesToReceive = 0;
-		}
-		break;
-	}
+            RxByteCounter = 0;
+            BytesToReceive = 0;
+        }
+        break;
+    }
 }
 
 
@@ -581,12 +581,12 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
 bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_AddressMode_t addrmode, void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t))
 {
     /* set address mode */
-	addressmode = addrmode;
+    addressmode = addrmode;
 
-	/* set RX callback function */
-	RxCallback = RXcb;
+    /* set RX callback function */
+    RxCallback = RXcb;
 
-	/* initialize the pins */
+    /* initialize the pins */
     ThebeII_pins[ThebeII_Pin_Reset].port = GPIOA;
     ThebeII_pins[ThebeII_Pin_Reset].pin = GPIO_PIN_10;
     ThebeII_pins[ThebeII_Pin_Reset].type = WE_Pin_Type_Output;
@@ -602,29 +602,29 @@ bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_Addr
     if (false == WE_InitPins(ThebeII_pins, ThebeII_Pin_Count))
     {
         /* error */
-        return false ;
+        return false;
     }
     WE_SetPin(ThebeII_pins[ThebeII_Pin_Boot], WE_Pin_Level_Low);
     WE_SetPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp], WE_Pin_Level_Low);
     WE_SetPin(ThebeII_pins[ThebeII_Pin_Reset], WE_Pin_Level_High);
     WE_SetPin(ThebeII_pins[ThebeII_Pin_Mode], WE_Pin_Level_Low);
 
-	WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
-	WE_Delay(10);
+    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_Delay(10);
 
-	/* reset module*/
-	if(ThebeII_PinReset())
-	{
-		WE_Delay(300);
-	}
-	else
-	{
-		fprintf(stdout, "Pin Reset failed\n");
-		ThebeII_Deinit();
-		return false;
-	}
+    /* reset module */
+    if(ThebeII_PinReset())
+    {
+        WE_Delay(300);
+    }
+    else
+    {
+        fprintf(stdout, "Pin Reset failed\n");
+        ThebeII_Deinit();
+        return false;
+    }
 
-	return true;
+    return true;
 }
 /**
  * @brief Deinitialize the ThebeII interface
@@ -634,17 +634,17 @@ bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_Addr
  */
 bool ThebeII_Deinit()
 {
-	/* close the communication interface to the module */
-	WE_UART_DeInit();
+    /* close the communication interface to the module */
+    WE_UART_DeInit();
 
-	/* deinit pins */
-	WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Reset]);
+    /* deinit pins */
+    WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Reset]);
     WE_DeinitPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp]);
     WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Boot]);
     WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Mode]);
 
-	addressmode = AddressMode_0;
-	RxCallback = NULL;
+    addressmode = AddressMode_0;
+    RxCallback = NULL;
 
     return true;
 }
@@ -668,7 +668,7 @@ bool ThebeII_PinWakeup()
     WE_SetPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp], WE_Pin_Level_Low);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_RESET_IND, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -684,7 +684,7 @@ bool ThebeII_PinReset()
     WE_SetPin(ThebeII_pins[ThebeII_Pin_Reset], WE_Pin_Level_High);
 
     /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_RESET_IND, CMD_Status_Success, true);
+    return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
 /**
@@ -700,7 +700,7 @@ bool ThebeII_Reset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_RESET_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -708,7 +708,7 @@ bool ThebeII_Reset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -728,7 +728,7 @@ bool ThebeII_FactoryReset()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_FACTORY_RESET_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_FACTORY_RESET_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -736,7 +736,7 @@ bool ThebeII_FactoryReset()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(1500, ThebeII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(1500, THEBEII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -754,7 +754,7 @@ bool ThebeII_Standby()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_STANDBY_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_STANDBY_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -762,7 +762,7 @@ bool ThebeII_Standby()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_STANDBY_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_STANDBY_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -780,7 +780,7 @@ bool ThebeII_Shutdown()
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_SHUTDOWN_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_SHUTDOWN_REQ;
     CMD_ARRAY[2] = 0x00;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
     {
@@ -788,7 +788,7 @@ bool ThebeII_Shutdown()
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -810,7 +810,7 @@ bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t* response, uint8_t* response
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_GET_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_GET_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = us;
 
@@ -820,7 +820,7 @@ bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t* response, uint8_t* response
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_GET_CNF, CMD_Status_Success, true))
+        if (Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_GET_CNF, CMD_Status_Success, true))
         {
             int length = RxPacket.Length - 1;
             memcpy(response,&RxPacket.Data[1],length);
@@ -851,7 +851,7 @@ bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t* value, uint8_t length)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_SET_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_SET_REQ;
     CMD_ARRAY[2] = (1 + length);
     CMD_ARRAY[3] = us;
     memcpy(&CMD_ARRAY[4],value,length);
@@ -861,7 +861,7 @@ bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t* value, uint8_t length)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SET_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1221,7 +1221,7 @@ bool ThebeII_SetSourceNetID(uint8_t srcnetid)
 bool ThebeII_SetDefaultRFChannel(uint8_t channel)
 {
     /* check for valid channel */
-    if((channel < ThebeII_MIN_RFCHANNEL)||(channel > ThebeII_MAX_RFCHANNEL))
+    if((channel < THEBEII_MIN_RFCHANNEL)||(channel > THEBEII_MAX_RFCHANNEL))
     {
         /* invalid channel */
         return false;
@@ -1262,38 +1262,38 @@ bool ThebeII_EnableSnifferMode()
     uint16_t cfgFlags;
     uint8_t length;
 
-	ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
+    ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
     if(ret == true)
-	{
-		/* set sniffer mode if not set already */
-		if(ThebeII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & ThebeII_CFGFLAGS_SNIFFERMODEENABLE))
-		{
-			cfgFlags |= ThebeII_CFGFLAGS_SNIFFERMODEENABLE;
-			ret = ThebeII_Set(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
-		}
-		else
-		{
-			ret = true;
-		}
+    {
+        /* set sniffer mode if not set already */
+        if(THEBEII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & THEBEII_CFGFLAGS_SNIFFERMODEENABLE))
+        {
+            cfgFlags |= THEBEII_CFGFLAGS_SNIFFERMODEENABLE;
+            ret = ThebeII_Set(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
+        }
+        else
+        {
+            ret = true;
+        }
 
-		if(ret == true)
-		{
-			/* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
-			ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
-			if(ret == true)
-			{
-				if(ThebeII_RPFLAGS_REPEATERENABLE == (rpFlags & ThebeII_RPFLAGS_REPEATERENABLE))
-				{
-					rpFlags &= ~ThebeII_RPFLAGS_REPEATERENABLE;
-					ret &= ThebeII_Set(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
-				}
-				else
-				{
-					ret = true;
-				}
-			}
-		}
-	}
+        if(ret == true)
+        {
+            /* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
+            ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
+            if(ret == true)
+            {
+                if(THEBEII_RPFLAGS_REPEATERENABLE == (rpFlags & THEBEII_RPFLAGS_REPEATERENABLE))
+                {
+                    rpFlags &= ~THEBEII_RPFLAGS_REPEATERENABLE;
+                    ret &= ThebeII_Set(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
+                }
+                else
+                {
+                    ret = true;
+                }
+            }
+        }
+    }
     return ret;
 }
 
@@ -1315,7 +1315,7 @@ bool ThebeII_SetVolatile_TXPower(uint8_t power)
         /* fill CMD_ARRAY packet */
         uint8_t CMD_ARRAY[5];
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = ThebeII_CMD_SET_PAPOWER_REQ;
+        CMD_ARRAY[1] = THEBEII_CMD_SET_PAPOWER_REQ;
         CMD_ARRAY[2] = 0x01;
         CMD_ARRAY[3] = power;
         if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1325,7 +1325,7 @@ bool ThebeII_SetVolatile_TXPower(uint8_t power)
             WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
             /* wait for cnf */
-            ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
+            ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
             powerVolatile = TXPOWERINVALID;
         }
     }
@@ -1345,7 +1345,7 @@ bool ThebeII_SetVolatile_Channel(uint8_t channel)
     bool ret = false;
 
     /* check for valid channel */
-    if((channel < ThebeII_MIN_RFCHANNEL)||(channel > ThebeII_MAX_RFCHANNEL))
+    if((channel < THEBEII_MIN_RFCHANNEL)||(channel > THEBEII_MAX_RFCHANNEL))
     {
         /* invalid channel */
         return false;
@@ -1354,7 +1354,7 @@ bool ThebeII_SetVolatile_Channel(uint8_t channel)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_SET_CHANNEL_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_SET_CHANNEL_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = channel;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1364,7 +1364,7 @@ bool ThebeII_SetVolatile_Channel(uint8_t channel)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
         channelVolatile = CHANNELINVALID;
     }
     return ret;
@@ -1392,7 +1392,7 @@ bool ThebeII_SetVolatile_DestNetID(uint8_t destnetid)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[5];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_SET_DESTNETID_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_SET_DESTNETID_REQ;
     CMD_ARRAY[2] = 0x01;
     CMD_ARRAY[3] = destnetid;
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1401,7 +1401,7 @@ bool ThebeII_SetVolatile_DestNetID(uint8_t destnetid)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1439,7 +1439,7 @@ bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_2:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = ThebeII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = THEBEII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x01;
         CMD_ARRAY[3] = destaddr_lsb;
         ret = FillChecksum(CMD_ARRAY,5);
@@ -1448,7 +1448,7 @@ bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     case AddressMode_3:
     {
         CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = ThebeII_CMD_SET_DESTADDR_REQ;
+        CMD_ARRAY[1] = THEBEII_CMD_SET_DESTADDR_REQ;
         CMD_ARRAY[2] = 0x02;
         CMD_ARRAY[3] = destaddr_lsb;
         CMD_ARRAY[4] = destaddr_msb;
@@ -1465,7 +1465,7 @@ bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1492,7 +1492,7 @@ bool ThebeII_Transmit(uint8_t* payload, uint8_t length)
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + 4];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_DATA_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_DATA_REQ;
     CMD_ARRAY[2] = length;
     memcpy(&CMD_ARRAY[3],payload,length);
     if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
@@ -1502,7 +1502,7 @@ bool ThebeII_Transmit(uint8_t* payload, uint8_t length)
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1533,7 +1533,7 @@ bool ThebeII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel
     /* fill CMD_ARRAY packet */
     uint8_t CMD_ARRAY[length + addressmode + 4 + 1];
     CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = ThebeII_CMD_DATAEX_REQ;
+    CMD_ARRAY[1] = THEBEII_CMD_DATAEX_REQ;
 
     switch (addressmode)
     {
@@ -1586,7 +1586,7 @@ bool ThebeII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel
         WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
 
         /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, ThebeII_CMD_DATA_CNF, CMD_Status_Success, true);
+        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
     }
     return ret;
 }
@@ -1609,7 +1609,7 @@ bool ThebeII_Ping()
     WE_UART_Transmit(ping_command,sizeof(ping_command));
 
     /* wait for cnf */
-    return Wait4CNF(10000 /*10s*/, ThebeII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
+    return Wait4CNF(10000 /*10s*/, THEBEII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1626,7 +1626,7 @@ bool ThebeII_Configure(ThebeII_Configuration_t* config, uint8_t config_length, b
 {
     int i = 0;
     uint8_t help_length;
-    uint8_t help[MAX_USERSETTING_LENGTH];
+    uint8_t help[THEBEII_MAX_USERSETTING_LENGTH];
 
     if(factory_reset)
     {

@@ -25,7 +25,7 @@
 
 /**
  * @file
- * @brief TelestoIII driver header file.
+ * @brief Telesto-III driver header file.
  */
 
 #include <stdbool.h>
@@ -36,11 +36,11 @@
 extern "C" {
 #endif
 
-#ifndef _TelestoIII_defined
-#define _TelestoIII_defined
+#ifndef TELESTOIII_H_INCLUDED
+#define TELESTOIII_H_INCLUDED
 
-#define TelestoIII_BROADCASTADDRESS 0xFF
-#define MAX_USERSETTING_LENGTH 4
+#define TELESTOIII_BROADCASTADDRESS 0xFF
+#define TELESTOIII_MAX_USERSETTING_LENGTH 4
 
 typedef enum TelestoIII_AddressMode_t
 {
@@ -76,9 +76,9 @@ typedef enum TelestoIII_UserSettings_t
  */
 typedef struct TelestoIII_Configuration_t
 {
-   TelestoIII_UserSettings_t usersetting;   /**< user setting */
-   uint8_t value[MAX_USERSETTING_LENGTH];   /**< value */
-   uint8_t value_length;                    /**< length of the value */
+   TelestoIII_UserSettings_t usersetting;               /**< user setting */
+   uint8_t value[TELESTOIII_MAX_USERSETTING_LENGTH];    /**< value */
+   uint8_t value_length;                                /**< length of the value */
 } TelestoIII_Configuration_t;
 
 
@@ -129,7 +129,7 @@ extern bool TelestoIII_SetVolatile_DestNetID(uint8_t destnetid);
 extern bool TelestoIII_SetVolatile_TXPower(uint8_t power);
 extern bool TelestoIII_SetVolatile_Channel(uint8_t channel);
 
-#endif // _TelestoIII_defined
+#endif // TELESTOIII_H_INCLUDED
 
 #ifdef __cplusplus
 }

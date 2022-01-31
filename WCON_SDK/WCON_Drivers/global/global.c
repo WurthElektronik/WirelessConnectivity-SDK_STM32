@@ -48,6 +48,7 @@ WE_FlowControl_t WE_uartFlowControl = WE_FlowControl_NoFlowControl;
 WE_Parity_t WE_uartParity = WE_Parity_None;
 bool WE_dmaEnabled = false;
 uint8_t WE_dmaRxBuffer[WE_DMA_RX_BUFFER_SIZE];
+size_t WE_dmaLastReadPos = 0;
 
 #define NUM_GPIO_PORTS 4
 static GPIO_TypeDef *gpioPorts[NUM_GPIO_PORTS] = {GPIOA, GPIOB, GPIOC, GPIOH};
@@ -104,18 +105,16 @@ void OnDmaDataReceived(uint8_t* data, size_t size)
 
 void WE_CheckIfDmaDataAvailable(void)
 {
-    static size_t lastPos = 0;
-
     /* Get current DMA write position (in ring buffer) */
     size_t pos = WE_DMA_RX_BUFFER_SIZE - LL_DMA_GetDataLength(WE_dmaWirelessRx, WE_dmaWirelessRxStream);
 
     /* Check if new data is available (i.e. write position has changed) */
-    if (pos != lastPos)
+    if (pos != WE_dmaLastReadPos)
     {
-        if (pos > lastPos)
+        if (pos > WE_dmaLastReadPos)
         {
             /* Data to be read from DMA ring buffer is continuous - between lastPos and pos */
-            OnDmaDataReceived(&WE_dmaRxBuffer[lastPos], pos - lastPos);
+            OnDmaDataReceived(&WE_dmaRxBuffer[WE_dmaLastReadPos], pos - WE_dmaLastReadPos);
         }
         else
         {
@@ -124,7 +123,7 @@ void WE_CheckIfDmaDataAvailable(void)
              * - Bytes between lastPos and the end of the buffer
              * - Bytes between start of the buffer and pos
              */
-            OnDmaDataReceived(&WE_dmaRxBuffer[lastPos], WE_DMA_RX_BUFFER_SIZE - lastPos);
+            OnDmaDataReceived(&WE_dmaRxBuffer[WE_dmaLastReadPos], WE_DMA_RX_BUFFER_SIZE - WE_dmaLastReadPos);
             if (pos > 0)
             {
                 OnDmaDataReceived(&WE_dmaRxBuffer[0], pos);
@@ -132,7 +131,7 @@ void WE_CheckIfDmaDataAvailable(void)
         }
 
         /* Store DMA write position for next interrupt */
-        lastPos = pos;
+        WE_dmaLastReadPos = pos;
     }
 }
 

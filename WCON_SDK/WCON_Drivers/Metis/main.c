@@ -23,26 +23,29 @@
  ***************************************************************************************************
  */
 
+/**
+ * @file
+ * @brief Metis example.
+ */
+
 #include <stdio.h>
 #include <string.h>
-
 
 #include "../../WCON_Drivers/Metis/Metis.h"
 #include "../../WCON_Drivers/global/global.h"
 
-static uint8_t APP_Data[140] =
-    {
-        0x48, /* Length Field*/
+static uint8_t APP_Data[140] = {
+        0x48, /* Length Field */
 
         /*0*/
         0x44,                                                                                  /* C-Feld */
-        0xA2,0x05,                                                                             /* M-Feld (AMB)*/
-        0x11,0x47,0x15,0x08,                                                                   /* ID (Funkmodul)*/
+        0xA2,0x05,                                                                             /* M-Feld (AMB) */
+        0x11,0x47,0x15,0x08,                                                                   /* ID (Funkmodul) */
         0x01,                                                                                  /* Version (2) */
         0x37,                                                                                  /* Radio Converter (meter side) */
 
         /*9*/
-        0x72,                                                                                  /* CI-Feld (12 Byte Header)*/
+        0x72,                                                                                  /* CI-Feld (12 Byte Header) */
         0x78,0x56,0x34,0x12,                                                                   /* ID (Zähler) */
         0xA2,0x05,                                                                             /* M-Feld (AMB) */
         0x01,                                                                                  /* Version (1) */
@@ -133,45 +136,43 @@ static void RxCallback(uint8_t* payload, uint8_t payload_length, int8_t rssi)
     fflush(stdout);
 }
 
-
+/**
+ * @brief The application's main function.
+ */
 int main(void)
 {
-  /* Initialize platform (peripherals, flash interface, Systick, system clock) */
-  WE_Platform_Init();
+    /* Initialize platform (peripherals, flash interface, Systick, system clock) */
+    WE_Platform_Init();
 
 #ifdef WE_DEBUG
-  WE_Debug_Init();
+    WE_Debug_Init();
 #endif
 
-  uint8_t driverVersion[3];
-  WE_GetDriverVersion(driverVersion);
-  printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+    uint8_t driverVersion[3];
+    WE_GetDriverVersion(driverVersion);
+    printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
-  Metis_Init(9600, WE_FlowControl_NoFlowControl, MBus_Frequency_868, MBus_Mode_868_S2, true, RxCallback);
+    Metis_Init(9600, WE_FlowControl_NoFlowControl, MBus_Frequency_868, MBus_Mode_868_S2, true, RxCallback);
 
-  while (1)
-  {
-	  uint8_t serial_number[4];
-	  memset(serial_number,0,sizeof(serial_number));
-	  bool ret = Metis_GetSerialNumber(serial_number);
-	  WE_Delay(500);
+    while (1)
+    {
+        uint8_t serial_number[4];
+        memset(serial_number,0,sizeof(serial_number));
+        bool ret = Metis_GetSerialNumber(serial_number);
+        WE_Delay(500);
 
-	  uint8_t firmware_version[3];
-	  memset(firmware_version,0,sizeof(firmware_version));
-	  ret = Metis_GetFirmwareVersion(firmware_version);
-	  WE_Delay(500);
+        uint8_t firmware_version[3];
+        memset(firmware_version,0,sizeof(firmware_version));
+        ret = Metis_GetFirmwareVersion(firmware_version);
+        WE_Delay(500);
 
-	  ret = Metis_Transmit(APP_Data);
-	  WE_Delay(500);
+        ret = Metis_Transmit(APP_Data);
+        WE_Delay(500);
 
-	  ret = Metis_PinReset();
-	  WE_Delay(500);
+        ret = Metis_PinReset();
+        WE_Delay(500);
 
-	  ret = Metis_Reset();
-	  WE_Delay(500);
-  }
+        ret = Metis_Reset();
+        WE_Delay(500);
+    }
 }
-
-
-
-
