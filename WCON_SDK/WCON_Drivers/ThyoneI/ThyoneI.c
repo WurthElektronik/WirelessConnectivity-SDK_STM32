@@ -45,14 +45,19 @@ typedef enum ThyoneI_Pin_t
 } ThyoneI_Pin_t;
 
 #define CMD_WAIT_TIME 1500
+#define CMD_WAIT_TIME_STEP_MS 0
 #define CNFINVALID 255
 
+/* Normal overhead: Start signal + Command + Length + CS = 1+1+2+1=5 bytes */
 #define LENGTH_CMD_OVERHEAD             (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
+/* Max. overhead (used by CMD_SNIFFER_IND):
+ * Start signal + Command + Length + Src Addr + DATA_IND + RSSI + CS = 1+1+2+4+1+1+1=11 bytes */
+#define LENGTH_CMD_OVERHEAD_MAX         (uint16_t)11
 #define MAX_PAYLOAD_LENGTH              (uint16_t)224
 #define MAX_PAYLOAD_LENGTH_MULTICAST_EX (uint16_t)223
 #define MAX_PAYLOAD_LENGTH_UNICAST_EX   (uint16_t)220
-#define MAX_CMD_LENGTH                  (uint16_t)(MAX_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD)
+#define MAX_CMD_LENGTH                  (uint16_t)(MAX_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD_MAX)
 
 #define CMD_POSITION_STX        (uint8_t)0
 #define CMD_POSITION_CMD        (uint8_t)1
@@ -86,7 +91,7 @@ typedef enum ThyoneI_Pin_t
 #define THYONEI_CMD_UNICAST_DATA (uint8_t)0x04
 #define THYONEI_CMD_UNICAST_DATA_REQ (THYONEI_CMD_UNICAST_DATA | THYONEI_CMD_TYPE_REQ)
 
-/* Transmissions of any kind will be confirmed and indicated by the same message CMD_DATA_CNF od CMD_DATA_IND*/
+/* Transmissions of any kind will be confirmed and indicated by the same message CMD_DATA_CNF or CMD_DATA_IND */
 #define THYONEI_CMD_DATA_CNF (THYONEI_CMD_UNICAST_DATA | THYONEI_CMD_TYPE_CNF)
 #define THYONEI_CMD_DATA_IND (THYONEI_CMD_UNICAST_DATA | THYONEI_CMD_TYPE_IND)
 #define THYONEI_CMD_TXCOMPLETE_RSP (THYONEI_CMD_UNICAST_DATA | THYONEI_CMD_TYPE_RSP)
@@ -102,6 +107,8 @@ typedef enum ThyoneI_Pin_t
 
 #define THYONEI_CMD_MULTICAST_DATA_EX (uint8_t)0x08
 #define THYONEI_CMD_MULTICAST_DATA_EX_REQ (THYONEI_CMD_MULTICAST_DATA_EX | THYONEI_CMD_TYPE_REQ)
+
+#define THYONEI_CMD_SNIFFER_IND (uint8_t)0x99
 
 #define THYONEI_CMD_SETCHANNEL (uint8_t)0x09
 #define THYONEI_CMD_SETCHANNEL_REQ (THYONEI_CMD_SETCHANNEL | THYONEI_CMD_TYPE_REQ)
@@ -218,6 +225,7 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
         case THYONEI_CMD_DATA_CNF:
         case THYONEI_CMD_GET_CNF:
         case THYONEI_CMD_SET_CNF:
+        case THYONEI_CMD_SETCHANNEL_CNF:
         case THYONEI_CMD_FACTORYRESET_CNF:
         case THYONEI_CMD_SLEEP_CNF:
         case THYONEI_CMD_GPIO_LOCAL_SETCONFIG_CNF:
@@ -242,19 +250,26 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
             break;
         }
 
-
         case THYONEI_CMD_DATA_IND:
         {
             uint16_t payload_length = ((((uint16_t) RxPacket[CMD_POSITION_LENGTH_LSB] << 0) | ((uint16_t) RxPacket[CMD_POSITION_LENGTH_MSB] << 8))) - 5;
-
-            uint32_t sourceAddress = (uint32_t)RxPacket[CMD_POSITION_DATA];
-            sourceAddress = (sourceAddress << 8) + (uint32_t)RxPacket[CMD_POSITION_DATA+1];
-            sourceAddress = (sourceAddress << 8) + (uint32_t)RxPacket[CMD_POSITION_DATA+2];
-            sourceAddress = (sourceAddress << 8) + (uint32_t)RxPacket[CMD_POSITION_DATA+3];
+            uint32_t sourceAddress = *(uint32_t*)(RxPacket + CMD_POSITION_DATA);
 
             if(RxCallback != NULL)
             {
                 RxCallback(&RxPacket[CMD_POSITION_DATA + 5], payload_length, sourceAddress, RxPacket[CMD_POSITION_DATA + 4]);
+            }
+            break;
+        }
+
+        case THYONEI_CMD_SNIFFER_IND:
+        {
+            uint16_t payload_length = ((((uint16_t) RxPacket[CMD_POSITION_LENGTH_LSB] << 0) | ((uint16_t) RxPacket[CMD_POSITION_LENGTH_MSB] << 8))) - 6;
+            uint32_t sourceAddress = *(uint32_t*)(RxPacket + CMD_POSITION_DATA);
+
+            if(RxCallback != NULL)
+            {
+                RxCallback(&RxPacket[CMD_POSITION_DATA + 6], payload_length, sourceAddress, RxPacket[CMD_POSITION_DATA + 4]);
             }
             break;
         }
@@ -283,10 +298,9 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
  */
 static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ThyoneI_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
-    int count = 0;
-    int time_step_ms = 5; /* 5ms */
-    int max_count = max_time_ms / time_step_ms;
     int i = 0;
+
+    uint32_t t0 = WE_GetTick();
 
     if(reset_confirmstate)
     {
@@ -305,15 +319,18 @@ static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ThyoneI_C
             }
         }
 
-        if (count >= max_count)
+        uint32_t now = WE_GetTick();
+        if (now - t0 > max_time_ms)
         {
             /* received no correct response within timeout */
             return false;
         }
 
-        /* wait */
-        count++;
-        WE_Delay(time_step_ms);
+        if (CMD_WAIT_TIME_STEP_MS > 0)
+        {
+            /* wait */
+            WE_Delay(CMD_WAIT_TIME_STEP_MS);
+        }
     }
     return true;
 }
@@ -369,13 +386,19 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
     case 2:
         /* length field lsb */
         RxByteCounter++;
-        BytesToReceive = (uint16_t)(RxBuffer[RxByteCounter - 1]);
+        BytesToReceive = (uint16_t)(RxBuffer[CMD_POSITION_LENGTH_LSB]);
         break;
 
     case 3:
         /* length field msb */
         RxByteCounter++;
-        BytesToReceive += (((uint16_t)RxBuffer[RxByteCounter - 1]<<8) + LENGTH_CMD_OVERHEAD); /* len_msb + len_lsb + crc + sfd + cmd */
+        BytesToReceive += (((uint16_t)RxBuffer[CMD_POSITION_LENGTH_MSB] << 8) + LENGTH_CMD_OVERHEAD); /* len_msb + len_lsb + crc + sfd + cmd */
+        if (BytesToReceive > MAX_CMD_LENGTH)
+        {
+          /* Invalid size */
+          BytesToReceive = 0;
+          RxByteCounter = 0;
+        }
         break;
 
     default:
@@ -447,7 +470,7 @@ bool ThyoneI_Init(uint32_t baudrate, WE_FlowControl_t flow_control, void(*RXcb)(
     WE_SetPin(ThyoneI_pins[ThyoneI_Pin_Reset], WE_Pin_Level_High);
     WE_SetPin(ThyoneI_pins[ThyoneI_Pin_Mode], WE_Pin_Level_Low);
     
-    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
+    WE_UART_Init(baudrate, flow_control, WE_Parity_None, true);
     WE_Delay(10);
 
     /* reset module */
@@ -855,19 +878,52 @@ bool ThyoneI_SetBaudrateIndex(ThyoneI_BaudRateIndex_t baudrate, ThyoneI_UartPari
 }
 
 /**
- * @brief Set the RF Channel
+ * @brief Set the RF channel
  *
- * @param[in] channel: channel
+ * @param[in] channel: Radio channel
  *
  * @return true if request succeeded,
  *         false otherwise
  */
 bool ThyoneI_SetRFChannel(uint8_t channel)
 {
-    /* permissible value for channel: 0-38*/
-    if(channel < 38)
+    /* permissible value for channel: 0-38 */
+    if (channel <= 38)
     {
         return ThyoneI_Set(ThyoneI_USERSETTING_INDEX_RF_CHANNEL, (uint8_t*)&channel, 1);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+/**
+ * @brief Set the RF channel on-the-fly without changing the user settings (volatile,
+ * channel is reverted to the value stored in flash after a reset of the module).
+ *
+ * @param[in] channel: Radio channel
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ThyoneI_SetRFChannelRuntime(uint8_t channel)
+{
+    /* permissible value for channel: 0-38 */
+    if (channel <= 38)
+    {
+        CMD_Array[CMD_POSITION_STX] = CMD_STX;
+        CMD_Array[CMD_POSITION_CMD] = THYONEI_CMD_SETCHANNEL_REQ;
+        CMD_Array[CMD_POSITION_LENGTH_LSB] = 1;
+        CMD_Array[CMD_POSITION_LENGTH_MSB] = 0;
+        CMD_Array[CMD_POSITION_DATA] = channel;
+
+        if (!FillChecksum(CMD_Array, CMD_ARRAY_SIZE()))
+        {
+            return false;
+        }
+        WE_UART_Transmit(CMD_Array, CMD_ARRAY_SIZE());
+        return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_SETCHANNEL_CNF, CMD_Status_Success, true);
     }
     else
     {

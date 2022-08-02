@@ -123,10 +123,10 @@ typedef enum ThyoneI_States_t
 
 typedef enum ThyoneI_OperatingMode_t
 {
-     ThyoneI_OperatingMode_Normal   = (uint8_t)0,
-     ThyoneI_OperatingMode_Sniffer  = (uint8_t)1,
-     ThyoneI_OperatingMode_Repeater = (uint8_t)2,
-     ThyoneI_OperatingMode_Invalid  = (uint8_t)0xFF,
+    ThyoneI_OperatingMode_Normal   = (uint8_t)0,
+    ThyoneI_OperatingMode_Sniffer  = (uint8_t)1,
+    ThyoneI_OperatingMode_Repeater = (uint8_t)2,
+    ThyoneI_OperatingMode_Invalid  = (uint8_t)0xFF,
 }  ThyoneI_OperatingMode_t;
 
 /* user settings */
@@ -254,6 +254,7 @@ extern bool ThyoneI_SetBaudrateIndex(ThyoneI_BaudRateIndex_t baudrate, ThyoneI_U
 extern bool ThyoneI_SetEncryptionMode(ThyoneI_EncryptionMode_t encryptionMode);
 extern bool ThyoneI_SetRfProfile(ThyoneI_Profile_t profile);
 extern bool ThyoneI_SetRFChannel(uint8_t channel);
+extern bool ThyoneI_SetRFChannelRuntime(uint8_t channel);
 extern bool ThyoneI_SetNumRetries(uint8_t numRetries);
 extern bool ThyoneI_SetTXPower(ThyoneI_TXPower_t txpower);
 extern bool ThyoneI_SetRpNumSlots(uint8_t numSlots);

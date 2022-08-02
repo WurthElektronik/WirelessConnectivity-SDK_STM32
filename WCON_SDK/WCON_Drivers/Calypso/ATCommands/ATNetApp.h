@@ -225,7 +225,7 @@ typedef struct ATNetApp_mDnsTimingParams_t
  */
 typedef union ATNetApp_mDnsOptionValue_t
 {
-    char contQuery[80];                             /**< Service name */
+    char contQuery[81];                             /**< Service name */
     uint32_t qeventMask;                            /**< Event mask */
     ATNetApp_mDnsTimingParams_t timingParams;       /**< Timing parameters */
 

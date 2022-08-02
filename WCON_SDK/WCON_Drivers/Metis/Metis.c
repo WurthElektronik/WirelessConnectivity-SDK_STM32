@@ -115,7 +115,7 @@ typedef struct
 typedef struct
 {
     uint8_t cmd;                        /* variable to check if correct CMD has been confirmed */
-    Metis_CMD_Status_t status;          /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the TarvosIII */
+    Metis_CMD_Status_t status;          /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the module */
 } Metis_CMD_Confirmation_t;
 
 typedef struct
@@ -130,18 +130,18 @@ typedef struct
 
 static WE_Pin_t Metis_pins[Metis_Pin_Count] = {0};
 
-static Metis_CMD_Frame_t RxPacket;                        /* data buffer for RX */
+static Metis_CMD_Frame_t RxPacket;                      /* data buffer for RX */
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
 static Metis_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
-static Metis_US_Confirmation_t usConfirmation;            /* variable used to check if GET function was successful */
-static Metis_Frequency_t frequency;                       /* frequency used by module */
+static Metis_US_Confirmation_t usConfirmation;          /* variable used to check if GET function was successful */
+static Metis_Frequency_t frequency;                     /* frequency used by module */
 static bool rssi_enable = false;
 static uint8_t checksum = 0;
 static uint8_t RxByteCounter = 0;
-static uint8_t BytesToReceive = 0;                        /* read buffer for next available byte*/
-static uint8_t RxBuffer[sizeof(Metis_CMD_Frame_t)];       /* data buffer for RX */
-static void(*RxCallback)(uint8_t*,uint8_t,int8_t);        /* callback function */
+static uint8_t BytesToReceive = 0;                      /* read buffer for next available byte */
+static uint8_t RxBuffer[sizeof(Metis_CMD_Frame_t)];     /* data buffer for RX */
+static Metis_RxCallback RxCallback;                     /* callback function */
 
 /**************************************
  *          Static functions          *
@@ -169,14 +169,14 @@ static int8_t CalculateRSSIValue(uint8_t rxLevel)
 /**
  * @brief Interpret the valid received data packet
  */
-static void HandleRxPacket(uint8_t*RxBuffer)
+static void HandleRxPacket(uint8_t *packetData)
 {
     Metis_CMD_Confirmation_t cmdConfirmation;
     cmdConfirmation.cmd = CNFINVALID;
     cmdConfirmation.status = CMD_Status_Invalid;
 
-    uint8_t cmd_length = RxBuffer[2];
-    memcpy((uint8_t*)&RxPacket,RxBuffer,cmd_length + 4); /* payload + std + command + length byte + checksum */
+    uint8_t cmd_length = packetData[2];
+    memcpy((uint8_t*)&RxPacket, packetData, cmd_length + 4); /* payload + std + command + length byte + checksum */
 
     switch (RxPacket.Cmd)
     {
@@ -227,7 +227,7 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     case METIS_CMD_DATA_IND:
     {
-        /* the call of the RxCallback strongly depends on the configuration of the module*/
+        /* the call of the RxCallback strongly depends on the configuration of the module */
         if(RxCallback != NULL)
         {
             if(rssi_enable == 0x01)
@@ -247,9 +247,9 @@ static void HandleRxPacket(uint8_t*RxBuffer)
 
     case METIS_CMD_GET_CNF:
     {
-        /* Data[0] contains memory postion of usersetting
+        /* Data[0] contains memory position of usersetting
          * Data[1] contains length of parameter, which is depending on usersetting
-         * On success mode responds with usersetting, length of parameter and paramter
+         * On success mode responds with usersetting, length of parameter and parameter
          */
         switch(RxPacket.Data[0])
         {
@@ -528,7 +528,8 @@ bool Metis_Init(uint32_t baudrate,
                 WE_FlowControl_t flow_control,
                 Metis_Frequency_t freq,
                 Metis_Mode_Preselect_t mode,
-                bool enable_rssi, void(*RXcb)(uint8_t*,uint8_t,int8_t))
+                bool enable_rssi,
+                Metis_RxCallback RXcb)
 {
     /* set frequency used by module */
     frequency = freq;

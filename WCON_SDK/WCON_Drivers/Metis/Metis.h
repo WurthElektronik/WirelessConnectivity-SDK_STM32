@@ -91,7 +91,7 @@ typedef enum Metis_Mode_Preselect_t
 } Metis_Mode_Preselect_t;
 
 /**
- * @brief wM-Bus Frequency.
+ * @brief wM-Bus frequency.
  */
 typedef enum Metis_Frequency_t
 {
@@ -135,10 +135,15 @@ typedef enum Metis_UserSettings_t
  */
 typedef struct Metis_Configuration_t
 {
-    Metis_UserSettings_t usersetting;           /**< User setting */
-    uint8_t value[METIS_MAX_USERSETTING_LENGTH];      /**< Value */
-    uint8_t value_length;                       /**< Length of value */
+    Metis_UserSettings_t usersetting;               /**< User setting */
+    uint8_t value[METIS_MAX_USERSETTING_LENGTH];    /**< Value */
+    uint8_t value_length;                           /**< Length of value */
 } Metis_Configuration_t;
+
+/* Callback for data received (CMD_DATA_IND).
+ * Notice that the first byte of the frame data contains the length of the
+ * following payload (i.e. the L field value). */
+typedef void (*Metis_RxCallback)(uint8_t* frameData, uint8_t frameLength, int8_t rssi);
 
 /* Functions to initialize/deinitialize the module. */
 extern bool Metis_Init(uint32_t baudrate,
@@ -146,7 +151,7 @@ extern bool Metis_Init(uint32_t baudrate,
                        Metis_Frequency_t frequency,
                        Metis_Mode_Preselect_t mode,
                        bool enable_rssi,
-                       void(*RXcb)(uint8_t*,uint8_t,int8_t));
+                       Metis_RxCallback RXcb);
 extern bool Metis_Deinit(void);
 
 extern bool Metis_PinReset(void);
