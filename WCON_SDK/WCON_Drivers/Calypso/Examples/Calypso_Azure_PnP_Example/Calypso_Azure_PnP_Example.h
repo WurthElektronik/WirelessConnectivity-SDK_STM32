@@ -37,7 +37,7 @@
 /************************************************************************************************************/
 /*WLAN credentials*/
 #define CALYPSO_AZURE_PNP_WLAN_SSID "calypso_CAFFEE123456"
-#define CALYPSO_AZUER_PNP_WLAN_PW "calypsowlan"
+#define CALYPSO_AZURE_PNP_WLAN_PW "calypsowlan"
 
 /*SNTP server addresses*/
 #define SNTP_SERVER_ADDRESS_3 "pool.ntp.org"

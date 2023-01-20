@@ -229,7 +229,7 @@ The following changes need to be done on the Calypso_Azure_PnP_Example.h file
 
 - a. CALYPSO_AZURE_PNP_WLAN_SSID -> Define this with the desired Wi-Fi SSID to connect
    
-- b. CALYPSO_AZUER_PNP_WLAN_PW -> Define this with the password of the Wi-Fi to connect
+- b. CALYPSO_AZURE_PNP_WLAN_PW -> Define this with the password of the Wi-Fi to connect
    
 - c. CALYPSO_AZURE_PNP_DEVICE_ID -> Define this with the name of the device as it appears in the IoT central Application. It needs to be unique per device.
    

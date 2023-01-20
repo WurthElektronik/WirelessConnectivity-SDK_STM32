@@ -185,7 +185,7 @@ void Calypso_Azure_PnP_Example(void) {
 	memset(&connectArgs, 0, sizeof(connectArgs));
 	strcpy(connectArgs.SSID, CALYPSO_AZURE_PNP_WLAN_SSID);
 	connectArgs.securityParams.securityType = ATWLAN_SecurityType_WPA_WPA2;
-	strcpy(connectArgs.securityParams.securityKey, CALYPSO_AZUER_PNP_WLAN_PW);
+	strcpy(connectArgs.securityParams.securityKey, CALYPSO_AZURE_PNP_WLAN_PW);
 
 	ret = ATWLAN_Connect(connectArgs);
 	Calypso_Azure_PnP_Print("Connect to WLAN", ret);
