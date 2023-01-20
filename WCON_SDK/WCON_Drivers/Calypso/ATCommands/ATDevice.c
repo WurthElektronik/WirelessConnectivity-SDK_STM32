@@ -28,6 +28,7 @@
  * @brief AT commands for basic device functionality.
  */
 
+#include <stdio.h>
 #include "ATCommands.h"
 #include "ATDevice.h"
 
@@ -711,7 +712,24 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
 
         case ATDevice_GetId_IOT:
         {
-            ret = Calypso_GetNextArgumentString(&pAtCommand, pValue->iot.udid, CALYPSO_STRING_TERMINATE, sizeof(pValue->iot.udid));
+        	char tempString[6];
+        	uint8_t udidArr[16];
+        	for(uint8_t idx = 0; idx < 15; idx++)
+        	{
+            	ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
+            	ret = Calypso_StringToInt(&(udidArr[idx]), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX);
+
+        	}
+        	ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
+        	ret = Calypso_StringToInt(&(udidArr[15]), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX);
+        	sprintf((char*)&pValue->iot.udid, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",udidArr[0], udidArr[1],
+        			udidArr[2], udidArr[3],
+					udidArr[4], udidArr[5],
+					udidArr[6], udidArr[7],
+					udidArr[8], udidArr[9],
+					udidArr[10], udidArr[11],
+					udidArr[12], udidArr[13],
+					udidArr[14], udidArr[15]);
             break;
         }
 

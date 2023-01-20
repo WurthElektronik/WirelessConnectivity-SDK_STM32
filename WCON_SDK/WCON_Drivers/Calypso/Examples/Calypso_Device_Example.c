@@ -142,6 +142,15 @@ void Calypso_Device_Example()
     ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Time, &deviceValue);
     Calypso_Examples_Print("Get device time", ret);
 
+
+    ret = ATDevice_Get(ATDevice_GetId_IOT, ATDevice_GetIot_UDID, &deviceValue);
+	 Calypso_Examples_Print("Get IoT UDID", ret);
+	 if (ret)
+	 {
+		 printf("IoT UDID: %s\r\n", deviceValue.iot.udid);
+	 }
+
+
     ret = ATDevice_Sleep(2);
     Calypso_Examples_Print("Sleep", ret);
 

@@ -52,6 +52,7 @@
 #include "Calypso_Socket_Example.h"
 #include "Calypso_TransparentMode_Example.h"
 #include "Calypso_WLAN_Example.h"
+#include "Calypso_Azure_PnP_Example.h"
 
 /**
  * @brief UART baud rate used for communication with Calypso module.
@@ -155,6 +156,7 @@ void Calypso_Examples(void)
 //    Calypso_HTTP_Server_Example();
 //    Calypso_NetApp_Example();
 //    Calypso_TransparentMode_Example();
+//    Calypso_Azure_PnP_Example();
 
     printf("*** End of example ***\r\n");
 

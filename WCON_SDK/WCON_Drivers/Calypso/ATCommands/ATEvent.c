@@ -408,6 +408,67 @@ bool ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
     return Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->data, CALYPSO_STRING_TERMINATE, sizeof(rcvdEvent->data));
 }
 
+
+/**
+ * @brief Parses the values of the MQTT from event.
+ *
+ * @param[in,out] pEventArguments String containing arguments of the event
+ * @param[out] rcvdEvent The parsed mqtt received data from event
+ *
+ * @return true if parsed successfully, false otherwise
+ */
+bool ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, ATEvent_MQTTRcvd_t* rcvdEvent)
+{
+    if (!Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->topic,CALYPSO_ARGUMENT_DELIM, sizeof(rcvdEvent->topic)))
+    {
+        return false;
+    }
+
+    if (!Calypso_GetNextArgumentInt(pEventArguments, (uint8_t *)&(rcvdEvent->qos), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+
+    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->retain), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+
+
+    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->duplicate), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+
+    if (!Calypso_GetNextArgumentInt(pEventArguments,(uint8_t *) &(rcvdEvent->dataFormat), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+
+    if (!Calypso_GetNextArgumentInt(pEventArguments,&(rcvdEvent->dataLength), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+
+    if(Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->data, CALYPSO_STRING_TERMINATE, sizeof(rcvdEvent->data)))
+    {
+        if (rcvdEvent->dataFormat == Calypso_DataFormat_Base64)
+        {
+        	/*Decode the base64 encoded data*/
+        	uint32_t elen = 0;
+        	char out[CALYPSO_LINE_MAX_SIZE];
+        	Calypso_DecodeBase64((uint8_t *)rcvdEvent->data, rcvdEvent->dataLength, (uint8_t *)out,
+        	                                 &elen);
+        	            strcpy(rcvdEvent->data, out);
+        	            rcvdEvent->dataLength = elen;
+        }
+        return true;
+    }
+
+
+    return false;
+}
+
 /**
  * @brief Parses the values of the IPv4 acquired event arguments.
  *

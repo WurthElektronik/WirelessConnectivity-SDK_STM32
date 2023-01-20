@@ -164,8 +164,8 @@ typedef struct ATMQTT_SetWillParams_t
 
 typedef union ATMQTT_SetValues_t
 {
-    char username[32];              /**< User name */
-    char password[32];              /**< Password */
+    char username[256];              /**< User name */
+    char password[256];              /**< Password */
     ATMQTT_SetWillParams_t will;    /**< Will parameters */
     uint16_t keepAliveSeconds;      /**< Keep alive time in seconds */
     uint8_t clean;                  /**< 0 = persistent connection, 1 = clean connection */
