@@ -249,7 +249,7 @@ typedef union ATDevice_Value_General_t
  */
 typedef union ATDevice_Value_IOT_t
 {
-    char udid[17];                 /**< 16 byte UDID, read only */
+    char udid[36];                 /**< 16 byte UDID, read only */
 } ATDevice_Value_IOT_t;
 
 /**

@@ -212,7 +212,6 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
     switch (RxPacket[CMD_POSITION_CMD])
     {
         case THYONEI_CMD_RESET_CNF:
-        case THYONEI_CMD_GETSTATE_CNF:
         case THYONEI_CMD_START_IND:
         case THYONEI_CMD_GPIO_REMOTE_GETCONFIG_RSP:
         case THYONEI_CMD_GPIO_REMOTE_READ_RSP:
@@ -236,6 +235,7 @@ static void HandleRxPacket(uint8_t * pRxBuffer)
         case THYONEI_CMD_GPIO_REMOTE_GETCONFIG_CNF:
         case THYONEI_CMD_GPIO_REMOTE_WRITE_CNF:
         case THYONEI_CMD_TXCOMPLETE_RSP:
+        case THYONEI_CMD_GETSTATE_CNF:
         {
             cmdConfirmation.cmd = RxPacket[CMD_POSITION_CMD];
             cmdConfirmation.status = RxPacket[CMD_POSITION_DATA];

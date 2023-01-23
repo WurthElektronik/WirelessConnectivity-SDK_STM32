@@ -34,6 +34,7 @@
 #include <stdint.h>
 
 #include "ATSocket.h"
+#include "ATMQTT.h"
 
 #define ATEvent_General_NumberOfValues      2
 #define ATEvent_WLAN_NumberOfValues         13
@@ -185,6 +186,21 @@ typedef struct ATEvent_SocketRcvd_t
     char data[ATEVENT_RCVDEVENTBUFFERSIZE];
 } ATEvent_SocketRcvd_t;
 
+
+/**
+ * @brief Parameters of MQTT data received event (+eventmqtt:recv).
+ */
+typedef struct ATEvent_MQTTRcvd_t
+{
+    char topic[AT_MAX_HOST_NAME_LENGTH];
+    ATMQTT_QoS_t qos;
+    uint8_t retain;
+    uint8_t duplicate;
+    Calypso_DataFormat_t dataFormat;
+    uint16_t dataLength;
+    char data[ATEVENT_RCVDEVENTBUFFERSIZE];
+} ATEvent_MQTTRcvd_t;
+
 /**
  * @brief Parameters of IPv4 acquired event (ATEvent_NetappIP4Acquired).
  */
@@ -215,6 +231,7 @@ extern bool ATEvent_ParseCustomHTTPPostEvent(char **pEventArguments,
                                              char *value,
                                              uint16_t maxIdLength,
                                              uint16_t maxValueLength);
+bool ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, ATEvent_MQTTRcvd_t* rcvdEvent);
 
 #ifdef __cplusplus
 }
