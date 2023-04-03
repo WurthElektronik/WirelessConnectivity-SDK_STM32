@@ -6,6 +6,7 @@ Products Supported by this SDK:
 - Calypso
 - Metis (-I and -II)
 - Proteus-E
+- Proteus-II
 - Proteus-III
 - Tarvos-III
 - Telesto-III
@@ -17,7 +18,6 @@ For all our Legacy Products please use the previous SDK at https://github.com/Wu
 The supported legacy products are:
 
 - Proteus-I
-- Proteus-II
 - Tarvos-I
 - Tarvos-II
 - Telesto-I

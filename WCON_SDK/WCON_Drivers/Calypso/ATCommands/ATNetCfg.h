@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,10 +31,11 @@
 #ifndef AT_NETCFG_H_INCLUDED
 #define AT_NETCFG_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "ATCommands.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -105,8 +106,8 @@ typedef struct ATNetCfg_IPv4Config_t
 typedef struct ATNetCfg_IPv6Config_t
 {
     ATNetCfg_IPv6Method_t method;
-    char ipAddress[AT_MAX_IP_ADDRESS_LENGTH];
-    char dnsAddress[AT_MAX_IP_ADDRESS_LENGTH];
+    char ipAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
+    char dnsAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
 } ATNetCfg_IPv6Config_t;
 
 extern bool ATNetCfg_SetInterfaceModes(uint16_t modes);

@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,6 +31,8 @@
 #ifndef AT_WLAN_H_INCLUDED
 #define AT_WLAN_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

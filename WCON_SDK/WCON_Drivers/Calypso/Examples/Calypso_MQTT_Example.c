@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -118,10 +118,10 @@ void Calypso_MQTT_Example(void)
 
     ATMQTT_SecurityParams_t securityParams;
     securityParams.securityMethod = ATMQTT_SecurityMethod_SSLV3;
-    strcpy(securityParams.CAFile, CALYPSO_STRING_EMPTY);
-    strcpy(securityParams.certificateFile, CALYPSO_STRING_EMPTY);
-    strcpy(securityParams.DHKey, CALYPSO_STRING_EMPTY);
-    strcpy(securityParams.privateKeyFile, CALYPSO_STRING_EMPTY);
+    strcpy(securityParams.CAFile, ATCOMMAND_STRING_EMPTY);
+    strcpy(securityParams.certificateFile, ATCOMMAND_STRING_EMPTY);
+    strcpy(securityParams.DHKey, ATCOMMAND_STRING_EMPTY);
+    strcpy(securityParams.privateKeyFile, ATCOMMAND_STRING_EMPTY);
     securityParams.cipher = ATSocket_Cipher_SSL_RSA_WITH_RC4_128_MD5;
 
     ATMQTT_ConnectionParams_t connectionParams;

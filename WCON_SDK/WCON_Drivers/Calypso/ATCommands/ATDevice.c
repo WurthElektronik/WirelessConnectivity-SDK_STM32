@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -28,8 +28,8 @@
  * @brief AT commands for basic device functionality.
  */
 
+#include <global/ATCommands.h>
 #include <stdio.h>
-#include "ATCommands.h"
 #include "ATDevice.h"
 
 #include "../Calypso.h"
@@ -190,11 +190,11 @@ bool ATDevice_Stop(uint32_t timeoutMs)
     {
         char cmdToSend[32] = "AT+stop=";
 
-        ret = Calypso_IntToString(&cmdToSend[strlen(cmdToSend)], timeoutMs, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
+        ret = ATCommand_IntToString(&cmdToSend[strlen(cmdToSend)], timeoutMs, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
 
         if (ret)
         {
-            Calypso_AppendArgumentString(cmdToSend, CALYPSO_CRLF,CALYPSO_STRING_TERMINATE);
+            ATCommand_AppendArgumentString(cmdToSend, ATCOMMAND_CRLF,ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
@@ -282,11 +282,11 @@ bool ATDevice_Sleep(uint32_t timeoutSeconds)
     {
         char cmdToSend[32] = "AT+sleep=";
 
-        ret = Calypso_IntToString(&cmdToSend[strlen(cmdToSend)], timeoutSeconds, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
+        ret = ATCommand_IntToString(&cmdToSend[strlen(cmdToSend)], timeoutSeconds, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
 
         if (ret)
         {
-            Calypso_AppendArgumentString(cmdToSend, CALYPSO_CRLF,CALYPSO_STRING_TERMINATE);
+            ATCommand_AppendArgumentString(cmdToSend, ATCOMMAND_CRLF,ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
@@ -362,17 +362,17 @@ bool ATDevice_Get(ATDevice_GetId_t id, uint8_t option, ATDevice_Value_t *pValue)
         {
             char *fw = pValue->general.version.calypsoFirmwareVersion;
             uint8_t major, minor, patch;
-            ret = Calypso_GetNextArgumentInt(&fw, &major, CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, '.');
+            ret = ATCommand_GetNextArgumentInt(&fw, &major, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, '.');
             if (!ret)
             {
                 return false;
             }
-            ret = Calypso_GetNextArgumentInt(&fw, &minor, CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, '.');
+            ret = ATCommand_GetNextArgumentInt(&fw, &minor, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, '.');
             if (!ret)
             {
                 return false;
             }
-            ret = Calypso_GetNextArgumentInt(&fw, &patch, CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, '.');
+            ret = ATCommand_GetNextArgumentInt(&fw, &patch, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, '.');
             if (!ret)
             {
                 return false;
@@ -446,11 +446,11 @@ bool ATDevice_StartProvisioning()
 bool ATDevice_PrintStatusFlags(uint32_t flags, char *pOutStr, size_t maxLength)
 {
     pOutStr[0] = '\0';
-    return Calypso_AppendArgumentBitmask(pOutStr,
+    return ATCommand_AppendArgumentBitmask(pOutStr,
                                          ATDevice_StatusFlagsStrings,
                                          ATDevice_StatusFlags_NumberOfValues,
                                          flags,
-                                         CALYPSO_STRING_TERMINATE,
+                                         ATCOMMAND_STRING_TERMINATE,
                                          maxLength);
 }
 
@@ -523,39 +523,39 @@ static bool ATDevice_AddArgumentsATget(char *pAtCommand, uint8_t id, uint8_t opt
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetIdStrings[id], CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetIdStrings[id], ATCOMMAND_ARGUMENT_DELIM);
     if (ret)
     {
         switch (id)
         {
         case ATDevice_GetId_Status:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetStatusStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetStatusStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         case ATDevice_GetId_General:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetGeneralStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetGeneralStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         case ATDevice_GetId_IOT:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetIotStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetIotStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         case ATDevice_GetId_UART:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetUartStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetUartStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         case ATDevice_GetId_TransparentMode:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetTransparentModeStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetTransparentModeStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         case ATDevice_GetId_GPIO:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetGPIOStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetGPIOStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
         }
         default:
@@ -567,7 +567,7 @@ static bool ATDevice_AddArgumentsATget(char *pAtCommand, uint8_t id, uint8_t opt
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -601,12 +601,12 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
         case ATDevice_GetId_Status:
         {
             /* All options return a bitmask */
-            ret = Calypso_GetNextArgumentBitmask(&pAtCommand,
+            ret = ATCommand_GetNextArgumentBitmask(&pAtCommand,
                                                  ATDevice_StatusFlagsStrings,
                                                  ATDevice_StatusFlags_NumberOfValues,
                                                  32,
                                                  &pValue->status,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
@@ -617,33 +617,33 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             case ATDevice_GetGeneral_Version:
             {
                 ATDevice_Version_t *version = &pValue->general.version;
-                ret = Calypso_GetNextArgumentString(&pAtCommand, version->chipId, CALYPSO_ARGUMENT_DELIM, sizeof(version->chipId));
+                ret = ATCommand_GetNextArgumentString(&pAtCommand, version->chipId, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->chipId));
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, version->MACVersion, CALYPSO_ARGUMENT_DELIM, sizeof(version->MACVersion));
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, version->MACVersion, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->MACVersion));
                 }
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, version->PHYVersion, CALYPSO_ARGUMENT_DELIM, sizeof(version->PHYVersion));
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, version->PHYVersion, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->PHYVersion));
                 }
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, version->NWPVersion, CALYPSO_ARGUMENT_DELIM, sizeof(version->NWPVersion));
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, version->NWPVersion, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->NWPVersion));
                 }
                 /* Calypso firmware version is only returned by firmware versions >= 1.9.0 - in that case, there is another argument after the ROM version.
-                 * Otherwise, the ROM version is the last argument (followed by CALYPSO_STRING_TERMINATE). */
+                 * Otherwise, the ROM version is the last argument (followed by ATCOMMAND_STRING_TERMINATE). */
                 bool hasFwVersion = false;
                 if (ret)
                 {
-                    hasFwVersion = Calypso_GetNextArgumentString(&pAtCommand, version->ROMVersion, CALYPSO_ARGUMENT_DELIM, sizeof(version->ROMVersion));
+                    hasFwVersion = ATCommand_GetNextArgumentString(&pAtCommand, version->ROMVersion, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->ROMVersion));
                     if (!hasFwVersion)
                     {
-                        ret = Calypso_GetNextArgumentString(&pAtCommand, version->ROMVersion, CALYPSO_STRING_TERMINATE, sizeof(version->ROMVersion));
+                        ret = ATCommand_GetNextArgumentString(&pAtCommand, version->ROMVersion, ATCOMMAND_STRING_TERMINATE, sizeof(version->ROMVersion));
                     }
                 }
                 if (hasFwVersion)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, version->calypsoFirmwareVersion, CALYPSO_STRING_TERMINATE, sizeof(version->calypsoFirmwareVersion));
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, version->calypsoFirmwareVersion, ATCOMMAND_STRING_TERMINATE, sizeof(version->calypsoFirmwareVersion));
                 }
                 else
                 {
@@ -658,37 +658,37 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
 
                 char tempString[6];
 
-                ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-                ret = Calypso_StringToInt(&(time->hour), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+                ret = ATCommand_StringToInt(&(time->hour), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-                    ret = Calypso_StringToInt(&(time->minute), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+                    ret = ATCommand_StringToInt(&(time->minute), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-                    ret = Calypso_StringToInt(&(time->second), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+                    ret = ATCommand_StringToInt(&(time->second), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-                    ret = Calypso_StringToInt(&(time->day), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+                    ret = ATCommand_StringToInt(&(time->day), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-                    ret = Calypso_StringToInt(&(time->month), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+                    ret = ATCommand_StringToInt(&(time->month), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
-                    ret = Calypso_StringToInt(&(time->year), tempString, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                    ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
+                    ret = ATCommand_StringToInt(&(time->year), tempString, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 }
                 break;
             }
@@ -696,8 +696,8 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             case ATDevice_GetGeneral_Persistent:
             {
                 char tempString[6];
-                ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
-                ret = Calypso_StringToInt(&pValue->general.persistent, tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
+                ret = ATCommand_StringToInt(&pValue->general.persistent, tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 ret = true;
                 break;
 
@@ -716,12 +716,12 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
         	uint8_t udidArr[16];
         	for(uint8_t idx = 0; idx < 15; idx++)
         	{
-            	ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
-            	ret = Calypso_StringToInt(&(udidArr[idx]), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX);
+            	ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
+            	ret = ATCommand_StringToInt(&(udidArr[idx]), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX);
 
         	}
-        	ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
-        	ret = Calypso_StringToInt(&(udidArr[15]), tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX);
+        	ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
+        	ret = ATCommand_StringToInt(&(udidArr[15]), tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX);
         	sprintf((char*)&pValue->iot.udid, "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",udidArr[0], udidArr[1],
         			udidArr[2], udidArr[3],
 					udidArr[4], udidArr[5],
@@ -740,36 +740,36 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             case ATDevice_GetUart_Baudrate:
             {
                 char tempString[12];
-                ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
-                ret = Calypso_StringToInt(&pValue->uart.baudrate, tempString, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
+                ret = ATCommand_StringToInt(&pValue->uart.baudrate, tempString, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 break;
             }
 
             case ATDevice_GetUart_Parity:
             {
                 char tempString[6];
-                ret = Calypso_GetNextArgumentString(&pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
+                ret = ATCommand_GetNextArgumentString(&pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
                 uint8_t parity;
-                ret = Calypso_StringToInt(&parity, tempString, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC);
+                ret = ATCommand_StringToInt(&parity, tempString, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC);
                 pValue->uart.parity = parity;
                 break;
             }
 
             case ATDevice_GetUart_FlowControl:
             {
-                ret = Calypso_GetNextArgumentBoolean(&pAtCommand, &pValue->uart.flowControl, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentBoolean(&pAtCommand, &pValue->uart.flowControl, ATCOMMAND_STRING_TERMINATE);
                 break;
             }
 
             case ATDevice_GetUart_TransparentTrigger:
             {
                 uint32_t bitmask;
-                ret = Calypso_GetNextArgumentBitmask(&pAtCommand,
+                ret = ATCommand_GetNextArgumentBitmask(&pAtCommand,
                                                      ATDevice_ATGetTransparentModeUartTriggerStrings,
                                                      ATDevice_TransparentModeUartTrigger_NumberOfValues,
                                                      32,
                                                      &bitmask,
-                                                     CALYPSO_STRING_TERMINATE);
+                                                     ATCOMMAND_STRING_TERMINATE);
                 if (ret)
                 {
                     pValue->uart.transparentTrigger = (uint8_t) bitmask;
@@ -778,19 +778,19 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             }
 
             case ATDevice_GetUart_TransparentTimeout:
-                ret = Calypso_GetNextArgumentInt(&pAtCommand,
+                ret = ATCommand_GetNextArgumentInt(&pAtCommand,
                                                  &pValue->uart.transparentTimeoutMs,
-                                                 CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                                 ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATDevice_GetUart_TransparentETX:
             {
                 uint16_t etx;
-                ret = Calypso_GetNextArgumentInt(&pAtCommand,
+                ret = ATCommand_GetNextArgumentInt(&pAtCommand,
                                                  &etx,
-                                                 CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX,
+                                                 ATCOMMAND_STRING_TERMINATE);
                 if (ret)
                 {
                     pValue->uart.transparentETX[0] = (etx >> 8) & 0xFF;
@@ -808,36 +808,36 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             switch (option)
             {
             case ATDevice_GetTransparentMode_RemoteAddress:
-                ret = Calypso_GetNextArgumentString(&pAtCommand,
+                ret = ATCommand_GetNextArgumentString(&pAtCommand,
                                                     pValue->transparentMode.remoteAddress,
-                                                    CALYPSO_STRING_TERMINATE,
+                                                    ATCOMMAND_STRING_TERMINATE,
                                                     sizeof(pValue->transparentMode.remoteAddress));
                 break;
 
             case ATDevice_GetTransparentMode_RemotePort:
-                ret = Calypso_GetNextArgumentInt(&pAtCommand,
+                ret = ATCommand_GetNextArgumentInt(&pAtCommand,
                                                  &pValue->transparentMode.remotePort,
-                                                 CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                                 ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATDevice_GetTransparentMode_LocalPort:
-                ret = Calypso_GetNextArgumentInt(&pAtCommand,
+                ret = ATCommand_GetNextArgumentInt(&pAtCommand,
                                                  &pValue->transparentMode.localPort,
-                                                 CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                                 ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATDevice_GetTransparentMode_SocketType:
             {
                 char tempString[32];
-                ret = Calypso_GetNextArgumentString(&pAtCommand,
+                ret = ATCommand_GetNextArgumentString(&pAtCommand,
                                                     tempString,
-                                                    CALYPSO_STRING_TERMINATE,
+                                                    ATCOMMAND_STRING_TERMINATE,
                                                     sizeof(tempString));
                 if (ret)
                 {
-                    pValue->transparentMode.socketType = Calypso_FindString(ATDevice_ATGetTransparentModeSocketTypeStrings,
+                    pValue->transparentMode.socketType = ATCommand_FindString(ATDevice_ATGetTransparentModeSocketTypeStrings,
                                                                             ATDevice_TransparentModeSocketType_NumberOfValues,
                                                                             tempString,
                                                                             ATDevice_TransparentModeSocketType_UDP,
@@ -849,12 +849,12 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             case ATDevice_GetTransparentMode_SecureMethod:
             {
                 uint8_t enumValue;
-                ret = Calypso_GetNextArgumentEnum(&pAtCommand,
+                ret = ATCommand_GetNextArgumentEnum(&pAtCommand,
                                                   &enumValue,
                                                   ATDevice_ATGetTransparentModeSecureMethodStrings,
                                                   ATDevice_TransparentModeSecureMethod_NumberOfValues,
                                                   25,
-                                                  CALYPSO_STRING_TERMINATE);
+                                                  ATCOMMAND_STRING_TERMINATE);
                 if (ret)
                 {
                     pValue->transparentMode.secureMethod = enumValue;
@@ -863,21 +863,21 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             }
 
             case ATDevice_GetTransparentMode_PowerSave:
-                ret = Calypso_GetNextArgumentBoolean(&pAtCommand,
+                ret = ATCommand_GetNextArgumentBoolean(&pAtCommand,
                                                      &pValue->transparentMode.powerSave,
-                                                     CALYPSO_STRING_TERMINATE);
+                                                     ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATDevice_GetTransparentMode_SkipDateVerify:
-                ret = Calypso_GetNextArgumentBoolean(&pAtCommand,
+                ret = ATCommand_GetNextArgumentBoolean(&pAtCommand,
                                                      &pValue->transparentMode.skipDateVerify,
-                                                     CALYPSO_STRING_TERMINATE);
+                                                     ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATDevice_GetTransparentMode_DisableCertificateStore:
-                ret = Calypso_GetNextArgumentBoolean(&pAtCommand,
+                ret = ATCommand_GetNextArgumentBoolean(&pAtCommand,
                                                      &pValue->transparentMode.disableCertificateStore,
-                                                     CALYPSO_STRING_TERMINATE);
+                                                     ATCOMMAND_STRING_TERMINATE);
                 break;
             }
             break;
@@ -888,9 +888,9 @@ static bool ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char *pAtCom
             switch (option)
             {
             case ATDevice_GetGPIO_RemoteLock:
-                ret = Calypso_GetNextArgumentBoolean(&pAtCommand,
+                ret = ATCommand_GetNextArgumentBoolean(&pAtCommand,
                                                      &pValue->gpio.remoteLock,
-                                                     CALYPSO_STRING_TERMINATE);
+                                                     ATCOMMAND_STRING_TERMINATE);
                 break;
             }
             break;
@@ -967,7 +967,7 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
     bool ret = false;
 
     /* add id */
-    ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetIdStrings[id], CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetIdStrings[id], ATCOMMAND_ARGUMENT_DELIM);
 
     switch (id)
     {
@@ -976,7 +976,7 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
         /* add option */
         if (ret)
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetGeneralStrings[option], CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetGeneralStrings[option], ATCOMMAND_ARGUMENT_DELIM);
         }
 
         switch (option)
@@ -984,8 +984,8 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
         case ATDevice_GetGeneral_Persistent:
         {
             char tempString[4];
-            Calypso_IntToString(tempString, pValue->general.persistent, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-            ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_STRING_TERMINATE);
+            ATCommand_IntToString(tempString, pValue->general.persistent, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+            ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
@@ -995,33 +995,33 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
 
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.hour, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM);
+                ATCommand_IntToString(tempString, pValue->general.time.hour, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM);
             }
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.minute, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM);
+                ATCommand_IntToString(tempString, pValue->general.time.minute, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM);
             }
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.second, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM);
+                ATCommand_IntToString(tempString, pValue->general.time.second, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM);
             }
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.day, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM);
+                ATCommand_IntToString(tempString, pValue->general.time.day, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM);
             }
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.month, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM);
+                ATCommand_IntToString(tempString, pValue->general.time.month, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM);
             }
             if (ret)
             {
-                Calypso_IntToString(tempString, pValue->general.time.year, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC));
-                ret = Calypso_AppendArgumentString(pAtCommand, tempString, CALYPSO_STRING_TERMINATE);
+                ATCommand_IntToString(tempString, pValue->general.time.year, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC));
+                ret = ATCommand_AppendArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE);
             }
 
             break;
@@ -1033,39 +1033,39 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
 
     case ATDevice_GetId_UART:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetUartStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetUartStrings[option], ATCOMMAND_ARGUMENT_DELIM);
 
         switch (option)
         {
         case ATDevice_GetUart_Baudrate:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValue->uart.baudrate, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValue->uart.baudrate, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetUart_Parity:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValue->uart.parity, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValue->uart.parity, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetUart_FlowControl:
-            ret = Calypso_AppendArgumentBoolean(pAtCommand, pValue->uart.flowControl, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentBoolean(pAtCommand, pValue->uart.flowControl, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetUart_TransparentTrigger:
-            ret = Calypso_AppendArgumentBitmask(pAtCommand,
+            ret = ATCommand_AppendArgumentBitmask(pAtCommand,
                                                 ATDevice_ATGetTransparentModeUartTriggerStrings,
                                                 ATDevice_TransparentModeUartTrigger_NumberOfValues,
                                                 pValue->uart.transparentTrigger,
-                                                CALYPSO_STRING_TERMINATE,
+                                                ATCOMMAND_STRING_TERMINATE,
                                                 AT_MAX_COMMAND_BUFFER_SIZE);
             break;
 
         case ATDevice_GetUart_TransparentTimeout:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValue->uart.transparentTimeoutMs, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValue->uart.transparentTimeoutMs, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetUart_TransparentETX:
         {
             uint16_t etx = ((uint16_t) pValue->uart.transparentETX[0] << 8) | pValue->uart.transparentETX[1];
-            ret = Calypso_AppendArgumentInt(pAtCommand, etx, (CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, etx, (ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_STRING_TERMINATE);
             break;
         }
         }
@@ -1075,50 +1075,50 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
 
     case ATDevice_GetId_TransparentMode:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetTransparentModeStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetTransparentModeStrings[option], ATCOMMAND_ARGUMENT_DELIM);
 
         switch (option)
         {
         case ATDevice_GetTransparentMode_RemoteAddress:
-            ret = Calypso_AppendArgumentString(pAtCommand, pValue->transparentMode.remoteAddress, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValue->transparentMode.remoteAddress, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_RemotePort:
-            ret = Calypso_AppendArgumentInt(pAtCommand,
+            ret = ATCommand_AppendArgumentInt(pAtCommand,
                                             pValue->transparentMode.remotePort,
-                                            CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                            CALYPSO_STRING_TERMINATE);
+                                            ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                            ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_LocalPort:
-            ret = Calypso_AppendArgumentInt(pAtCommand,
+            ret = ATCommand_AppendArgumentInt(pAtCommand,
                                             pValue->transparentMode.localPort,
-                                            CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                            CALYPSO_STRING_TERMINATE);
+                                            ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                            ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_SocketType:
-            ret = Calypso_AppendArgumentString(pAtCommand,
+            ret = ATCommand_AppendArgumentString(pAtCommand,
                                                ATDevice_ATGetTransparentModeSocketTypeStrings[pValue->transparentMode.socketType],
-                                               CALYPSO_STRING_TERMINATE);
+                                               ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_SecureMethod:
-            ret = Calypso_AppendArgumentString(pAtCommand,
+            ret = ATCommand_AppendArgumentString(pAtCommand,
                                                ATDevice_ATGetTransparentModeSecureMethodStrings[pValue->transparentMode.secureMethod],
-                                               CALYPSO_STRING_TERMINATE);
+                                               ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_PowerSave:
-            ret = Calypso_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.powerSave, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.powerSave, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_SkipDateVerify:
-            ret = Calypso_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.skipDateVerify, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.skipDateVerify, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATDevice_GetTransparentMode_DisableCertificateStore:
-            ret = Calypso_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.disableCertificateStore, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentBoolean(pAtCommand, pValue->transparentMode.disableCertificateStore, ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
@@ -1127,13 +1127,13 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
 
     case ATDevice_GetId_GPIO:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATDevice_ATGetGPIOStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATDevice_ATGetGPIOStrings[option], ATCOMMAND_ARGUMENT_DELIM);
         switch (option)
         {
         case ATDevice_GetGPIO_RemoteLock:
-            ret = Calypso_AppendArgumentBoolean(pAtCommand,
+            ret = ATCommand_AppendArgumentBoolean(pAtCommand,
                                                 pValue->gpio.remoteLock,
-                                                CALYPSO_STRING_TERMINATE);
+                                                ATCOMMAND_STRING_TERMINATE);
             break;
         }
         break;
@@ -1147,7 +1147,7 @@ static bool ATDevice_AddArgumentsATset(char *pAtCommand, uint8_t id, uint8_t opt
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;

@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,10 +31,10 @@
 #ifndef AT_FILE_H_INCLUDED
 #define AT_FILE_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#include "../Calypso.h"
 
 
 #define ATFILE_FILENAME_MAX_LENGTH          (uint8_t)  180          /**< Maximum file name length */

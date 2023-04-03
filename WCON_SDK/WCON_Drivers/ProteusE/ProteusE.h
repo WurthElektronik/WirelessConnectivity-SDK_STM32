@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -56,8 +56,8 @@ extern "C" {
 
 typedef enum ProteusE_OperationMode_t
 {
-    ProteusE_OperationMode_CommandMode,
-    ProteusE_OperationMode_TransparentMode
+	ProteusE_OperationMode_CommandMode,
+	ProteusE_OperationMode_TransparentMode
 } ProteusE_OperationMode_t;
 
 /* Number of free GPIOs available on the module */
@@ -65,120 +65,119 @@ typedef enum ProteusE_OperationMode_t
 
 typedef enum ProteusE_GPIO_t
 {
-    ProteusE_GPIO_1 = (uint8_t)0x01,
-    ProteusE_GPIO_2 = (uint8_t)0x02
+	ProteusE_GPIO_1 = (uint8_t) 0x01,
+	ProteusE_GPIO_2 = (uint8_t) 0x02
 } ProteusE_GPIO_t;
 
 typedef enum ProteusE_GPIO_IO_t
 {
-    ProteusE_GPIO_IO_Disconnected  = (uint8_t)0x00,
-    ProteusE_GPIO_IO_Input         = (uint8_t)0x01,
-    ProteusE_GPIO_IO_Output        = (uint8_t)0x02
+	ProteusE_GPIO_IO_Disconnected = (uint8_t) 0x00,
+	ProteusE_GPIO_IO_Input = (uint8_t) 0x01,
+	ProteusE_GPIO_IO_Output = (uint8_t) 0x02
 } ProteusE_GPIO_IO_t;
 
 typedef enum ProteusE_GPIO_Output_t
 {
-    ProteusE_GPIO_Output_Low  = (uint8_t)0x00,
-    ProteusE_GPIO_Output_High = (uint8_t)0x01
+	ProteusE_GPIO_Output_Low = (uint8_t) 0x00,
+	ProteusE_GPIO_Output_High = (uint8_t) 0x01
 } ProteusE_GPIO_Output_t;
 
 typedef enum ProteusE_GPIO_Input_t
 {
-    ProteusE_GPIO_Input_NoPull   = (uint8_t)0x00,
-    ProteusE_GPIO_Input_PullDown = (uint8_t)0x01,
-    ProteusE_GPIO_Input_PullUp   = (uint8_t)0x02
+	ProteusE_GPIO_Input_NoPull = (uint8_t) 0x00,
+	ProteusE_GPIO_Input_PullDown = (uint8_t) 0x01,
+	ProteusE_GPIO_Input_PullUp = (uint8_t) 0x02
 } ProteusE_GPIO_Input_t;
 
 typedef struct ProteusE_GPIOConfigBlock_t
 {
-    ProteusE_GPIO_t gpioId;
-    ProteusE_GPIO_IO_t function;
-    union
-    {
-        ProteusE_GPIO_Input_t input;
-        ProteusE_GPIO_Output_t output;
-    } value;
+	ProteusE_GPIO_t gpioId;
+	ProteusE_GPIO_IO_t function;
+	union
+	{
+		ProteusE_GPIO_Input_t input;
+		ProteusE_GPIO_Output_t output;
+	} value;
 } ProteusE_GPIOConfigBlock_t;
 
 typedef struct ProteusE_GPIOControlBlock_t
 {
-    ProteusE_GPIO_t gpioId;
-    union
-    {
-        ProteusE_GPIO_Output_t output;
-    } value;
+	ProteusE_GPIO_t gpioId;
+	union
+	{
+		ProteusE_GPIO_Output_t output;
+	} value;
 } ProteusE_GPIOControlBlock_t;
 
 typedef enum ProteusE_DriverState_t
 {
-    ProteusE_DriverState_BLE_Invalid =         (uint8_t)0x00,
-    ProteusE_DriverState_BLE_Connected =       (uint8_t)0x01,
-    ProteusE_DriverState_BLE_ChannelOpen =     (uint8_t)0x02
+	ProteusE_DriverState_BLE_Invalid = (uint8_t) 0x00,
+	ProteusE_DriverState_BLE_Connected = (uint8_t) 0x01,
+	ProteusE_DriverState_BLE_ChannelOpen = (uint8_t) 0x02
 } ProteusE_DriverState_t;
 
 typedef enum ProteusE_SecurityState_t
 {
-    ProteusE_SecurityState_BLE_ReBonded = (uint8_t)0x00,
-    ProteusE_SecurityState_BLE_Bonded =   (uint8_t)0x01,
-    ProteusE_SecurityState_BLE_Paired =   (uint8_t)0x02
+	ProteusE_SecurityState_BLE_ReBonded = (uint8_t) 0x00,
+	ProteusE_SecurityState_BLE_Bonded = (uint8_t) 0x01,
+	ProteusE_SecurityState_BLE_Paired = (uint8_t) 0x02
 } ProteusE_SecurityState_t;
 
 typedef enum ProteusE_DisconnectReason_t
 {
-    ProteusE_DisconnectReason_Unknown,
-    ProteusE_DisconnectReason_ConnectionTimeout,
-    ProteusE_DisconnectReason_UserTerminatedConnection,
-    ProteusE_DisconnectReason_HostTerminatedConnection,
-    ProteusE_DisconnectReason_ConnectionIntervalUnacceptable,
-    ProteusE_DisconnectReason_MicFailure,
-    ProteusE_DisconnectReason_ConnectionSetupFailed,
+	ProteusE_DisconnectReason_Unknown,
+	ProteusE_DisconnectReason_ConnectionTimeout,
+	ProteusE_DisconnectReason_UserTerminatedConnection,
+	ProteusE_DisconnectReason_HostTerminatedConnection,
+	ProteusE_DisconnectReason_ConnectionIntervalUnacceptable,
+	ProteusE_DisconnectReason_MicFailure,
+	ProteusE_DisconnectReason_ConnectionSetupFailed,
 } ProteusE_DisconnectReason_t;
 
 typedef enum ProteusE_BLE_Role_t
 {
-    ProteusE_BLE_Role_None =         (uint8_t)0x00,
-    ProteusE_BLE_Role_Pheripheral =  (uint8_t)0x01,
-    ProteusE_BLE_Role_Central =      (uint8_t)0x02,
-    ProteusE_BLE_Role_DTM =          (uint8_t)0x10
+	ProteusE_BLE_Role_None = (uint8_t) 0x00,
+	ProteusE_BLE_Role_Peripheral = (uint8_t) 0x01,
+	ProteusE_BLE_Role_Central = (uint8_t) 0x02,
+	ProteusE_BLE_Role_DTM = (uint8_t) 0x10
 } ProteusE_BLE_Role_t;
 
 typedef enum ProteusE_BLE_Action_t
 {
-    ProteusE_BLE_Action_None =       (uint8_t)0x00,
-    ProteusE_BLE_Action_Idle =       (uint8_t)0x01,
-    ProteusE_BLE_Action_Scanning =   (uint8_t)0x02,
-    ProteusE_BLE_Action_Connected =  (uint8_t)0x03,
-    ProteusE_BLE_Action_Sleep =      (uint8_t)0x04,
-    ProteusE_BLE_Action_DTM =        (uint8_t)0x05
+	ProteusE_BLE_Action_None = (uint8_t) 0x00,
+	ProteusE_BLE_Action_Idle = (uint8_t) 0x01,
+	ProteusE_BLE_Action_Scanning = (uint8_t) 0x02,
+	ProteusE_BLE_Action_Connected = (uint8_t) 0x03,
+	ProteusE_BLE_Action_Sleep = (uint8_t) 0x04,
+	ProteusE_BLE_Action_DTM = (uint8_t) 0x05
 } ProteusE_BLE_Action_t;
-
 
 /**
  * @brief User settings
  */
 typedef enum ProteusE_UserSettings_t
 {
-    ProteusE_USERSETTING_POSITION_FS_FWVersion =             (uint8_t)0x01,
-    ProteusE_USERSETTING_POSITION_RF_DEVICE_NAME =           (uint8_t)0x02,
-    ProteusE_USERSETTING_POSITION_FS_MAC =                   (uint8_t)0x03,
-    ProteusE_USERSETTING_POSITION_FS_BTMAC =                 (uint8_t)0x04,
-    ProteusE_USERSETTING_POSITION_RF_ADVERTISING_TIMEOUT =   (uint8_t)0x07,
-    ProteusE_USERSETTING_POSITION_RF_CONNECTION_INTERVAL =   (uint8_t)0x08,
-    ProteusE_USERSETTING_POSITION_RF_ADVERTISING_INTERVAL =  (uint8_t)0x09,
-    ProteusE_USERSETTING_POSITION_UART_CONFIG_INDEX   =      (uint8_t)0x0B,
-    ProteusE_USERSETTING_POSITION_RF_SEC_FLAGS =             (uint8_t)0x0C,
-    ProteusE_USERSETTING_POSITION_RF_ADVERTISING_DATA =      (uint8_t)0x0D,
-    ProteusE_USERSETTING_POSITION_RF_SCAN_RESPONSE_DATA =    (uint8_t)0x0E,
-    ProteusE_USERSETTING_POSITION_FS_DEVICE_INFO =           (uint8_t)0x0F,
-    ProteusE_USERSETTING_POSITION_FS_SERIAL_NUMBER =         (uint8_t)0x10,
-    ProteusE_USERSETTING_POSITION_RF_TX_POWER =              (uint8_t)0x11,
-    ProteusE_USERSETTING_POSITION_RF_STATIC_PASSKEY =        (uint8_t)0x12,
-    ProteusE_USERSETTING_POSITION_RF_APPEARANCE =            (uint8_t)0x19,
-    ProteusE_USERSETTING_POSITION_RF_SPPBASEUUID =           (uint8_t)0x1A,
-    ProteusE_USERSETTING_POSITION_RF_CFGFLAGS =              (uint8_t)0x1C,
-    ProteusE_USERSETTING_POSITION_RF_SPPServiceUUID =        (uint8_t)0x20,
-    ProteusE_USERSETTING_POSITION_RF_SPPRXUUID =             (uint8_t)0x21,
-    ProteusE_USERSETTING_POSITION_RF_SPPTXUUID =             (uint8_t)0x22
+	ProteusE_USERSETTING_FS_FWVersion = (uint8_t) 0x01,
+	ProteusE_USERSETTING_RF_DEVICE_NAME = (uint8_t) 0x02,
+	ProteusE_USERSETTING_FS_MAC = (uint8_t) 0x03,
+	ProteusE_USERSETTING_FS_BTMAC = (uint8_t) 0x04,
+	ProteusE_USERSETTING_RF_ADVERTISING_TIMEOUT = (uint8_t) 0x07,
+	ProteusE_USERSETTING_RF_CONNECTION_INTERVAL = (uint8_t) 0x08,
+	ProteusE_USERSETTING_RF_ADVERTISING_INTERVAL = (uint8_t) 0x09,
+	ProteusE_USERSETTING_UART_CONFIG_INDEX = (uint8_t) 0x0B,
+	ProteusE_USERSETTING_RF_SEC_FLAGS = (uint8_t) 0x0C,
+	ProteusE_USERSETTING_RF_ADVERTISING_DATA = (uint8_t) 0x0D,
+	ProteusE_USERSETTING_RF_SCAN_RESPONSE_DATA = (uint8_t) 0x0E,
+	ProteusE_USERSETTING_FS_DEVICE_INFO = (uint8_t) 0x0F,
+	ProteusE_USERSETTING_FS_SERIAL_NUMBER = (uint8_t) 0x10,
+	ProteusE_USERSETTING_RF_TX_POWER = (uint8_t) 0x11,
+	ProteusE_USERSETTING_RF_STATIC_PASSKEY = (uint8_t) 0x12,
+	ProteusE_USERSETTING_RF_APPEARANCE = (uint8_t) 0x19,
+	ProteusE_USERSETTING_RF_SPPBASEUUID = (uint8_t) 0x1A,
+	ProteusE_USERSETTING_RF_CFGFLAGS = (uint8_t) 0x1C,
+	ProteusE_USERSETTING_RF_SPPServiceUUID = (uint8_t) 0x20,
+	ProteusE_USERSETTING_RF_SPPRXUUID = (uint8_t) 0x21,
+	ProteusE_USERSETTING_RF_SPPTXUUID = (uint8_t) 0x22
 } ProteusE_UserSettings_t;
 
 /**
@@ -186,9 +185,9 @@ typedef enum ProteusE_UserSettings_t
  */
 typedef enum ProteusE_CfgFlags_t
 {
-    ProteusE_CfgFlags_GPIORemoteConfig  = (1 << 2),
-    ProteusE_CfgFlags_DCDCEnable        = (1 << 3),
-    ProteusE_CfgFlags_DisconnectEnable  = (1 << 4)
+	ProteusE_CfgFlags_GPIORemoteConfig = (1 << 2),
+	ProteusE_CfgFlags_DCDCEnable = (1 << 3),
+	ProteusE_CfgFlags_DisconnectEnable = (1 << 4)
 } ProteusE_CfgFlags_t;
 
 #define PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK          (uint8_t)0x08
@@ -196,59 +195,59 @@ typedef enum ProteusE_CfgFlags_t
 
 typedef enum ProteusE_SecFlags_t
 {
-    ProteusE_SecFlags_NONE =                       (uint8_t)0x00,
-    ProteusE_SecFlags_JustWorks =                  (uint8_t)0x02,
-    ProteusE_SecFlags_StaticPassKey =              (uint8_t)0x03,
-    ProteusE_SecFlags_JustWorks_Bonding =          (uint8_t)(ProteusE_SecFlags_JustWorks | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK),
-    ProteusE_SecFlags_StaticPassKey_Bonding =      (uint8_t)(ProteusE_SecFlags_StaticPassKey | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK),
-    ProteusE_SecFlags_JustWorks_BondingOnly =      (uint8_t)(ProteusE_SecFlags_JustWorks | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK | PROTEUSE_SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE),
-    ProteusE_SecFlags_StaticPassKey_BondingOnly =  (uint8_t)(ProteusE_SecFlags_StaticPassKey | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK | PROTEUSE_SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE)
+	ProteusE_SecFlags_NONE = (uint8_t) 0x00,
+	ProteusE_SecFlags_JustWorks = (uint8_t) 0x02,
+	ProteusE_SecFlags_StaticPassKey = (uint8_t) 0x03,
+	ProteusE_SecFlags_JustWorks_Bonding = (uint8_t) (ProteusE_SecFlags_JustWorks | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK ),
+	ProteusE_SecFlags_StaticPassKey_Bonding = (uint8_t) (ProteusE_SecFlags_StaticPassKey | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK ),
+	ProteusE_SecFlags_JustWorks_BondingOnly = (uint8_t) (ProteusE_SecFlags_JustWorks | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK | PROTEUSE_SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE ),
+	ProteusE_SecFlags_StaticPassKey_BondingOnly = (uint8_t) (ProteusE_SecFlags_StaticPassKey | PROTEUSE_SEC_MODE_BONDING_ENABLE_MASK | PROTEUSE_SEC_MODE_BONDEDCONNECTIONSONLY_ENABLE )
 } ProteusE_SecFlags_t;
 
 typedef enum ProteusE_TXPower_t
 {
-    ProteusE_TXPower_4       = (int8_t) 4,
-    ProteusE_TXPower_3       = (int8_t) 3,
-    ProteusE_TXPower_0       = (int8_t) 0,
-    ProteusE_TXPower_minus4  = (int8_t)-4,
-    ProteusE_TXPower_minus8  = (int8_t)-8,
-    ProteusE_TXPower_minus12 = (int8_t)-12,
-    ProteusE_TXPower_minus16 = (int8_t)-16,
-    ProteusE_TXPower_minus20 = (int8_t)-20,
-    ProteusE_TXPower_minus40 = (int8_t)-40
+	ProteusE_TXPower_4 = (int8_t) 4,
+	ProteusE_TXPower_3 = (int8_t) 3,
+	ProteusE_TXPower_0 = (int8_t) 0,
+	ProteusE_TXPower_minus4 = (int8_t) -4,
+	ProteusE_TXPower_minus8 = (int8_t) -8,
+	ProteusE_TXPower_minus12 = (int8_t) -12,
+	ProteusE_TXPower_minus16 = (int8_t) -16,
+	ProteusE_TXPower_minus20 = (int8_t) -20,
+	ProteusE_TXPower_minus40 = (int8_t) -40
 } ProteusE_TXPower_t;
 
 typedef enum ProteusE_BaudRate_t
 {
-    ProteusE_BaudRateIndex_1200    = (uint8_t)0,
-    ProteusE_BaudRateIndex_2400    = (uint8_t)2,
-    ProteusE_BaudRateIndex_4800    = (uint8_t)4,
-    ProteusE_BaudRateIndex_9600    = (uint8_t)6,
-    ProteusE_BaudRateIndex_14400   = (uint8_t)8,
-    ProteusE_BaudRateIndex_19200   = (uint8_t)10,
-    ProteusE_BaudRateIndex_28800   = (uint8_t)12,
-    ProteusE_BaudRateIndex_38400   = (uint8_t)14,
-    ProteusE_BaudRateIndex_56000   = (uint8_t)16,
-    ProteusE_BaudRateIndex_57600   = (uint8_t)18,
-    ProteusE_BaudRateIndex_76800   = (uint8_t)20,
-    ProteusE_BaudRateIndex_115200  = (uint8_t)22,
-    ProteusE_BaudRateIndex_230400  = (uint8_t)24,
-    ProteusE_BaudRateIndex_250000  = (uint8_t)26,
-    ProteusE_BaudRateIndex_460800  = (uint8_t)28,
-    ProteusE_BaudRateIndex_921600  = (uint8_t)30,
-    ProteusE_BaudRateIndex_1000000 = (uint8_t)32
+	ProteusE_BaudRateIndex_1200 = (uint8_t) 0,
+	ProteusE_BaudRateIndex_2400 = (uint8_t) 2,
+	ProteusE_BaudRateIndex_4800 = (uint8_t) 4,
+	ProteusE_BaudRateIndex_9600 = (uint8_t) 6,
+	ProteusE_BaudRateIndex_14400 = (uint8_t) 8,
+	ProteusE_BaudRateIndex_19200 = (uint8_t) 10,
+	ProteusE_BaudRateIndex_28800 = (uint8_t) 12,
+	ProteusE_BaudRateIndex_38400 = (uint8_t) 14,
+	ProteusE_BaudRateIndex_56000 = (uint8_t) 16,
+	ProteusE_BaudRateIndex_57600 = (uint8_t) 18,
+	ProteusE_BaudRateIndex_76800 = (uint8_t) 20,
+	ProteusE_BaudRateIndex_115200 = (uint8_t) 22,
+	ProteusE_BaudRateIndex_230400 = (uint8_t) 24,
+	ProteusE_BaudRateIndex_250000 = (uint8_t) 26,
+	ProteusE_BaudRateIndex_460800 = (uint8_t) 28,
+	ProteusE_BaudRateIndex_921600 = (uint8_t) 30,
+	ProteusE_BaudRateIndex_1000000 = (uint8_t) 32
 } ProteusE_BaudRate_t;
 
 typedef enum ProteusE_UartParity_t
 {
-    ProteusE_UartParity_Even,
-    ProteusE_UartParity_None
+	ProteusE_UartParity_Even,
+	ProteusE_UartParity_None
 } ProteusE_UartParity_t;
 
 typedef enum ProteusE_Phy_t
 {
-    ProteusE_Phy_1MBit = 0x01,
-    ProteusE_Phy_2MBit = 0x02
+	ProteusE_Phy_1MBit = 0x01,
+	ProteusE_Phy_2MBit = 0x02
 } ProteusE_Phy_t;
 
 /**
@@ -257,10 +256,10 @@ typedef enum ProteusE_Phy_t
  */
 typedef struct ProteusE_DeviceInfo_t
 {
-    uint16_t osVersion;
-    uint32_t buildCode;
-    uint16_t packageVariant;
-    uint32_t chipId;
+	uint16_t osVersion;
+	uint32_t buildCode;
+	uint16_t packageVariant;
+	uint32_t chipId;
 } ProteusE_DeviceInfo_t;
 
 /**
@@ -269,10 +268,10 @@ typedef struct ProteusE_DeviceInfo_t
  */
 typedef struct ProteusE_ModuleState_t
 {
-    ProteusE_BLE_Role_t role;
-    ProteusE_BLE_Action_t action;
-    uint8_t connectedDeviceBtMac[6];
-    uint16_t connectedDeviceMaxPayloadSize;
+	ProteusE_BLE_Role_t role;
+	ProteusE_BLE_Action_t action;
+	uint8_t connectedDeviceBtMac[6];
+	uint16_t connectedDeviceMaxPayloadSize;
 } ProteusE_ModuleState_t;
 
 /**
@@ -281,8 +280,8 @@ typedef struct ProteusE_ModuleState_t
  */
 typedef struct ProteusE_BondDatabaseEntry_t
 {
-    uint16_t id;
-    uint8_t btMac[6];
+	uint16_t id;
+	uint8_t btMac[6];
 } ProteusE_BondDatabaseEntry_t;
 
 /**
@@ -291,20 +290,20 @@ typedef struct ProteusE_BondDatabaseEntry_t
  */
 typedef struct ProteusE_BondDatabase_t
 {
-    uint8_t nrOfDevices;
-    ProteusE_BondDatabaseEntry_t devices[PROTEUSE_MAX_BOND_DEVICES];
+	uint8_t nrOfDevices;
+	ProteusE_BondDatabaseEntry_t devices[PROTEUSE_MAX_BOND_DEVICES ];
 } ProteusE_BondDatabase_t;
 
 /* Callback definition */
 
-typedef void (*ProteusE_RxCallback)(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi);
+typedef void (*ProteusE_RxCallback)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusE_ConnectCallback)(bool success, uint8_t* btMac);
-typedef void (*ProteusE_SecurityCallback)(uint8_t* btMac, ProteusE_SecurityState_t securityState);
+typedef void (*ProteusE_ConnectCallback)(bool success, uint8_t *btMac);
+typedef void (*ProteusE_SecurityCallback)(uint8_t *btMac, ProteusE_SecurityState_t securityState);
 typedef void (*ProteusE_DisconnectCallback)(ProteusE_DisconnectReason_t reason);
-typedef void (*ProteusE_ChannelOpenCallback)(uint8_t* btMac, uint16_t maxPayload);
+typedef void (*ProteusE_ChannelOpenCallback)(uint8_t *btMac, uint16_t maxPayload);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusE_PhyUpdateCallback)(bool success, uint8_t* btMac, uint8_t phyRx, uint8_t phyTx);
+typedef void (*ProteusE_PhyUpdateCallback)(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
 typedef void (*ProteusE_SleepCallback)();
 /* Note that the gpioId parameter is of type uint8_t instead of ProteusE_GPIO_t, as the
  * remote device may support other GPIOs than this device. */
@@ -322,22 +321,19 @@ typedef void (*ProteusE_ByteRxCallback)(uint8_t receivedByte);
  */
 typedef struct ProteusE_CallbackConfig_t
 {
-    ProteusE_RxCallback                     rxCb;               /**< Callback for CMD_DATA_IND */
-    ProteusE_ConnectCallback                connectCb;          /**< Callback for CMD_CONNECT_IND */
-    ProteusE_SecurityCallback               securityCb;         /**< Callback for CMD_SECURITY_IND */
-    ProteusE_DisconnectCallback             disconnectCb;       /**< Callback for CMD_DISCONNECT_IND */
-    ProteusE_ChannelOpenCallback            channelOpenCb;      /**< Callback for CMD_CHANNELOPEN_RSP */
-    ProteusE_PhyUpdateCallback              phyUpdateCb;        /**< Callback for CMD_PHYUPDATE_IND */
-    ProteusE_SleepCallback                  sleepCb;            /**< Callback for CMD_SLEEP_IND */
-    ProteusE_GpioWriteCallback              gpioWriteCb;        /**< Callback for CMD_GPIO_LOCAL_WRITE_IND and CMD_GPIO_REMOTE_WRITE_IND */
-    ProteusE_GpioRemoteConfigCallback       gpioRemoteConfigCb; /**< Callback for CMD_GPIO_REMOTE_WRITECONFIG_IND */
-    ProteusE_ErrorCallback                  errorCb;            /**< Callback for CMD_ERROR_IND */
+	ProteusE_RxCallback rxCb; /**< Callback for CMD_DATA_IND */
+	ProteusE_ConnectCallback connectCb; /**< Callback for CMD_CONNECT_IND */
+	ProteusE_SecurityCallback securityCb; /**< Callback for CMD_SECURITY_IND */
+	ProteusE_DisconnectCallback disconnectCb; /**< Callback for CMD_DISCONNECT_IND */
+	ProteusE_ChannelOpenCallback channelOpenCb; /**< Callback for CMD_CHANNELOPEN_RSP */
+	ProteusE_PhyUpdateCallback phyUpdateCb; /**< Callback for CMD_PHYUPDATE_IND */
+	ProteusE_SleepCallback sleepCb; /**< Callback for CMD_SLEEP_IND */
+	ProteusE_GpioWriteCallback gpioWriteCb; /**< Callback for CMD_GPIO_LOCAL_WRITE_IND and CMD_GPIO_REMOTE_WRITE_IND */
+	ProteusE_GpioRemoteConfigCallback gpioRemoteConfigCb; /**< Callback for CMD_GPIO_REMOTE_WRITECONFIG_IND */
+	ProteusE_ErrorCallback errorCb; /**< Callback for CMD_ERROR_IND */
 } ProteusE_CallbackConfig_t;
 
-extern bool ProteusE_Init(uint32_t baudrate,
-                          WE_FlowControl_t flowControl,
-                          ProteusE_OperationMode_t opMode,
-                          ProteusE_CallbackConfig_t callbackConfig);
+extern bool ProteusE_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusE_OperationMode_t opMode, ProteusE_CallbackConfig_t callbackConfig);
 extern bool ProteusE_Deinit(void);
 
 extern bool ProteusE_GetState(ProteusE_ModuleState_t *moduleStateP);
@@ -352,7 +348,7 @@ extern bool ProteusE_Sleep();
 
 extern bool ProteusE_Disconnect();
 
-extern bool ProteusE_Transmit(uint8_t* payloadP, uint16_t length);
+extern bool ProteusE_Transmit(uint8_t *payloadP, uint16_t length);
 
 extern bool ProteusE_PhyUpdate(ProteusE_Phy_t phy);
 
@@ -363,21 +359,15 @@ extern bool ProteusE_IsTransparentModeBusy();
 extern void ProteusE_SetByteRxCallback(ProteusE_ByteRxCallback callback);
 
 /* functions to control the GPIO feature */
-extern bool ProteusE_GPIOLocalWriteConfig(ProteusE_GPIOConfigBlock_t* configP, uint16_t numberOfConfigs);
-extern bool ProteusE_GPIOLocalReadConfig(ProteusE_GPIOConfigBlock_t* configP, uint16_t* numberOfConfigsP);
-extern bool ProteusE_GPIOLocalWrite(ProteusE_GPIOControlBlock_t* controlP, uint16_t numberOfControls);
-extern bool ProteusE_GPIOLocalRead(uint8_t *gpioToReadP,
-                                   uint8_t amountGPIOToRead,
-                                   ProteusE_GPIOControlBlock_t* controlP,
-                                   uint16_t* numberOfControlsP);
+extern bool ProteusE_GPIOLocalWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t numberOfConfigs);
+extern bool ProteusE_GPIOLocalReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t *numberOfConfigsP);
+extern bool ProteusE_GPIOLocalWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t numberOfControls);
+extern bool ProteusE_GPIOLocalRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, ProteusE_GPIOControlBlock_t *controlP, uint16_t *numberOfControlsP);
 
-extern bool ProteusE_GPIORemoteWriteConfig(ProteusE_GPIOConfigBlock_t* configP, uint16_t numberOfConfigs);
-extern bool ProteusE_GPIORemoteReadConfig(ProteusE_GPIOConfigBlock_t* configP, uint16_t* numberOfConfigsP);
-extern bool ProteusE_GPIORemoteWrite(ProteusE_GPIOControlBlock_t* controlP, uint16_t numberOfControls);
-extern bool ProteusE_GPIORemoteRead(uint8_t *gpioToReadP,
-                                    uint8_t amountGPIOToRead,
-                                    ProteusE_GPIOControlBlock_t* controlP,
-                                    uint16_t* numberOfControlsP);
+extern bool ProteusE_GPIORemoteWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t numberOfConfigs);
+extern bool ProteusE_GPIORemoteReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t *numberOfConfigsP);
+extern bool ProteusE_GPIORemoteWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t numberOfControls);
+extern bool ProteusE_GPIORemoteRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, ProteusE_GPIOControlBlock_t *controlP, uint16_t *numberOfControlsP);
 
 extern bool ProteusE_GetBonds(ProteusE_BondDatabase_t *bondDatabaseP);
 extern bool ProteusE_DeleteBonds();

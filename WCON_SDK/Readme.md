@@ -57,6 +57,33 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
+## Proteus-II pinout
+```
+ _____________________           ______________________
+|        STM32        |         |     Proteus-II       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|        Wake_up (PA9)|-------->|Wake_up               |
+|                     |         |                      |
+|           Boot (PA7)|-------->|Boot                  |
+|                     |         |                      |
+|           Mode (PA8)|-------->|Mode                  |
+|                     |         |                      |
+|           BUSY (PB8)|<--------|BUSY                  |
+|                     |         |                      |
+| STATUS (LED 2) (PB9)|<--------|LED_2                 |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
+```
+
 ## Proteus-III pinout
 ```
  _____________________           ______________________

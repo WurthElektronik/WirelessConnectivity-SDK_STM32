@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,10 +31,11 @@
 #ifndef AT_NETAPP_H_INCLUDED
 #define AT_NETAPP_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "ATCommands.h"
 #include "ATSocket.h"
 
 #ifdef __cplusplus
@@ -194,8 +195,8 @@ typedef union ATNetApp_HttpOptionValue_t
 typedef struct ATNetApp_DhcpBasicOption_t
 {
     uint32_t leaseTime;                             /**< Lease time in seconds */
-    char firstIpAddress[AT_MAX_IP_ADDRESS_LENGTH];  /**< First IP address for allocation */
-    char lastIpAddress[AT_MAX_IP_ADDRESS_LENGTH];   /**< Last IP address for allocation */
+    char firstIpAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];  /**< First IP address for allocation */
+    char lastIpAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];   /**< Last IP address for allocation */
 } ATNetApp_DhcpBasicOption_t;
 
 /**
@@ -239,7 +240,7 @@ typedef union ATNetApp_SntpOptionValue_t
     uint8_t enable;                                 /**< Enables or disables the SNTP client (0=disabled, 1=enabled) */
     uint32_t updateInterval;                        /**< Minimum update interval in seconds */
     int16_t timeZone;                               /**< UTC +/- minutes */
-    char servers[3][AT_MAX_HOST_NAME_LENGTH];       /**< List of three server addresses / URLS */
+    char servers[3][CALYPSO_MAX_HOST_NAME_LENGTH];       /**< List of three server addresses / URLS */
 } ATNetApp_SntpOptionValue_t;
 
 /**
@@ -299,8 +300,8 @@ typedef enum ATNetApp_PingMode_t
  */
 typedef struct ATNetApp_GetHostByNameResult_t
 {
-    char hostName[AT_MAX_HOST_NAME_LENGTH];         /**< Name of looked up host */
-    char hostAddress[AT_MAX_IP_ADDRESS_LENGTH];     /**< Address of looked up host */
+    char hostName[CALYPSO_MAX_HOST_NAME_LENGTH];         /**< Name of looked up host */
+    char hostAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];     /**< Address of looked up host */
 } ATNetApp_GetHostByNameResult_t;
 
 /**
@@ -310,7 +311,7 @@ typedef struct ATNetApp_GetHostByNameResult_t
 typedef struct ATNetApp_PingParameters_t
 {
     ATSocket_Family_t family;                       /**< INET or INET6 */
-    char destination[AT_MAX_IP_ADDRESS_LENGTH];     /**< Destination IP address (0 to stop an ongoing ping) */
+    char destination[CALYPSO_MAX_IP_ADDRESS_LENGTH];     /**< Destination IP address (0 to stop an ongoing ping) */
     uint16_t size;                                  /**< Size of ping in bytes */
     uint16_t delayMs;                               /**< Delay between pings in milliseconds */
     uint16_t timeoutMs;                             /**< Timeout for each ping in milliseconds */

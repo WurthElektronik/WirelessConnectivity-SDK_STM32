@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -28,9 +28,9 @@
  * @brief AT commands for file I/O functionality.
  */
 
+#include <global/ATCommands.h>
 #include "ATFile.h"
 
-#include "ATCommands.h"
 
 static const char *ATFile_OpenFlags_Strings[ATFile_OpenFlags_NumberOfValues] =
 {
@@ -397,15 +397,15 @@ bool ATFile_GetInfo(const char *fileName,
 
     strcpy(AT_commandBuffer, "AT+fileGetInfo=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, fileName, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, secureToken, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -431,28 +431,28 @@ bool ATFile_GetInfo(const char *fileName,
     char temp[128];
 
     /* Discard flags */
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand, &fileInfo->size, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->size, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand, &fileInfo->allocatedSize, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->allocatedSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
     /* Discard tokens */
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand, &fileInfo->storageSize, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->storageSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand, &fileInfo->writeCounter, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->writeCounter, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -489,33 +489,33 @@ bool ATFile_GetFileList()
  */
 bool ATFile_ParseFileListEntry(char **pInArguments, ATFile_FileListEntry_t* fileListEntry)
 {
-    if (!Calypso_GetNextArgumentString(pInArguments,
+    if (!ATCommand_GetNextArgumentString(pInArguments,
                                        fileListEntry->fileName,
-                                       CALYPSO_ARGUMENT_DELIM,
+                                       ATCOMMAND_ARGUMENT_DELIM,
                                        sizeof(fileListEntry->fileName)))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(pInArguments,
+    if (!ATCommand_GetNextArgumentInt(pInArguments,
                                     &fileListEntry->maxFileSize,
-                                    CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentBitmask(pInArguments,
+    if (!ATCommand_GetNextArgumentBitmask(pInArguments,
                                         ATFile_FileProperties_Strings,
                                         ATFile_FileProperties_NumberOfValues,
                                         25,
                                         &fileListEntry->properties,
-                                        CALYPSO_ARGUMENT_DELIM))
+                                        ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    return Calypso_GetNextArgumentInt(pInArguments,
+    return ATCommand_GetNextArgumentInt(pInArguments,
                                       &fileListEntry->allocatedBlocks,
-                                      CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED,
-                                      CALYPSO_STRING_TERMINATE);
+                                      ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED,
+                                      ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -529,11 +529,11 @@ bool ATFile_ParseFileListEntry(char **pInArguments, ATFile_FileListEntry_t* file
  */
 bool ATFile_PrintFileProperties(uint32_t properties, char *pOutStr, size_t maxLength)
 {
-    return Calypso_AppendArgumentBitmask(pOutStr,
+    return ATCommand_AppendArgumentBitmask(pOutStr,
                                          ATFile_FileProperties_Strings,
                                          ATFile_FileProperties_NumberOfValues,
                                          properties,
-                                         CALYPSO_STRING_TERMINATE,
+                                         ATCOMMAND_STRING_TERMINATE,
                                          maxLength);
 }
 
@@ -562,26 +562,26 @@ static bool ATFile_AddArgumentsFileOpen(char *pAtCommand, const char *fileName, 
         return false;
     }
 
-    ret = Calypso_AppendArgumentString(pAtCommand, fileName, CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentBitmask(pAtCommand,
+        ret = ATCommand_AppendArgumentBitmask(pAtCommand,
                                             ATFile_OpenFlags_Strings,
                                             ATFile_OpenFlags_NumberOfValues,
                                             options,
-                                            CALYPSO_ARGUMENT_DELIM,
+                                            ATCOMMAND_ARGUMENT_DELIM,
                                             AT_MAX_COMMAND_BUFFER_SIZE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, fileSize, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, fileSize, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -606,22 +606,22 @@ static bool ATFile_AddArgumentsFileClose(char *pAtCommand, uint32_t fileID, cons
         return false;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, fileID, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, certName, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, certName, ATCOMMAND_ARGUMENT_DELIM);
 
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, signature, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, signature, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -645,17 +645,17 @@ static bool ATFile_AddArgumentsFileDel(char *pAtCommand, const char *fileName, u
         return false;
     }
 
-    ret = Calypso_AppendArgumentString(pAtCommand, fileName, CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM);
 
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, secureToken, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, secureToken, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -681,26 +681,26 @@ static bool ATFile_AddArgumentsFileRead(char *pAtCommand, uint32_t fileID, uint1
         return false;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, fileID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, offset, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, bytesToRead, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, bytesToRead, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -732,31 +732,31 @@ static bool ATFile_AddArgumentsFileWrite(char *pAtCommand,
         return false;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, fileID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, offset, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, bytesToWrite, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, bytesToWrite, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentBytes(pAtCommand, data, bytesToWrite, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentBytes(pAtCommand, data, bytesToWrite, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -781,11 +781,11 @@ static bool ATFile_ParseResponseFileOpen(char **pAtCommand, uint32_t *fileID, ui
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, fileID, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, fileID, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, secureToken, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
         }
     }
 
@@ -821,11 +821,11 @@ static bool ATFile_ParseResponseFileRead(char **pAtCommand,
         *pAtCommand += cmdLength;
 
         uint8_t outFormat;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, &outFormat, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, &outFormat, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, bytesRead, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, bytesRead, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret && bytesRead >= 0)
@@ -849,7 +849,7 @@ static bool ATFile_ParseResponseFileRead(char **pAtCommand,
                     return false;
                 }
 
-                ret = Calypso_GetNextArgumentString(pAtCommand, data, CALYPSO_STRING_TERMINATE, *bytesRead + 1);
+                ret = ATCommand_GetNextArgumentString(pAtCommand, data, ATCOMMAND_STRING_TERMINATE, *bytesRead + 1);
             }
         }
     }
@@ -875,7 +875,7 @@ static bool ATFile_ParseResponseFileWrite(char **pAtCommand, uint16_t *bytesWrit
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, bytesWritten, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, bytesWritten, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;

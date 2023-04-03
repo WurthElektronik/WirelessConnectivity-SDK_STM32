@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -94,7 +94,7 @@ static uint8_t reqID = 0;
 /**
  * @brief Address of the IoT hub to connect
  */
-static char iotHubAddress[AT_MAX_HOST_NAME_LENGTH] = {0};
+static char iotHubAddress[CALYPSO_MAX_HOST_NAME_LENGTH] = {0};
 
 static bool Calypso_Azure_PnP_WaitForMqttOpEvent(uint32_t timeoutMs);
 static bool Calypso_Azure_PnP_WaitForStartup(uint32_t timeoutMs);
@@ -237,7 +237,7 @@ bool Calypso_Azure_PnP_Connect_To_IoT_Hub(uint8_t *mqttIndex)
 	ATMQTT_SetValues_t mqttSetParams;
 	uint16_t addressLength;
 	/*Read the stored IoT hub address*/
-	if(!Calypso_Azure_PnP_readFile(DEVICE_IOT_HUB_ADDRESS, iotHubAddress,AT_MAX_HOST_NAME_LENGTH, &addressLength))
+	if(!Calypso_Azure_PnP_readFile(DEVICE_IOT_HUB_ADDRESS, iotHubAddress,CALYPSO_MAX_HOST_NAME_LENGTH, &addressLength))
 	{
 		return false;
 	}
@@ -250,7 +250,7 @@ bool Calypso_Azure_PnP_Connect_To_IoT_Hub(uint8_t *mqttIndex)
 	securityParams.securityMethod = ATMQTT_SecurityMethod_TLSV1_2;
 	strcpy(securityParams.CAFile, ROOT_CA_PATH);
 	strcpy(securityParams.certificateFile, DEVICE_CERT_PATH);
-	strcpy(securityParams.DHKey, CALYPSO_STRING_EMPTY);
+	strcpy(securityParams.DHKey, ATCOMMAND_STRING_EMPTY);
 	strcpy(securityParams.privateKeyFile, DEVICE_KEY_PATH);
 	securityParams.cipher = ATSocket_Cipher_TLS_RSA_WITH_AES_256_CBC_SHA256;
 
@@ -488,7 +488,7 @@ bool Calypso_Azure_PnP_Provision() {
 	securityParams.securityMethod = ATMQTT_SecurityMethod_TLSV1_2;
 	strcpy(securityParams.CAFile, ROOT_CA_PATH);
 	strcpy(securityParams.certificateFile, DEVICE_CERT_PATH);
-	strcpy(securityParams.DHKey, CALYPSO_STRING_EMPTY);
+	strcpy(securityParams.DHKey, ATCOMMAND_STRING_EMPTY);
 	strcpy(securityParams.privateKeyFile, DEVICE_KEY_PATH);
 	securityParams.cipher = ATSocket_Cipher_TLS_RSA_WITH_AES_256_CBC_SHA256;
 

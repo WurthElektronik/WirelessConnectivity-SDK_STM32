@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -54,39 +54,21 @@
 #define CALYPSO_LINE_MAX_SIZE 2048
 
 /**
+ * @brief Max. length of IP address strings.
+ */
+#define CALYPSO_MAX_IP_ADDRESS_LENGTH 44
+
+/**
+ * @brief Max. length of host name strings (e.g. URLs or IP addresses).
+ */
+#define CALYPSO_MAX_HOST_NAME_LENGTH 128
+
+/**
  * @brief Max. length of response text (size of buffer storing responses received from Calypso).
  * @see Calypso_currentResponseText
  */
 #define CALYPSO_MAX_RESPONSE_TEXT_LENGTH CALYPSO_LINE_MAX_SIZE
 
-#define CALYPSO_COMMAND_PREFIX  "AT+"                       /**< Prefix for AT commands */
-#define CALYPSO_COMMAND_DELIM   (char)'='                   /**< Character delimiting AT command and parameters */
-#define CALYPSO_CONFIRM_PREFIX  (char)'+'                   /**< Prefix for received confirmations */
-#define CALYPSO_CONFIRM_DELIM   (char)':'                   /**< Character delimiting AT command and returned parameters in received confirmations */
-#define CALYPSO_EVENT_PREFIX    (char)'+'                   /**< Prefix for received event notifications */
-#define CALYPSO_EVENT_DELIM     (char)':'                   /**< Character delimiting event name and parameters in received notifications */
-#define CALYPSO_ARGUMENT_DELIM  (char)','                   /**< Character delimiting parameters in AT commands */
-#define CALYPSO_BITMASK_DELIM   (char)'|'                   /**< Character delimiting elements in bitmask parameters */
-#define CALYPSO_CRLF            "\r\n"                      /**< Newline string indicating end of command (carriage return and line feed) */
-
-#define CALYPSO_RESPONSE_OK     "OK"                        /**< String sent by module if AT command was successful */
-#define CALYPSO_RESPONSE_ERROR  "error"                     /**< String sent by module if AT command failed */
-
-#define CALYPSO_STRING_TERMINATE '\0'                       /**< End of string character */
-#define CALYPSO_STRING_EMPTY     ""                         /**< Empty string */
-
-#define CALYPSO_INTFLAGS_SIZE   (uint16_t)(7)               /**< Mask for integer conversion flags concerning size */
-#define CALYPSO_INTFLAGS_SIZE8  (uint16_t)(1)               /**< 8 bit integer conversion flag */
-#define CALYPSO_INTFLAGS_SIZE16 (uint16_t)(2)               /**< 16 bit integer conversion flag */
-#define CALYPSO_INTFLAGS_SIZE32 (uint16_t)(4)               /**< 32 bit integer conversion flag */
-
-#define CALYPSO_INTFLAGS_SIGN       (uint16_t)(0x18)        /**< Mask for integer conversion flags concerning sign */
-#define CALYPSO_INTFLAGS_SIGNED     (uint16_t)(0x08)        /**< Signed integer conversion flag */
-#define CALYPSO_INTFLAGS_UNSIGNED   (uint16_t)(0x10)        /**< Unsigned integer conversion flag */
-
-#define CALYPSO_INTFLAGS_NOTATION        (uint16_t)(0x60)   /**< Mask for integer conversion flags concerning notation */
-#define CALYPSO_INTFLAGS_NOTATION_HEX    (uint16_t)(0x20)   /**< Hexadecimal notation */
-#define CALYPSO_INTFLAGS_NOTATION_DEC    (uint16_t)(0x40)   /**< Decimal notation */
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,15 +114,6 @@ typedef enum Calypso_Timeout_t
     Calypso_Timeout_NumberOfValues
 } Calypso_Timeout_t;
 
-/**
- * @brief Boolean value (true, false).
- */
-typedef enum Calypso_BooleanValue_t
-{
-    Calypso_BooleanValue_False = 0,
-    Calypso_BooleanValue_True = 1,
-    Calypso_BooleanValue_NumberOfValues
-} Calypso_BooleanValue_t;
 
 /**
  * @brief Application modes. Used with Calypso_SetApplicationModePins().
@@ -234,64 +207,6 @@ extern bool Calypso_EncodeBase64(uint8_t *inputData,
                                  uint8_t *outputData,
                                  uint32_t *outputLength);
 
-
-extern bool Calypso_IntToString(char *outString, uint32_t number, uint16_t intFlags);
-extern bool Calypso_StringToInt(void *pOutInt, const char *pInString, uint16_t intFlags);
-
-extern bool Calypso_AppendArgumentBytes(char *pOutString,
-                                        const char *pInArgument,
-                                        uint16_t numBytes,
-                                        char delimiter);
-extern bool Calypso_AppendArgumentString(char *pOutString,
-                                         const char *pInArgument,
-                                         char delimiter);
-extern bool Calypso_AppendArgumentInt(char *pOutString,
-                                      uint32_t pInValue,
-                                      uint16_t intFlags,
-                                      char delimiter);
-extern bool Calypso_AppendArgumentBitmask(char *pOutString,
-                                          const char *stringList[],
-                                          uint8_t numStrings,
-                                          uint32_t bitmask,
-                                          char delimiter,
-                                          uint16_t maxStringLength);
-extern bool Calypso_AppendArgumentBoolean(char *pOutString,
-                                          bool inBool,
-                                          char delimiter);
-extern bool Calypso_GetNextArgumentString(char **pInArguments,
-                                          char *pOutArgument,
-                                          char delimiter,
-                                          uint16_t maxLength);
-extern bool Calypso_GetNextArgumentInt(char **pInArguments,
-                                       void *pOutArgument,
-                                       uint16_t intFlags,
-                                       char delimiter);
-extern bool Calypso_GetNextArgumentEnum(char **pInArguments,
-                                        uint8_t *pOutArgument,
-                                        const char *stringList[],
-                                        uint8_t numStrings,
-                                        uint16_t maxStringLength,
-                                        char delimiter);
-extern bool Calypso_GetNextArgumentBitmask(char **pInArguments,
-                                           const char *stringList[],
-                                           uint8_t numStrings,
-                                           uint16_t maxStringLength,
-                                           uint32_t *bitmask,
-                                           char delimiter);
-bool Calypso_GetNextArgumentBoolean(char **pInArguments,
-                                    bool *outBool,
-                                    char delimiter);
-
-extern bool Calypso_GetCmdName(char **pInAtCmd,
-                               char *pCmdName,
-                               char delimiter,
-                               char alternativeDelimiter);
-
-extern uint8_t Calypso_FindString(const char *stringList[],
-                                  uint8_t numStrings,
-                                  const char *str,
-                                  uint8_t defaultValue,
-                                  bool *ok);
 
 extern bool Calypso_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
 extern void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout);

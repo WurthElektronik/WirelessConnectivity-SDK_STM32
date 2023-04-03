@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -201,11 +201,11 @@ bool ATSocket_Close(uint8_t socketID)
 
     strcpy(pRequestCommand, "AT+close=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -267,16 +267,16 @@ bool ATSocket_Listen(uint8_t socketID, uint16_t backlog)
     strcpy(pRequestCommand, "AT+listen=");
 
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pRequestCommand, backlog, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentInt(pRequestCommand, backlog, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -337,16 +337,16 @@ bool ATSocket_Accept(uint8_t socketID, ATSocket_Family_t family)
 
     strcpy(pRequestCommand, "AT+accept=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, ATSocketFamilyString[family], CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATSocketFamilyString[family], ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -649,12 +649,12 @@ bool ATSocket_GetSocketOption(uint8_t socketID,
 
     strcpy(pRequestCommand, "AT+getSockOpt=");
 
-    if (!Calypso_AppendArgumentInt(pRequestCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATSocketSockOptLevelString[level], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -666,14 +666,14 @@ bool ATSocket_GetSocketOption(uint8_t socketID,
             /* Not supported */
             return false;
         }
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATSocketSockOptSocketString[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptSocketString[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
     }
     else if (ATSocket_SockOptLevel_IP == level)
     {
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATSocketSockOptIPString[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptIPString[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -683,7 +683,7 @@ bool ATSocket_GetSocketOption(uint8_t socketID,
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -714,17 +714,17 @@ bool ATSocket_AppendSocketDescriptor(char *pAtCommand, ATSocket_Descriptor_t soc
     bool ret = false;
     if (socket.family < ATSocket_Family_NumberOfValues)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATSocketFamilyString[socket.family], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[socket.family], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, socket.port, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, socket.port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, socket.address, lastDelim);
+        ret = ATCommand_AppendArgumentString(pAtCommand, socket.address, lastDelim);
     }
 
     return ret;
@@ -746,22 +746,22 @@ static bool ATSocket_AddArgumentsCreate(char *pAtCommand, ATSocket_Family_t fami
 
     if (family < ATSocket_Family_NumberOfValues)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATSocketFamilyString[family], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[family], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret && (type < ATSocket_Type_NumberOfValues))
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATSocketTypeString[type], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATSocketTypeString[type], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret && (protocol < ATSocket_Protocol_NumberOfValues))
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATSocketProcotolString[protocol], CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATSocketProcotolString[protocol], ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF,CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF,ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -780,16 +780,16 @@ static bool ATSocket_AddArgumentsBindConnect(char *pAtCommand, uint8_t socketID,
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = ATSocket_AppendSocketDescriptor(pAtCommand, socket, CALYPSO_STRING_TERMINATE);
+        ret = ATSocket_AppendSocketDescriptor(pAtCommand, socket, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -817,24 +817,24 @@ static bool ATSocket_AddArgumentsRecv(char *pAtCommand,
         return false;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand,
+        ret = ATCommand_AppendArgumentInt(pAtCommand,
                                         length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE,
-                                        (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED),
-                                        CALYPSO_STRING_TERMINATE);
+                                        (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED),
+                                        ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -859,29 +859,29 @@ static bool ATSocket_AddArgumentsRecvFrom(char *pAtCommand,
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = ATSocket_AppendSocketDescriptor(pAtCommand, socketFrom, CALYPSO_ARGUMENT_DELIM);
+        ret = ATSocket_AppendSocketDescriptor(pAtCommand, socketFrom, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand,
+        ret = ATCommand_AppendArgumentInt(pAtCommand,
                                         length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE,
-                                        (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED),
-                                        CALYPSO_STRING_TERMINATE);
+                                        (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED),
+                                        ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -911,35 +911,35 @@ static bool ATSocket_AddArgumentsSendTo(char *pAtCommand,
         return false;
     }
 
-    if (!Calypso_AppendArgumentInt(pAtCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
     if (NULL != remoteSocket)
     {
-        if (!ATSocket_AppendSocketDescriptor(pAtCommand, *remoteSocket, CALYPSO_ARGUMENT_DELIM))
+        if (!ATSocket_AppendSocketDescriptor(pAtCommand, *remoteSocket, ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
     }
 
-    if (!Calypso_AppendArgumentInt(pAtCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentInt(pAtCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pAtCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentBytes(pAtCommand, data, length, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentBytes(pAtCommand, data, length, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
 
-    return Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -961,18 +961,18 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, socketID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATSocketSockOptLevelString[level], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
         if (ATSocket_SockOptLevel_Socket == level)
         {
-            if (!Calypso_AppendArgumentString(pAtCommand, ATSocketSockOptSocketString[option], CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptSocketString[option], ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
@@ -980,35 +980,35 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
             switch (option)
             {
             case ATSocket_SockOptSocket_KeepAlive:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->keepAlive, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAlive, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_KeepAliveTime:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->keepAliveTimeSeconds, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAliveTimeSeconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_RXNoIPBoundary:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->rxNoIpBoundary, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->rxNoIpBoundary, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_RCVTimeout:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.seconds, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.seconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
                 if (ret)
                 {
-                    ret = Calypso_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.microseconds, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                    ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.microseconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 }
                 break;
 
             case ATSocket_SockOptSocket_RCVBuf:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->rcvBuf, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvBuf, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_NonBlocking:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->nonBlocking, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->nonBlocking, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_SecMethod:
-                ret = Calypso_AppendArgumentString(pAtCommand, AtSocketSockOptSecMethod[pValues->secMethod], CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentString(pAtCommand, AtSocketSockOptSecMethod[pValues->secMethod], ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_SecureMask:
@@ -1020,15 +1020,15 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
             case ATSocket_SockOptSocket_SecureFilesCertificateFileName:
             case ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
                 /* File name strings to append */
-                ret = Calypso_AppendArgumentString(pAtCommand, pValues->fileName, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_SecureDomainNameVerification:
-                ret = Calypso_AppendArgumentString(pAtCommand, pValues->secureDomainNameVerification, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptSocket_DisableCertificateStore:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->disableCertificateStore, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->disableCertificateStore, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             default:
@@ -1041,7 +1041,7 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
         }
         else if (ATSocket_SockOptLevel_IP == level)
         {
-            if (!Calypso_AppendArgumentString(pAtCommand, ATSocketSockOptIPString[option], CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptIPString[option], ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
@@ -1049,15 +1049,15 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
             switch (option)
             {
             case ATSocket_SockOptIP_MulticastTTL:
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->multicastTTL, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->multicastTTL, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATSocket_SockOptIP_AddMembership:
             case ATSocket_SockOptIP_DropMembership:
-                ret = Calypso_AppendArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM);
                 if (ret)
                 {
-                    ret = Calypso_AppendArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, CALYPSO_STRING_TERMINATE);
+                    ret = ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE);
                 }
                 break;
 
@@ -1075,7 +1075,7 @@ static bool ATSocket_AddArgumentsSetSockOpt(char *pAtCommand,
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -1100,7 +1100,7 @@ static bool ATSocket_ParseResponseCreate(char **pAtCommand, uint8_t *pOutSocketI
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, pOutSocketID, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, pOutSocketID, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -1133,63 +1133,63 @@ bool ATSocket_ParseResponseGetOptions(ATSocket_SockOptLevel_t level,
         switch (option)
         {
         case ATSocket_SockOptSocket_KeepAlive:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->keepAlive, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAlive, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_KeepAliveTime:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->keepAliveTimeSeconds, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAliveTimeSeconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_RXNoIPBoundary:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->rxNoIpBoundary, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rxNoIpBoundary, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_RCVTimeout:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.seconds, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.seconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
             if (ret)
             {
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.microseconds, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.microseconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             }
             break;
 
         case ATSocket_SockOptSocket_RCVBuf:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->rcvBuf, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvBuf, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_NonBlocking:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->nonBlocking, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->nonBlocking, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_SecMethod:
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
             if (ret)
             {
-                pValues->secMethod = Calypso_FindString(AtSocketSockOptSecMethod, ATSocket_SockOptSecMethod_NumberOfValues, tempString, ATSocket_SockOptSecMethod_SSLv3, &ret);
+                pValues->secMethod = ATCommand_FindString(AtSocketSockOptSecMethod, ATSocket_SockOptSecMethod_NumberOfValues, tempString, ATSocket_SockOptSecMethod_SSLv3, &ret);
             }
             break;
 
         case ATSocket_SockOptSocket_SecureMask:
-            ret = Calypso_GetNextArgumentBitmask(pAtCommand,
+            ret = ATCommand_GetNextArgumentBitmask(pAtCommand,
                                                  ATSocket_CipherStrings,
                                                  ATSocket_Cipher_NumberOfValues,
                                                  50,
                                                  &pValues->secureMask,
-                                                 CALYPSO_STRING_TERMINATE);
+                                                 ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptSocket_SecureFilesCAFileName:
         case ATSocket_SockOptSocket_SecureFilesPrivateKeyFileName:
         case ATSocket_SockOptSocket_SecureFilesCertificateFileName:
         case ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
-            ret = Calypso_GetNextArgumentString(pAtCommand, pValues->fileName, CALYPSO_STRING_TERMINATE, sizeof(pValues->fileName));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->fileName));
             break;
 
         case ATSocket_SockOptSocket_SecureDomainNameVerification:
-            ret = Calypso_GetNextArgumentString(pAtCommand, pValues->secureDomainNameVerification, CALYPSO_STRING_TERMINATE, sizeof(pValues->secureDomainNameVerification));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->secureDomainNameVerification));
             break;
 
         case ATSocket_SockOptSocket_DisableCertificateStore:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->disableCertificateStore, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->disableCertificateStore, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         default:
@@ -1203,15 +1203,15 @@ bool ATSocket_ParseResponseGetOptions(ATSocket_SockOptLevel_t level,
         switch (option)
         {
         case ATSocket_SockOptIP_MulticastTTL:
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->multicastTTL, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->multicastTTL, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATSocket_SockOptIP_AddMembership:
         case ATSocket_SockOptIP_DropMembership:
-            ret = Calypso_GetNextArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, CALYPSO_ARGUMENT_DELIM, sizeof(pValues->multicastGroup.ipv4Address));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->multicastGroup.ipv4Address));
             if (ret)
             {
-                ret = Calypso_GetNextArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, CALYPSO_STRING_TERMINATE, sizeof(pValues->multicastGroup.interfaceAddress));
+                ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->multicastGroup.interfaceAddress));
             }
             break;
 
@@ -1242,7 +1242,7 @@ bool ATSocket_ParseResponseGetOptions(ATSocket_SockOptLevel_t level,
 bool ATSocket_ParseSocketFamily(const char *familyString, ATSocket_Family_t *pOutFamily)
 {
     bool ok;
-    *pOutFamily = Calypso_FindString(ATSocketFamilyString, ATSocket_Family_NumberOfValues, familyString, ATSocket_Family_INET, &ok);
+    *pOutFamily = ATCommand_FindString(ATSocketFamilyString, ATSocket_Family_NumberOfValues, familyString, ATSocket_Family_INET, &ok);
     return ok;
 }
 
@@ -1272,10 +1272,10 @@ bool ATSocket_GetSocketFamilyString(ATSocket_Family_t family, char *pOutFamilySt
  */
 bool ATSocket_AppendCipherMask(char *pOutStr, uint32_t cipherMask)
 {
-    return Calypso_AppendArgumentBitmask(pOutStr,
+    return ATCommand_AppendArgumentBitmask(pOutStr,
                                          ATSocket_CipherStrings,
                                          ATSocket_Cipher_NumberOfValues,
                                          cipherMask,
-                                         CALYPSO_STRING_TERMINATE,
+                                         ATCOMMAND_STRING_TERMINATE,
                                          AT_MAX_COMMAND_BUFFER_SIZE);
 }

@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -28,9 +28,8 @@
  * @brief AT commands for WLAN functionality.
  */
 
+#include <global/ATCommands.h>
 #include "ATWLAN.h"
-
-#include "ATCommands.h"
 
 #include "../Calypso.h"
 
@@ -231,11 +230,11 @@ bool ATWLAN_SetMode(ATWLAN_SetMode_t mode)
 
         strcpy(pRequestCommand, "AT+wlanSetMode=");
 
-        ret = Calypso_AppendArgumentString(pRequestCommand, ATWLAN_SetModeStrings[mode], CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_SetModeStrings[mode], ATCOMMAND_STRING_TERMINATE);
 
         if (ret)
         {
-            ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
@@ -275,16 +274,16 @@ bool ATWLAN_Scan(uint8_t index, uint8_t deviceCount, ATWLAN_ScanEntry_t *pOutVal
 
         strcpy(pRequestCommand, "AT+wlanScan=");
 
-        ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM);
 
         if (ret)
         {
-            ret = Calypso_AppendArgumentInt(pRequestCommand, deviceCount, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pRequestCommand, deviceCount, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
         {
-            ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
@@ -328,11 +327,11 @@ bool ATWLAN_Connect(ATWLAN_ConnectionArguments_t connectArgs)
 
     strcpy(pRequestCommand, "AT+wlanConnect=");
 
-    ret = ATWLAN_AddConnectionArguments(pRequestCommand, connectArgs, CALYPSO_STRING_TERMINATE);
+    ret = ATWLAN_AddConnectionArguments(pRequestCommand, connectArgs, ATCOMMAND_STRING_TERMINATE);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -383,16 +382,16 @@ bool ATWLAN_AddProfile(ATWLAN_Profile_t profile, uint8_t *pOutIndex)
 
         strcpy(pRequestCommand, "AT+wlanProfileAdd=");
 
-        ret = ATWLAN_AddConnectionArguments(pRequestCommand, profile.connection, CALYPSO_ARGUMENT_DELIM);
+        ret = ATWLAN_AddConnectionArguments(pRequestCommand, profile.connection, ATCOMMAND_ARGUMENT_DELIM);
 
         if (ret)
         {
-            ret = Calypso_AppendArgumentInt(pRequestCommand, profile.priority, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pRequestCommand, profile.priority, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
         {
-            ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
         }
 
         if (ret)
@@ -436,11 +435,11 @@ bool ATWLAN_GetProfile(uint8_t index, ATWLAN_Profile_t *pOutProfile)
     strcpy(pRequestCommand, "AT+wlanProfileGet=");
 
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -475,11 +474,11 @@ bool ATWLAN_DeleteProfile(uint8_t index)
 
     strcpy(pRequestCommand, "AT+wlanProfileDel=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -589,22 +588,22 @@ bool ATWLAN_SetConnectionPolicy(uint8_t policy)
 
     strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_Connection], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_Connection], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentBitmask(pRequestCommand,
+    if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
                                        ATWLAN_PolicyConnectionStrings,
                                        ATWLAN_PolicyConnection_NumberOfValues,
                                        policy,
-                                       CALYPSO_ARGUMENT_DELIM,
+                                       ATCOMMAND_ARGUMENT_DELIM,
                                        AT_MAX_COMMAND_BUFFER_SIZE))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -634,12 +633,12 @@ bool ATWLAN_GetConnectionPolicy(uint8_t *policy)
     }
 
     uint32_t bitmask;
-    if (Calypso_GetNextArgumentBitmask(&pRespondCommand,
+    if (ATCommand_GetNextArgumentBitmask(&pRespondCommand,
                                        ATWLAN_PolicyConnectionStrings,
                                        ATWLAN_PolicyConnection_NumberOfValues,
                                        5,
                                        &bitmask,
-                                       CALYPSO_STRING_TERMINATE))
+                                       ATCOMMAND_STRING_TERMINATE))
     {
         *policy = (uint8_t) bitmask;
         return true;
@@ -662,19 +661,19 @@ bool ATWLAN_SetScanPolicy(ATWLAN_PolicyScan_t policy, uint32_t scanIntervalSecon
 
     strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_Scan], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_Scan], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyScanStrings[policy], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyScanStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, scanIntervalSeconds, CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -706,19 +705,19 @@ bool ATWLAN_GetScanPolicy(ATWLAN_PolicyScan_t *policy, uint32_t *scanIntervalSec
     }
 
     char temp[15];
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
     {
         return false;
     }
 
     bool ok;
-    *policy = Calypso_FindString(ATWLAN_PolicyScanStrings, ATWLAN_PolicyScan_NumberOfValues, temp, ATWLAN_PolicyScan_DisableScan, &ok);
+    *policy = ATCommand_FindString(ATWLAN_PolicyScanStrings, ATWLAN_PolicyScan_NumberOfValues, temp, ATWLAN_PolicyScan_DisableScan, &ok);
     if (!ok)
     {
         return false;
     }
 
-    return Calypso_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -735,19 +734,19 @@ bool ATWLAN_SetPMPolicy(ATWLAN_PolicyPM_t policy, uint32_t maxSleepTimeMs)
 
     strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_PowerManagement], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_PowerManagement], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyPMStrings[policy], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyPMStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, maxSleepTimeMs, CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -779,19 +778,19 @@ bool ATWLAN_GetPMPolicy(ATWLAN_PolicyPM_t *policy, uint32_t *maxSleepTimeMs)
     }
 
     char temp[15];
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
     {
         return false;
     }
 
     bool ok;
-    *policy = Calypso_FindString(ATWLAN_PolicyPMStrings, ATWLAN_PolicyPM_NumberOfValues, temp, ATWLAN_PolicyPM_Normal, &ok);
+    *policy = ATCommand_FindString(ATWLAN_PolicyPMStrings, ATWLAN_PolicyPM_NumberOfValues, temp, ATWLAN_PolicyPM_Normal, &ok);
     if (!ok)
     {
         return false;
     }
 
-    return Calypso_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -808,19 +807,19 @@ bool ATWLAN_SetP2PPolicy(ATWLAN_PolicyP2P_t policy, ATWLAN_PolicyP2PValue_t valu
 
     strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_P2P], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[ATWLAN_PolicyID_P2P], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyP2PStrings[policy], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyP2PStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyP2PValue_Strings[value], CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyP2PValue_Strings[value], ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -852,24 +851,24 @@ bool ATWLAN_GetP2PPolicy(ATWLAN_PolicyP2P_t *policy, ATWLAN_PolicyP2PValue_t *va
     }
 
     char temp[15];
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
     {
         return false;
     }
 
     bool ok;
-    *policy = Calypso_FindString(ATWLAN_PolicyP2PStrings, ATWLAN_PolicyP2P_NumberOfValues, temp, ATWLAN_PolicyP2P_Negotiate, &ok);
+    *policy = ATCommand_FindString(ATWLAN_PolicyP2PStrings, ATWLAN_PolicyP2P_NumberOfValues, temp, ATWLAN_PolicyP2P_Negotiate, &ok);
     if (!ok)
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, temp, CALYPSO_STRING_TERMINATE, sizeof(temp)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_STRING_TERMINATE, sizeof(temp)))
     {
         return false;
     }
 
-    *value = Calypso_FindString(ATWLAN_PolicyP2PValue_Strings, ATWLAN_PolicyP2PValue_NumberOfValues, temp, ATWLAN_PolicyP2PValue_Active, &ok);
+    *value = ATCommand_FindString(ATWLAN_PolicyP2PValue_Strings, ATWLAN_PolicyP2PValue_NumberOfValues, temp, ATWLAN_PolicyP2PValue_Active, &ok);
     return ok;
 }
 
@@ -896,12 +895,12 @@ bool ATWLAN_SendPolicyGet(ATWLAN_PolicyID_t id, char **pRespondCommand)
 
     strcpy(pRequestCommand, "AT+wlanPolicyGet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[id], CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATWLAN_PolicyStrings[id], ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -1018,36 +1017,36 @@ static bool ATWLAN_AddConnectionArguments(char *pOutString, ATWLAN_ConnectionArg
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentString(pOutString, connectionArgs.SSID, CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pOutString, connectionArgs.SSID, ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, connectionArgs.BSSID, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pOutString, connectionArgs.BSSID, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, ATWLAN_SecurityTypeStrings[connectionArgs.securityParams.securityType], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pOutString, ATWLAN_SecurityTypeStrings[connectionArgs.securityParams.securityType], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, connectionArgs.securityParams.securityKey, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pOutString, connectionArgs.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extUser, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extAnonUser, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pOutString, ATWLAN_SecurityEAPStrings[connectionArgs.securityExtParams.eapMethod], lastDelim);
+        ret = ATCommand_AppendArgumentString(pOutString, ATWLAN_SecurityEAPStrings[connectionArgs.securityExtParams.eapMethod], lastDelim);
     }
 
     return ret;
@@ -1066,26 +1065,26 @@ static bool ATWLAN_AddArgumentsWlanGet(char *pAtCommand, ATWLAN_SetID_t id, uint
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetIDStrings[id], CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
         switch (id)
         {
         case ATWLAN_SetID_General:
-            ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetGeneralStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetID_P2P:
-            ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetP2PStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetP2PStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetID_Connection:
-            ret = Calypso_AppendArgumentString(pAtCommand, "", CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, "", ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetID_AccessPoint:
-            ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetAPStrings[option], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetAPStrings[option], ATCOMMAND_STRING_TERMINATE);
             break;
 
         default:
@@ -1095,7 +1094,7 @@ static bool ATWLAN_AddArgumentsWlanGet(char *pAtCommand, ATWLAN_SetID_t id, uint
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -1115,7 +1114,7 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetIDStrings[id], CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM);
 
     if (!ret)
     {
@@ -1126,36 +1125,36 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
     {
     case ATWLAN_SetID_General:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetGeneralStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_ARGUMENT_DELIM);
 
         switch (option)
         {
         case ATWLAN_SetGeneral_CountryCode:
-            ret = Calypso_AppendArgumentString(pAtCommand, pValues->general.countryCode, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValues->general.countryCode, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetGeneral_StationTxPower:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.staTxPower, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.staTxPower, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetGeneral_AccessPointTxPower:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.apTxPower, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.apTxPower, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetGeneral_ScanParams:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.scanParams.channelMask, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX), CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.channelMask, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_ARGUMENT_DELIM);
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.scanParams.rssiTreshold, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.rssiTreshold, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_STRING_TERMINATE);
             }
             break;
 
         case ATWLAN_SetGeneral_SuspendProfiles:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.suspendProfiles, (CALYPSO_INTFLAGS_NOTATION_HEX | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.suspendProfiles, (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetGeneral_DisableEntServerAuth:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->general.disableEntServerAuth, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->general.disableEntServerAuth, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
             break;
 
         default:
@@ -1170,27 +1169,27 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
 
     case ATWLAN_SetID_P2P:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetP2PStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetP2PStrings[option], ATCOMMAND_ARGUMENT_DELIM);
 
         if (ATWLAN_SetP2P_ChannelNRegs == option)
         {
             ATWLAN_P2PChannelNRegs_t *pChannelNRegs = &pValues->p2p.p2pChannelNRegs;
 
-            ret = Calypso_AppendArgumentInt(pAtCommand, pChannelNRegs->listenChannel, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pChannelNRegs->listenChannel, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pChannelNRegs->listenRegulatoryClass, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pChannelNRegs->listenRegulatoryClass, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
             }
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pChannelNRegs->operatingChannel, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pChannelNRegs->operatingChannel, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
             }
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pChannelNRegs->operatingRegulatoryClass, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pChannelNRegs->operatingRegulatoryClass, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             }
         }
         else
@@ -1202,7 +1201,7 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
 
     case ATWLAN_SetID_AccessPoint:
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_SetGetAPStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_SetGetAPStrings[option], ATCOMMAND_ARGUMENT_DELIM);
 
         switch (option)
         {
@@ -1210,32 +1209,32 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
             if (Calypso_firmwareVersionMajor > 1 || (Calypso_firmwareVersionMajor == 1 && Calypso_firmwareVersionMinor >= 9))
             {
                 /* Starting with firmware version 1.9.0, there is an appendMac argument */
-                if (!Calypso_AppendArgumentString(pAtCommand, pValues->ap.ssidConfig.appendMac ? "true" : "false", CALYPSO_ARGUMENT_DELIM))
+                if (!ATCommand_AppendArgumentString(pAtCommand, pValues->ap.ssidConfig.appendMac ? "true" : "false", ATCOMMAND_ARGUMENT_DELIM))
                 {
                     return false;
                 }
             }
-            ret = Calypso_AppendArgumentString(pAtCommand, pValues->ap.ssidConfig.ssid, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValues->ap.ssidConfig.ssid, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetAP_Channel:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->ap.channel, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->ap.channel, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetAP_HiddenSSID:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->ap.hiddenSSID, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->ap.hiddenSSID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetAP_Security:
-            ret = Calypso_AppendArgumentString(pAtCommand, ATWLAN_APSecurityTypeStrings[pValues->ap.security], CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, ATWLAN_APSecurityTypeStrings[pValues->ap.security], ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetAP_Password:
-            ret = Calypso_AppendArgumentString(pAtCommand, pValues->ap.password, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValues->ap.password, ATCOMMAND_STRING_TERMINATE);
             break;
 
         case ATWLAN_SetAP_MaxStations:
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->ap.maxStations, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->ap.maxStations, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
 
         default:
@@ -1256,7 +1255,7 @@ static bool ATWLAN_AddArgumentsWlanSet(char *pAtCommand, ATWLAN_SetID_t id, uint
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF,CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF,ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -1288,29 +1287,29 @@ static bool ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, ATWLAN_ScanEntr
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentString(pAtCommand, pOutScanEntry->SSID, CALYPSO_ARGUMENT_DELIM, sizeof(pOutScanEntry->SSID));
+        ret = ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->SSID));
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, pOutScanEntry->BSSID, CALYPSO_ARGUMENT_DELIM, sizeof(pOutScanEntry->BSSID));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->BSSID));
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->RSSI), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_SIGNED, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->RSSI), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->channel), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->channel), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
             if (ret)
             {
-                pOutScanEntry->securityType = Calypso_FindString(ATWLAN_ScanSecurityTypeStrings,
+                pOutScanEntry->securityType = ATCommand_FindString(ATWLAN_ScanSecurityTypeStrings,
                                                                  ATWLAN_ScanSecurityType_NumberOfValues,
                                                                  tempString,
                                                                  ATWLAN_ScanSecurityType_Open,
@@ -1320,15 +1319,15 @@ static bool ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, ATWLAN_ScanEntr
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->hiddenSsidEnabled), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->hiddenSsidEnabled), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
             if (ret)
             {
-                pOutScanEntry->cipher = Calypso_FindString(ATWLAN_ScanCipherStrings,
+                pOutScanEntry->cipher = ATCommand_FindString(ATWLAN_ScanCipherStrings,
                                                            ATWLAN_ScanCipherType_NumberOfValues,
                                                            tempString,
                                                            ATWLAN_ScanCipherType_None,
@@ -1338,10 +1337,10 @@ static bool ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, ATWLAN_ScanEntr
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
             if (ret)
             {
-                pOutScanEntry->keyManagementMethod = Calypso_FindString(ATWLAN_ScanKeyMgmntStrings,
+                pOutScanEntry->keyManagementMethod = ATCommand_FindString(ATWLAN_ScanKeyMgmntStrings,
                                                                         ATWLAN_ScanKeyManagementType_NumberOfValues,
                                                                         tempString,
                                                                         ATWLAN_ScanKeyManagementType_None,
@@ -1373,7 +1372,7 @@ static bool ATWLAN_ParseResponseWlanAddProfile(char **pAtCommand, uint8_t *pOutI
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, pOutIndex, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, pOutIndex, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -1401,16 +1400,16 @@ static bool ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, ATWLAN_Profile
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentString(pAtCommand, pOutProfile->connection.SSID, CALYPSO_ARGUMENT_DELIM, sizeof(pOutProfile->connection.SSID));
+        ret = ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.SSID));
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, pOutProfile->connection.BSSID, CALYPSO_ARGUMENT_DELIM, sizeof(pOutProfile->connection.BSSID));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.BSSID));
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
             if (ret)
             {
                 if (tempString[0] == '\0')
@@ -1419,7 +1418,7 @@ static bool ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, ATWLAN_Profile
                 }
                 else
                 {
-                    pOutProfile->connection.securityParams.securityType = Calypso_FindString(ATWLAN_SecurityTypeStrings,
+                    pOutProfile->connection.securityParams.securityType = ATCommand_FindString(ATWLAN_SecurityTypeStrings,
                                                                                              ATWLAN_SecurityType_NumberOfValues,
                                                                                              tempString,
                                                                                              ATWLAN_SecurityType_Open,
@@ -1430,22 +1429,22 @@ static bool ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, ATWLAN_Profile
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityParams.securityKey, CALYPSO_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityParams.securityKey));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityParams.securityKey));
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extUser, CALYPSO_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extUser));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extUser));
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extAnonUser, CALYPSO_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extAnonUser));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extAnonUser));
         }
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_ARGUMENT_DELIM, sizeof(tempString));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString));
             if (ret)
             {
                 if (tempString[0] == '\0')
@@ -1454,7 +1453,7 @@ static bool ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, ATWLAN_Profile
                 }
                 else
                 {
-                    pOutProfile->connection.securityExtParams.eapMethod = Calypso_FindString(ATWLAN_SecurityEAPStrings,
+                    pOutProfile->connection.securityExtParams.eapMethod = ATCommand_FindString(ATWLAN_SecurityEAPStrings,
                                                                                              ATWLAN_SecurityEAP_NumberOfValues,
                                                                                              tempString,
                                                                                              ATWLAN_SecurityEAP_None,
@@ -1465,7 +1464,7 @@ static bool ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, ATWLAN_Profile
 
         if (ret)
         {
-            ret = Calypso_GetNextArgumentInt(pAtCommand, &(pOutProfile->priority), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_GetNextArgumentInt(pAtCommand, &(pOutProfile->priority), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
         }
     }
 
@@ -1508,25 +1507,25 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
             switch (option)
             {
             case ATWLAN_SetGeneral_CountryCode:
-                ret = Calypso_GetNextArgumentString(pAtCommand, general->countryCode, CALYPSO_STRING_TERMINATE, sizeof(general->countryCode));
+                ret = ATCommand_GetNextArgumentString(pAtCommand, general->countryCode, ATCOMMAND_STRING_TERMINATE, sizeof(general->countryCode));
                 break;
 
             case ATWLAN_SetGeneral_StationTxPower:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &general->staTxPower, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &general->staTxPower, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATWLAN_SetGeneral_AccessPointTxPower:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &general->apTxPower, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &general->apTxPower, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATWLAN_SetGeneral_ScanParams:
             {
                 ATWLAN_ScanParams_t *scanParams = &general->scanParams;
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &(scanParams->channelMask), (CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->channelMask), (ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_ARGUMENT_DELIM);
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentInt(pAtCommand, &(scanParams->rssiTreshold), (CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX), CALYPSO_STRING_TERMINATE);
+                    ret = ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->rssiTreshold), (ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_STRING_TERMINATE);
                 }
                 break;
             }
@@ -1544,21 +1543,21 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
             {
                 ATWLAN_P2PChannelNRegs_t *channelNRegs = &pValues->p2p.p2pChannelNRegs;
 
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &(channelNRegs->listenChannel), (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &(channelNRegs->listenChannel), (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentInt(pAtCommand, &(channelNRegs->listenRegulatoryClass), (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                    ret = ATCommand_GetNextArgumentInt(pAtCommand, &(channelNRegs->listenRegulatoryClass), (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentInt(pAtCommand, &(channelNRegs->operatingChannel), (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                    ret = ATCommand_GetNextArgumentInt(pAtCommand, &(channelNRegs->operatingChannel), (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
                 }
 
                 if (ret)
                 {
-                    ret = Calypso_GetNextArgumentInt(pAtCommand, &(channelNRegs->operatingRegulatoryClass), (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                    ret = ATCommand_GetNextArgumentInt(pAtCommand, &(channelNRegs->operatingRegulatoryClass), (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 }
 
             }
@@ -1572,11 +1571,11 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
         case ATWLAN_SetID_Connection:
         {
             char temp[32];
-            if (!Calypso_GetNextArgumentString(pAtCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
             {
                 return false;
             }
-            pValues->connection.role = Calypso_FindString(ATWLAN_SetModeStrings,
+            pValues->connection.role = ATCommand_FindString(ATWLAN_SetModeStrings,
                                                           ATWLAN_SetMode_NumberOfValues,
                                                           temp,
                                                           ATWLAN_SetMode_Station,
@@ -1586,11 +1585,11 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
                 return false;
             }
 
-            if (!Calypso_GetNextArgumentString(pAtCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
             {
                 return false;
             }
-            pValues->connection.status = Calypso_FindString(ATWLAN_StatusStrings,
+            pValues->connection.status = ATCommand_FindString(ATWLAN_StatusStrings,
                                                             ATWLAN_Status_NumberOfValues,
                                                             temp,
                                                             ATWLAN_Status_Disconnected,
@@ -1600,11 +1599,11 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
                 return false;
             }
 
-            if (!Calypso_GetNextArgumentString(pAtCommand, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
             {
                 return false;
             }
-            pValues->connection.security = Calypso_FindString(ATWLAN_SecurityStatusStrings,
+            pValues->connection.security = ATCommand_FindString(ATWLAN_SecurityStatusStrings,
                                                               ATWLAN_SecurityStatus_NumberOfValues,
                                                               temp,
                                                               ATWLAN_SecurityStatus_OPEN,
@@ -1613,15 +1612,15 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentString(pAtCommand, pValues->connection.SSID, CALYPSO_ARGUMENT_DELIM, sizeof(pValues->connection.SSID)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->connection.SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->connection.SSID)))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentString(pAtCommand, pValues->connection.BSSID, CALYPSO_ARGUMENT_DELIM, sizeof(pValues->connection.BSSID)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->connection.BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->connection.BSSID)))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentString(pAtCommand, pValues->connection.p2pDeviceName, CALYPSO_ARGUMENT_DELIM, sizeof(pValues->connection.p2pDeviceName)))
+            if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->connection.p2pDeviceName, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->connection.p2pDeviceName)))
             {
                 return false;
             }
@@ -1633,25 +1632,25 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
             switch (option)
             {
             case ATWLAN_SetAP_SSID:
-                ret = Calypso_GetNextArgumentString(pAtCommand, pValues->ap.ssidConfig.ssid, CALYPSO_STRING_TERMINATE, sizeof(pValues->ap.ssidConfig.ssid));
+                ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->ap.ssidConfig.ssid, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->ap.ssidConfig.ssid));
                 /* Getter doesn't return the appendMac parameter */
                 pValues->ap.ssidConfig.appendMac = false;
                 break;
 
             case ATWLAN_SetAP_Channel:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->ap.channel, (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->ap.channel, (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATWLAN_SetAP_HiddenSSID:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->ap.hiddenSSID, (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->ap.hiddenSSID, (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATWLAN_SetAP_Security:
             {
-                ret = Calypso_GetNextArgumentString(pAtCommand, tempString, CALYPSO_STRING_TERMINATE, sizeof(tempString));
+                ret = ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString));
                 if (ret)
                 {
-                    pValues->ap.security = Calypso_FindString(ATWLAN_APSecurityTypeStrings,
+                    pValues->ap.security = ATCommand_FindString(ATWLAN_APSecurityTypeStrings,
                                                               ATWLAN_APSecurityType_NumberOfValues,
                                                               tempString,
                                                               ATWLAN_APSecurityType_Open,
@@ -1662,15 +1661,15 @@ static bool ATWLAN_ParseResponseWlanGet(ATWLAN_SetID_t id,
             }
 
             case ATWLAN_SetAP_Password:
-                ret = Calypso_GetNextArgumentString(pAtCommand, pValues->ap.password, CALYPSO_STRING_TERMINATE, sizeof(pValues->ap.password));
+                ret = ATCommand_GetNextArgumentString(pAtCommand, pValues->ap.password, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->ap.password));
                 break;
 
             case ATWLAN_SetAP_MaxStations:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->ap.maxStations, (CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->ap.maxStations, (ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             case ATWLAN_SetAP_MaxStaAging:
-                ret = Calypso_GetNextArgumentInt(pAtCommand, &pValues->ap.maxStaAgingSeconds, (CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_GetNextArgumentInt(pAtCommand, &pValues->ap.maxStaAgingSeconds, (ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
                 break;
 
             default:

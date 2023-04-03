@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -28,9 +28,9 @@
  * @brief AT commands for GPIO functionality.
  */
 
+#include <global/ATCommands.h>
 #include "ATGPIO.h"
 
-#include "ATCommands.h"
 #include "../Calypso.h"
 
 static const char *ATGPIO_GPIOType_Strings[ATGPIO_GPIOType_NumberOfValues] = {
@@ -70,22 +70,22 @@ bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio)
 
     strcpy(pRequestCommand, "AT+gpioGet=");
 
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    id,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       defaultSetting ? "true" : "false",
-                                      CALYPSO_STRING_TERMINATE))
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -111,21 +111,21 @@ bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio)
     pRespondCommand += cmdLength;
 
     uint8_t enumInt;
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &enumInt,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
     gpio->id = enumInt;
 
-    if (!Calypso_GetNextArgumentEnum(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentEnum(&pRespondCommand,
                                      &enumInt,
                                      ATGPIO_GPIOType_Strings,
                                      ATGPIO_GPIOType_NumberOfValues,
                                      8,
-                                     CALYPSO_ARGUMENT_DELIM))
+                                     ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -137,23 +137,23 @@ bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio)
         return true;
 
     case ATGPIO_GPIOType_Input:
-        if (!Calypso_GetNextArgumentEnum(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentEnum(&pRespondCommand,
                                          &enumInt,
                                          ATGPIO_GPIOState_Strings,
                                          ATGPIO_GPIOState_NumberOfValues,
                                          5,
-                                         CALYPSO_ARGUMENT_DELIM))
+                                         ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
         gpio->parameters.input.state = enumInt;
 
-        if (!Calypso_GetNextArgumentEnum(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentEnum(&pRespondCommand,
                                          &enumInt,
                                          ATGPIO_PullType_Strings,
                                          ATGPIO_PullType_NumberOfValues,
                                          9,
-                                         CALYPSO_STRING_TERMINATE))
+                                         ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -161,12 +161,12 @@ bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio)
         return true;
 
     case ATGPIO_GPIOType_Output:
-        if (!Calypso_GetNextArgumentEnum(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentEnum(&pRespondCommand,
                                          &enumInt,
                                          ATGPIO_GPIOState_Strings,
                                          ATGPIO_GPIOState_NumberOfValues,
                                          5,
-                                         CALYPSO_ARGUMENT_DELIM))
+                                         ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -174,17 +174,17 @@ bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio)
         return true;
 
     case ATGPIO_GPIOType_PWM:
-        if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                         &gpio->parameters.pwm.period,
-                                        CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                        CALYPSO_ARGUMENT_DELIM))
+                                        ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                        ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
-        if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                         &gpio->parameters.pwm.ratio,
-                                        CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                        CALYPSO_STRING_TERMINATE))
+                                        ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                        ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -212,66 +212,66 @@ bool ATGPIO_Set(ATGPIO_GPIO_t *gpio, bool save)
 
     strcpy(pRequestCommand, "AT+gpioSet=");
 
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    gpio->id,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       save ? "true" : "false",
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       ATGPIO_GPIOType_Strings[gpio->type],
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
     switch (gpio->type)
     {
     case ATGPIO_GPIOType_Unused:
-        if (!Calypso_AppendArgumentString(pRequestCommand,
+        if (!ATCommand_AppendArgumentString(pRequestCommand,
                                           "",
-                                          CALYPSO_ARGUMENT_DELIM))
+                                          ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
         break;
 
     case ATGPIO_GPIOType_Input:
-        if (!Calypso_AppendArgumentString(pRequestCommand,
+        if (!ATCommand_AppendArgumentString(pRequestCommand,
                                           ATGPIO_PullType_Strings[gpio->parameters.input.pullType],
-                                          CALYPSO_ARGUMENT_DELIM))
+                                          ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
         break;
 
     case ATGPIO_GPIOType_Output:
-        if (!Calypso_AppendArgumentString(pRequestCommand,
+        if (!ATCommand_AppendArgumentString(pRequestCommand,
                                           ATGPIO_GPIOState_Strings[gpio->parameters.output.state],
-                                          CALYPSO_ARGUMENT_DELIM))
+                                          ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
         break;
 
     case ATGPIO_GPIOType_PWM:
-        if (!Calypso_AppendArgumentInt(pRequestCommand,
+        if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                        gpio->parameters.pwm.period,
-                                       CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                       CALYPSO_ARGUMENT_DELIM))
+                                       ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                       ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
-        if (!Calypso_AppendArgumentInt(pRequestCommand,
+        if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                        gpio->parameters.pwm.ratio,
-                                       CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                       CALYPSO_STRING_TERMINATE))
+                                       ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                       ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -280,9 +280,9 @@ bool ATGPIO_Set(ATGPIO_GPIO_t *gpio, bool save)
     default:
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }

@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,13 +31,12 @@
 #ifndef AT_SOCKET_H_INCLUDED
 #define AT_SOCKET_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "ATCommands.h"
 #include "ATFile.h"
-
-#include "../Calypso.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -177,7 +176,7 @@ typedef struct ATSocket_Descriptor_t
 {
     ATSocket_Family_t family;
     uint16_t port;
-    char address[AT_MAX_IP_ADDRESS_LENGTH];
+    char address[CALYPSO_MAX_IP_ADDRESS_LENGTH];
 } ATSocket_Descriptor_t;
 
 /**

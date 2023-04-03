@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -165,10 +165,10 @@ bool ATMQTT_Delete(uint8_t index)
 
     strcpy(pRequestCommand, "AT+mqttDelete=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -198,10 +198,10 @@ bool ATMQTT_Connect(uint8_t index)
 
     strcpy(pRequestCommand, "AT+mqttConnect=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -231,10 +231,10 @@ bool ATMQTT_Disconnect(uint8_t index)
 
     strcpy(pRequestCommand, "AT+mqttDisconnect=");
 
-    ret = Calypso_AppendArgumentInt(pRequestCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+    ret = ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
@@ -401,32 +401,32 @@ static bool ATMQTT_AddArgumentsCreate(char *pAtCommand,
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentString(pAtCommand, clientID, CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentString(pAtCommand, clientID, ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentBitmask(pAtCommand,
+        ret = ATCommand_AppendArgumentBitmask(pAtCommand,
                                             ATMQTT_CreateFlagsStrings,
                                             ATMQTT_CreateFlags_NumberOfValues,
                                             flags,
-                                            CALYPSO_ARGUMENT_DELIM,
+                                            ATCOMMAND_ARGUMENT_DELIM,
                                             AT_MAX_COMMAND_BUFFER_SIZE);
     }
 
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, serverInfo.address, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, serverInfo.address, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, serverInfo.port, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, serverInfo.port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATMQTT_SecurityMethodsStrings[securityParams.securityMethod], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATMQTT_SecurityMethodsStrings[securityParams.securityMethod], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
@@ -434,48 +434,48 @@ static bool ATMQTT_AddArgumentsCreate(char *pAtCommand,
         ret = ATSocket_AppendCipherMask(pAtCommand, securityParams.cipher);
         if (ret)
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, "", CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_AppendArgumentString(pAtCommand, "", ATCOMMAND_ARGUMENT_DELIM);
         }
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, securityParams.privateKeyFile, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, securityParams.privateKeyFile, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, securityParams.certificateFile, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, securityParams.certificateFile, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, securityParams.CAFile, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, securityParams.CAFile, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, securityParams.DHKey, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, securityParams.DHKey, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATMQTT_ProtocolStrings[connectionParams.protocolVersion], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATMQTT_ProtocolStrings[connectionParams.protocolVersion], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, connectionParams.blockingSend, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, connectionParams.blockingSend, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, connectionParams.format, (CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC), CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, connectionParams.format, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -503,36 +503,36 @@ static bool ATMQTT_AddArgumentsPublish(char *pAtCommand,
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, topic, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, topic, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[QoS], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[QoS], ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, retain, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, retain, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, messageLength, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, messageLength, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentBytes(pAtCommand, pMessage, messageLength, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentBytes(pAtCommand, pMessage, messageLength, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -557,29 +557,29 @@ static bool ATMQTT_AddArgumentsSubscribe(char *pAtCommand, uint8_t index, uint8_
         return false;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, numOfTopics, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, numOfTopics, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     for (int i = 0; i < numOfTopics; i++)
     {
         if (ret)
         {
-            Calypso_AppendArgumentString(pAtCommand, pTopics[i].topic, CALYPSO_ARGUMENT_DELIM);
+            ATCommand_AppendArgumentString(pAtCommand, pTopics[i].topic, ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret)
         {
-            Calypso_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[pTopics[i].QoS], CALYPSO_ARGUMENT_DELIM);
+            ATCommand_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[pTopics[i].QoS], ATCOMMAND_ARGUMENT_DELIM);
         }
 
         if (ret)
         {
             /* Reserved argument */
-            Calypso_AppendArgumentString(pAtCommand, CALYPSO_STRING_EMPTY, CALYPSO_ARGUMENT_DELIM);
+            ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM);
         }
     }
 
@@ -588,15 +588,15 @@ static bool ATMQTT_AddArgumentsSubscribe(char *pAtCommand, uint8_t index, uint8_
     {
         if (ret)
         {
-           Calypso_AppendArgumentString(pAtCommand, ",,", CALYPSO_ARGUMENT_DELIM);
+           ATCommand_AppendArgumentString(pAtCommand, ",,", ATCOMMAND_ARGUMENT_DELIM);
         }
     }
 
-    pAtCommand[strlen(pAtCommand)] = CALYPSO_STRING_TERMINATE;
+    pAtCommand[strlen(pAtCommand)] = ATCOMMAND_STRING_TERMINATE;
 
     if (ret)
     {
-        Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -641,56 +641,56 @@ static bool ATMQTT_AddArgumentsUnsubscribe(char *pAtCommand,
         numOfTopics++;
     }
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentInt(pAtCommand, numOfTopics, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentInt(pAtCommand, numOfTopics, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, (NULL != topic1 ? topic1 : "") , CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, (NULL != topic1 ? topic1 : "") , ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_STRING_EMPTY, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, (NULL != topic2 ? topic2 : ""), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, (NULL != topic2 ? topic2 : ""), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_STRING_EMPTY, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, (NULL != topic3 ? topic3 : ""), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, (NULL != topic3 ? topic3 : ""), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_STRING_EMPTY, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, (NULL != topic4 ? topic4 : ""), CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, (NULL != topic4 ? topic4 : ""), ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_STRING_EMPTY, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_STRING_TERMINATE);
     }
 
     if (ret)
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
     }
     return ret;
 }
@@ -709,11 +709,11 @@ static bool ATMQTT_AddArgumentsSet(char *pAtCommand, uint8_t index, ATMQTT_SetOp
 {
     bool ret = false;
 
-    ret = Calypso_AppendArgumentInt(pAtCommand, index, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_AppendArgumentInt(pAtCommand, index, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret && (option < ATMQTT_SetOption_NumberOfValues))
     {
-        ret = Calypso_AppendArgumentString(pAtCommand, ATMQTT_SetOptionStrings[option], CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_AppendArgumentString(pAtCommand, ATMQTT_SetOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM);
     }
     else
     {
@@ -726,13 +726,13 @@ static bool ATMQTT_AddArgumentsSet(char *pAtCommand, uint8_t index, ATMQTT_SetOp
         {
         case ATMQTT_SetOption_User:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, pValues->username, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValues->username, ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
         case ATMQTT_SetOption_Password:
         {
-            ret = Calypso_AppendArgumentString(pAtCommand, pValues->password, CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pValues->password, ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
@@ -740,26 +740,26 @@ static bool ATMQTT_AddArgumentsSet(char *pAtCommand, uint8_t index, ATMQTT_SetOp
         {
             ATMQTT_SetWillParams_t *pWillValues = &pValues->will;
 
-            ret = Calypso_AppendArgumentString(pAtCommand, pWillValues->topic, CALYPSO_ARGUMENT_DELIM);
+            ret = ATCommand_AppendArgumentString(pAtCommand, pWillValues->topic, ATCOMMAND_ARGUMENT_DELIM);
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[pWillValues->QoS], CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentString(pAtCommand, ATMQTT_QoSStrings[pWillValues->QoS], ATCOMMAND_ARGUMENT_DELIM);
             }
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pWillValues->retain, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pWillValues->retain, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM);
             }
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentInt(pAtCommand, pWillValues->messageLength, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED),CALYPSO_ARGUMENT_DELIM);
+                ret = ATCommand_AppendArgumentInt(pAtCommand, pWillValues->messageLength, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED),ATCOMMAND_ARGUMENT_DELIM);
             }
 
             if (ret)
             {
-                ret = Calypso_AppendArgumentString(pAtCommand, pWillValues->message, CALYPSO_STRING_TERMINATE);
+                ret = ATCommand_AppendArgumentString(pAtCommand, pWillValues->message, ATCOMMAND_STRING_TERMINATE);
             }
 
             break;
@@ -767,13 +767,13 @@ static bool ATMQTT_AddArgumentsSet(char *pAtCommand, uint8_t index, ATMQTT_SetOp
 
         case ATMQTT_SetOption_KeepAlive:
         {
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->keepAliveSeconds, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAliveSeconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
         case ATMQTT_SetOption_Clean:
         {
-            ret = Calypso_AppendArgumentInt(pAtCommand, pValues->clean, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE);
+            ret = ATCommand_AppendArgumentInt(pAtCommand, pValues->clean, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE);
             break;
         }
 
@@ -784,7 +784,7 @@ static bool ATMQTT_AddArgumentsSet(char *pAtCommand, uint8_t index, ATMQTT_SetOp
         }
     }
 
-    return Calypso_AppendArgumentString(pAtCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -806,7 +806,7 @@ static bool ATMQTT_ParseResponseCreate(char **pAtCommand, uint8_t *pOutIndex)
     if (ret)
     {
         *pAtCommand += cmdLength;
-        ret = Calypso_GetNextArgumentInt(pAtCommand, pOutIndex, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pAtCommand, pOutIndex, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;

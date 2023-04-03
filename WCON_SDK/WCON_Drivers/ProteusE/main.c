@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -39,36 +39,50 @@ static void CommandModeExample();
 static void TransparentModeExample();
 
 /* Callback functions for various indications sent by the Proteus-e. */
-static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi);
-static void ConnectCallback(bool success, uint8_t* btMac);
-static void SecurityCallback(uint8_t* btMac, ProteusE_SecurityState_t securityState);
+static void RxCallback(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
+static void ConnectCallback(bool success, uint8_t *btMac);
+static void SecurityCallback(uint8_t *btMac, ProteusE_SecurityState_t securityState);
 static void DisconnectCallback(ProteusE_DisconnectReason_t reason);
-static void ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload);
-static void PhyUpdateCallback(bool success, uint8_t* btMac, uint8_t phyRx, uint8_t phyTx);
+static void ChannelOpenCallback(uint8_t *btMac, uint16_t maxPayload);
+static void PhyUpdateCallback(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
 static void SleepCallback();
 static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value);
 static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t *gpioConfig);
 static void ErrorCallback(uint8_t errorCode);
 static void OnTransparentModeByteReceived(uint8_t receivedByte);
 
+/* Is set to true if the channel has been opened */
+bool cmd_channelOpen = false;
+
 /**
  * @brief The application's main function.
  */
 int main(void)
 {
-    /* Initialize platform (peripherals, flash interface, Systick, system clock) */
-    WE_Platform_Init();
+	/* Initialize platform (peripherals, flash interface, Systick, system clock) */
+	WE_Platform_Init();
 
 #ifdef WE_DEBUG
-    WE_Debug_Init();
+	WE_Debug_Init();
 #endif
 
-    uint8_t driverVersion[3];
-    WE_GetDriverVersion(driverVersion);
-    printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+	uint8_t driverVersion[3];
+	WE_GetDriverVersion(driverVersion);
+	printf("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 
-    CommandModeExample();
+	CommandModeExample();
 //    TransparentModeExample();
+}
+
+/**
+ * @brief Prints the supplied string, prefixed with OK or NOK (depending on the success parameter).
+ *
+ * @param str String to print
+ * @param success Variable indicating if action was ok
+ */
+void Examples_Print(char *str, bool success)
+{
+	printf("%s%s\r\n", success ? "OK    " : "NOK   ", str);
 }
 
 /**
@@ -79,74 +93,80 @@ int main(void)
  */
 void CommandModeExample()
 {
-    ProteusE_CallbackConfig_t callbackConfig = {0};
-    callbackConfig.rxCb = RxCallback;
-    callbackConfig.connectCb = ConnectCallback;
-    callbackConfig.disconnectCb = DisconnectCallback;
-    callbackConfig.channelOpenCb = ChannelOpenCallback;
-    callbackConfig.securityCb = SecurityCallback;
-    callbackConfig.phyUpdateCb = PhyUpdateCallback;
-    callbackConfig.sleepCb = SleepCallback;
-    callbackConfig.gpioWriteCb = GpioWriteCallback;
-    callbackConfig.gpioRemoteConfigCb = GpioRemoteConfigCallback;
-    callbackConfig.errorCb = ErrorCallback;
+	bool ret = false;
 
-    ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
-                  WE_FlowControl_NoFlowControl,
-                  ProteusE_OperationMode_CommandMode,
-                  callbackConfig);
+	ProteusE_CallbackConfig_t callbackConfig = {
+			0 };
+	callbackConfig.rxCb = RxCallback;
+	callbackConfig.connectCb = ConnectCallback;
+	callbackConfig.disconnectCb = DisconnectCallback;
+	callbackConfig.channelOpenCb = ChannelOpenCallback;
+	callbackConfig.securityCb = SecurityCallback;
+	callbackConfig.phyUpdateCb = PhyUpdateCallback;
+	callbackConfig.sleepCb = SleepCallback;
+	callbackConfig.gpioWriteCb = GpioWriteCallback;
+	callbackConfig.gpioRemoteConfigCb = GpioRemoteConfigCallback;
+	callbackConfig.errorCb = ErrorCallback;
 
-//    printf("Performing factory reset\n");
+	ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ProteusE_OperationMode_CommandMode, callbackConfig);
+
+//    printf("Performing factory reset\r\n");
 //    bool ret = ProteusE_FactoryReset();
-//    printf("Factory reset %s\n", ret ? "OK" : "NOK");
+//    printf("Factory reset %s\r\n", ret ? "OK" : "NOK");
 
-    ProteusE_DeviceInfo_t deviceInfo;
-    if (ProteusE_GetDeviceInfo(&deviceInfo))
-    {
-        printf("Device info OS version = 0x%04x, "
-                "build code = 0x%08lx, "
-                "package variant = 0x%04x, "
-                "chip ID = 0x%08lx\n",
-                deviceInfo.osVersion,
-                deviceInfo.buildCode,
-                deviceInfo.packageVariant,
-                deviceInfo.chipId);
-    }
+	ProteusE_DeviceInfo_t deviceInfo;
+	if (ProteusE_GetDeviceInfo(&deviceInfo))
+	{
+		printf("Device info OS version = 0x%04x, "
+				"build code = 0x%08lx, "
+				"package variant = 0x%04x, "
+				"chip ID = 0x%08lx\r\n", deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
+	}
 
-    uint8_t fwVersion[3];
-    memset(fwVersion, 0, sizeof(fwVersion));
-    ProteusE_GetFWVersion(fwVersion);
-    printf("Firmware version is %u.%u.%u\n", fwVersion[2], fwVersion[1], fwVersion[0]);
-    WE_Delay(500);
+	uint8_t fwVersion[3];
+	ret = ProteusE_GetFWVersion(fwVersion);
+	Examples_Print("Get firmware version", ret);
+	printf("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+	WE_Delay(500);
 
-    uint8_t mac[8];
-    memset(mac, 0, sizeof(mac));
-    ProteusE_GetMAC(mac);
-    printf("MAC is 0x%02x%02x%02x%02x%02x%02x%02x%02x\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7]);
-    WE_Delay(500);
+	uint8_t mac[8];
+	ret = ProteusE_GetMAC(mac);
+	Examples_Print("Get MAC", ret);
+	printf("MAC is 0x%02x%02x%02x%02x%02x%02x%02x%02x\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7]);
+	WE_Delay(500);
 
-    uint8_t btMac[6];
-    memset(btMac, 0, sizeof(btMac));
-    ProteusE_GetBTMAC(btMac);
-    printf("BTMAC is 0x%02x%02x%02x%02x%02x%02x\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
-    WE_Delay(500);
+	uint8_t btMac[6];
+	ret = ProteusE_GetBTMAC(btMac);
+	Examples_Print("Get BT MAC", ret);
+	printf("BTMAC is 0x%02x%02x%02x%02x%02x%02x\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
+	WE_Delay(500);
 
-    uint8_t serialNr[3];
-    memset(serialNr, 0, sizeof(serialNr));
-    ProteusE_GetSerialNumber(serialNr);
-    printf("Serial number is 0x%02x%02x%02x\n", serialNr[2], serialNr[1], serialNr[0]);
-    WE_Delay(500);
+	uint8_t serialNr[3];
+	ret = ProteusE_GetSerialNumber(serialNr);
+	Examples_Print("Get serial number", ret);
+	printf("Serial number is 0x%02x%02x%02x\r\n", serialNr[2], serialNr[1], serialNr[0]);
+	WE_Delay(500);
 
-    while (1)
-    {
-        uint8_t version[3];
-        memset(version, 0, sizeof(version));
-        ProteusE_GetFWVersion(version);
-        WE_Delay(500);
+	ProteusE_TXPower_t txPower;
+	ret = ProteusE_GetTXPower(&txPower);
+	Examples_Print("Get TX power", ret);
+	printf("TX power index is %d\r\n", txPower);
+	WE_Delay(500);
 
-//        ProteusE_PinReset();
-//        WE_Delay(500);
-    }
+	while (1)
+	{
+		WE_Delay(500);
+
+		if (cmd_channelOpen == true)
+		{
+			uint8_t echo[] = "Hello, I'm connected ";
+			ProteusE_Transmit(echo, sizeof(echo));
+		}
+		else
+		{
+			printf("Wait for channel open\r\n");
+		}
+	}
 }
 
 /**
@@ -161,233 +181,219 @@ void CommandModeExample()
  */
 static void TransparentModeExample()
 {
-    /* No callbacks required */
-    ProteusE_CallbackConfig_t callbackConfig = {0};
+	/* No callbacks required */
+	ProteusE_CallbackConfig_t callbackConfig = {
+			0 };
 
-    if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
-                       WE_FlowControl_NoFlowControl,
-                       ProteusE_OperationMode_CommandMode,
-                       callbackConfig))
-    {
-        /* Error */
-        while (1)
-        {
-        }
-    }
+	if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ProteusE_OperationMode_CommandMode, callbackConfig))
+	{
+		/* Error */
+		while (1)
+		{
+		}
+	}
 
-    /* Parameters may be set here if necessary */
+	/* Parameters may be set here if necessary */
 
-    uint8_t deviceName[32];
-    uint16_t deviceNameLength;
-    if (ProteusE_GetDeviceName(deviceName, &deviceNameLength))
-    {
-        deviceName[deviceNameLength] = '\0';
-        printf("Device name: %s\n", deviceName);
-    }
+	uint8_t deviceName[32];
+	uint16_t deviceNameLength;
+	if (ProteusE_GetDeviceName(deviceName, &deviceNameLength))
+	{
+		deviceName[deviceNameLength] = '\0';
+		printf("Device name: %s\r\n", deviceName);
+	}
 
-    ProteusE_Deinit();
+	ProteusE_Deinit();
 
-    uint32_t lastStatusPinLowTick = WE_GetTick();
-    bool channelOpen = false;
-    bool busy = false;
+	uint32_t lastStatusPinLowTick = WE_GetTick();
+	bool per_channelOpen = false;
+	bool busy = false;
 
-    if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE,
-                       WE_FlowControl_NoFlowControl,
-                       ProteusE_OperationMode_TransparentMode,
-                       callbackConfig))
-    {
-        /* Error */
-        while (1)
-        {
-        }
-    }
+	if (!ProteusE_Init(PROTEUSE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ProteusE_OperationMode_TransparentMode, callbackConfig))
+	{
+		/* Error */
+		while (1)
+		{
+		}
+	}
 
-    /* In transparent mode, all bytes received should be diverted to custom callback OnTransparentModeByteReceived() */
-    ProteusE_SetByteRxCallback(OnTransparentModeByteReceived);
+	/* In transparent mode, all bytes received should be diverted to custom callback OnTransparentModeByteReceived() */
+	ProteusE_SetByteRxCallback(OnTransparentModeByteReceived);
 
-    printf("Transparent mode started.\n");
+	printf("Transparent mode started.\r\n");
 
-    while (1)
-    {
-        /* Check connection status and print message on state change (using status i.e. LED_1 pin) */
-        bool statusPinState = ProteusE_GetStatusPinLed1Level();
-        if (channelOpen)
-        {
-            if (!statusPinState)
-            {
-                /* Status pin changed to low - channel is now closed */
-                printf("Channel closed.\n");
-                channelOpen = false;
-            }
-        }
-        else if (statusPinState)
-        {
-            if (WE_GetTick() - lastStatusPinLowTick > PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT)
-            {
-                /* Status pin has been high for at least
-                 * PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT ms - channel is now open */
-                printf("Channel opened.\n");
-                channelOpen = true;
-            }
-        }
-        if (!statusPinState)
-        {
-            /* Status pin is low - store current tick value (required for checking
-             * the duration that the status pin is high) */
-            lastStatusPinLowTick = WE_GetTick();
-        }
+	while (1)
+	{
+		/* Check connection status and print message on state change (using status i.e. LED_1 pin) */
+		bool statusPinState = ProteusE_GetStatusPinLed1Level();
+		if (per_channelOpen)
+		{
+			if (!statusPinState)
+			{
+				/* Status pin changed to low - channel is now closed */
+				printf("Channel closed.\r\n");
+				per_channelOpen = false;
+			}
+			else
+			{
+				uint8_t echo[] = "Hello, I'm connected ";
+				printf("Transmit data\r\n");
+				WE_UART_Transmit(echo, sizeof(echo));
+				WE_Delay(500);
+			}
+		}
+		else if (statusPinState)
+		{
+			if (WE_GetTick() - lastStatusPinLowTick > PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT)
+			{
+				/* Status pin has been high for at least
+				 * PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT ms - channel is now open */
+				printf("Channel opened.\r\n");
+				per_channelOpen = true;
+			}
+		}
+		if (!statusPinState)
+		{
+			/* Status pin is low - store current tick value (required for checking
+			 * the duration that the status pin is high) */
+			lastStatusPinLowTick = WE_GetTick();
+		}
 
-        /* Check state of busy pin and print message on state change */
-        bool b = ProteusE_IsTransparentModeBusy();
-        if (b != busy)
-        {
-            busy = b;
-            printf("Busy state changed to %s\n", busy ? "true" : "false");
-        }
+		/* Check state of busy pin and print message on state change */
+		bool b = ProteusE_IsTransparentModeBusy();
+		if (b != busy)
+		{
+			busy = b;
+			printf("Busy state changed to %s\r\n", busy ? "true" : "false");
+		}
 
 //        WE_Delay(1);
-    }
+	}
 }
 
-
-static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi)
+static void RxCallback(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi)
 {
-    int i = 0;
-    printf("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\n-> ",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
-    printf("0x ");
-    for (i = 0; i < payloadLength; i++)
-    {
-        printf("%02x ", *(payload + i));
-    }
-    printf("\n-> ");
-    for (i = 0; i < payloadLength; i++)
-    {
-        printf("%c", *(payload + i));
-    }
-    printf("\n");
-    fflush(stdout);
+	int i = 0;
+	printf("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\r\n-> ", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
+	printf("0x ");
+	for (i = 0; i < payloadLength; i++)
+	{
+		printf("%02x ", *(payload + i));
+	}
+	printf("\n-> ");
+	for (i = 0; i < payloadLength; i++)
+	{
+		printf("%c", *(payload + i));
+	}
+	printf("\r\n");
+	fflush(stdout);
 }
 
-static void ConnectCallback(bool success, uint8_t* btMac)
+static void ConnectCallback(bool success, uint8_t *btMac)
 {
-    printf("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ",
-           success ? "Connected" : "Failed to connect",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
-    printf("\n");
-    fflush(stdout);
+	cmd_channelOpen = false;
+	printf("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", success ? "Connected" : "Failed to connect", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
+	printf("\r\n");
+	fflush(stdout);
 }
 
-static void SecurityCallback(uint8_t* btMac, ProteusE_SecurityState_t securityState)
+static void SecurityCallback(uint8_t *btMac, ProteusE_SecurityState_t securityState)
 {
-    static const char *stateStrings[] =
-    {
-        "rebonded",
-        "bonded",
-        "paired"
-    };
+	static const char *stateStrings[] = {
+			"rebonded",
+			"bonded",
+			"paired" };
 
-    printf("Encrypted link to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established (%s)",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5],
-           stateStrings[securityState]);
-    printf("\n");
-    fflush(stdout);
+	printf("Encrypted link to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established (%s)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], stateStrings[securityState]);
+	printf("\r\n");
+	fflush(stdout);
 }
 
 static void DisconnectCallback(ProteusE_DisconnectReason_t reason)
 {
-    static const char *reasonStrings[] =
-    {
-        "unknown",
-        "connection timeout",
-        "user terminated connection",
-        "host terminated connection",
-        "connection interval unacceptable",
-        "MIC failure",
-        "connection setup failed"
-    };
+	cmd_channelOpen = false;
 
-    printf("Disconnected (reason: %s)\n", reasonStrings[reason]);
-    fflush(stdout);
+	static const char *reasonStrings[] = {
+			"unknown",
+			"connection timeout",
+			"user terminated connection",
+			"host terminated connection",
+			"connection interval unacceptable",
+			"MIC failure",
+			"connection setup failed" };
+
+	printf("Disconnected (reason: %s)\r\n", reasonStrings[reason]);
+	fflush(stdout);
 }
 
-static void ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload)
+static void ChannelOpenCallback(uint8_t *btMac, uint16_t maxPayload)
 {
-    printf("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d",
-           btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload);
-    printf("\n");
-    fflush(stdout);
+	cmd_channelOpen = true;
+
+	printf("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload);
+	printf("\r\n");
+	fflush(stdout);
 }
 
-static void PhyUpdateCallback(bool success, uint8_t* btMac, uint8_t phyRx, uint8_t phyTx)
+static void PhyUpdateCallback(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx)
 {
-    if (success)
-    {
-        printf("Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)",
-               btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], phyRx, phyTx);
-    }
-    else
-    {
-        printf("Failed to update Phy connection");
-    }
-    printf("\n");
-    fflush(stdout);
+	if (success)
+	{
+		printf("Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], phyRx, phyTx);
+	}
+	else
+	{
+		printf("Failed to update Phy connection");
+	}
+	printf("\r\n");
+	fflush(stdout);
 }
 
 static void SleepCallback()
 {
-    printf("Advertising timeout detected, will go to sleep now\n");
+	printf("Advertising timeout detected, will go to sleep now\r\n");
 }
 
 static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value)
 {
-    printf("GPIO write indication received (remote: %s, GPIO: %u, value: %u)\n",
-           remote ? "true" : "false",
-           gpioId,
-           value);
-    fflush(stdout);
+	printf("GPIO write indication received (remote: %s, GPIO: %u, value: %u)\r\n", remote ? "true" : "false", gpioId, value);
+	fflush(stdout);
 }
 
 static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t *gpioConfig)
 {
-    static const char *functionStrings[] =
-    {
-        "disconnected",
-        "input",
-        "output"
-    };
+	static const char *functionStrings[] = {
+			"disconnected",
+			"input",
+			"output" };
 
-    static const char *pullStrings[] =
-    {
-        "no pull",
-        "pull down",
-        "pull up"
-    };
+	static const char *pullStrings[] = {
+			"no pull",
+			"pull down",
+			"pull up" };
 
-    printf("GPIO remote config indication received (GPIO: %u, function: %s",
-           gpioConfig->gpioId,
-           functionStrings[gpioConfig->function]);
+	printf("GPIO remote config indication received (GPIO: %u, function: %s", gpioConfig->gpioId, functionStrings[gpioConfig->function]);
 
-    switch (gpioConfig->function)
-    {
-    case ProteusE_GPIO_IO_Disconnected:
-        break;
+	switch (gpioConfig->function)
+	{
+	case ProteusE_GPIO_IO_Disconnected:
+		break;
 
-    case ProteusE_GPIO_IO_Input:
-        printf(", input type: %s", pullStrings[gpioConfig->value.input]);
-        break;
+	case ProteusE_GPIO_IO_Input:
+		printf(", input type: %s", pullStrings[gpioConfig->value.input]);
+		break;
 
-    case ProteusE_GPIO_IO_Output:
-        printf(", output level: %s", gpioConfig->value.output == ProteusE_GPIO_Output_High ? "HIGH" : "LOW");
-        break;
-    }
-    printf(")\n");
-    fflush(stdout);
+	case ProteusE_GPIO_IO_Output:
+		printf(", output level: %s", gpioConfig->value.output == ProteusE_GPIO_Output_High ? "HIGH" : "LOW");
+		break;
+	}
+	printf(")\r\n");
+	fflush(stdout);
 }
 
 static void ErrorCallback(uint8_t errorCode)
 {
-    printf("Error %u\n", errorCode);
+	printf("Error %u\n", errorCode);
 }
 
 /**
@@ -396,8 +402,5 @@ static void ErrorCallback(uint8_t errorCode)
  */
 static void OnTransparentModeByteReceived(uint8_t receivedByte)
 {
-    printf("Rx 0x%02x ('%c')\n", receivedByte, receivedByte);
-
-    /* Echo */
-    WE_UART_Transmit(&receivedByte, 1);
+	printf("Rx 0x%02x ('%c')\n", receivedByte, receivedByte);
 }

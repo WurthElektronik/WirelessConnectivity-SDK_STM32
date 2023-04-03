@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -236,15 +236,15 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
             char *pRequestCommand = AT_commandBuffer;
             strcpy(pRequestCommand, "AT+netAppSet=SNTP_CLIENT,server_address,");
 
-            if (!Calypso_AppendArgumentInt(pRequestCommand, i, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, i, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->sntp.servers[i], CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->sntp.servers[i], ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -264,7 +264,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+netAppSet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_ApplicationStrings[appIdx], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_ApplicationStrings[appIdx], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -272,7 +272,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
     switch (app)
     {
     case ATNetApp_Application_HttpServer:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_HttpOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_HttpOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -280,98 +280,98 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_HttpOption_PrimPortNum:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.primPortNum, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.primPortNum, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthCheck:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.authCheck, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.authCheck, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthName:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.authName, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.authName, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthPassword:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.authPassword, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.authPassword, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthRealm:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.authRealm, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.authRealm, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_RomPagesAccess:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.romPagesAccess, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.romPagesAccess, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_SecondPortNum:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.secondPortNum, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.secondPortNum, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_SecondPortEn:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.secondPortEn, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.secondPortEn, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_PrimPortSecEn:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->http.primPortSecEn, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->http.primPortSecEn, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_PrivKeyFile:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.privKeyFile, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.privKeyFile, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_DevCertFile:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.devCertFile, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.devCertFile, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_CaCertFile:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.caCertFile, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.caCertFile, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_TmpRegisterService:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.tmpRegisterService, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.tmpRegisterService, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_TmpUnregisterService:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->http.tmpUnregisterService, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->http.tmpUnregisterService, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -383,7 +383,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         break;
 
     case ATNetApp_Application_DhcpServer:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DhcpOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DhcpOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -391,15 +391,15 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DhcpOption_Basic:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->dhcp.basic.leaseTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->dhcp.basic.leaseTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->dhcp.basic.firstIpAddress, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->dhcp.basic.firstIpAddress, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->dhcp.basic.lastIpAddress, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->dhcp.basic.lastIpAddress, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -411,7 +411,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         break;
 
     case ATNetApp_Application_mDns:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_mDnsOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_mDnsOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -419,18 +419,18 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_mDnsOption_ContQuery:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->mDns.contQuery, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->mDns.contQuery, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_mDnsOption_QeventMask:
-            if (!Calypso_AppendArgumentBitmask(pRequestCommand,
+            if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
                                                ATNetApp_mDnsEventMaskStrings,
                                                ATNetApp_mDnsEventMask_NumberOfValues,
                                                value->mDns.qeventMask,
-                                               CALYPSO_STRING_TERMINATE,
+                                               ATCOMMAND_STRING_TERMINATE,
                                                AT_MAX_COMMAND_BUFFER_SIZE))
             {
                 return false;
@@ -438,27 +438,27 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
             break;
 
         case ATNetApp_mDnsOption_TimingParams:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.period, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.period, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.repetitions, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.repetitions, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.telescopicFactor, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.telescopicFactor, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.retransmissionInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.retransmissionInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.maxPeriodInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.maxPeriodInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.maxTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->mDns.timingParams.maxTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -475,7 +475,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
 
     case ATNetApp_Application_SntpClient:
     {
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_SntpOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_SntpOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -483,21 +483,21 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_SntpOption_Enable:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->sntp.enable, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->sntp.enable, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_SntpOption_UpdateInterval:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->sntp.updateInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->sntp.updateInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_SntpOption_TimeZone:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->sntp.timeZone, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_SIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->sntp.timeZone, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_SIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -511,7 +511,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
     }
 
     case ATNetApp_Application_DnsClient:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DnsClientOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DnsClientOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -519,11 +519,11 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DnsClientOption_Time:
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->dnsClient.time.maxResponseTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->dnsClient.time.maxResponseTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_AppendArgumentInt(pRequestCommand, value->dnsClient.time.numberOfRetries, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentInt(pRequestCommand, value->dnsClient.time.numberOfRetries, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -535,7 +535,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         break;
 
     case ATNetApp_Application_Device:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DeviceOptionStrings[option], CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DeviceOptionStrings[option], ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
@@ -543,14 +543,14 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DeviceOption_URN:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->device.urn, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->device.urn, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_DeviceOption_Domain:
-            if (!Calypso_AppendArgumentString(pRequestCommand, value->device.domain, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_AppendArgumentString(pRequestCommand, value->device.domain, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -565,7 +565,7 @@ bool ATNetApp_Set(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -609,7 +609,7 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
 
     strcpy(pRequestCommand, "AT+netAppGet=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_ApplicationStrings[appIdx], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_ApplicationStrings[appIdx], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -617,21 +617,21 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
     switch (app)
     {
     case ATNetApp_Application_HttpServer:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_HttpOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_HttpOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
         break;
 
     case ATNetApp_Application_DhcpServer:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DhcpOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DhcpOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
         break;
 
     case ATNetApp_Application_mDns:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_mDnsOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_mDnsOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -642,21 +642,21 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         return false;
 
     case ATNetApp_Application_SntpClient:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_SntpOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_SntpOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
         break;
 
     case ATNetApp_Application_DnsClient:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DnsClientOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DnsClientOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
         break;
 
     case ATNetApp_Application_Device:
-        if (!Calypso_AppendArgumentString(pRequestCommand, ATNetApp_DeviceOptionStrings[option], CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetApp_DeviceOptionStrings[option], ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -666,7 +666,7 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -696,63 +696,63 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_HttpOption_PrimPortNum:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.primPortNum, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.primPortNum, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthCheck:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.authCheck, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.authCheck, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthName:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->http.authName, CALYPSO_STRING_TERMINATE, sizeof(value->http.authName)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->http.authName, ATCOMMAND_STRING_TERMINATE, sizeof(value->http.authName)))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthPassword:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->http.authPassword, CALYPSO_STRING_TERMINATE, sizeof(value->http.authPassword)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->http.authPassword, ATCOMMAND_STRING_TERMINATE, sizeof(value->http.authPassword)))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_AuthRealm:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->http.authRealm, CALYPSO_STRING_TERMINATE, sizeof(value->http.authRealm)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->http.authRealm, ATCOMMAND_STRING_TERMINATE, sizeof(value->http.authRealm)))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_RomPagesAccess:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.romPagesAccess, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.romPagesAccess, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_SecondPortNum:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.secondPortNum, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.secondPortNum, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_SecondPortEn:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.secondPortEn, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.secondPortEn, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_HttpOption_PrimPortSecEn:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->http.primPortSecEn, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->http.primPortSecEn, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -775,15 +775,15 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DhcpOption_Basic:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->dhcp.basic.leaseTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->dhcp.basic.leaseTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->dhcp.basic.firstIpAddress, CALYPSO_ARGUMENT_DELIM, sizeof(value->dhcp.basic.firstIpAddress)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->dhcp.basic.firstIpAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(value->dhcp.basic.firstIpAddress)))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->dhcp.basic.lastIpAddress, CALYPSO_STRING_TERMINATE, sizeof(value->dhcp.basic.lastIpAddress)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->dhcp.basic.lastIpAddress, ATCOMMAND_STRING_TERMINATE, sizeof(value->dhcp.basic.lastIpAddress)))
             {
                 return false;
             }
@@ -798,46 +798,46 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_mDnsOption_ContQuery:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->mDns.contQuery, CALYPSO_STRING_TERMINATE, sizeof(value->mDns.contQuery)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->mDns.contQuery, ATCOMMAND_STRING_TERMINATE, sizeof(value->mDns.contQuery)))
             {
                 return false;
             }
             break;
 
         case ATNetApp_mDnsOption_QeventMask:
-            if (!Calypso_GetNextArgumentBitmask(&pRespondCommand,
+            if (!ATCommand_GetNextArgumentBitmask(&pRespondCommand,
                                                 ATNetApp_mDnsEventMaskStrings,
                                                 ATNetApp_mDnsEventMask_NumberOfValues,
                                                 200,
                                                 &value->mDns.qeventMask,
-                                                CALYPSO_STRING_TERMINATE))
+                                                ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_mDnsOption_TimingParams:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.period, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.period, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.repetitions, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.repetitions, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.telescopicFactor, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.telescopicFactor, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.retransmissionInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.retransmissionInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.maxPeriodInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.maxPeriodInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.maxTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->mDns.timingParams.maxTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -857,21 +857,21 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_SntpOption_Enable:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->sntp.enable, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->sntp.enable, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_SntpOption_UpdateInterval:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->sntp.updateInterval, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->sntp.updateInterval, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
             break;
 
         case ATNetApp_SntpOption_TimeZone:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->sntp.timeZone, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_SIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->sntp.timeZone, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_SIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -882,16 +882,16 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
             {
                 char indexStr[10];
                 /* Skip "[i] :" */
-                if (!Calypso_GetNextArgumentString(&pRespondCommand, indexStr, ':', sizeof(indexStr)))
+                if (!ATCommand_GetNextArgumentString(&pRespondCommand, indexStr, ':', sizeof(indexStr)))
                 {
                     return false;
                 }
                 /* Skip extra spaces */
-                while (Calypso_GetNextArgumentString(&pRespondCommand, indexStr, ' ', sizeof(indexStr)))
+                while (ATCommand_GetNextArgumentString(&pRespondCommand, indexStr, ' ', sizeof(indexStr)))
                 {
                 }
                 /* Get address of server i */
-                if (!Calypso_GetNextArgumentString(&pRespondCommand, value->sntp.servers[i], '\n', 50))
+                if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->sntp.servers[i], '\n', 50))
                 {
                     return false;
                 }
@@ -908,11 +908,11 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DnsClientOption_Time:
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->dnsClient.time.maxResponseTime, CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_ARGUMENT_DELIM))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->dnsClient.time.maxResponseTime, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
             {
                 return false;
             }
-            if (!Calypso_GetNextArgumentInt(&pRespondCommand, &value->dnsClient.time.numberOfRetries, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC, CALYPSO_STRING_TERMINATE))
+            if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &value->dnsClient.time.numberOfRetries, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
             {
                 return false;
             }
@@ -927,14 +927,14 @@ bool ATNetApp_Get(ATNetApp_Application_t app, uint8_t option, ATNetApp_OptionVal
         switch (option)
         {
         case ATNetApp_DeviceOption_URN:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->device.urn, CALYPSO_STRING_TERMINATE, sizeof(value->device.urn)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->device.urn, ATCOMMAND_STRING_TERMINATE, sizeof(value->device.urn)))
             {
                 return false;
             }
             break;
 
         case ATNetApp_DeviceOption_Domain:
-            if (!Calypso_GetNextArgumentString(&pRespondCommand, value->device.domain, CALYPSO_STRING_TERMINATE, sizeof(value->device.domain)))
+            if (!ATCommand_GetNextArgumentString(&pRespondCommand, value->device.domain, ATCOMMAND_STRING_TERMINATE, sizeof(value->device.domain)))
             {
                 return false;
             }
@@ -970,7 +970,7 @@ bool ATNetApp_GetHostByName(const char *hostName,
 
     strcpy(pRequestCommand, "AT+netAppGetHostByName=");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, hostName, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, hostName, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -980,13 +980,13 @@ bool ATNetApp_GetHostByName(const char *hostName,
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, temp, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, temp, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
 
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -1011,11 +1011,11 @@ bool ATNetApp_GetHostByName(const char *hostName,
 
     pRespondCommand += cmdLength;
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, lookupResult->hostName, CALYPSO_ARGUMENT_DELIM, sizeof(lookupResult->hostName)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, lookupResult->hostName, ATCOMMAND_ARGUMENT_DELIM, sizeof(lookupResult->hostName)))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, lookupResult->hostAddress, CALYPSO_STRING_TERMINATE, sizeof(lookupResult->hostAddress)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, lookupResult->hostAddress, ATCOMMAND_STRING_TERMINATE, sizeof(lookupResult->hostAddress)))
     {
         return false;
     }
@@ -1045,35 +1045,35 @@ bool ATNetApp_Ping(ATNetApp_PingParameters_t *parameters)
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, temp, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, temp, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, parameters->destination, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, parameters->destination, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, parameters->size, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, parameters->size, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, parameters->delayMs, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, parameters->delayMs, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, parameters->timeoutMs, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, parameters->timeoutMs, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, parameters->maxNumberOfPings, CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, parameters->maxNumberOfPings, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, parameters->mode, CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, parameters->mode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -1112,14 +1112,14 @@ bool ATNetApp_UpdateTime()
  */
 bool ATNetApp_AddStartStopArguments(char *pOutString, uint8_t apps)
 {
-    if (!Calypso_AppendArgumentBitmask(pOutString,
+    if (!ATCommand_AppendArgumentBitmask(pOutString,
                                        ATNetApp_ApplicationStrings,
                                        ATNetApp_Application_NumberOfValues,
                                        apps,
-                                       CALYPSO_STRING_TERMINATE,
+                                       ATCOMMAND_STRING_TERMINATE,
                                        AT_MAX_COMMAND_BUFFER_SIZE))
     {
         return false;
     }
-    return Calypso_AppendArgumentString(pOutString, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pOutString, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }

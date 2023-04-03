@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -50,7 +50,7 @@ extern "C" {
 /**
  * @brief Driver version
  */
-#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {1,4,0}
+#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {1,5,0}
 
 #if defined(WE_DEBUG) || defined(WE_DEBUG_INIT)
 /* Redirect printf() to UART for testing/debugging purposes */

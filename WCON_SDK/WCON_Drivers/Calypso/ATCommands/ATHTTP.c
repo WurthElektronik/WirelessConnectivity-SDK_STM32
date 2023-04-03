@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -28,9 +28,8 @@
  * @brief AT commands for HTTP client functionality.
  */
 
+#include <global/ATCommands.h>
 #include "ATHTTP.h"
-
-#include "ATCommands.h"
 
 #include "../Calypso.h"
 
@@ -151,10 +150,10 @@ bool ATHTTP_Create(uint8_t *clientHandle)
 
     pRespondCommand += cmdLength;
 
-    return Calypso_GetNextArgumentInt(&pRespondCommand,
+    return ATCommand_GetNextArgumentInt(&pRespondCommand,
                                       clientHandle,
-                                      CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                      CALYPSO_STRING_TERMINATE);
+                                      ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                      ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -168,16 +167,16 @@ bool ATHTTP_Destroy(uint8_t clientHandle)
 {
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpDestroy=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_STRING_TERMINATE))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -210,49 +209,49 @@ bool ATHTTP_Connect(uint8_t clientHandle,
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpConnect=");
 
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       host,
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentBitmask(pRequestCommand,
+    if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
                                        ATHTTP_ConnectFlags_Strings,
                                        ATHTTP_ConnectFlags_NumberOfValues,
                                        flags,
-                                       CALYPSO_ARGUMENT_DELIM,
+                                       ATCOMMAND_ARGUMENT_DELIM,
                                        AT_MAX_COMMAND_BUFFER_SIZE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       privateKey,
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       certificate,
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       rootCaCertificate,
-                                      CALYPSO_STRING_TERMINATE))
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -275,16 +274,16 @@ bool ATHTTP_Disconnect(uint8_t clientHandle)
 {
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpDisconnect=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_STRING_TERMINATE))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -306,13 +305,13 @@ bool ATHTTP_SetProxy(ATSocket_Descriptor_t proxy)
 {
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpSetProxy=");
-    if (!ATSocket_AppendSocketDescriptor(pRequestCommand, proxy, CALYPSO_STRING_TERMINATE))
+    if (!ATSocket_AppendSocketDescriptor(pRequestCommand, proxy, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -385,49 +384,49 @@ bool ATHTTP_SendRequest(uint8_t clientHandle,
     char *pRequestCommand = AT_commandBuffer;
     char *pRespondCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpSendReq=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       ATHTTP_Method_Strings[method],
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       uri,
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentBitmask(pRequestCommand,
+    if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
                                        ATHTTP_RequestFlags_Strings,
                                        ATHTTP_RequestFlags_NumberOfValues,
                                        flags,
-                                       CALYPSO_ARGUMENT_DELIM,
+                                       ATCOMMAND_ARGUMENT_DELIM,
                                        AT_MAX_COMMAND_BUFFER_SIZE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentBytes(pRequestCommand, data, length, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentBytes(pRequestCommand, data, length, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -451,10 +450,10 @@ bool ATHTTP_SendRequest(uint8_t clientHandle,
 
     pRespondCommand += cmdLength;
 
-    return Calypso_GetNextArgumentInt(&pRespondCommand,
+    return ATCommand_GetNextArgumentInt(&pRespondCommand,
                                       status,
-                                      CALYPSO_INTFLAGS_SIZE32 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                      CALYPSO_STRING_TERMINATE);
+                                      ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                      ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -486,24 +485,24 @@ bool ATHTTP_ReadResponseBody(uint8_t clientHandle,
     char *pRequestCommand = AT_commandBuffer;
     char *pRespondCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpReadResBody=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -527,31 +526,31 @@ bool ATHTTP_ReadResponseBody(uint8_t clientHandle,
 
     pRespondCommand += cmdLength;
 
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &responseBody->clientHandle,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &responseBody->hasMoreData,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &responseBody->format,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &responseBody->length,
-                                    CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -582,9 +581,9 @@ bool ATHTTP_ReadResponseBody(uint8_t clientHandle,
                 return false;
             }
 
-            return Calypso_GetNextArgumentString(&pRespondCommand,
+            return ATCommand_GetNextArgumentString(&pRespondCommand,
                                                  responseBody->body,
-                                                 CALYPSO_STRING_TERMINATE,
+                                                 ATCOMMAND_STRING_TERMINATE,
                                                  sizeof(responseBody->body));
         }
     }
@@ -642,38 +641,38 @@ bool ATHTTP_SetHeader(uint8_t clientHandle,
 
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpSetHeader=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       ATHTTP_HeaderField_Strings[field],
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       ATHTTP_HeaderPersistency_Strings[persistency],
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentBytes(pRequestCommand, data, length, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentBytes(pRequestCommand, data, length, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -707,30 +706,30 @@ bool ATHTTP_GetHeader(uint8_t clientHandle,
     char *pRequestCommand = AT_commandBuffer;
     char *pRespondCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpGetHeader=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand,
+    if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                    clientHandle,
-                                   CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                   CALYPSO_ARGUMENT_DELIM))
+                                   ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                   ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
                                       ATHTTP_HeaderField_Strings[field],
-                                      CALYPSO_ARGUMENT_DELIM))
+                                      ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand,
-                                      CALYPSO_CRLF,
-                                      CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand,
+                                      ATCOMMAND_CRLF,
+                                      ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -754,24 +753,24 @@ bool ATHTTP_GetHeader(uint8_t clientHandle,
 
     pRespondCommand += cmdLength;
 
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &header->clientHandle,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &header->format,
-                                    CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                     &header->length,
-                                    CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                    CALYPSO_ARGUMENT_DELIM))
+                                    ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                    ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -802,9 +801,9 @@ bool ATHTTP_GetHeader(uint8_t clientHandle,
                 return false;
             }
 
-            return Calypso_GetNextArgumentString(&pRespondCommand,
+            return ATCommand_GetNextArgumentString(&pRespondCommand,
                                                  header->data,
-                                                 CALYPSO_STRING_TERMINATE,
+                                                 ATCOMMAND_STRING_TERMINATE,
                                                  sizeof(header->data));
         }
     }
@@ -850,19 +849,19 @@ bool ATHTTP_SendCustomResponse(Calypso_DataFormat_t format,
 
     char *pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+httpCustomResponse=");
-    if (!Calypso_AppendArgumentInt(pRequestCommand, format, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentInt(pRequestCommand, length, (CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED), CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentBytes(pRequestCommand, data, length, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentBytes(pRequestCommand, data, length, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }

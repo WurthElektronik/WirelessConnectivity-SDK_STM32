@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -62,13 +62,6 @@ static uint8_t Calypso_base64DecTable[123] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
                                               0,0,0,0,0,0,
                                               26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51
                                              }; /* a-z */
-
-
-static const char *Calypso_BooleanValueStrings[Calypso_BooleanValue_NumberOfValues] =
-{
-    "false",
-    "true"
-};
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
@@ -455,7 +448,8 @@ bool Calypso_SendRequest(char *data)
             data[2] == '+')
     {
         char *pData = data + 3;
-        if (Calypso_GetCmdName(&pData, Calypso_pendingCommandName, CALYPSO_COMMAND_DELIM, '\r'))
+		char delimiters[] = {ATCOMMAND_COMMAND_DELIM, '\r'};
+		if (ATCommand_GetCmdName(&pData, Calypso_pendingCommandName, delimiters, sizeof(delimiters)))
         {
             Calypso_pendingCommandNameLength = strlen(Calypso_pendingCommandName);
         }
@@ -556,513 +550,6 @@ int32_t Calypso_GetLastError(char *lastErrorText)
         strcpy(lastErrorText, Calypso_lastErrorText);
     }
     return Calypso_lastErrorCode;
-}
-
-/**
- * @brief Converts an integer to string.
- *
- * @param[out] outString Number converted to string
- * @param[in] number Integer value to convert to string
- * @param[in] intFlags Formatting flags
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_IntToString(char *outString, uint32_t number, uint16_t intFlags)
-{
-    if ((0 == (intFlags & CALYPSO_INTFLAGS_SIGN)) || (0 == (intFlags & CALYPSO_INTFLAGS_NOTATION)))
-    {
-        return false;
-    }
-
-    if (CALYPSO_INTFLAGS_NOTATION_HEX == (intFlags & CALYPSO_INTFLAGS_NOTATION))
-    {
-        /* HEX */
-        sprintf(outString, "0x%lx", number);
-    }
-    else
-    {
-        /* DEC */
-
-        if (CALYPSO_INTFLAGS_UNSIGNED == (intFlags & CALYPSO_INTFLAGS_SIGN))
-        {
-            /* UNSIGNED */
-            sprintf(outString, "%lu", number);
-        }
-        else
-        {
-            /* SIGNED */
-            sprintf(outString, "%ld", *(int32_t*) &number);
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Parses string to integer
- *
- * @param[out] number Parsed integer value
- * @param[in] inString String to be parsed
- * @param[in] intFlags Flags to determine how to parse
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_StringToInt(void *number, const char *inString, uint16_t intFlags)
-{
-    if ((NULL == inString) || (NULL == number))
-    {
-        return false;
-    }
-
-    bool hex = (0 == strncmp(inString, "0x", 2)) || ((intFlags & CALYPSO_INTFLAGS_NOTATION_HEX) != 0);
-    bool signedDataType = (intFlags & CALYPSO_INTFLAGS_SIGNED) != 0;
-
-    if (signedDataType)
-    {
-        long longNr = strtol(inString, NULL, (hex == true) ? 16 : 10);
-
-        if ((intFlags & CALYPSO_INTFLAGS_SIZE8) != 0)
-        {
-            *((int8_t*) number) = longNr;
-        }
-        else if ((intFlags & CALYPSO_INTFLAGS_SIZE16) != 0)
-        {
-            *((int16_t*) number) = longNr;
-        }
-        else if ((intFlags & CALYPSO_INTFLAGS_SIZE32) != 0)
-        {
-            *((int32_t*) number) = longNr;
-        }
-    }
-    else
-    {
-        unsigned long longNr = strtoul(inString, NULL, (hex == true) ? 16 : 10);
-
-        if ((intFlags & CALYPSO_INTFLAGS_SIZE8) != 0)
-        {
-            *((uint8_t*) number) = longNr;
-        }
-        else if ((intFlags & CALYPSO_INTFLAGS_SIZE16) != 0)
-        {
-            *((uint16_t*) number) = longNr;
-        }
-        else if ((intFlags & CALYPSO_INTFLAGS_SIZE32) != 0)
-        {
-            *((uint32_t*) number) = longNr;
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Appends a byte array argument to the end of an AT command.
- *
- * @param[out] pOutString  AT command after appending argument
- * @param[in] pInArgument Pointer to byte array to be added
- * @param[in] numBytes    Number of bytes to add
- * @param[in] delimiter   Delimiter to append after argument
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_AppendArgumentBytes(char *pOutString,
-                                 const char *pInArgument,
-                                 uint16_t numBytes,
-                                 char delimiter)
-{
-    if (NULL == pOutString)
-    {
-        return false;
-    }
-
-    size_t strLength = strlen(pOutString);
-    if (NULL != pInArgument)
-    {
-        memcpy(&pOutString[strLength], pInArgument, numBytes);
-        strLength += numBytes;
-    }
-
-    pOutString[strLength] = delimiter;
-
-    return true;
-}
-
-/**
- * @brief Appends a string argument to the end of an AT command.
- *
- * The supplied delimiter is appended after the argument. A null byte ('\0')
- * is appended after the delimiter, if the delimiter itself is not a null byte.
- *
- * @param[out] pOutString AT command after appending argument
- * @param[in] pInArgument Argument to be added
- * @param[in] delimiter Delimiter to append after argument
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_AppendArgumentString(char *pOutString, const char *pInArgument, char delimiter)
-{
-    if (NULL == pOutString)
-    {
-        return false;
-    }
-
-    size_t outStrLength = strlen(pOutString);
-    if (NULL != pInArgument)
-    {
-        size_t inStrLength = strlen(pInArgument);
-        strcpy(&pOutString[outStrLength], pInArgument);
-        outStrLength += inStrLength;
-    }
-    pOutString[outStrLength] = delimiter;
-    if (delimiter != '\0')
-    {
-        pOutString[outStrLength + 1] = '\0';
-    }
-
-    return true;
-}
-
-/**
- * @brief Appends an integer argument to the end of an AT command
- *
- * @param[out] pOutString AT command after appending argument
- * @param[in] pInValue Argument to be added
- * @param[in] intFlags Integer formatting flags
- * @param[in] delimiter Delimiter to append after argument
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_AppendArgumentInt(char *pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter)
-{
-    if (NULL == pOutString)
-    {
-        return false;
-    }
-
-    char tempString[12];
-
-    if (Calypso_IntToString(tempString, pInValue, intFlags))
-    {
-        return Calypso_AppendArgumentString(pOutString, tempString, delimiter);
-    }
-
-    return false;
-}
-
-/**
- * @brief Appends bitmask strings to the supplied string.
- *
- * @param[out] pOutString AT command after appending argument
- * @param[in] stringList List of strings containing the string representations of the bits in the input bitmask
- * @param[in] numStrings Number of elements in stringList (max. number of bits in input bitmask)
- * @param[in] bitmask Input bitmask
- * @param[in] delimiter Delimiter to append after argument
- * @param[in] maxStringLength Max. length of output string
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_AppendArgumentBitmask(char *pOutString,
-                                   const char *stringList[],
-                                   uint8_t numStrings,
-                                   uint32_t bitmask,
-                                   char delimiter,
-                                   uint16_t maxStringLength)
-{
-    size_t outStrLength = strlen(pOutString) + 1;
-    bool empty = true;
-    for (int i = 0; i < numStrings; i++)
-    {
-        if (0 != (bitmask & (1 << i)))
-        {
-            outStrLength += strlen(stringList[i]) + 1;
-            if (outStrLength > maxStringLength)
-            {
-                return false;
-            }
-            if (!Calypso_AppendArgumentString(pOutString, stringList[i], CALYPSO_BITMASK_DELIM))
-            {
-                return false;
-            }
-            empty = false;
-        }
-    }
-    pOutString[outStrLength - (empty ? 1 : 2)] = delimiter;
-    pOutString[outStrLength - (empty ? 0 : 1)] = '\0';
-    return true;
-}
-
-/**
- * @brief Appends a boolean string (true, false) to the supplied string.
- *
- * @param[out] pOutString AT command after appending argument
- * @param[in] inBool Value to append
- * @param[in] delimiter Delimiter to append after argument
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_AppendArgumentBoolean(char *pOutString, bool inBool, char delimiter)
-{
-    return Calypso_AppendArgumentString(pOutString, Calypso_BooleanValueStrings[(inBool == true) ? 1 : 0], delimiter);
-}
-
-/**
- * @brief Gets the next string argument from the supplied AT command.
- *
- * @param[in,out] pInArguments AT command to get argument from
- * @param[out] pOutArgument Argument as string
- * @param[in] delimiter Delimiter which occurs after argument to get
- * @param[in] maxLength Max. length of string to get (including termination character).
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetNextArgumentString(char **pInArguments,
-                                   char *pOutArgument,
-                                   char delimiter,
-                                   uint16_t maxLength)
-{
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
-
-    size_t argumentLength = 0;
-    size_t inputStringLength = strlen(*pInArguments);
-
-    while (true)
-    {
-        if (argumentLength > maxLength - 1)
-        {
-            return false;
-        }
-        else if (((*pInArguments)[argumentLength] == delimiter))
-        {
-            /* If argument list is not empty, copy string to output arguments */
-            memcpy(pOutArgument, *pInArguments, argumentLength);
-
-            pOutArgument[argumentLength] = '\0';
-
-            if (argumentLength > 0 || **pInArguments != '\0')
-            {
-                *pInArguments = &((*pInArguments)[argumentLength+1]);
-            }
-
-            return true;
-        }
-        else if (argumentLength > inputStringLength)
-        {
-            return false;
-        }
-        argumentLength++;
-    }
-}
-
-/**
- * @brief Gets the next integer argument from the supplied AT command.
- *
- * @param[in,out] pInArguments AT command to get argument from
- * @param[out] pOutArgument Argument parsed as integer
- * @param[in] intFlags Flags to determine how to parse
- * @param[in] delimiter Delimiter which occurs after argument to get
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetNextArgumentInt(char **pInArguments,
-                                void *pOutArgument,
-                                uint16_t intFlags,
-                                char delimiter)
-{
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
-
-    char tempString[12];
-
-    Calypso_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
-    return Calypso_StringToInt(pOutArgument, tempString, intFlags);
-}
-
-/**
- * @brief Gets the next enumeration argument from the supplied AT command.
- *
- * @param[in,out] pInArguments AT command to get argument from
- * @param[out] pOutArgument Enumeration value corresponding to the string read from the input AT command
- * @param[in] stringList List of strings containing the string representations of the enumeration's values
- * @param[in] numStrings Number of elements in stringList (number of elements in the enumeration)
- * @param[in] maxStringLength Max. length of individual enumeration value strings
- * @param[in] delimiter Delimiter which occurs after argument to get
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetNextArgumentEnum(char **pInArguments,
-                                 uint8_t *pOutArgument,
-                                 const char *stringList[],
-                                 uint8_t numStrings,
-                                 uint16_t maxStringLength,
-                                 char delimiter)
-{
-    char tempString[maxStringLength];
-
-    if (!Calypso_GetNextArgumentString(pInArguments,
-                                       tempString,
-                                       delimiter,
-                                       sizeof(tempString)))
-    {
-        return false;
-    }
-
-    bool ok;
-    *pOutArgument = Calypso_FindString(stringList,
-                                       numStrings,
-                                       tempString,
-                                       0,
-                                       &ok);
-    return ok;
-}
-
-/**
- * @brief Gets the next bitmask argument from the supplied AT command.
- *
- * @param[in,out] pInArguments AT command to get argument from
- * @param[in] stringList List of strings containing the string representations of the bits in the output bitmask
- * @param[in] numStrings Number of elements in stringList (max. number of bits in output bitmask)
- * @param[in] maxStringLength Max. length of individual bitmask strings
- * @param[out] bitmask Output bitmask
- * @param[in] delimiter Delimiter which occurs after argument to get
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetNextArgumentBitmask(char **pInArguments,
-                                    const char *stringList[],
-                                    uint8_t numStrings,
-                                    uint16_t maxStringLength,
-                                    uint32_t *bitmask,
-                                    char delimiter)
-{
-
-    bool ret = false;
-    char tempString[maxStringLength];
-
-    *bitmask = 0;
-
-    while (**pInArguments != '\0' &&
-            ((ret = Calypso_GetNextArgumentString(pInArguments, tempString, CALYPSO_BITMASK_DELIM, sizeof(tempString))) ||
-             (ret = Calypso_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString)))))
-    {
-        bool ok;
-        uint8_t flag = Calypso_FindString(stringList, numStrings, tempString, 0, &ok);
-        if (ok)
-        {
-            *bitmask |= (1 << flag);
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Gets the next boolean argument (true, false) from the supplied AT command.
- *
- * @param[in,out] pInArguments AT command to get argument from
- * @param[out] outBool Output boolean
- * @param[in] delimiter Delimiter which occurs after argument to get
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetNextArgumentBoolean(char **pInArguments, bool *outBool, char delimiter)
-{
-    uint8_t enumValue;
-    bool ok = Calypso_GetNextArgumentEnum(pInArguments,
-                                          &enumValue,
-                                          Calypso_BooleanValueStrings,
-                                          Calypso_BooleanValue_NumberOfValues,
-                                          6,
-                                          delimiter);
-    if (ok)
-    {
-        *outBool = (enumValue == 1) ? true : false;
-    }
-    return ok;
-}
-
-/**
- * @param Gets the command name from an AT command.
- *
- * @param[in,out] pInAtCmd AT command to get command name from
- * @param[in] pCmdName Command name as string
- * @param[in] delimiter Delimiter which occurs after command name
- * @param[in] delimiter Alternative delimiter which may occur after command name
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_GetCmdName(char **pInAtCmd,
-                        char *pCmdName,
-                        char delimiter,
-                        char alternativeDelimiter)
-{
-    if ((NULL == pInAtCmd) || (NULL == pCmdName))
-    {
-        return false;
-    }
-
-    size_t argumentLength = 0;
-
-    while (true)
-    {
-        if ((*pInAtCmd)[argumentLength] == delimiter ||
-                (*pInAtCmd)[argumentLength] == alternativeDelimiter)
-        {
-            /* if argument list not empty*/
-            /* copy string to output arguments */
-            memcpy(pCmdName, *pInAtCmd, argumentLength);
-
-            pCmdName[argumentLength] = '\0';
-
-            *pInAtCmd = &((*pInAtCmd)[argumentLength+1]);
-            return true;
-        }
-        if ((*pInAtCmd)[argumentLength] == '\0')
-        {
-            return false;
-        }
-        argumentLength++;
-    }
-}
-
-/**
- * @brief Looks up a string in a list of strings (case insensitive) and returns the
- * index of the string or the supplied default value, if the string is not found.
- *
- * @param[in] stringList List of strings to search in
- * @param[in] numStrings Number of strings in stringList
- * @param[in] str String to look for
- * @param[in] defaultValue Value to return if the string is not found
- * @param[out] ok Is set to true if the string is found. Optional.
- *
- * @return Index of the first occurrence of str in stringList or defaultValue, if string is not found
- */
-uint8_t Calypso_FindString(const char *stringList[],
-                           uint8_t numStrings,
-                           const char *str,
-                           uint8_t defaultValue,
-                           bool *ok)
-{
-    for (uint8_t i = 0; i < numStrings; i++)
-    {
-        if (0 == strcasecmp(stringList[i], str))
-        {
-            if (ok)
-            {
-                *ok = true;
-            }
-            return i;
-        }
-    }
-
-    if (ok)
-    {
-        *ok = false;
-    }
-    return defaultValue;
 }
 
 /**
@@ -1416,7 +903,7 @@ static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
         /* If starts with 'O', check if response is "OK\r\n" */
         if (('O' == rxPacket[0]) || ('o' == rxPacket[0]))
         {
-            if (0 == strncasecmp(&rxPacket[0], CALYPSO_RESPONSE_OK, strlen(CALYPSO_RESPONSE_OK)))
+            if (0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_OK, strlen(ATCOMMAND_RESPONSE_OK)))
             {
                 Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
             }
@@ -1428,7 +915,7 @@ static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
         /* If starts with 'E', check if response is "Error:[arguments]\r\n" */
         else if (('E' == rxPacket[0]) || ('e' == rxPacket[0]))
         {
-            if (!(0 == strncasecmp(&rxPacket[0], CALYPSO_RESPONSE_ERROR, strlen(CALYPSO_RESPONSE_ERROR))))
+            if (!(0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_ERROR, strlen(ATCOMMAND_RESPONSE_ERROR))))
             {
 
                 Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
@@ -1436,18 +923,18 @@ static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
             else
             {
                 char* packetPtr = rxPacket;
-                Calypso_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ':', sizeof(Calypso_lastErrorText));
+                ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ':', sizeof(Calypso_lastErrorText));
 
                 while (*packetPtr == ' ')
                 {
                     packetPtr++;
                 }
 
-                Calypso_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, CALYPSO_ARGUMENT_DELIM, sizeof(Calypso_lastErrorText));
-                Calypso_GetNextArgumentInt(&packetPtr,
+                ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_lastErrorText));
+                ATCommand_GetNextArgumentInt(&packetPtr,
                                            &Calypso_lastErrorCode,
-                                           CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_SIGNED | CALYPSO_INTFLAGS_SIZE32,
-                                           CALYPSO_STRING_TERMINATE);
+                                           ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIGNED | ATCOMMAND_INTFLAGS_SIZE32,
+                                           ATCOMMAND_STRING_TERMINATE);
 
                 Calypso_cmdConfirmStatus = Calypso_CNFStatus_Failed;
             }

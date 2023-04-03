@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,6 +31,8 @@
 #ifndef AT_EVENTS_H_INCLUDED
 #define AT_EVENTS_H_INCLUDED
 
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdint.h>
 
 #include "ATSocket.h"
@@ -161,7 +163,7 @@ typedef struct ATEvent_Ping_t
 typedef struct ATEvent_SocketTCPConnect_t
 {
     uint16_t serverPort;
-    char serverAddress[AT_MAX_IP_ADDRESS_LENGTH];
+    char serverAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
 } ATEvent_SocketTCPConnect_t;
 
 /**
@@ -172,7 +174,7 @@ typedef struct ATEvent_SocketTCPAccept_t
     uint8_t socketID;
     ATSocket_Family_t family;
     uint16_t clientPort;
-    char clientAddress[AT_MAX_IP_ADDRESS_LENGTH];
+    char clientAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
 } ATEvent_SocketTCPAccept_t;
 
 /**
@@ -192,7 +194,7 @@ typedef struct ATEvent_SocketRcvd_t
  */
 typedef struct ATEvent_MQTTRcvd_t
 {
-    char topic[AT_MAX_HOST_NAME_LENGTH];
+    char topic[CALYPSO_MAX_HOST_NAME_LENGTH];
     ATMQTT_QoS_t qos;
     uint8_t retain;
     uint8_t duplicate;

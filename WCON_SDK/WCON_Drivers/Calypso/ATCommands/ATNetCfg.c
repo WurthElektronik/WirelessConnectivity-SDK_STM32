@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -84,17 +84,17 @@ bool ATNetCfg_SetInterfaceModes(uint16_t modes)
 
     strcpy(pRequestCommand, "AT+netCfgSet=IF,STATE,");
 
-    if (!Calypso_AppendArgumentBitmask(pRequestCommand,
+    if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
                                        ATNetCfg_InterfaceModeStrings,
                                        ATNetCfg_InterfaceMode_NumberOfValues,
                                        modes,
-                                       CALYPSO_STRING_TERMINATE,
+                                       ATCOMMAND_STRING_TERMINATE,
                                        AT_MAX_COMMAND_BUFFER_SIZE))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -124,7 +124,7 @@ bool ATNetCfg_GetMacAddress(uint8_t macAddress[6])
     char *pRespondCommand = AT_commandBuffer;
 
     strcpy(pRequestCommand, "AT+netCfgGet=GET_MAC_ADDR");
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {
@@ -146,10 +146,10 @@ bool ATNetCfg_GetMacAddress(uint8_t macAddress[6])
 
     for (uint8_t i = 0; i < 6; i++)
     {
-        if (!Calypso_GetNextArgumentInt(&pRespondCommand,
+        if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
                                         macAddress + i,
-                                        (CALYPSO_INTFLAGS_NOTATION_HEX | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_SIZE8),
-                                        i < 5 ? CALYPSO_CONFIRM_DELIM : CALYPSO_STRING_TERMINATE))
+                                        (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8),
+                                        i < 5 ? ATCOMMAND_CONFIRM_DELIM : ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
@@ -178,16 +178,16 @@ bool ATNetCfg_SetMacAddress(uint8_t macAddress[6])
 
     for (uint8_t i = 0; i < 6; i++)
     {
-        if (!Calypso_AppendArgumentInt(pRequestCommand,
+        if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                        macAddress[i],
-                                       CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX,
-                                       i < 5 ? ':' : CALYPSO_STRING_TERMINATE))
+                                       ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX,
+                                       i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
     }
 
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {
@@ -276,7 +276,7 @@ bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
     char *pRespondCommand = AT_commandBuffer;
 
     strcpy(pRequestCommand, ap ? "AT+netCfgGet=IPV4_AP_ADDR" : "AT+netCfgGet=IPV4_STA_ADDR");
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
 
     if (!Calypso_SendRequest(pRequestCommand))
@@ -298,7 +298,7 @@ bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
     pRespondCommand += cmdLength;
 
     char ipModeStr[9];
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipModeStr, CALYPSO_ARGUMENT_DELIM, sizeof(ipModeStr)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
     {
         return false;
     }
@@ -323,22 +323,22 @@ bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
         ipConfig->method = ATNetCfg_IPv4Method_Unknown;
     }
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, CALYPSO_ARGUMENT_DELIM, sizeof(ipConfig->ipAddress)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->ipAddress)))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipConfig->subnetMask, CALYPSO_ARGUMENT_DELIM, sizeof(ipConfig->subnetMask)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->subnetMask)))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipConfig->gatewayAddress, CALYPSO_ARGUMENT_DELIM, sizeof(ipConfig->gatewayAddress)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->gatewayAddress)))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipConfig->dnsAddress, CALYPSO_STRING_TERMINATE, sizeof(ipConfig->dnsAddress)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->dnsAddress)))
     {
         return false;
     }
@@ -371,32 +371,32 @@ bool ATNetCfg_SetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
         ipConfig->method = ATNetCfg_IPv4Method_Static;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATNetCfg_IPv4MethodStrings[ipConfig->method], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetCfg_IPv4MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
     if (ATNetCfg_IPv4Method_Static == ipConfig->method)
     {
-        if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
-        if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->subnetMask, CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
-        if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->gatewayAddress, CALYPSO_ARGUMENT_DELIM))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM))
         {
             return false;
         }
-        if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, CALYPSO_STRING_TERMINATE))
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
     }
 
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {
@@ -472,7 +472,7 @@ bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
     char *pRespondCommand = AT_commandBuffer;
 
     strcpy(pRequestCommand, global ? "AT+netCfgGet=IPV6_ADDR_GLOBAL" : "AT+netCfgGet=IPV6_ADDR_LOCAL");
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
 
     if (!Calypso_SendRequest(pRequestCommand))
@@ -494,7 +494,7 @@ bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
     pRespondCommand += cmdLength;
 
     char ipModeStr[9];
-    if (!Calypso_GetNextArgumentString(&pRespondCommand, ipModeStr, CALYPSO_ARGUMENT_DELIM, sizeof(ipModeStr)))
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
     {
         return false;
     }
@@ -519,7 +519,7 @@ bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
         ipConfig->method = ATNetCfg_IPv6Method_Unknown;
     }
 
-    return Calypso_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, CALYPSO_STRING_TERMINATE, sizeof(ipConfig->ipAddress));
+    return ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->ipAddress));
 }
 
 /**
@@ -541,22 +541,22 @@ bool ATNetCfg_SetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
 
     strcpy(pRequestCommand, global ? "AT+netCfgSet=IPV6_ADDR_GLOBAL," : "AT+netCfgSet=IPV6_ADDR_LOCAL,");
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ATNetCfg_IPv6MethodStrings[ipConfig->method], CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetCfg_IPv6MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, CALYPSO_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
 
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {
@@ -585,16 +585,16 @@ bool ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
 
     for (uint8_t i = 0; i < 6; i++)
     {
-        if (!Calypso_AppendArgumentInt(pRequestCommand,
+        if (!ATCommand_AppendArgumentInt(pRequestCommand,
                                        macAddress[i],
-                                       CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_HEX,
-                                       i < 5 ? ':' : CALYPSO_STRING_TERMINATE))
+                                       ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX,
+                                       i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
         {
             return false;
         }
     }
 
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {
@@ -621,7 +621,7 @@ bool ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
     char *pRespondCommand = AT_commandBuffer;
 
     strcpy(pRequestCommand, "AT+netCfgGet=IPV4_DNS_CLIENT");
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
 
     if (!Calypso_SendRequest(pRequestCommand))
@@ -642,7 +642,7 @@ bool ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
 
     pRespondCommand += cmdLength;
 
-    return Calypso_GetNextArgumentString(&pRespondCommand, dns2ndServerAddress, CALYPSO_STRING_TERMINATE, 16);
+    return ATCommand_GetNextArgumentString(&pRespondCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE, 16);
 }
 
 /**
@@ -663,8 +663,8 @@ bool ATNetCfg_SetIPv4DnsClient(const char dns2ndServerAddress[16])
 
     strcpy(pRequestCommand, "AT+netCfgSet=IPV4_DNS_CLIENT,,");
 
-    Calypso_AppendArgumentString(pRequestCommand, dns2ndServerAddress, CALYPSO_STRING_TERMINATE);
-    Calypso_AppendArgumentString(pRequestCommand, CALYPSO_CRLF, CALYPSO_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE);
+    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
     if (!Calypso_SendRequest(pRequestCommand))
     {

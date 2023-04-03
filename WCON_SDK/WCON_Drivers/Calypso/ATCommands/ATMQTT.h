@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,11 +31,11 @@
 #ifndef AT_MQTT_H_INCLUDED
 #define AT_MQTT_H_INCLUDED
 
-
+#include <global/ATCommands.h>
+#include <Calypso/Calypso.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "ATCommands.h"
 #include "ATFile.h"
 
 
@@ -114,7 +114,7 @@ typedef enum ATMQTT_SetOption_t
  */
 typedef struct ATMQTT_ServerInfo_t
 {
-    char address[AT_MAX_HOST_NAME_LENGTH];
+    char address[CALYPSO_MAX_HOST_NAME_LENGTH];
     uint16_t port;
 } ATMQTT_ServerInfo_t;
 

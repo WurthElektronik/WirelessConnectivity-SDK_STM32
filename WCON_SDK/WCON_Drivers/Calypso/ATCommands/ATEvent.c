@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  **/
@@ -100,12 +100,14 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
     char option[64];
 
     *pEvent = ATEvent_Invalid;
-    ret = Calypso_GetCmdName(pAtCommand, cmdName, CALYPSO_EVENT_DELIM, CALYPSO_STRING_TERMINATE);
+
+	char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE};
+    ret = ATCommand_GetCmdName(pAtCommand, cmdName, delimiters, sizeof(delimiters));
     if (ret)
     {
         if (0 == strcasecmp(cmdName, "+eventgeneral"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_General, pEvent);
@@ -113,7 +115,7 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         }
         else if (0 == strcasecmp(cmdName, "+eventwlan"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_Wlan, pEvent);
@@ -121,7 +123,7 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         }
         else if (0 == strcasecmp(cmdName, "+eventsocket"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_Socket, pEvent);
@@ -129,7 +131,7 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         }
         else if (0 == strcasecmp(cmdName, "+eventnetapp"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_Netapp, pEvent);
@@ -137,7 +139,7 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         }
         else if (0 == strcasecmp(cmdName, "+eventmqtt"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_MQTT, pEvent);
@@ -145,7 +147,7 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         }
         else if (0 == strcasecmp(cmdName, "+eventfatalerror"))
         {
-            ret = Calypso_GetNextArgumentString(pAtCommand, option, CALYPSO_ARGUMENT_DELIM, sizeof(option));
+            ret = ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option));
             if (ret)
             {
                 ATEvent_ParseEventSubType(option, ATEvent_FatalError, pEvent);
@@ -182,10 +184,10 @@ bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
         else if (0 == strcasecmp(cmdName, "+eventcustom"))
         {
             uint8_t customEventId;
-            ret = Calypso_GetNextArgumentInt(pAtCommand,
+            ret = ATCommand_GetNextArgumentInt(pAtCommand,
                                              &customEventId,
-                                             CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                             CALYPSO_ARGUMENT_DELIM);
+                                             ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                             ATCOMMAND_ARGUMENT_DELIM);
             if (ret)
             {
                 switch (customEventId)
@@ -245,31 +247,31 @@ bool ATEvent_ParseStartUpEvent(char **pEventArguments, ATEvent_Startup_t *Calyps
 {
     bool ret = false;
 
-    ret = Calypso_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->articleNr, CALYPSO_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->articleNr));
+    ret = ATCommand_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->articleNr, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->articleNr));
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->chipID, CALYPSO_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->chipID));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->chipID, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->chipID));
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->MACAddress, CALYPSO_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->MACAddress));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, Calypso_Examples_startupEvent->MACAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_Examples_startupEvent->MACAddress));
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[0]), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, '.');
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[0]), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, '.');
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[1]), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED,'.');
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[1]), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED,'.');
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[2]), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(Calypso_Examples_startupEvent->firmwareVersion[2]), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -287,16 +289,16 @@ bool ATEvent_ParsePingEvent(char **pEventArguments, ATEvent_Ping_t *pingEvent)
 {
     bool ret = false;
 
-    ret = Calypso_GetNextArgumentInt(pEventArguments, &(pingEvent->packetsSent), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+    ret = ATCommand_GetNextArgumentInt(pEventArguments, &(pingEvent->packetsSent), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(pingEvent->packetsReceived), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(pingEvent->packetsReceived), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(pingEvent->roundTripTimeMs), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_NOTATION_DEC | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_STRING_TERMINATE);
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(pingEvent->roundTripTimeMs), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
     }
 
     return ret;
@@ -312,10 +314,10 @@ bool ATEvent_ParsePingEvent(char **pEventArguments, ATEvent_Ping_t *pingEvent)
  */
 bool ATEvent_ParseSocketTCPConnectEvent(char **pEventArguments, ATEvent_SocketTCPConnect_t* connectEvent)
 {
-    bool ret = Calypso_GetNextArgumentInt(pEventArguments, &(connectEvent->serverPort), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+    bool ret = ATCommand_GetNextArgumentInt(pEventArguments, &(connectEvent->serverPort), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, connectEvent->serverAddress, CALYPSO_STRING_TERMINATE, sizeof(connectEvent->serverAddress));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, connectEvent->serverAddress, ATCOMMAND_STRING_TERMINATE, sizeof(connectEvent->serverAddress));
     }
     return ret;
 }
@@ -332,11 +334,11 @@ bool ATEvent_ParseSocketTCPAcceptEvent(char **pEventArguments, ATEvent_SocketTCP
 {
     char temp[12];
 
-    bool ret = Calypso_GetNextArgumentInt(pEventArguments, &(acceptEvent->socketID), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+    bool ret = ATCommand_GetNextArgumentInt(pEventArguments, &(acceptEvent->socketID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, temp, CALYPSO_ARGUMENT_DELIM, sizeof(temp));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp));
         if (ret)
         {
             ret = ATSocket_ParseSocketFamily(temp, &(acceptEvent->family));
@@ -345,12 +347,12 @@ bool ATEvent_ParseSocketTCPAcceptEvent(char **pEventArguments, ATEvent_SocketTCP
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentInt(pEventArguments, &(acceptEvent->clientPort), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM);
+        ret = ATCommand_GetNextArgumentInt(pEventArguments, &(acceptEvent->clientPort), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM);
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, acceptEvent->clientAddress, CALYPSO_STRING_TERMINATE, sizeof(acceptEvent->clientAddress));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, acceptEvent->clientAddress, ATCOMMAND_STRING_TERMINATE, sizeof(acceptEvent->clientAddress));
     }
 
     return ret;
@@ -369,17 +371,17 @@ bool ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
                                   bool decodeBase64,
                                   ATEvent_SocketRcvd_t* rcvdEvent)
 {
-    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->socketID), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->socketID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->format), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->format), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->length), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
@@ -405,7 +407,7 @@ bool ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
     {
         return false;
     }
-    return Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->data, CALYPSO_STRING_TERMINATE, sizeof(rcvdEvent->data));
+    return ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->data, ATCOMMAND_STRING_TERMINATE, sizeof(rcvdEvent->data));
 }
 
 
@@ -419,38 +421,38 @@ bool ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
  */
 bool ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, ATEvent_MQTTRcvd_t* rcvdEvent)
 {
-    if (!Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->topic,CALYPSO_ARGUMENT_DELIM, sizeof(rcvdEvent->topic)))
+    if (!ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->topic,ATCOMMAND_ARGUMENT_DELIM, sizeof(rcvdEvent->topic)))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments, (uint8_t *)&(rcvdEvent->qos), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, (uint8_t *)&(rcvdEvent->qos), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->retain), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->retain), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments, &(rcvdEvent->duplicate), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->duplicate), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments,(uint8_t *) &(rcvdEvent->dataFormat), CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments,(uint8_t *) &(rcvdEvent->dataFormat), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if (!Calypso_GetNextArgumentInt(pEventArguments,&(rcvdEvent->dataLength), CALYPSO_INTFLAGS_SIZE16 | CALYPSO_INTFLAGS_UNSIGNED, CALYPSO_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments,&(rcvdEvent->dataLength), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    if(Calypso_GetNextArgumentString(pEventArguments, rcvdEvent->data, CALYPSO_STRING_TERMINATE, sizeof(rcvdEvent->data)))
+    if(ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->data, ATCOMMAND_STRING_TERMINATE, sizeof(rcvdEvent->data)))
     {
         if (rcvdEvent->dataFormat == Calypso_DataFormat_Base64)
         {
@@ -479,16 +481,16 @@ bool ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, ATEvent_MQTTRcvd_t
  */
 bool ATEvent_ParseNetappIP4AcquiredEvent(char **pEventArguments, ATEvent_NetappIP4Acquired_t* ipv4Event)
 {
-    bool ret = Calypso_GetNextArgumentString(pEventArguments, ipv4Event->address, CALYPSO_ARGUMENT_DELIM, sizeof(ipv4Event->address));
+    bool ret = ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipv4Event->address));
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, ipv4Event->gateway, CALYPSO_ARGUMENT_DELIM, sizeof(ipv4Event->gateway));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->gateway, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipv4Event->gateway));
     }
 
     if (ret)
     {
-        ret = Calypso_GetNextArgumentString(pEventArguments, ipv4Event->DNS, CALYPSO_STRING_TERMINATE, sizeof(ipv4Event->DNS));
+        ret = ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->DNS, ATCOMMAND_STRING_TERMINATE, sizeof(ipv4Event->DNS));
     }
 
     return ret;
@@ -505,7 +507,7 @@ bool ATEvent_ParseNetappIP4AcquiredEvent(char **pEventArguments, ATEvent_NetappI
  */
 bool ATEvent_ParseHttpGetEvent(char **pEventArguments, char *id, uint16_t maxIdLength)
 {
-    return Calypso_GetNextArgumentString(pEventArguments, id, CALYPSO_STRING_TERMINATE, maxIdLength);
+    return ATCommand_GetNextArgumentString(pEventArguments, id, ATCOMMAND_STRING_TERMINATE, maxIdLength);
 }
 
 /**
@@ -531,10 +533,10 @@ bool ATEvent_ParseFileListEntryEvent(char **pEventArguments, ATFile_FileListEntr
  */
 bool ATEvent_ParseCustomGPIOEvent(char **pEventArguments, uint8_t *gpioId)
 {
-    return Calypso_GetNextArgumentInt(pEventArguments,
+    return ATCommand_GetNextArgumentInt(pEventArguments,
                                       gpioId,
-                                      CALYPSO_INTFLAGS_SIZE8 | CALYPSO_INTFLAGS_UNSIGNED | CALYPSO_INTFLAGS_NOTATION_DEC,
-                                      CALYPSO_STRING_TERMINATE);
+                                      ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC,
+                                      ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -554,11 +556,11 @@ bool ATEvent_ParseCustomHTTPPostEvent(char **pEventArguments,
                                       uint16_t maxIdLength,
                                       uint16_t maxValueLength)
 {
-    if (!Calypso_GetNextArgumentString(pEventArguments, id, CALYPSO_ARGUMENT_DELIM, maxIdLength))
+    if (!ATCommand_GetNextArgumentString(pEventArguments, id, ATCOMMAND_ARGUMENT_DELIM, maxIdLength))
     {
         return false;
     }
-    return Calypso_GetNextArgumentString(pEventArguments, value, CALYPSO_STRING_TERMINATE, maxValueLength);
+    return ATCommand_GetNextArgumentString(pEventArguments, value, ATCOMMAND_STRING_TERMINATE, maxValueLength);
 }
 
 /**

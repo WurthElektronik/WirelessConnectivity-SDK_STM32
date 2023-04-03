@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2022 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -52,7 +52,7 @@
 #include "Calypso_Socket_Example.h"
 #include "Calypso_TransparentMode_Example.h"
 #include "Calypso_WLAN_Example.h"
-#include "Calypso_Azure_PnP_Example.h"
+#include "Calypso_Azure_PnP_Example/Calypso_Azure_PnP_Example.h"
 
 /**
  * @brief UART baud rate used for communication with Calypso module.
