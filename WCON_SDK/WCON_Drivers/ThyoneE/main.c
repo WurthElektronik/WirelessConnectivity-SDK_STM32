@@ -25,13 +25,13 @@
 
 /**
  * @file
- * @brief Thyone-I example.
+ * @brief Thyone-e example.
  */
 
 #include <stdio.h>
 #include <string.h>
 
-#include "../../WCON_Drivers/ThyoneI/ThyoneI.h"
+#include "../../WCON_Drivers/ThyoneE/ThyoneE.h"
 #include "../../WCON_Drivers/global/global.h"
 
 /* callback for data reception */
@@ -68,26 +68,26 @@ void Example_CommandMode_GetFirmwareVersion()
 {
 	bool ret = false;
 
-	ret = ThyoneI_Init(THYONEI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneI_OperationMode_CommandMode, RxCallback);
-	Examples_Print("Thyone-I init", ret);
+	ret = ThyoneE_Init(THYONEE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneE_OperationMode_CommandMode, RxCallback);
+	Examples_Print("Thyone-e init", ret);
 
 	while (1)
 	{
 		uint8_t fwVersion[3];
 		memset(fwVersion, 0, sizeof(fwVersion));
-		ret = ThyoneI_GetFWVersion(fwVersion);
+		ret = ThyoneE_GetFWVersion(fwVersion);
 		Examples_Print("Get FW version", ret);
 		printf("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
 		WE_Delay(500);
 
 		uint8_t serialNr[4];
 		memset(serialNr, 0, sizeof(serialNr));
-		ret = ThyoneI_GetSerialNumber(serialNr);
+		ret = ThyoneE_GetSerialNumber(serialNr);
 		Examples_Print("Get serial number", ret);
 		printf("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[3], serialNr[2], serialNr[1], serialNr[0]);
 		WE_Delay(500);
 
-		ret = ThyoneI_PinReset();
+		ret = ThyoneE_PinReset();
 		Examples_Print("Reset", ret);
 		WE_Delay(500);
 	}
@@ -103,14 +103,14 @@ void Example_CommandMode_DataTransmission()
 		data[i] = (uint8_t)i;
 	}
 
-	ret = ThyoneI_Init(THYONEI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneI_OperationMode_CommandMode, RxCallback);
-	Examples_Print("Thyone-I init", ret);
+	ret = ThyoneE_Init(THYONEE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneE_OperationMode_CommandMode, RxCallback);
+	Examples_Print("Thyone-e init", ret);
 
 	while (1)
 	{
 		data[0]++;
 
-		ret = ThyoneI_TransmitBroadcast(data, sizeof(data));
+		ret = ThyoneE_TransmitBroadcast(data, sizeof(data));
 		Examples_Print("Broadcast transmission", ret);
 	}
 }
@@ -126,13 +126,13 @@ void Example_TransparentMode_DataTransmission()
 		data[i] = (uint8_t)i;
 	}
 
-	ret = ThyoneI_Init(THYONEI_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneI_OperationMode_TransparentMode, RxCallback);
-	Examples_Print("Thyone-I init", ret);
+	ret = ThyoneE_Init(THYONEE_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ThyoneE_OperationMode_TransparentMode, RxCallback);
+	Examples_Print("Thyone-e init", ret);
 
 	while (1)
 	{
 		/* Check state of busy pin and print message on state change */
-		bool b = ThyoneI_IsTransparentModeBusy();
+		bool b = ThyoneE_IsTransparentModeBusy();
 
 		if ((busy == true) && (b == false))
 		{

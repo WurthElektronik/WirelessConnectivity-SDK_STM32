@@ -266,14 +266,14 @@ bool Calypso_Azure_PnP_Connect_To_IoT_Hub(uint8_t *mqttIndex)
 
 	/* Set user name for the MQTT client */
 	sprintf(mqttSetParams.username,
-			"%s/%s/?api-version=2021-04-12", iotHubAddress, CALYPSO_AZURE_PNP_DEVICE_ID);
+			"%s/%s/?api-version=2021-04-12&model-id=%s", iotHubAddress, CALYPSO_AZURE_PNP_DEVICE_ID, MODEL_ID);
 	ret = ATMQTT_Set(*mqttIndex, ATMQTT_SetOption_User, &mqttSetParams);
 	Calypso_Azure_PnP_Print("Set MQTT user name", ret);
 
 	/* Connect to DPS MQTT broker */
 	ret = ATMQTT_Connect(*mqttIndex);
 
-	if(!Calypso_Azure_PnP_WaitForMqttOpEvent(2000))
+	if(!Calypso_Azure_PnP_WaitForMqttOpEvent(5000))
 	{
 		return false;
 	}
@@ -505,7 +505,7 @@ bool Calypso_Azure_PnP_Provision() {
 
 	/* Set user name for the MQTT client */
 	sprintf(mqttSetParams.username,
-			"%s/registrations/%s/api-version=2019-03-31&model-Id=%s", SCOPE_ID,
+			"%s/registrations/%s/api-version=2019-03-31&model-id=%s", SCOPE_ID,
 			CALYPSO_AZURE_PNP_DEVICE_ID, MODEL_ID);
 	ret = ATMQTT_Set(mqttIndex, ATMQTT_SetOption_User, &mqttSetParams);
 	Calypso_Azure_PnP_Print("Set MQTT user name", ret);
@@ -534,7 +534,7 @@ bool Calypso_Azure_PnP_Provision() {
 
 
 	/*Poll for provisioning complete response (status = "assigned")*/
-	if(Calypso_Azure_PnP_WaitForMqttRecvEvent(2000))
+	if(Calypso_Azure_PnP_WaitForMqttRecvEvent(3000))
 	{
 		json_value *response = NULL;
 		response = json_parse(recvEvent.data, recvEvent.dataLength-1);
@@ -542,7 +542,7 @@ bool Calypso_Azure_PnP_Provision() {
 		{
 			WE_Delay(2000);
 			ret = Calypso_Azure_PnP_Publish_Status_Req(mqttIndex, response->u.object.values[0].value->u.string.ptr);
-			if(Calypso_Azure_PnP_WaitForMqttRecvEvent(2000))
+			if(Calypso_Azure_PnP_WaitForMqttRecvEvent(3000))
 			{
 				json_value *status = NULL;
 				status = json_parse(recvEvent.data, recvEvent.dataLength-1);
