@@ -63,18 +63,19 @@
 #define ATCOMMAND_STRING_EMPTY     ""                         /**< Empty string */
 
 
-#define ATCOMMAND_INTFLAGS_SIZE   (uint16_t)(7)               /**< Mask for integer conversion flags concerning size */
+#define ATCOMMAND_INTFLAGS_SIZE   (uint16_t)(0x0F)               /**< Mask for integer conversion flags concerning size */
 #define ATCOMMAND_INTFLAGS_SIZE8  (uint16_t)(1)               /**< 8 bit integer conversion flag */
-#define ATCOMMAND_INTFLAGS_SIZE16 (uint16_t)(2)               /**< 16 bit integer conversion flag */
-#define ATCOMMAND_INTFLAGS_SIZE32 (uint16_t)(4)               /**< 32 bit integer conversion flag */
+#define ATCOMMAND_INTFLAGS_SIZE16  (uint16_t)(2)               /**< 8 bit integer conversion flag */
+#define ATCOMMAND_INTFLAGS_SIZE32 (uint16_t)(4)               /**< 16 bit integer conversion flag */
+#define ATCOMMAND_INTFLAGS_SIZE64 (uint16_t)(8)               /**< 32 bit integer conversion flag */
 
-#define ATCOMMAND_INTFLAGS_SIGN       (uint16_t)(0x18)        /**< Mask for integer conversion flags concerning sign */
-#define ATCOMMAND_INTFLAGS_SIGNED     (uint16_t)(0x08)        /**< Signed integer conversion flag */
-#define ATCOMMAND_INTFLAGS_UNSIGNED   (uint16_t)(0x10)        /**< Unsigned integer conversion flag */
+#define ATCOMMAND_INTFLAGS_SIGN       (uint16_t)(0x30)        /**< Mask for integer conversion flags concerning sign */
+#define ATCOMMAND_INTFLAGS_SIGNED     (uint16_t)(0x10)        /**< Signed integer conversion flag */
+#define ATCOMMAND_INTFLAGS_UNSIGNED   (uint16_t)(0x20)        /**< Unsigned integer conversion flag */
 
-#define ATCOMMAND_INTFLAGS_NOTATION        (uint16_t)(0x60)   /**< Mask for integer conversion flags concerning notation */
-#define ATCOMMAND_INTFLAGS_NOTATION_HEX    (uint16_t)(0x20)   /**< Hexadecimal notation */
-#define ATCOMMAND_INTFLAGS_NOTATION_DEC    (uint16_t)(0x40)   /**< Decimal notation */
+#define ATCOMMAND_INTFLAGS_NOTATION        (uint16_t)(0xC0)   /**< Mask for integer conversion flags concerning notation */
+#define ATCOMMAND_INTFLAGS_NOTATION_HEX    (uint16_t)(0x40)   /**< Hexadecimal notation */
+#define ATCOMMAND_INTFLAGS_NOTATION_DEC    (uint16_t)(0x80)   /**< Decimal notation */
 
 /**
  * @brief Boolean value (true, false).
@@ -124,6 +125,11 @@ extern bool ATCommand_AppendArgumentBoolean(char *pOutString,
                                           bool inBool,
                                           char delimiter);
 
+extern bool ATCommand_AppendArgumentBitsQuotationMarks(char *pOutString,
+										  uint32_t pInValue,
+										  uint16_t intFlags,
+                                          char delimiter);
+
 extern bool ATCommand_GetNextArgumentString(char **pInArguments,
                                           char *pOutArgument,
                                           char delimiter,
@@ -144,7 +150,17 @@ extern bool ATCommand_AppendArgumentInt(char *pOutString,
                                       uint16_t intFlags,
                                       char delimiter);
 
+extern bool ATCommand_AppendArgumentIntQuotationMarks(char *pOutString,
+                                      uint32_t pInValue,
+                                      uint16_t intFlags,
+                                      char delimiter);
+
 extern bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char **pInArguments,
+                                       	   	   	   void *pOutArgument,
+												   uint16_t intFlags,
+												   char delimiter);
+
+extern bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char **pInArguments,
                                        	   	   	   void *pOutArgument,
 												   uint16_t intFlags,
 												   char delimiter);
@@ -182,7 +198,32 @@ extern uint8_t ATCommand_FindString(const char *stringList[],
                                   uint8_t defaultValue,
                                   bool *ok);
 
+extern bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char **pInArguments,
+                                 uint8_t *pOutArgument,
+                                 const char *stringList[],
+                                 uint8_t numStrings,
+                                 uint16_t maxStringLength,
+                                 char delimiter);
 
+extern bool ATCommand_StringToDouble(void *number, const char *inString);
+
+extern bool ATCommand_StringToFloat(void *number, const char *inString);
+
+extern bool ATCommand_GetNextArgumentDouble(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter);
+
+extern bool ATCommand_GetNextArgumentFloat(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter);
+
+extern bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter);
+
+extern bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter);
 
 #ifdef __cplusplus
 }

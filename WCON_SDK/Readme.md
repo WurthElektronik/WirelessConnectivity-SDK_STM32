@@ -11,6 +11,22 @@ The following sections contain wiring instructions for each radio module.
 
 Note that some connections are optional and may not be required depending on the application.
 
+## Adrastea pinout
+```
+ _____________________           ______________________
+|        STM32        |         |       Adrastea       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 | 
+|                     |         |                      |  
+|        Wake_up (PA9)|-------->|Wake_up               |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|_____________________|         |______________________|
+```
+**Note** Please make sure to to match the voltage level according to the module since the GPIO pins in Adrastea are 1.8v (In case of using the evaluation board there is already a level shifter to 1.8v on the UART pins only).
+
 ## Calypso pinout
 ```
  _____________________           ______________________

@@ -105,7 +105,7 @@ bool ATCommand_StringToInt(void *number, const char *inString, uint16_t intFlags
     {
         char *endptr;
 
-        long longNr = strtol(inString, &endptr, (hex == true) ? 16 : 10);
+        long long longNr = strtoll(inString, &endptr, (hex == true) ? 16 : 10);
 
         if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
 			/* endptr did not move to end, thus conversion failed */
@@ -124,12 +124,16 @@ bool ATCommand_StringToInt(void *number, const char *inString, uint16_t intFlags
         {
             *((int32_t*) number) = longNr;
         }
+        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64) != 0)
+        {
+            *((int64_t*) number) = longNr;
+        }
     }
     else
     {
         char *endptr;
 
-        unsigned long longNr = strtoul(inString, &endptr, (hex == true) ? 16 : 10);
+        unsigned long long longNr = strtoull(inString, &endptr, (hex == true) ? 16 : 10);
 
         if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
 			/* endptr did not move to end, thus conversion failed */
@@ -147,6 +151,10 @@ bool ATCommand_StringToInt(void *number, const char *inString, uint16_t intFlags
         else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE32) != 0)
         {
             *((uint32_t*) number) = longNr;
+        }
+        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64) != 0)
+        {
+            *((uint64_t*) number) = longNr;
         }
     }
 
@@ -337,6 +345,7 @@ bool ATCommand_GetNextArgumentString(char **pInArguments,
 
     size_t argumentLength = 0;
     size_t inputStringLength = strlen(*pInArguments);
+    size_t quotationCharCount = 0;
 
     while (true)
     {
@@ -344,7 +353,7 @@ bool ATCommand_GetNextArgumentString(char **pInArguments,
         {
             return false;
         }
-        else if (((*pInArguments)[argumentLength] == delimiter))
+        else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
         {
             /* If argument list is not empty, copy string to output arguments */
             memcpy(pOutArgument, *pInArguments, argumentLength);
@@ -357,6 +366,9 @@ bool ATCommand_GetNextArgumentString(char **pInArguments,
             }
 
             return true;
+        }
+        else if (((*pInArguments)[argumentLength] == '"')){
+        	quotationCharCount++;
         }
         else if (argumentLength > inputStringLength)
         {
@@ -388,6 +400,7 @@ bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments,
 
     size_t argumentLength = 0;
     size_t inputStringLength = strlen(*pInArguments);
+    size_t quotationCharCount = 0;
 
     while (true)
     {
@@ -395,7 +408,7 @@ bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments,
         {
             return false;
         }
-        else if (((*pInArguments)[argumentLength] == delimiter))
+        else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
         {
         	if(((*pInArguments)[0] == '"') &&
         		((*pInArguments)[argumentLength-1] == '"') &&
@@ -414,6 +427,9 @@ bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments,
 				return false;
 			}
 
+        }
+        else if (((*pInArguments)[argumentLength] == '"')){
+        	quotationCharCount++;
         }
         else if (argumentLength > inputStringLength)
         {
@@ -451,6 +467,32 @@ bool ATCommand_AppendArgumentInt(char *pOutString, uint32_t pInValue, uint16_t i
     return false;
 }
 
+/**
+ * @brief Appends an integer argument to the end of an AT command, which is embedded into quotation marks
+ *
+ * @param[out] pOutString AT command after appending argument
+ * @param[in] pInValue Argument to be added
+ * @param[in] intFlags Integer formatting flags
+ * @param[in] delimiter Delimiter to append after argument
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_AppendArgumentIntQuotationMarks(char *pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter)
+{
+    if (NULL == pOutString)
+    {
+        return false;
+    }
+
+    char tempString[12];
+
+    if (ATCommand_IntToString(tempString, pInValue, intFlags))
+    {
+        return ATCommand_AppendArgumentStringQuotationMarks(pOutString, tempString, delimiter);
+    }
+
+    return false;
+}
 
 /**
  * @brief Gets the next enumeration argument from the supplied AT command.
@@ -741,3 +783,311 @@ uint8_t ATCommand_FindString(const char *stringList[],
     return defaultValue;
 }
 
+/**
+ * @brief Appends a bits argument to the end of an AT command, which is embedded into quotation marks
+ *
+ * The supplied delimiter is appended after the argument. A null byte ('\0')
+ * is appended after the delimiter, if the delimiter itself is not a null byte.
+ * The string will be embedded into quotation marks
+ *
+ * @param[out] pOutString AT command after appending argument
+ * @param[in] pInArgument Argument to be added
+ * @param[in] intFlags Integer formatting flags
+ * @param[in] delimiter Delimiter to append after argument
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_AppendArgumentBitsQuotationMarks(char *pOutString,
+										  uint32_t pInValue,
+										  uint16_t intFlags,
+                                          char delimiter)
+{
+    if (NULL == pOutString)
+    {
+        return false;
+    }
+
+    char tempString[12];
+
+    if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
+    {
+    	for(int i=7;i>=0;i--){
+    		tempString[i] = pInValue & (1 << (7-i)) ? '1' : '0';
+    	}
+
+    	tempString[8] = ATCOMMAND_STRING_TERMINATE;
+    }
+    else
+    {
+    	return false;
+    }
+
+	return ATCommand_AppendArgumentStringQuotationMarks(pOutString, tempString, delimiter);
+
+}
+
+/**
+ * @brief Gets the next bits argument from the supplied AT command and removes the quotation marks
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Argument parsed as integer
+ * @param[in] intFlags Flags to determine how to parse
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char **pInArguments,
+                                       	   	   	   void *pOutArgument,
+												   uint16_t intFlags,
+												   char delimiter)
+{
+    if ((NULL == pInArguments) || (NULL == pOutArgument))
+    {
+        return false;
+    }
+
+    char tempString[40];
+
+    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+
+    long longNr = 0;
+
+    if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
+    {
+    	for(int i=7;i>=0;i--){
+    		longNr |= ((tempString[i] - '0') << (7-i));
+    	}
+        *((uint8_t*) pOutArgument) = longNr;
+    }
+    else
+    {
+    	return false;
+    }
+
+    return true;
+
+}
+
+/**
+ * @brief Gets the next enumeration argument from the supplied AT command and removes the quotation marks.
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Enumeration value corresponding to the string read from the input AT command
+ * @param[in] stringList List of strings containing the string representations of the enumeration's values
+ * @param[in] numStrings Number of elements in stringList (number of elements in the enumeration)
+ * @param[in] maxStringLength Max. length of individual enumeration value strings
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char **pInArguments,
+                                 uint8_t *pOutArgument,
+                                 const char *stringList[],
+                                 uint8_t numStrings,
+                                 uint16_t maxStringLength,
+                                 char delimiter)
+{
+    char tempString[maxStringLength];
+
+    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments,
+                                       tempString,
+                                       delimiter,
+                                       sizeof(tempString)))
+    {
+        return false;
+    }
+
+    bool ok;
+    *pOutArgument = ATCommand_FindString(stringList,
+                                       numStrings,
+                                       tempString,
+                                       0,
+                                       &ok);
+    return ok;
+}
+
+/**
+ * @brief Parses string to double
+ *
+ * @param[out] number Parsed double value
+ * @param[in] inString String to be parsed
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_StringToDouble(void *number, const char *inString)
+{
+    if ((NULL == inString) || (NULL == number))
+    {
+        return false;
+    }
+
+	char *endptr;
+
+	double doubleNr = strtod(inString, &endptr);
+
+	if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+		/* endptr did not move to end, thus conversion failed */
+		return false;
+	}
+
+	*((double*) number) = doubleNr;
+
+    return true;
+}
+
+/**
+ * @brief Parses string to float
+ *
+ * @param[out] number Parsed float value
+ * @param[in] inString String to be parsed
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_StringToFloat(void *number, const char *inString)
+{
+    if ((NULL == inString) || (NULL == number))
+    {
+        return false;
+    }
+
+	char *endptr;
+
+	float floatNr = strtof(inString, &endptr);
+
+	if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+		/* endptr did not move to end, thus conversion failed */
+		return false;
+	}
+
+	*((float*) number) = floatNr;
+
+    return true;
+}
+
+/**
+ * @brief Gets the next double argument from the supplied AT command.
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Argument parsed as double
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentDouble(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter)
+{
+    if ((NULL == pInArguments) || (NULL == pOutArgument))
+    {
+        return false;
+    }
+
+    char tempString[40];
+
+    char *tempstartlocation = *pInArguments;
+
+    ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
+
+    if(!ATCommand_StringToDouble(pOutArgument, tempString)){
+        *pInArguments = tempstartlocation;
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Gets the next float argument from the supplied AT command.
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Argument parsed as float
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentFloat(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter)
+{
+    if ((NULL == pInArguments) || (NULL == pOutArgument))
+    {
+        return false;
+    }
+
+    char tempString[40];
+
+    char *tempstartlocation = *pInArguments;
+
+    ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
+
+    if(!ATCommand_StringToFloat(pOutArgument, tempString)){
+        *pInArguments = tempstartlocation;
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Gets the next double argument from the supplied AT command and removes the quotation marks
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Argument parsed as double
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter)
+{
+    if ((NULL == pInArguments) || (NULL == pOutArgument))
+    {
+        return false;
+    }
+
+    char tempString[40];
+
+    char *tempstartlocation = *pInArguments;
+
+    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+
+    if(!ATCommand_StringToDouble(pOutArgument, tempString)){
+        *pInArguments = tempstartlocation;
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Gets the next float argument from the supplied AT command and removes the quotation marks.
+ *
+ * @param[in,out] pInArguments AT command to get argument from
+ * @param[out] pOutArgument Argument parsed as float
+ * @param[in] delimiter Delimiter which occurs after argument to get
+ *
+ * @return true if successful, false otherwise
+ */
+bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char **pInArguments,
+                                void *pOutArgument,
+                                char delimiter)
+{
+    if ((NULL == pInArguments) || (NULL == pOutArgument))
+    {
+        return false;
+    }
+
+    char tempString[40];
+
+    char *tempstartlocation = *pInArguments;
+
+    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+
+    if(!ATCommand_StringToFloat(pOutArgument, tempString)){
+        *pInArguments = tempstartlocation;
+        return false;
+    }
+
+    return true;
+}
