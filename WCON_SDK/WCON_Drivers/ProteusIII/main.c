@@ -37,6 +37,7 @@
 /* Proteus-III examples. Pick the example to be executed in the main function. */
 static void CommandModeExample();
 static void PeripheralOnlyModeExample();
+static void DTMExample();
 
 /* Callback functions for various indications sent by the Proteus-III. */
 static void RxCallback(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
@@ -82,6 +83,7 @@ int main(void)
 
 	CommandModeExample();
 //    PeripheralOnlyModeExample();
+//    DTMExample();
 }
 
 /**
@@ -326,6 +328,74 @@ static void PeripheralOnlyModeExample()
 		}
 
 //        WE_Delay(1);
+	}
+}
+
+
+/**
+ * @brief Proteus-III DTM example.
+ *
+ * Starts the direct test mode (DTM) and switches between several transmission modes
+ */
+void DTMExample()
+{
+	bool ret = false;
+
+	ProteusIII_CallbackConfig_t callbackConfig = {
+			0 };
+	callbackConfig.sleepCb = SleepCallback;
+	callbackConfig.errorCb = ErrorCallback;
+
+	ProteusIII_Init(PROTEUSIII_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ProteusIII_OperationMode_CommandMode, callbackConfig);
+
+//    printf("Performing factory reset\n");
+//    bool ret = ProteusIII_FactoryReset();
+//    printf("Factory reset %s\n", ret ? "OK" : "NOK");
+
+	ProteusIII_DeviceInfo_t deviceInfo;
+	if (ProteusIII_GetDeviceInfo(&deviceInfo))
+	{
+		printf("Device info OS version = 0x%04x, "
+				"build code = 0x%08lx, "
+				"package variant = 0x%04x, "
+				"chip ID = 0x%08lx\r\n", deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
+	}
+
+	uint8_t fwVersion[3];
+	ret = ProteusIII_GetFWVersion(fwVersion);
+	Examples_Print("Get firmware version", ret);
+	printf("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+	WE_Delay(500);
+
+	ret = ProteusIII_DTMEnable();
+	Examples_Print("DTM enable", ret);
+
+	ProteusIII_Phy_t phy = ProteusIII_Phy_1MBit;
+	uint8_t channel = 19;
+	ProteusIII_TXPower_t power = ProteusIII_TXPower_8;
+
+	ret = ProteusIII_DTMSetTXPower(power);
+	Examples_Print("Set TX power\r\n", ret);
+
+	while(1)
+	{
+		phy = (phy == ProteusIII_Phy_1MBit)?ProteusIII_Phy_2MBit:ProteusIII_Phy_1MBit;
+		ret = ProteusIII_DTMSetPhy(phy);
+		Examples_Print("Set phy", ret);
+
+		ret = ProteusIII_DTMStartTX(channel, 16, ProteusIII_DTMTXPattern_PRBS9);
+		Examples_Print("Start TX", ret);
+		WE_Delay(2000);
+
+		ret = ProteusIII_DTMStop();
+		Examples_Print("Stop TX\r\n", ret);
+
+		ret = ProteusIII_DTMStartTXCarrier(channel);
+		Examples_Print("Start TX carrier", ret);
+		WE_Delay(2000);
+
+		ret = ProteusIII_DTMStop();
+		Examples_Print("Stop TX carrier\r\n", ret);
 	}
 }
 

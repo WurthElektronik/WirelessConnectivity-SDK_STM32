@@ -37,6 +37,7 @@
 /* Proteus-II examples. Pick the example to be executed in the main function. */
 static void CommandModeExample();
 static void PeripheralOnlyModeExample();
+static void DTMExample();
 
 /* Callback functions for various indications sent by the Proteus-II. */
 static void RxCallback(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
@@ -80,6 +81,7 @@ int main(void)
 
 	CommandModeExample();
 //    PeripheralOnlyModeExample();
+//    DTMExample();
 }
 
 /**
@@ -324,6 +326,74 @@ static void PeripheralOnlyModeExample()
 //        WE_Delay(1);
 	}
 }
+
+/**
+ * @brief Proteus-III DTM example.
+ *
+ * Starts the direct test mode (DTM) and switches between several transmission modes
+ */
+void DTMExample()
+{
+	bool ret = false;
+
+	ProteusII_CallbackConfig_t callbackConfig = {
+			0 };
+	callbackConfig.sleepCb = SleepCallback;
+	callbackConfig.errorCb = ErrorCallback;
+
+	ProteusII_Init(PROTEUSII_DEFAULT_BAUDRATE, WE_FlowControl_NoFlowControl, ProteusII_OperationMode_CommandMode, callbackConfig);
+
+//    printf("Performing factory reset\n");
+//    bool ret = ProteusII_FactoryReset();
+//    printf("Factory reset %s\n", ret ? "OK" : "NOK");
+
+	ProteusII_DeviceInfo_t deviceInfo;
+	if (ProteusII_GetDeviceInfo(&deviceInfo))
+	{
+		printf("Device info OS version = 0x%04x, "
+				"build code = 0x%08lx, "
+				"package variant = 0x%04x, "
+				"chip ID = 0x%08lx\r\n", deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
+	}
+
+	uint8_t fwVersion[3];
+	ret = ProteusII_GetFWVersion(fwVersion);
+	Examples_Print("Get firmware version", ret);
+	printf("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+	WE_Delay(500);
+
+	ret = ProteusII_DTMEnable();
+	Examples_Print("DTM enable", ret);
+
+	ProteusII_Phy_t phy = ProteusII_Phy_1MBit;
+	uint8_t channel = 19;
+	ProteusII_TXPower_t power = ProteusII_TXPower_4;
+
+	ret = ProteusII_DTMSetTXPower(power);
+	Examples_Print("Set TX power\r\n", ret);
+
+	while(1)
+	{
+		phy = (phy == ProteusII_Phy_1MBit)?ProteusII_Phy_2MBit:ProteusII_Phy_1MBit;
+		ret = ProteusII_DTMSetPhy(phy);
+		Examples_Print("Set phy", ret);
+
+		ret = ProteusII_DTMStartTX(channel, 16, ProteusII_DTMTXPattern_PRBS9);
+		Examples_Print("Start TX", ret);
+		WE_Delay(2000);
+
+		ret = ProteusII_DTMStop();
+		Examples_Print("Stop TX\r\n", ret);
+
+		ret = ProteusII_DTMStartTXCarrier(channel);
+		Examples_Print("Start TX carrier", ret);
+		WE_Delay(2000);
+
+		ret = ProteusII_DTMStop();
+		Examples_Print("Stop TX carrier\r\n", ret);
+	}
+}
+
 
 static void RxCallback(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi)
 {

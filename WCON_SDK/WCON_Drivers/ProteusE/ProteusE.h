@@ -294,6 +294,27 @@ typedef struct ProteusE_BondDatabase_t
 	ProteusE_BondDatabaseEntry_t devices[PROTEUSE_MAX_BOND_DEVICES ];
 } ProteusE_BondDatabase_t;
 
+/**
+ * @brief DTM command type
+ */
+typedef enum ProteusE_DTMCommand_t
+{
+	ProteusE_DTMCommand_Setup = 0x00,
+	ProteusE_DTMCommand_StartRX = 0x01,
+	ProteusE_DTMCommand_StartTX = 0x02,
+	ProteusE_DTMCommand_Stop = 0x03,
+} ProteusE_DTMCommand_t;
+
+/**
+ * @brief DTM TX pattern
+ */
+typedef enum ProteusE_DTMTXPattern_t
+{
+	ProteusE_DTMTXPattern_PRBS9 = 0x00,
+	ProteusE_DTMTXPattern_0x0F = 0x01,
+	ProteusE_DTMTXPattern_0x55 = 0x02,
+} ProteusE_DTMTXPattern_t;
+
 /* Callback definition */
 
 typedef void (*ProteusE_RxCallback)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
@@ -430,6 +451,15 @@ extern bool ProteusE_GetSppBaseUuid(uint8_t *uuidP);
 extern bool ProteusE_GetSppServiceUuid(uint8_t *uuidP);
 extern bool ProteusE_GetSppRxUuid(uint8_t *uuidP);
 extern bool ProteusE_GetSppTxUuid(uint8_t *uuidP);
+
+
+extern bool ProteusE_DTMEnable();
+extern bool ProteusE_DTMRun(ProteusE_DTMCommand_t command, uint8_t channel_vendoroption, uint8_t length_vendorcmd, uint8_t payload);
+extern bool ProteusE_DTMStartTX(uint8_t channel, uint8_t length, ProteusE_DTMTXPattern_t pattern);
+extern bool ProteusE_DTMStartTXCarrier(uint8_t channel);
+extern bool ProteusE_DTMStop();
+extern bool ProteusE_DTMSetPhy(ProteusE_Phy_t phy);
+extern bool ProteusE_DTMSetTXPower(ProteusE_TXPower_t power);
 
 #endif // PROTEUSE_H_INCLUDED
 

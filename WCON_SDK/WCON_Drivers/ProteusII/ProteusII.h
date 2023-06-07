@@ -326,6 +326,27 @@ typedef struct ProteusII_BondDatabase_t
 	ProteusII_BondDatabaseEntry_t devices[PROTEUSII_MAX_BOND_DEVICES ];
 } ProteusII_BondDatabase_t;
 
+/**
+ * @brief DTM command type
+ */
+typedef enum ProteusII_DTMCommand_t
+{
+	ProteusII_DTMCommand_Setup = 0x00,
+	ProteusII_DTMCommand_StartRX = 0x01,
+	ProteusII_DTMCommand_StartTX = 0x02,
+	ProteusII_DTMCommand_Stop = 0x03,
+} ProteusII_DTMCommand_t;
+
+/**
+ * @brief DTM TX pattern
+ */
+typedef enum ProteusII_DTMTXPattern_t
+{
+	ProteusII_DTMTXPattern_PRBS9 = 0x00,
+	ProteusII_DTMTXPattern_0x0F = 0x01,
+	ProteusII_DTMTXPattern_0x55 = 0x02,
+} ProteusII_DTMTXPattern_t;
+
 /* Callback definition */
 
 typedef void (*ProteusII_RxCallback)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
@@ -453,6 +474,13 @@ extern bool ProteusII_GetStaticPasskey(uint8_t *staticPasskeyP);
 extern bool ProteusII_GetAppearance(uint16_t *appearanceP);
 extern bool ProteusII_GetSppBaseUuid(uint8_t *uuidP);
 
+extern bool ProteusII_DTMEnable();
+extern bool ProteusII_DTMRun(ProteusII_DTMCommand_t command, uint8_t channel_vendoroption, uint8_t length_vendorcmd, uint8_t payload);
+extern bool ProteusII_DTMStartTX(uint8_t channel, uint8_t length, ProteusII_DTMTXPattern_t pattern);
+extern bool ProteusII_DTMStartTXCarrier(uint8_t channel);
+extern bool ProteusII_DTMStop();
+extern bool ProteusII_DTMSetPhy(ProteusII_Phy_t phy);
+extern bool ProteusII_DTMSetTXPower(ProteusII_TXPower_t power);
 #endif // PROTEUSII_H_INCLUDED
 
 #ifdef __cplusplus

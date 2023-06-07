@@ -151,6 +151,14 @@ typedef struct
 #define PROTEUSII_CMD_FACTORYRESET_REQ (PROTEUSII_CMD_FACTORYRESET | PROTEUSII_CMD_TYPE_REQ)
 #define PROTEUSII_CMD_FACTORYRESET_CNF (PROTEUSII_CMD_FACTORYRESET | PROTEUSII_CMD_TYPE_CNF)
 
+#define PROTEUSII_CMD_DTMSTART        (uint8_t)0x1D
+#define PROTEUSII_CMD_DTMSTART_REQ    (PROTEUSII_CMD_DTMSTART | PROTEUSII_CMD_TYPE_REQ)
+#define PROTEUSII_CMD_DTMSTART_CNF    (PROTEUSII_CMD_DTMSTART | PROTEUSII_CMD_TYPE_CNF)
+
+#define PROTEUSII_CMD_DTM (uint8_t)0x1E
+#define PROTEUSII_CMD_DTM_REQ (PROTEUSII_CMD_DTM | PROTEUSII_CMD_TYPE_REQ)
+#define PROTEUSII_CMD_DTM_CNF (PROTEUSII_CMD_DTM | PROTEUSII_CMD_TYPE_CNF)
+
 #define PROTEUSII_CMD_NUMERIC_COMP (uint8_t)0x24
 #define PROTEUSII_CMD_NUMERIC_COMP_REQ    (PROTEUSII_CMD_NUMERIC_COMP | PROTEUSII_CMD_TYPE_REQ)
 #define PROTEUSII_CMD_NUMERIC_COMP_CNF    (PROTEUSII_CMD_NUMERIC_COMP | PROTEUSII_CMD_TYPE_CNF)
@@ -283,6 +291,8 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	case PROTEUSII_CMD_DELETE_BONDS_CNF:
 	case PROTEUSII_CMD_TXCOMPLETE_RSP:
 	case PROTEUSII_CMD_NUMERIC_COMP_CNF:
+    case PROTEUSII_CMD_DTMSTART_CNF:
+    case PROTEUSII_CMD_DTM_CNF:
 	{
 		cmdConfirmation.cmd = rxPacket.Cmd;
 		cmdConfirmation.status = rxPacket.Data[0];
@@ -1987,4 +1997,129 @@ bool ProteusII_DeleteBond(uint8_t bondId)
 	}
 	return false;
 }
+
+/**
+ * @brief Enable the direct test mode (DTM)
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMEnable()
+{
+	txPacket.Cmd = PROTEUSII_CMD_DTMSTART_REQ;
+	txPacket.Length = 0;
+
+	if (FillChecksum(&txPacket))
+	{
+		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+
+		/* wait for cnf */
+		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+		{
+			if((rxPacket.Data[0] == (uint8_t)ProteusII_BLE_Role_DTM) && (rxPacket.Data[1] == (uint8_t)ProteusII_BLE_Action_DTM))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+/**
+ * @brief Run a direct test mode (DTM) command
+ *
+ * @param[in] command: Command
+ * @param[in] channel_vendoroption: Channel or vendor option
+ * @param[in] length_vendorcmd: Length or vendor command
+ * @param[in] payload: Payload
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMRun(ProteusII_DTMCommand_t command, uint8_t channel_vendoroption, uint8_t length_vendorcmd, uint8_t payload)
+{
+	txPacket.Cmd = PROTEUSII_CMD_DTM_REQ;
+	txPacket.Length = 4;
+	txPacket.Data[0] = command;
+	txPacket.Data[1] = channel_vendoroption;
+	txPacket.Data[2] = length_vendorcmd;
+	txPacket.Data[3] = payload;
+
+	if (FillChecksum(&txPacket))
+	{
+		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+
+		/* wait for cnf */
+		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DTM_CNF, CMD_Status_Success, true);
+	}
+	return false;
+}
+
+/**
+ * @brief Start the direct test mode (DTM) TX test
+ *
+ * @param[in] channel: Channel
+ * @param[in] length: Number of patterns
+ * @param[in] pattern: Pattern to send
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMStartTX(uint8_t channel, uint8_t length, ProteusII_DTMTXPattern_t pattern)
+{
+	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, channel, length, (uint8_t)pattern);
+}
+
+/**
+ * @brief Start the direct test mode (DTM) TX carrier test
+ *
+ * @param[in] channel: Channel
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMStartTXCarrier(uint8_t channel)
+{
+	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, channel, 0x00, 0x03);
+}
+
+/**
+ * @brief Stop the current direct test mode (DTM) test
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMStop()
+{
+	return ProteusII_DTMRun(ProteusII_DTMCommand_Stop, 0x00, 0x00, 0x01);
+}
+
+/**
+ * @brief Set the phy for direct test mode (DTM) test
+ *
+ * @param[in] phy: Phy
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMSetPhy(ProteusII_Phy_t phy)
+{
+	return ProteusII_DTMRun(ProteusII_DTMCommand_Setup, 0x02, (uint8_t)phy, 0x00);
+}
+
+/**
+ * @brief Set the TX power for direct test mode (DTM) test
+ *
+ * @param[in] power: Tx power
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_DTMSetTXPower(ProteusII_TXPower_t power)
+{
+	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, (uint8_t)power, 0x02, 0x03);
+}
+
+
 

@@ -189,7 +189,7 @@
 					<sourceEntries>
 						<entry excluding="Src/syscalls.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="ThyoneE|ProteusII|ProteusE|Metis|ThyoneI|ThemistoI|ThebeII|TelestoIII|TarvosIII|ProteusIII" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="WCON_Drivers"/>
+						<entry excluding="AdrasteaI|ThyoneE|ProteusII|ProteusE|Metis|ThyoneI|ThemistoI|ThebeII|TelestoIII|TarvosIII|ProteusIII" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="WCON_Drivers"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
