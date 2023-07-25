@@ -56,7 +56,7 @@ typedef struct
 	uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
-	uint8_t Data[PROTEUSE_MAX_PAYLOAD_LENGTH + 1]; /* +1 from CS */
+	uint8_t Data[PROTEUSE_MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
 
 } ProteusE_CMD_Frame_t;
 
@@ -880,7 +880,7 @@ bool ProteusE_Sleep()
  */
 bool ProteusE_Transmit(uint8_t *payloadP, uint16_t length)
 {
-	if ((length <= PROTEUSE_MAX_PAYLOAD_LENGTH ) && (ProteusE_DriverState_BLE_ChannelOpen == ProteusE_GetDriverState()))
+	if ((length <= PROTEUSE_MAX_RADIO_PAYLOAD_LENGTH ) && (ProteusE_DriverState_BLE_ChannelOpen == ProteusE_GetDriverState()))
 	{
 		txPacket.Cmd = PROTEUSE_CMD_DATA_REQ;
 		txPacket.Length = length;

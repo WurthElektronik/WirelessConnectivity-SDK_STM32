@@ -52,20 +52,19 @@ typedef enum ThyoneI_Pin_t
 /* Normal overhead: Start signal + Command + Length + CS = 1+1+2+1=5 bytes */
 #define LENGTH_CMD_OVERHEAD             (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
-/* Max. overhead (used by CMD_SNIFFER_IND):
- * Start signal + Command + Length + Src Addr + DATA_IND + RSSI + CS = 1+1+2+4+1+1+1=11 bytes */
-#define LENGTH_CMD_OVERHEAD_MAX         (uint16_t)11
-#define MAX_PAYLOAD_LENGTH              (uint16_t)224
-#define MAX_PAYLOAD_LENGTH_MULTICAST_EX (uint16_t)223
-#define MAX_PAYLOAD_LENGTH_UNICAST_EX   (uint16_t)220
-#define MAX_CMD_LENGTH                  (uint16_t)(MAX_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD_MAX)
+
+#define MAX_RADIO_PAYLOAD_LENGTH              (uint16_t)224
+#define MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX (uint16_t)223
+#define MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX   (uint16_t)220
+
+#define MAX_CMD_PAYLOAD_LENGTH                  (uint16_t)(MAX_RADIO_PAYLOAD_LENGTH + 6)
 
 typedef struct
 {
 	uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
-	uint8_t Data[MAX_CMD_LENGTH + 1]; /* +1 from CS */
+	uint8_t Data[MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
 
 } ThyoneI_CMD_Frame_t;
 
@@ -627,7 +626,7 @@ bool ThyoneI_Sleep()
 bool ThyoneI_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
 {
 	bool ret = false;
-	if (length <= MAX_PAYLOAD_LENGTH)
+	if (length <= MAX_RADIO_PAYLOAD_LENGTH)
 	{
 
 		txPacket.Cmd = THYONEI_CMD_BROADCAST_DATA_REQ;
@@ -657,7 +656,7 @@ bool ThyoneI_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
 bool ThyoneI_TransmitMulticast(uint8_t *payloadP, uint16_t length)
 {
 	bool ret = false;
-	if (length <= MAX_PAYLOAD_LENGTH)
+	if (length <= MAX_RADIO_PAYLOAD_LENGTH)
 	{
 
 		txPacket.Cmd = THYONEI_CMD_MULTICAST_DATA_REQ;
@@ -687,7 +686,7 @@ bool ThyoneI_TransmitMulticast(uint8_t *payloadP, uint16_t length)
 bool ThyoneI_TransmitUnicast(uint8_t *payloadP, uint16_t length)
 {
 	bool ret = false;
-	if (length <= MAX_PAYLOAD_LENGTH)
+	if (length <= MAX_RADIO_PAYLOAD_LENGTH)
 	{
 
 		txPacket.Cmd = THYONEI_CMD_UNICAST_DATA_REQ;
@@ -718,7 +717,7 @@ bool ThyoneI_TransmitUnicast(uint8_t *payloadP, uint16_t length)
 bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint16_t length)
 {
 	bool ret = false;
-	if (length <= MAX_PAYLOAD_LENGTH_MULTICAST_EX)
+	if (length <= MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX)
 	{
 		txPacket.Cmd = THYONEI_CMD_MULTICAST_DATA_EX_REQ;
 		txPacket.Length = length + 1;
@@ -749,7 +748,7 @@ bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
 bool ThyoneI_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16_t length)
 {
 	bool ret = false;
-	if (length <= MAX_PAYLOAD_LENGTH_UNICAST_EX)
+	if (length <= MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX)
 	{
 		txPacket.Cmd = THYONEI_CMD_UNICAST_DATA_EX_REQ;
 		txPacket.Length = length + 4;

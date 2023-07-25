@@ -39,10 +39,11 @@ extern "C" {
 #ifndef PROTEUSII_H_INCLUDED
 #define PROTEUSII_H_INCLUDED
 
-/* Max. payload length for transmission. Note that this is the max. length in high
+/* Max. radio payload length for transmission. Note that this is the max. length in high
  * throughput mode (see ProteusII_CfgFlags_HighThroughputMode) - in normal mode,
- * the max. payload length is 243 bytes. */
-#define PROTEUSII_MAX_PAYLOAD_LENGTH (uint16_t)964
+ * the max. radio payload length is 243 bytes. */
+#define PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH (uint16_t)964
+#define PROTEUSII_MAX_CMD_PAYLOAD_LENGTH (uint16_t)(PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH + 7)
 
 /* Max. length of beacon data (custom data in scan response packet,
  * see ProteusII_SetBeacon()) */

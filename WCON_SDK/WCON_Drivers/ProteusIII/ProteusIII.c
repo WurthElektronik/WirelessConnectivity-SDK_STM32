@@ -58,7 +58,7 @@ typedef struct
 	uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
-	uint8_t Data[PROTEUSIII_MAX_PAYLOAD_LENGTH + 1]; /* +1 from CS */
+	uint8_t Data[PROTEUSIII_MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
 
 } ProteusIII_CMD_Frame_t;
 
@@ -1011,7 +1011,7 @@ bool ProteusIII_UartDisable()
  */
 bool ProteusIII_Transmit(uint8_t *payloadP, uint16_t length)
 {
-	if ((length <= PROTEUSIII_MAX_PAYLOAD_LENGTH ) && (ProteusIII_DriverState_BLE_ChannelOpen == ProteusIII_GetDriverState()))
+	if ((length <= PROTEUSIII_MAX_RADIO_PAYLOAD_LENGTH ) && (ProteusIII_DriverState_BLE_ChannelOpen == ProteusIII_GetDriverState()))
 	{
 		txPacket.Cmd = PROTEUSIII_CMD_DATA_REQ;
 		txPacket.Length = length;

@@ -40,7 +40,8 @@ extern "C" {
 #define PROTEUSE_H_INCLUDED
 
 /* Max. payload length for transmission. */
-#define PROTEUSE_MAX_PAYLOAD_LENGTH (uint16_t)243
+#define PROTEUSE_MAX_RADIO_PAYLOAD_LENGTH (uint16_t)243
+#define PROTEUSE_MAX_CMD_PAYLOAD_LENGTH (uint16_t)(PROTEUSE_MAX_RADIO_PAYLOAD_LENGTH + 7)
 
 /* Time (ms) required for booting */
 #define PROTEUSE_BOOT_DURATION (uint16_t)35

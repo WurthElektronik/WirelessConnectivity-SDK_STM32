@@ -51,14 +51,14 @@ typedef enum ProteusII_Pin_t
 
 #define LENGTH_CMD_OVERHEAD             (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
-#define MAX_CMD_LENGTH                  (uint16_t)(PROTEUSII_MAX_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD)
+#define MAX_CMD_LENGTH                  (uint16_t)(PROTEUSII_MAX_CMD_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD)
 
 typedef struct
 {
 	uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
-	uint8_t Data[PROTEUSII_MAX_PAYLOAD_LENGTH + 1]; /* +1 from CS */
+	uint8_t Data[PROTEUSII_MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
 
 } ProteusII_CMD_Frame_t;
 
@@ -900,7 +900,7 @@ bool ProteusII_UartDisable()
  */
 bool ProteusII_Transmit(uint8_t *payloadP, uint16_t length)
 {
-	if ((length <= PROTEUSII_MAX_PAYLOAD_LENGTH ) && (ProteusII_DriverState_BLE_ChannelOpen == ProteusII_GetDriverState()))
+	if ((length <= PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH ) && (ProteusII_DriverState_BLE_ChannelOpen == ProteusII_GetDriverState()))
 	{
 		txPacket.Cmd = PROTEUSII_CMD_DATA_REQ;
 		txPacket.Length = length;
