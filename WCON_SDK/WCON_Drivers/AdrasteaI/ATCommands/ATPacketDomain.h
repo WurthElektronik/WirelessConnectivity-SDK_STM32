@@ -28,13 +28,13 @@
  * @brief AT commands for Packet Domain functionality.
  */
 
-#ifndef AT_PACKETDOMAIN_H_INCLUDED
-#define AT_PACKETDOMAIN_H_INCLUDED
+#ifndef ADRASTEAI_AT_PACKETDOMAIN_H_INCLUDED
+#define ADRASTEAI_AT_PACKETDOMAIN_H_INCLUDED
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ATCommon.h"
+#include <AdrasteaI/ATCommands/ATCommon.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,154 +43,154 @@ extern "C" {
 /**
  * @brief Network Registration Result Codes
  */
-typedef enum ATPacketDomain_Network_Registration_Result_Code_t
+typedef enum AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t
 {
-	ATPacketDomain_Network_Registration_Result_Code_Invalid = -1,
-	ATPacketDomain_Network_Registration_Result_Code_Disable,
-	ATPacketDomain_Network_Registration_Result_Code_Enable,
-	ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info,
-	ATPacketDomain_Network_Registration_Result_Code_NumberOfValues
-} ATPacketDomain_Network_Registration_Result_Code_t;
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Invalid = -1,
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Disable,
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable,
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info,
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_NumberOfValues
+} AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t;
 
 /**
  * @brief Network Registration States
  */
-typedef enum ATPacketDomain_Network_Registration_State_t
+typedef enum AdrasteaI_ATPacketDomain_Network_Registration_State_t
 {
-	ATPacketDomain_Network_Registration_State_Invalid = -1,
-	ATPacketDomain_Network_Registration_State_Not_Registered_Not_Searching,
-	ATPacketDomain_Network_Registration_State_Registered_Home_Network,
-	ATPacketDomain_Network_Registration_State_Not_Registered_Searching,
-	ATPacketDomain_Network_Registration_State_Registration_Denied,
-	ATPacketDomain_Network_Registration_State_Unknown,
-	ATPacketDomain_Network_Registration_State_Registered_Roaming,
-	ATPacketDomain_Network_Registration_State_Registered_SMS_Only_Home_Network,
-	ATPacketDomain_Network_Registration_State_Registered_SMS_Only_Roaming,
-	ATPacketDomain_Network_Registration_State_Attached_For_Emergency_Bearer_Services_Only,
-	ATPacketDomain_Network_Registration_State_Registered_For_CSFB_Not_Preferred_Home_Network,
-	ATPacketDomain_Network_Registration_State_Registered_For_CSFB_Not_Preferred_Roaming,
-	ATPacketDomain_Network_Registration_State_NumberOfValues
-} ATPacketDomain_Network_Registration_State_t;
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Invalid = -1,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Not_Registered_Not_Searching,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Home_Network,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Not_Registered_Searching,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registration_Denied,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Unknown,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_SMS_Only_Home_Network,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_SMS_Only_Roaming,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Attached_For_Emergency_Bearer_Services_Only,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_For_CSFB_Not_Preferred_Home_Network,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_For_CSFB_Not_Preferred_Roaming,
+	AdrasteaI_ATPacketDomain_Network_Registration_State_NumberOfValues
+} AdrasteaI_ATPacketDomain_Network_Registration_State_t;
 
-typedef char ATPacketDomain_TAC_t[5];
+typedef char AdrasteaI_ATPacketDomain_TAC_t[5];
 
-typedef char ATPacketDomain_ECI_t[9];
+typedef char AdrasteaI_ATPacketDomain_ECI_t[9];
 
-typedef uint8_t ATPacketDomain_Network_Registration_Cause_Value_t;
+typedef uint8_t AdrasteaI_ATPacketDomain_Network_Registration_Cause_Value_t;
 
 /**
  * @brief Network Registration Status
  */
-typedef struct ATPacketDomain_Network_Registration_Status_t
+typedef struct AdrasteaI_ATPacketDomain_Network_Registration_Status_t
 {
-	ATPacketDomain_Network_Registration_Result_Code_t resultCode;
-	ATPacketDomain_Network_Registration_State_t state;
-	ATPacketDomain_TAC_t TAC;
-	ATPacketDomain_ECI_t ECI;
-	ATCommon_AcT_t AcT;
-} ATPacketDomain_Network_Registration_Status_t;
+	AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t resultCode;
+	AdrasteaI_ATPacketDomain_Network_Registration_State_t state;
+	AdrasteaI_ATPacketDomain_TAC_t TAC;
+	AdrasteaI_ATPacketDomain_ECI_t ECI;
+	AdrasteaI_ATCommon_AcT_t AcT;
+} AdrasteaI_ATPacketDomain_Network_Registration_Status_t;
 
 /**
  * @brief PDP Context States
  */
-typedef enum ATPacketDomain_PDP_Context_State_t
+typedef enum AdrasteaI_ATPacketDomain_PDP_Context_State_t
 {
-	ATPacketDomain_PDP_Context_State_Invalid = -1,
-	ATPacketDomain_PDP_Context_State_Deactivated,
-	ATPacketDomain_PDP_Context_State_Activated,
-	ATPacketDomain_PDP_Context_State_NumberOfValues
-} ATPacketDomain_PDP_Context_State_t;
+	AdrasteaI_ATPacketDomain_PDP_Context_State_Invalid = -1,
+	AdrasteaI_ATPacketDomain_PDP_Context_State_Deactivated,
+	AdrasteaI_ATPacketDomain_PDP_Context_State_Activated,
+	AdrasteaI_ATPacketDomain_PDP_Context_State_NumberOfValues
+} AdrasteaI_ATPacketDomain_PDP_Context_State_t;
 
-typedef uint8_t ATPacketDomain_PDP_Context_CID_t;
+typedef uint8_t AdrasteaI_ATPacketDomain_PDP_Context_CID_t;
 
 /**
  * @brief PDP Context State link with Context CID
  */
-typedef struct ATPacketDomain_PDP_Context_CID_State_t
+typedef struct AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t
 {
-	ATPacketDomain_PDP_Context_CID_t cid;
-	ATPacketDomain_PDP_Context_State_t state;
-} ATPacketDomain_PDP_Context_CID_State_t;
+	AdrasteaI_ATPacketDomain_PDP_Context_CID_t cid;
+	AdrasteaI_ATPacketDomain_PDP_Context_State_t state;
+} AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t;
 
 /**
  * @brief Event Reporting Modes
  */
-typedef enum ATPacketDomain_Event_Reporting_Mode_t
+typedef enum AdrasteaI_ATPacketDomain_Event_Reporting_Mode_t
 {
-	ATPacketDomain_Event_Reporting_Mode_Invalid = -1,
-	ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_if_Full_Discard,
-	ATPacketDomain_Event_Reporting_Mode_Discard_Unsolicited_Result_Codes_when_Link_is_Reserved_Otherwise_Forward,
-	ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_when_Link_is_Reserved_Otherwise_Forward,
-	ATPacketDomain_Event_Reporting_Mode_NumberOfValues
-} ATPacketDomain_Event_Reporting_Mode_t;
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_Invalid = -1,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_if_Full_Discard,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_Discard_Unsolicited_Result_Codes_when_Link_is_Reserved_Otherwise_Forward,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_when_Link_is_Reserved_Otherwise_Forward,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_NumberOfValues
+} AdrasteaI_ATPacketDomain_Event_Reporting_Mode_t;
 
 /**
  * @brief Event Reporting Buffer
  */
-typedef enum ATPacketDomain_Event_Reporting_Buffer_t
+typedef enum AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_t
 {
-	ATPacketDomain_Event_Reporting_Buffer_Invalid = -1,
-	ATPacketDomain_Event_Reporting_Buffer_Clear,
-	ATPacketDomain_Event_Reporting_Buffer_Flush,
-	ATPacketDomain_Event_Reporting_Buffer_NumberOfValues
-} ATPacketDomain_Event_Reporting_Buffer_t;
+	AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_Invalid = -1,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_Clear,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_Flush,
+	AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_NumberOfValues
+} AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_t;
 
 /**
  * @brief Event Reporting
  */
-typedef struct ATPacketDomain_Event_Reporting_t
+typedef struct AdrasteaI_ATPacketDomain_Event_Reporting_t
 {
-	ATPacketDomain_Event_Reporting_Mode_t mode;
-	ATPacketDomain_Event_Reporting_Buffer_t buffer;
-} ATPacketDomain_Event_Reporting_t;
+	AdrasteaI_ATPacketDomain_Event_Reporting_Mode_t mode;
+	AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_t buffer;
+} AdrasteaI_ATPacketDomain_Event_Reporting_t;
 
 /**
  * @brief PDP Types
  */
-typedef enum ATPacketDomain_PDP_Type_t
+typedef enum AdrasteaI_ATPacketDomain_PDP_Type_t
 {
-	ATPacketDomain_PDP_Type_Invalid = -1,
-	ATPacketDomain_PDP_Type_IPv4,
-	ATPacketDomain_PDP_Type_IPv6,
-	ATPacketDomain_PDP_Type_IPv4v6,
-	ATPacketDomain_PDP_Type_Non_IP,
-	ATPacketDomain_PDP_Type_NumberOfValues
-} ATPacketDomain_PDP_Type_t;
+	AdrasteaI_ATPacketDomain_PDP_Type_Invalid = -1,
+	AdrasteaI_ATPacketDomain_PDP_Type_IPv4,
+	AdrasteaI_ATPacketDomain_PDP_Type_IPv6,
+	AdrasteaI_ATPacketDomain_PDP_Type_IPv4v6,
+	AdrasteaI_ATPacketDomain_PDP_Type_Non_IP,
+	AdrasteaI_ATPacketDomain_PDP_Type_NumberOfValues
+} AdrasteaI_ATPacketDomain_PDP_Type_t;
 
 /**
  * @brief PDP Context
  */
-typedef struct ATPacketDomain_PDP_Context_t
+typedef struct AdrasteaI_ATPacketDomain_PDP_Context_t
 {
-	ATPacketDomain_PDP_Context_CID_t cid;
-	ATPacketDomain_PDP_Type_t pdpType;
-	ATCommon_APN_Name_t apnName;
-} ATPacketDomain_PDP_Context_t;
+	AdrasteaI_ATPacketDomain_PDP_Context_CID_t cid;
+	AdrasteaI_ATPacketDomain_PDP_Type_t pdpType;
+	AdrasteaI_ATCommon_APN_Name_t apnName;
+} AdrasteaI_ATPacketDomain_PDP_Context_t;
 
-extern bool ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_t resultcode);
+extern bool AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t resultcode);
 
-extern bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registration_Status_t *statusP);
+extern bool AdrasteaI_ATPacketDomain_ReadNetworkRegistrationStatus(AdrasteaI_ATPacketDomain_Network_Registration_Status_t *statusP);
 
-extern bool ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, ATPacketDomain_Network_Registration_Status_t *dataP);
+extern bool AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_Network_Registration_Status_t *dataP);
 
-extern bool ATPacketDomain_SetPacketDomainEventReporting(ATPacketDomain_Event_Reporting_t reporting);
+extern bool AdrasteaI_ATPacketDomain_SetPacketDomainEventReporting(AdrasteaI_ATPacketDomain_Event_Reporting_t reporting);
 
-extern bool ATPacketDomain_ReadPacketDomainEventReporting(ATPacketDomain_Event_Reporting_t *reportingP);
+extern bool AdrasteaI_ATPacketDomain_ReadPacketDomainEventReporting(AdrasteaI_ATPacketDomain_Event_Reporting_t *reportingP);
 
-extern bool ATPacketDomain_DefinePDPContext(ATPacketDomain_PDP_Context_t context);
+extern bool AdrasteaI_ATPacketDomain_DefinePDPContext(AdrasteaI_ATPacketDomain_PDP_Context_t context);
 
-extern bool ATPacketDomain_ReadPDPContexts();
+extern bool AdrasteaI_ATPacketDomain_ReadPDPContexts();
 
-extern bool ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, ATPacketDomain_PDP_Context_t *dataP);
+extern bool AdrasteaI_ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_PDP_Context_t *dataP);
 
-extern bool ATPacketDomain_SetPDPContextState(ATPacketDomain_PDP_Context_CID_State_t cidstate);
+extern bool AdrasteaI_ATPacketDomain_SetPDPContextState(AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t cidstate);
 
-extern bool ATPacketDomain_ReadPDPContextsState();
+extern bool AdrasteaI_ATPacketDomain_ReadPDPContextsState();
 
-extern bool ATPacketDomain_ParsePDPContextStateEvent(char *pEventArguments, ATPacketDomain_PDP_Context_CID_State_t *dataP);
+extern bool AdrasteaI_ATPacketDomain_ParsePDPContextStateEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t *dataP);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_PACKETDOMAIN_H_INCLUDED */
+#endif /* ADRASTEAI_AT_PACKETDOMAIN_H_INCLUDED */

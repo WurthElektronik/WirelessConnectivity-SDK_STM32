@@ -22,138 +22,106 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATProprietaryExamples.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/ATCommands/ATProprietary.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATProprietaryExamples.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "../ATCommands/ATProprietary.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATProprietary_EventCallback(char *eventText);
 
-void Adrastea_ATProprietary_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
 
 void ATProprietaryExample()
 {
+	printf("*** Start of Adrastea-I ATProprietary example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATProprietary_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATProprietary_EventCallback))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATProprietary example ***\r\n");
-
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATProprietary_Ping(AdrasteaI_ATProprietary_IP_Addr_Format_IPv4, "8.8.8.8", AdrasteaI_ATProprietary_Ping_Packet_Count_Invalid, AdrasteaI_ATProprietary_Ping_Packet_Size_Invalid, AdrasteaI_ATProprietary_Ping_Timeout_Invalid);
+	AdrasteaI_ExamplesPrint("Ping", ret);
 
-	ret = ATProprietary_Ping(ATProprietary_IP_Addr_Format_IPv4, "8.8.8.8", ATProprietary_Ping_Packet_Count_Invalid, ATProprietary_Ping_Packet_Size_Invalid, ATProprietary_Ping_Timeout_Invalid);
+	ret = AdrasteaI_ATProprietary_ResolveDomainName(1, "www.google.com", AdrasteaI_ATProprietary_IP_Addr_Format_IPv4);
+	AdrasteaI_ExamplesPrint("Resolve Domain Name", ret);
 
-	AdrasteaExamplesPrint("Ping", ret);
-
-	ret = ATProprietary_ResolveDomainName(1, "www.google.com", ATProprietary_IP_Addr_Format_IPv4);
-
-	AdrasteaExamplesPrint("Resolve Domain Name", ret);
-
-	ATProprietary_Network_Attachment_State_t networkAttachmentState;
-
-	ret = ATProprietary_ReadNetworkAttachmentState(&networkAttachmentState);
-
-	AdrasteaExamplesPrint("Read Network Attachment State", ret);
-
+	AdrasteaI_ATProprietary_Network_Attachment_State_t networkAttachmentState;
+	ret = AdrasteaI_ATProprietary_ReadNetworkAttachmentState(&networkAttachmentState);
+	AdrasteaI_ExamplesPrint("Read Network Attachment State", ret);
 	if (ret)
 	{
 		printf("Attachment State: %d\r\n", networkAttachmentState);
 	}
 
-	ATProprietary_PIN_PUK_Attempts_t attempts;
-
-	ret = ATProprietary_ReadRemainingPINPUKAttempts(&attempts);
-
-	AdrasteaExamplesPrint("Read Remaining PIN PUK Attempts", ret);
-
+	AdrasteaI_ATProprietary_PIN_PUK_Attempts_t attempts;
+	ret = AdrasteaI_ATProprietary_ReadRemainingPINPUKAttempts(&attempts);
+	AdrasteaI_ExamplesPrint("Read Remaining PIN PUK Attempts", ret);
 	if (ret)
 	{
 		printf("Remaining Attempts PIN: %d, PUK: %d, PIN2: %d, PUK2: %d\r\n", attempts.pinAttempts, attempts.pukAttempts, attempts.pin2Attempts, attempts.puk2Attempts);
 	}
 
-	ATProprietary_RAT_Status_t ratStatus;
-
-	ret = ATProprietary_ReadRATStatus(&ratStatus);
-
-	AdrasteaExamplesPrint("Read RAT Status", ret);
-
+	AdrasteaI_ATProprietary_RAT_Status_t ratStatus;
+	ret = AdrasteaI_ATProprietary_ReadRATStatus(&ratStatus);
+	AdrasteaI_ExamplesPrint("Read RAT Status", ret);
 	if (ret)
 	{
 		printf("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
 	}
 
-	memset(&status, -1, sizeof(ATPacketDomain_Network_Registration_Status_t));
-
-	ret = ATProprietary_SwitchToRATWithoutFullReboot(ATProprietary_RAT_NB_IOT, ATProprietary_RAT_Storage_Non_Persistant, ATProprietary_RAT_Source_Invalid);
-
-	AdrasteaExamplesPrint("Switch To RAT Without Full Reboot", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	memset(&status, -1, sizeof(AdrasteaI_ATPacketDomain_Network_Registration_Status_t));
+	ret = AdrasteaI_ATProprietary_SwitchToRATWithoutFullReboot(AdrasteaI_ATProprietary_RAT_NB_IOT, AdrasteaI_ATProprietary_RAT_Storage_Non_Persistant, AdrasteaI_ATProprietary_RAT_Source_Invalid);
+	AdrasteaI_ExamplesPrint("Switch To RAT Without Full Reboot", ret);
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
-
-	ret = ATProprietary_ReadRATStatus(&ratStatus);
-
-	AdrasteaExamplesPrint("Read RAT Status", ret);
-
+	ret = AdrasteaI_ATProprietary_ReadRATStatus(&ratStatus);
+	AdrasteaI_ExamplesPrint("Read RAT Status", ret);
 	if (ret)
 	{
 		printf("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
 	}
 
-	ATProprietary_PDN_Parameters_t pdnParamters;
-
-	ret = ATProprietary_ReadPDNParameters(&pdnParamters);
-
-	AdrasteaExamplesPrint("Read PDN Parameters", ret);
-
+	AdrasteaI_ATProprietary_PDN_Parameters_t pdnParamters;
+	ret = AdrasteaI_ATProprietary_ReadPDNParameters(&pdnParamters);
+	AdrasteaI_ExamplesPrint("Read PDN Parameters", ret);
 	if (ret)
 	{
 		printf("Session ID: %d, APN Name: %s, IP Format: %d\r\n", pdnParamters.sessionID, pdnParamters.apnName, pdnParamters.ipFormat);
 	}
 
-	ATProprietary_File_Names_List_t filesnamesList;
-
-	ret = ATProprietary_ListCredentials(&filesnamesList);
-
-	AdrasteaExamplesPrint("List Credentials", ret);
-
+	AdrasteaI_ATProprietary_File_Names_List_t filesnamesList;
+	ret = AdrasteaI_ATProprietary_ListCredentials(&filesnamesList);
+	AdrasteaI_ExamplesPrint("List Credentials", ret);
 	if (ret)
 	{
 		for (uint8_t i = 0; i < filesnamesList.count; i++)
 		{
 			printf("Filename: %s\r\n", filesnamesList.filenames[i]);
 
-			ret = ATProprietary_DeleteCredential(filesnamesList.filenames[i]);
-
-			AdrasteaExamplesPrint("Delete Credential", ret);
+			ret = AdrasteaI_ATProprietary_DeleteCredential(filesnamesList.filenames[i]);
+			AdrasteaI_ExamplesPrint("Delete Credential", ret);
 		}
 		free(filesnamesList.filenames);
 	}
 
 	ret =
-			ATProprietary_WriteCredential("DigiCertRootCA.crt", ATProprietary_Credential_Format_Certificate, "-----BEGIN CERTIFICATE-----\
+			AdrasteaI_ATProprietary_WriteCredential("DigiCertRootCA.crt", AdrasteaI_ATProprietary_Credential_Format_Certificate, "-----BEGIN CERTIFICATE-----\
 MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\
 d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\
@@ -175,59 +143,57 @@ PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\
 YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\
 CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\
 -----END CERTIFICATE-----");
+	AdrasteaI_ExamplesPrint("Write Credential", ret);
 
-	AdrasteaExamplesPrint("Write Credential", ret);
-
-	ATProprietary_TLS_Profile_ID_List_t tlsProfilesIDList;
-
-	ret = ATProprietary_ListTLSProfiles(&tlsProfilesIDList);
-
-	AdrasteaExamplesPrint("List TLS Profiles IDs", ret);
-
+	AdrasteaI_ATProprietary_TLS_Profile_ID_List_t tlsProfilesIDList;
+	ret = AdrasteaI_ATProprietary_ListTLSProfiles(&tlsProfilesIDList);
+	AdrasteaI_ExamplesPrint("List TLS Profiles IDs", ret);
 	if (ret)
 	{
 		for (uint8_t i = 0; i < tlsProfilesIDList.count; i++)
 		{
 			printf("SSL/TLS Profile ID: %d\r\n", tlsProfilesIDList.profileIDs[i]);
 
-			ret = ATProprietary_DeleteTLSProfile(tlsProfilesIDList.profileIDs[i]);
+			ret = AdrasteaI_ATProprietary_DeleteTLSProfile(tlsProfilesIDList.profileIDs[i]);
 
-			AdrasteaExamplesPrint("Delete TLS Profile", ret);
+			AdrasteaI_ExamplesPrint("Delete TLS Profile", ret);
 		}
 		free(tlsProfilesIDList.profileIDs);
 	}
 
-	ret = ATProprietary_AddTLSProfile(3, "DigiCertRootCA.crt", ".", NULL, NULL, NULL, NULL);
-
-	AdrasteaExamplesPrint("Add TLS Profile", ret);
+	ret = AdrasteaI_ATProprietary_AddTLSProfile(3, "DigiCertRootCA.crt", ".", NULL, NULL, NULL, NULL);
+	AdrasteaI_ExamplesPrint("Add TLS Profile", ret);
 }
 
-void Adrastea_ATProprietary_EventCallback(char *eventText)
+void AdrasteaI_ATProprietary_EventCallback(char *eventText)
 {
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
 	switch (event)
 	{
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
-	case ATEvent_Proprietary_Ping_Result:
+	case AdrasteaI_ATEvent_Proprietary_Ping_Result:
 	{
-		ATProprietary_Ping_Result_t pingResult;
-		if (!ATProprietary_ParsePingResultEvent(eventText, &pingResult))
+		AdrasteaI_ATProprietary_Ping_Result_t pingResult;
+		if (!AdrasteaI_ATProprietary_ParsePingResultEvent(eventText, &pingResult))
 		{
 			return;
 		}
 		printf("Ping ID: %d, Address: %s, TTL: %d, RTT: %d\r\n", pingResult.id, pingResult.addr, pingResult.ttl, pingResult.rtt);
 		break;
 	}
-	case ATEvent_Proprietary_Domain_Name_Resolve:
+	case AdrasteaI_ATEvent_Proprietary_Domain_Name_Resolve:
 	{
-		ATProprietary_Domain_Name_Resolve_Result_t dnsResult;
-		if (!ATProprietary_ParseResolveDomainNameEvent(eventText, &dnsResult))
+		AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t dnsResult;
+		if (!AdrasteaI_ATProprietary_ParseResolveDomainNameEvent(eventText, &dnsResult))
 		{
 			return;
 		}

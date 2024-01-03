@@ -27,19 +27,15 @@
  * @file
  * @brief Calypso P2P example.
  */
-
-#include "Calypso_P2P_Example.h"
-
+#include <Calypso/Examples/Calypso_P2P_Example.h>
 #include <ctype.h>
 #include <stdio.h>
-
 #include <Calypso/ATCommands/ATDevice.h>
 #include <Calypso/ATCommands/ATEvent.h>
 #include <Calypso/ATCommands/ATNetCfg.h>
 #include <Calypso/ATCommands/ATWLAN.h>
 #include <Calypso/Calypso.h>
-
-#include "Calypso_Examples.h"
+#include <Calypso/Examples/Calypso_Examples.h>
 
 /**
  * @brief TCP port used for communicating with peer.
@@ -84,7 +80,8 @@ static bool p2pServerConnectionAccepted = false;
 /**
  * @brief Last TCP server accept event (filled in when a client connects to the server). Used in TCP server example.
  */
-static ATEvent_SocketTCPAccept_t p2pServerAcceptEvent = {0};
+static Calypso_ATEvent_SocketTCPAccept_t p2pServerAcceptEvent = {
+		0 };
 
 /**
  * @brief Is set to true when the TCP client has established a connection to the server. Used in TCP client example.
@@ -94,7 +91,8 @@ static bool p2pClientConnectionEstablished = false;
 /**
  * @brief Last TCP client connect event (filled in when the client has established a connection to the server). Used in TCP client example.
  */
-static ATEvent_SocketTCPConnect_t p2pClientConnectEvent = {0};
+static Calypso_ATEvent_SocketTCPConnect_t p2pClientConnectEvent = {
+		0 };
 
 /**
  * @brief Is set to true when a TCP connection has been established. Used in TCP server and client examples.
@@ -111,231 +109,224 @@ static bool p2pExampleWaitingForData = false;
  */
 char p2pExampleReceiveBuffer[CALYPSO_MAX_PAYLOAD_SIZE + 1];
 
-void Calypso_P2P_Example_EventCallback(char* eventText);
-void Calypso_P2P_Example_OnDataReceived(ATEvent_SocketRcvd_t *rcvdEvent);
+void Calypso_P2P_Example_EventCallback(char *eventText);
+void Calypso_P2P_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t *rcvdEvent);
 
 void Calypso_P2P_Example(void)
 {
-    printf("*** Start of Calypso P2P example ***\r\n");
+	printf("*** Start of Calypso P2P example ***\r\n");
 
-    bool ret;
+	bool ret;
 
-    if (!Calypso_Init(Calypso_Examples_baudRate, Calypso_Examples_flowControl, Calypso_Examples_parity, &Calypso_P2P_Example_EventCallback, NULL))
-    {
-        return;
-    }
+	if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_P2P_Example_EventCallback))
+	{
+		printf("Initialization error\r\n");
+		return;
+	}
 
-    Calypso_PinReset();
+	Calypso_PinReset();
 
-    WE_Delay(2000);
+	Calypso_Examples_WaitForStartup(5000);
 
-    /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-     * Calypso_firmwareVersionPatch for later use. */
-    ATDevice_Value_t deviceValue;
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &deviceValue);
-    Calypso_Examples_Print("Get device version", ret);
+	/* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
+	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+	 * Calypso_firmwareVersionPatch for later use. */
+	Calypso_ATDevice_Value_t deviceValue;
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
+	Calypso_Examples_Print("Get device version", ret);
 
-    /* Set IPv4 address method DHCP */
-    ATNetCfg_IPv4Config_t newIpV4Config = {0};
-    newIpV4Config.method = ATNetCfg_IPv4Method_Dhcp;
-    ret = ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
-    Calypso_Examples_Print("Set IPv4 DHCP", ret);
+	/* Set IPv4 address method DHCP */
+	Calypso_ATNetCfg_IPv4Config_t newIpV4Config = {
+			0 };
+	newIpV4Config.method = Calypso_ATNetCfg_IPv4Method_Dhcp;
+	ret = Calypso_ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
+	Calypso_Examples_Print("Set IPv4 DHCP", ret);
 
-    /* Set WLAN policy to connect to the first P2P device that is discovered */
-    ret = ATWLAN_SetConnectionPolicy(ATWLAN_PolicyConnection_P2P);
-    Calypso_Examples_Print("Set P2P connection policy", ret);
+	/* Set WLAN policy to connect to the first P2P device that is discovered */
+	ret = Calypso_ATWLAN_SetConnectionPolicy(Calypso_ATWLAN_PolicyConnection_P2P);
+	Calypso_Examples_Print("Set P2P connection policy", ret);
 
-    /* Set WLAN P2P policy to negotiate P2P role (instead of setting a fixed role) */
-    ret = ATWLAN_SetP2PPolicy(ATWLAN_PolicyP2P_Negotiate, ATWLAN_PolicyP2PValue_RandBackoff);
-    Calypso_Examples_Print("Set P2P negotiation policy", ret);
+	/* Set WLAN P2P policy to negotiate P2P role (instead of setting a fixed role) */
+	ret = Calypso_ATWLAN_SetP2PPolicy(Calypso_ATWLAN_PolicyP2P_Negotiate, Calypso_ATWLAN_PolicyP2PValue_RandBackoff);
+	Calypso_Examples_Print("Set P2P negotiation policy", ret);
 
-    /* Enable P2P mode */
-    ret = ATWLAN_SetMode(ATWLAN_SetMode_P2P);
-    Calypso_Examples_Print("Set P2P mode", ret);
+	/* Enable P2P mode */
+	ret = Calypso_ATWLAN_SetMode(Calypso_ATWLAN_SetMode_P2P);
+	Calypso_Examples_Print("Set P2P mode", ret);
 
-    /* Main P2P example loop - tries to establish a connection to the first peer being discovered,
-     * then creates a TCP port and waits for incoming connections. When the peer connects to the
-     * port, we wait for incoming characters and send the characters back (converted to uppercase).
-     * When the connection fails / is lost, the network processor is restarted and the sequence
-     * starts from the beginning. */
-    while (true)
-    {
-        p2pConnected = false;
-        p2pDeviceFound = false;
-        p2pRequestReceived = false;
-        p2pConnectFail = false;
-        p2pIsGroupOwner = false;
+	/* Main P2P example loop - tries to establish a connection to the first peer being discovered,
+	 * then creates a TCP port and waits for incoming connections. When the peer connects to the
+	 * port, we wait for incoming characters and send the characters back (converted to uppercase).
+	 * When the connection fails / is lost, the network processor is restarted and the sequence
+	 * starts from the beginning. */
+	while (true)
+	{
+		p2pConnected = false;
+		p2pDeviceFound = false;
+		p2pRequestReceived = false;
+		p2pConnectFail = false;
+		p2pIsGroupOwner = false;
 
-        /* Restart the network processor */
-        ret = ATDevice_Restart(0);
-        Calypso_Examples_Print("Restart NWP", ret);
+		/* Restart the network processor */
+		ret = Calypso_ATDevice_Restart(0);
+		Calypso_Examples_Print("Restart NWP", ret);
 
-        /* Scan for P2P devices until a P2P device found event has been received (or until the connection attempt fails) */
-        ATWLAN_ScanEntry_t scanEntries[5];
-        uint8_t numScanEntries;
-        while (!p2pDeviceFound && !p2pConnectFail)
-        {
-            ret = ATWLAN_Scan(0, 5, scanEntries, &numScanEntries);
-            Calypso_Examples_Print("Scan for P2P devices", ret);
+		/* Scan for P2P devices until a P2P device found event has been received (or until the connection attempt fails) */
+		Calypso_ATWLAN_ScanEntry_t scanEntries[5];
+		uint8_t numScanEntries;
+		while (!p2pDeviceFound && !p2pConnectFail)
+		{
+			ret = Calypso_ATWLAN_Scan(0, 5, scanEntries, &numScanEntries);
+			Calypso_Examples_Print("Scan for P2P devices", ret);
 
-            if (ret)
-            {
-                printf("Number of scan entries: %d\r\n", numScanEntries);
+			if (ret)
+			{
+				printf("Number of scan entries: %d\r\n", numScanEntries);
 
-                if (numScanEntries == 0)
-                {
-                    break;
-                }
-            }
+				if (numScanEntries == 0)
+				{
+					break;
+				}
+			}
 
-            WE_Delay(1000);
-        }
+			WE_Delay(1000);
+		}
 
-        /* Wait for P2P request event (or until connection attempt fails / times out) */
-        uint32_t t = WE_GetTick();
-        while (!p2pRequestReceived && !p2pConnectFail)
-        {
-            WE_Delay(100);
+		/* Wait for P2P request event (or until connection attempt fails / times out) */
+		uint32_t t = WE_GetTick();
+		while (!p2pRequestReceived && !p2pConnectFail)
+		{
+			WE_Delay(100);
 
-            if (WE_GetTick() - t > p2pConnectTimeoutMs)
-            {
-                printf("Timeout waiting for P2P request event.\r\n");
-                p2pConnectFail = true;
-                break;
-            }
-        }
+			if (WE_GetTick() - t > p2pConnectTimeoutMs)
+			{
+				printf("Timeout waiting for P2P request event.\r\n");
+				p2pConnectFail = true;
+				break;
+			}
+		}
 
+		/* Wait for connection to be established (or until connection attempt fails / times out) */
+		t = WE_GetTick();
+		while (!p2pConnected && !p2pConnectFail)
+		{
+			WE_Delay(100);
 
-        /* Wait for connection to be established (or until connection attempt fails / times out) */
-        t = WE_GetTick();
-        while (!p2pConnected && !p2pConnectFail)
-        {
-            WE_Delay(100);
+			if (WE_GetTick() - t > p2pConnectTimeoutMs)
+			{
+				printf("Timeout waiting for P2P connect event.\r\n");
+				p2pConnectFail = true;
+				break;
+			}
+		}
 
-            if (WE_GetTick() - t > p2pConnectTimeoutMs)
-            {
-                printf("Timeout waiting for P2P connect event.\r\n");
-                p2pConnectFail = true;
-                break;
-            }
-        }
+		if (p2pConnected)
+		{
+			/* Connection to peer has been established! */
 
-        if (p2pConnected)
-        {
-            /* Connection to peer has been established! */
+			p2pServerConnectionAccepted = false;
+			peerTcpConnected = false;
+			p2pExampleWaitingForData = false;
 
-            p2pServerConnectionAccepted = false;
-            peerTcpConnected = false;
-            p2pExampleWaitingForData = false;
+			/* Get IPv4 configuration (group owner = AP, client = station) */
+			Calypso_ATNetCfg_IPv4Config_t ipV4Config;
+			if (p2pIsGroupOwner)
+			{
+				ret = Calypso_ATNetCfg_GetIPv4AddressAP(&ipV4Config);
+				Calypso_Examples_Print("Get IPv4 config", ret);
+			}
+			else
+			{
+				ret = Calypso_ATNetCfg_GetIPv4AddressStation(&ipV4Config);
+				Calypso_Examples_Print("Get IPv4 config", ret);
+			}
+			if (ret)
+			{
+				printf("*** P2P IPv4 configuration ***\r\n");
+				printf("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+				printf("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+				printf("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+				printf("DNS address: %s\r\n", ipV4Config.dnsAddress);
+			}
 
+			/* Create TCP socket, bind it to a port and start listening for incoming connections */
+			uint8_t socketID, tcpServerClientSocketID;
+			ret = Calypso_ATSocket_Create(Calypso_ATSocket_Family_INET, Calypso_ATSocket_Type_Stream, Calypso_ATSocket_Protocol_TCP, &socketID);
+			Calypso_Examples_Print("Create socket", ret);
 
-            /* Get IPv4 configuration (group owner = AP, client = station) */
-            ATNetCfg_IPv4Config_t ipV4Config;
-            if (p2pIsGroupOwner)
-            {
-                ret = ATNetCfg_GetIPv4AddressAP(&ipV4Config);
-                Calypso_Examples_Print("Get IPv4 config", ret);
-            }
-            else
-            {
-                ret = ATNetCfg_GetIPv4AddressStation(&ipV4Config);
-                Calypso_Examples_Print("Get IPv4 config", ret);
-            }
-            if (ret)
-            {
-                printf("*** P2P IPv4 configuration ***\r\n");
-                printf("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-                printf("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-                printf("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-                printf("DNS address: %s\r\n", ipV4Config.dnsAddress);
-            }
+			Calypso_ATSocket_Descriptor_t socketDescriptor;
+			socketDescriptor.family = Calypso_ATSocket_Family_INET;
+			strcpy(socketDescriptor.address, ipV4Config.ipAddress);
+			socketDescriptor.port = p2pExamplePort;
+			ret = Calypso_ATSocket_Bind(socketID, socketDescriptor);
+			Calypso_Examples_Print("Bind", ret);
 
-            /* Create TCP socket, bind it to a port and start listening for incoming connections */
-            uint8_t socketID, tcpServerClientSocketID;
-            ret = ATSocket_Create(ATSocket_Family_INET,
-                                  ATSocket_Type_Stream,
-                                  ATSocket_Protocol_TCP,
-                                  &socketID);
-            Calypso_Examples_Print("Create socket", ret);
+			ret = Calypso_ATSocket_Listen(socketID, 10);
+			Calypso_Examples_Print("Listen", ret);
 
-            ATSocket_Descriptor_t socketDescriptor;
-            socketDescriptor.family = ATSocket_Family_INET;
-            strcpy(socketDescriptor.address, ipV4Config.ipAddress);
-            socketDescriptor.port = p2pExamplePort;
-            ret = ATSocket_Bind(socketID, socketDescriptor);
-            Calypso_Examples_Print("Bind", ret);
+			ret = Calypso_ATSocket_Accept(socketID, Calypso_ATSocket_Family_INET);
+			Calypso_Examples_Print("Accept", ret);
 
-            ret = ATSocket_Listen(socketID, 10);
-            Calypso_Examples_Print("Listen", ret);
+			bool firstRun = true;
+			while (p2pConnected)
+			{
+				if (p2pServerConnectionAccepted)
+				{
+					/* The peer has connected to the server */
+					p2pServerConnectionAccepted = false;
 
-            ret = ATSocket_Accept(socketID, ATSocket_Family_INET);
-            Calypso_Examples_Print("Accept", ret);
+					printf("Peer %s:%d connected.\r\n", p2pServerAcceptEvent.clientAddress, p2pServerAcceptEvent.clientPort);
 
-            bool firstRun = true;
-            while (p2pConnected)
-            {
-                if (p2pServerConnectionAccepted)
-                {
-                    /* The peer has connected to the server */
-                    p2pServerConnectionAccepted = false;
+					/* This is the socket ID that can be used for communicating with the peer */
+					tcpServerClientSocketID = p2pServerAcceptEvent.socketID;
 
-                    printf("Peer %s:%d connected.\r\n", p2pServerAcceptEvent.clientAddress, p2pServerAcceptEvent.clientPort);
+					peerTcpConnected = true;
+				}
 
-                    /* This is the socket ID that can be used for communicating with the peer */
-                    tcpServerClientSocketID = p2pServerAcceptEvent.socketID;
+				if (peerTcpConnected)
+				{
+					if (p2pExampleWaitingForData)
+					{
+						/* NOP */
+					}
+					else
+					{
+						/* Start waiting for data. An Calypso_ATEvent_SocketRcvd event is generated when new
+						 * data is available (see Calypso_eventCallback()). */
+						p2pExampleWaitingForData = true;
+						Calypso_ATSocket_Receive(tcpServerClientSocketID, Calypso_DataFormat_Binary, CALYPSO_MAX_PAYLOAD_SIZE);
 
-                    peerTcpConnected = true;
-                }
+						size_t len = strlen(p2pExampleReceiveBuffer);
+						if (!firstRun && len == 0)
+						{
+							/* Connection lost (receive event with length zero was triggered) */
+							break;
+						}
 
-                if (peerTcpConnected)
-                {
-                    if (p2pExampleWaitingForData)
-                    {
-                        /* NOP */
-                    }
-                    else
-                    {
-                        /* Start waiting for data. An ATEvent_SocketRcvd event is generated when new
-                         * data is available (see Calypso_eventCallback()). */
-                        p2pExampleWaitingForData = true;
-                        ATSocket_Receive(tcpServerClientSocketID, Calypso_DataFormat_Binary, CALYPSO_MAX_PAYLOAD_SIZE);
+						firstRun = false;
 
-                        size_t len = strlen(p2pExampleReceiveBuffer);
-                        if (!firstRun && len == 0)
-                        {
-                            /* Connection lost (receive event with length zero was triggered) */
-                            break;
-                        }
+						if (len > 0)
+						{
+							/* Data has been received - convert to uppercase and send back */
+							for (size_t i = 0; i < len; i++)
+							{
+								p2pExampleReceiveBuffer[i] = toupper(p2pExampleReceiveBuffer[i]);
+							}
+							uint16_t bytesSent = 0;
+							Calypso_ATSocket_Send(tcpServerClientSocketID, Calypso_DataFormat_Binary,
+							false, len, p2pExampleReceiveBuffer, &bytesSent);
+						}
+					}
+				}
 
-                        firstRun = false;
+				WE_Delay(100);
+			}
 
-                        if (len > 0)
-                        {
-                            /* Data has been received - convert to uppercase and send back */
-                            for (size_t i = 0; i < len; i++)
-                            {
-                                p2pExampleReceiveBuffer[i] = toupper(p2pExampleReceiveBuffer[i]);
-                            }
-                            uint16_t bytesSent = 0;
-                            ATSocket_Send(tcpServerClientSocketID,
-                                          Calypso_DataFormat_Binary,
-                                          false,
-                                          len,
-                                          p2pExampleReceiveBuffer,
-                                          &bytesSent);
-                        }
-                    }
-                }
+			Calypso_ATWLAN_Disconnect();
+		}
+	}
 
-                WE_Delay(100);
-            }
-
-            ATWLAN_Disconnect();
-        }
-    }
-
-    Calypso_Deinit();
+	Calypso_Deinit();
 }
 
 /**
@@ -348,130 +339,127 @@ void Calypso_P2P_Example(void)
  * from within this event handler.
  *
  * Also note that not all calls of this handler necessarily correspond to valid
- * events (i.e. events from ATEvent_t). Some events might in fact be responses
- * to AT commands that are not included in ATEvent_t.
+ * events (i.e. events from Calypso_ATEvent_t). Some events might in fact be responses
+ * to AT commands that are not included in Calypso_ATEvent_t.
  */
-void Calypso_P2P_Example_EventCallback(char* eventText)
+void Calypso_P2P_Example_EventCallback(char *eventText)
 {
-    Calypso_Examples_EventCallback(eventText);
+	Calypso_Examples_EventCallback(eventText);
 
-    ATEvent_t event;
-    ATEvent_ParseEventType(&eventText, &event);
+	Calypso_ATEvent_t event;
+	if (false == Calypso_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
-    if (ATEvent_Invalid == event)
-    {
-        return;
-    }
+	switch (event)
+	{
+	case Calypso_ATEvent_SocketTxFailed:
+		break;
 
-    switch (event)
-    {
-    case ATEvent_SocketTxFailed:
-        break;
+	case Calypso_ATEvent_SocketAsyncEvent:
+		break;
 
-    case ATEvent_SocketAsyncEvent:
-        break;
+	case Calypso_ATEvent_SocketTCPConnect:
+		if (Calypso_ATEvent_ParseSocketTCPConnectEvent(&eventText, &p2pClientConnectEvent))
+		{
+			p2pClientConnectionEstablished = true;
+		}
+		break;
 
-    case ATEvent_SocketTCPConnect:
-        if (ATEvent_ParseSocketTCPConnectEvent(&eventText, &p2pClientConnectEvent))
-        {
-            p2pClientConnectionEstablished = true;
-        }
-        break;
+	case Calypso_ATEvent_SocketTCPAccept:
+		if (Calypso_ATEvent_ParseSocketTCPAcceptEvent(&eventText, &p2pServerAcceptEvent))
+		{
+			p2pServerConnectionAccepted = true;
+		}
+		break;
 
-    case ATEvent_SocketTCPAccept:
-        if (ATEvent_ParseSocketTCPAcceptEvent(&eventText, &p2pServerAcceptEvent))
-        {
-            p2pServerConnectionAccepted = true;
-        }
-        break;
+	case Calypso_ATEvent_SocketRcvd:
+	case Calypso_ATEvent_SocketRcvdFrom:
+	{
+		Calypso_ATEvent_SocketRcvd_t rcvdEvent;
+		if (Calypso_ATEvent_ParseSocketRcvdEvent(&eventText, false, &rcvdEvent))
+		{
+			Calypso_P2P_Example_OnDataReceived(&rcvdEvent);
+		}
+		break;
+	}
 
-    case ATEvent_SocketRcvd:
-    case ATEvent_SocketRcvdFrom:
-    {
-        ATEvent_SocketRcvd_t rcvdEvent;
-        if (ATEvent_ParseSocketRcvdEvent(&eventText, false, &rcvdEvent))
-        {
-            Calypso_P2P_Example_OnDataReceived(&rcvdEvent);
-        }
-        break;
-    }
+	case Calypso_ATEvent_WlanP2PConnect:
+		p2pIsGroupOwner = false;
+		p2pConnected = true;
+		p2pConnectFail = false;
+		break;
 
-    case ATEvent_WlanP2PConnect:
-        p2pIsGroupOwner = false;
-        p2pConnected = true;
-        p2pConnectFail = false;
-        break;
+	case Calypso_ATEvent_WlanP2PDisconnect:
+		p2pConnected = false;
+		break;
 
-    case ATEvent_WlanP2PDisconnect:
-        p2pConnected = false;
-        break;
+	case Calypso_ATEvent_WlanP2PClientAdded:
+		p2pIsGroupOwner = true;
+		p2pConnected = true;
+		break;
 
-    case ATEvent_WlanP2PClientAdded:
-        p2pIsGroupOwner = true;
-        p2pConnected = true;
-        break;
+	case Calypso_ATEvent_WlanP2PClientRemoved:
+		p2pConnected = false;
+		break;
 
-    case ATEvent_WlanP2PClientRemoved:
-        p2pConnected = false;
-        break;
+	case Calypso_ATEvent_WlanP2PDevFound:
+		p2pDeviceFound = true;
+		break;
 
-    case ATEvent_WlanP2PDevFound:
-        p2pDeviceFound = true;
-        break;
+	case Calypso_ATEvent_WlanP2PRequest:
+		p2pRequestReceived = true;
+		break;
 
-    case ATEvent_WlanP2PRequest:
-        p2pRequestReceived = true;
-        break;
+	case Calypso_ATEvent_WlanP2PConnectFail:
+		p2pConnectFail = true;
+		break;
 
-    case ATEvent_WlanP2PConnectFail:
-        p2pConnectFail = true;
-        break;
-
-    case ATEvent_Startup:
-    case ATEvent_WakeUp:
-    case ATEvent_Ping:
-    case ATEvent_Invalid:
-    case ATEvent_GeneralResetRequest:
-    case ATEvent_GeneralError:
-    case ATEvent_WlanConnect:
-    case ATEvent_WlanDisconnect:
-    case ATEvent_WlanStaAdded:
-    case ATEvent_WlanStaRemoved:
-    case ATEvent_WlanProvisioningStatus:
-    case ATEvent_WlanProvisioningProfileAdded:
-    case ATEvent_NetappIP4Acquired:
-    case ATEvent_NetappIP6Acquired:
-    case ATEvent_NetappIPCollision:
-    case ATEvent_NetappDHCPv4_leased:
-    case ATEvent_NetappDHCPv4_released:
-    case ATEvent_NetappIPv4Lost:
-    case ATEvent_NetappDHCPIPv4AcquireTimeout:
-    case ATEvent_NetappIPv6Lost:
-    case ATEvent_MQTTOperation:
-    case ATEvent_MQTTRecv:
-    case ATEvent_MQTTDisconnect:
-    case ATEvent_FileListEntry:
-    case ATEvent_HTTPGet:
-    case ATEvent_CustomGPIO:
-    case ATEvent_CustomHTTPPost:
-    case ATEvent_FatalErrorDeviceAbort:
-    case ATEvent_FatalErrorDriverAbort:
-    case ATEvent_FatalErrorSyncLost:
-    case ATEvent_FatalErrorNoCmdAck:
-    case ATEvent_FatalErrorCmdTimeout:
-    default:
-        break;
-    }
+	case Calypso_ATEvent_Startup:
+	case Calypso_ATEvent_WakeUp:
+	case Calypso_ATEvent_Ping:
+	case Calypso_ATEvent_GeneralResetRequest:
+	case Calypso_ATEvent_GeneralError:
+	case Calypso_ATEvent_WlanConnect:
+	case Calypso_ATEvent_WlanDisconnect:
+	case Calypso_ATEvent_WlanStaAdded:
+	case Calypso_ATEvent_WlanStaRemoved:
+	case Calypso_ATEvent_WlanProvisioningStatus:
+	case Calypso_ATEvent_WlanProvisioningProfileAdded:
+	case Calypso_ATEvent_NetappIP4Acquired:
+	case Calypso_ATEvent_NetappIP6Acquired:
+	case Calypso_ATEvent_NetappIPCollision:
+	case Calypso_ATEvent_NetappDHCPv4_leased:
+	case Calypso_ATEvent_NetappDHCPv4_released:
+	case Calypso_ATEvent_NetappIPv4Lost:
+	case Calypso_ATEvent_NetappDHCPIPv4AcquireTimeout:
+	case Calypso_ATEvent_NetappIPv6Lost:
+	case Calypso_ATEvent_MQTTOperation:
+	case Calypso_ATEvent_MQTTRecv:
+	case Calypso_ATEvent_MQTTDisconnect:
+	case Calypso_ATEvent_FileListEntry:
+	case Calypso_ATEvent_HTTPGet:
+	case Calypso_ATEvent_CustomGPIO:
+	case Calypso_ATEvent_CustomHTTPPost:
+	case Calypso_ATEvent_FatalErrorDeviceAbort:
+	case Calypso_ATEvent_FatalErrorDriverAbort:
+	case Calypso_ATEvent_FatalErrorSyncLost:
+	case Calypso_ATEvent_FatalErrorNoCmdAck:
+	case Calypso_ATEvent_FatalErrorCmdTimeout:
+	default:
+		break;
+	}
 }
 
 /**
  * @brief TCP / UDP data received callback.
  */
-void Calypso_P2P_Example_OnDataReceived(ATEvent_SocketRcvd_t *rcvdEvent)
+void Calypso_P2P_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t *rcvdEvent)
 {
-    memcpy(p2pExampleReceiveBuffer, rcvdEvent->data, rcvdEvent->length);
-    p2pExampleReceiveBuffer[rcvdEvent->length] = '\0';
-    printf("RECEIVED %s\r\n", p2pExampleReceiveBuffer);
+	memcpy(p2pExampleReceiveBuffer, rcvdEvent->data, rcvdEvent->length);
+	p2pExampleReceiveBuffer[rcvdEvent->length] = '\0';
+	printf("RECEIVED %s\r\n", p2pExampleReceiveBuffer);
 
-    p2pExampleWaitingForData = false;
+	p2pExampleWaitingForData = false;
 }

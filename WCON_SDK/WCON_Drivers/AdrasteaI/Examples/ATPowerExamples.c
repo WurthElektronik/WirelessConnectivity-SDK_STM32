@@ -22,48 +22,40 @@
  *
  ***************************************************************************************************
  */
-
-#include "stdio.h"
-#include "ATSIMExamples.h"
-#include "../ATCommands/ATPower.h"
-#include "../ATCommands/ATDevice.h"
-#include <AdrasteaI/Adrastea.h>
+#include <AdrasteaI/Examples/ATSIMExamples.h>
+#include <AdrasteaI/ATCommands/ATPower.h>
+#include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/AdrasteaI.h>
 #include <stdio.h>
-#include "AdrasteaExamples.h"
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
+/**
+ * @brief This example demonstrates the power mode options
+ *
+ */
 void ATPowerExample()
 {
+	printf("*** Start of Adrastea-I ATPower example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, NULL, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, NULL))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATPower example ***\r\n");
+	bool ret = AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_Min, AdrasteaI_ATDevice_Phone_Functionality_Reset_Invalid);
+	AdrasteaI_ExamplesPrint("Set Phone Functionality", ret);
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_Stop, AdrasteaI_ATPower_Mode_Duration_Invalid);
+	AdrasteaI_ExamplesPrint("Set Power Mode", ret);
 
-	bool ret = false;
-
-	ret = ATDevice_SetPhoneFunctionality(ATDevice_Phone_Functionality_Min, ATDevice_Phone_Functionality_Reset_Invalid);
-
-	AdrasteaExamplesPrint("Set Phone Functionality", ret);
-
-	ret = ATPower_SetPowerMode(ATPower_Mode_Stop, ATPower_Mode_Duration_Invalid);
-
-	AdrasteaExamplesPrint("Set Power Mode", ret);
-
-	ret = ATPower_EnableSleep();
-
-	AdrasteaExamplesPrint("Enable Sleep", ret);
-
+	ret = AdrasteaI_ATPower_EnableSleep();
+	AdrasteaI_ExamplesPrint("Enable Sleep", ret);
 	WE_Delay(5000);
 
-	ret = Adrastea_PinWakeUp();
-
-	AdrasteaExamplesPrint("Pin Wake Up", ret);
+	ret = AdrasteaI_PinWakeUp();
+	AdrasteaI_ExamplesPrint("Pin Wake Up", ret);
 
 	WE_Delay(5000);
-
 }
 

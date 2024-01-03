@@ -28,8 +28,8 @@
  * @brief Adrastea ATMQTT Example header file.
  */
 
-#ifndef ATMQTTEXAMPLES_H_INCLUDED
-#define ATMQTTEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATMQTTEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATMQTTEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATMQTTExample();
 }
 #endif
 
-#endif // ATMQTTEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATMQTTEXAMPLES_H_INCLUDED

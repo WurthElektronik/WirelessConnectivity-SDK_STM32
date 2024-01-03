@@ -28,8 +28,8 @@
  * @brief Adrastea ATSMS Example header file.
  */
 
-#ifndef ATSMSEXAMPLES_H_INCLUDED
-#define ATSMSEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATSMSEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATSMSEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATSMSExample();
 }
 #endif
 
-#endif // ATSMSEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATSMSEXAMPLES_H_INCLUDED

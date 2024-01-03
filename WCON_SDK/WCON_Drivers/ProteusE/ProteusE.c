@@ -28,24 +28,14 @@
  * @brief Proteus-e driver source file.
  */
 
-#include "ProteusE.h"
-
-#include "stdio.h"
-#include "string.h"
-
-#include "../global/global.h"
-
-typedef enum ProteusE_Pin_t
-{
-	ProteusE_Pin_Reset,
-	ProteusE_Pin_BusyUartEnable,
-	ProteusE_Pin_Mode,
-	ProteusE_Pin_StatusLed1,
-	ProteusE_Pin_Count
-} ProteusE_Pin_t;
+#include <ProteusE/ProteusE.h>
+#include <global/global.h>
+#include <string.h>
+#include <stdio.h>
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
+#define BTMAC_LENGTH 6
 
 #define LENGTH_CMD_OVERHEAD             (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
@@ -53,7 +43,7 @@ typedef enum ProteusE_Pin_t
 
 typedef struct
 {
-	uint8_t Stx;
+	const uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
 	uint8_t Data[PROTEUSE_MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
@@ -86,7 +76,6 @@ typedef struct
 #define PROTEUSE_CMD_UART_DISABLE_CNF (PROTEUSE_CMD_UART_DISABLE | PROTEUSE_CMD_TYPE_CNF)
 
 #define PROTEUSE_CMD_UART_ENABLE_IND (uint8_t)0x9B
-
 
 #define PROTEUSE_CMD_DTMSTART        (uint8_t)0x1D
 #define PROTEUSE_CMD_DTMSTART_REQ    (PROTEUSE_CMD_DTMSTART | PROTEUSE_CMD_TYPE_REQ)
@@ -222,10 +211,18 @@ static ProteusE_CMD_Frame_t rxPacket = {
 static ProteusE_CMD_Confirmation_t cmdConfirmationArray[CMDCONFIRMATIONARRAY_LENGTH];
 static ProteusE_OperationMode_t operationMode = ProteusE_OperationMode_CommandMode;
 static ProteusE_DriverState_t bleState;
-static WE_Pin_t ProteusE_pins[ProteusE_Pin_Count] = {
-		0 };
+/**
+ * @brief Pin configuration struct pointer.
+ */
+static ProteusE_Pins_t *ProteusE_pinsP = NULL;
+
+/**
+ * @brief Uart configuration struct pointer.
+ */
+static WE_UART_t *ProteusE_uartP = NULL;
+
 static ProteusE_CallbackConfig_t callbacks;
-static ProteusE_ByteRxCallback byteRxCallback = NULL;
+static WE_UART_HandleRxByte_t byteRxCallback = NULL;
 static uint8_t checksum = 0;
 static uint16_t rxByteCounter = 0;
 static uint16_t bytesToReceive = 0;
@@ -246,14 +243,14 @@ static void ClearReceiveBuffers()
 	}
 }
 
-static void HandleRxPacket(uint8_t *pRxBuffer)
+static void HandleRxPacket(uint8_t *prxBuffer)
 {
 	ProteusE_CMD_Confirmation_t cmdConfirmation;
 	cmdConfirmation.cmd = CNFINVALID;
 	cmdConfirmation.status = CMD_Status_Invalid;
 
-	uint16_t cmdLength = ((ProteusE_CMD_Frame_t*) pRxBuffer)->Length;
-	memcpy(&rxPacket, pRxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
+	uint16_t cmdLength = ((ProteusE_CMD_Frame_t*) prxBuffer)->Length;
+	memcpy(&rxPacket, prxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
 
 	switch (rxPacket.Cmd)
 	{
@@ -282,7 +279,7 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	case PROTEUSE_CMD_ALLOWUNBONDEDCONNECTIONS_CNF:
 	case PROTEUSE_CMD_TXCOMPLETE_RSP:
 	case PROTEUSE_CMD_DTMSTART_CNF:
-    case PROTEUSE_CMD_DTM_CNF:
+	case PROTEUSE_CMD_DTM_CNF:
 	{
 		cmdConfirmation.cmd = rxPacket.Cmd;
 		cmdConfirmation.status = rxPacket.Data[0];
@@ -294,6 +291,25 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 		cmdConfirmation.cmd = rxPacket.Cmd;
 		/* GETSTATE_CNF has no status field */
 		cmdConfirmation.status = CMD_Status_NoStatus;
+
+		switch (rxPacket.Data[1])
+		{
+		case ProteusE_BLE_Action_Idle:
+		{
+			bleState = ProteusE_DriverState_BLE_Idle;
+		}
+			break;
+		case ProteusE_BLE_Action_Connected:
+		case ProteusE_BLE_Action_None:
+		case ProteusE_BLE_Action_Sleep:
+		case ProteusE_BLE_Action_DTM:
+		default:
+		{
+			/* do not use this information */
+		}
+			break;
+		}
+
 		break;
 	}
 
@@ -317,15 +333,15 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 		}
 		if (callbacks.connectCb != NULL)
 		{
-			uint8_t btMac[6];
+			uint8_t btMac[BTMAC_LENGTH];
 			if (rxPacket.Length >= 7)
 			{
-				memcpy(btMac, &rxPacket.Data[1], 6);
+				memcpy(btMac, &rxPacket.Data[1], sizeof(btMac));
 			}
 			else
 			{
 				/* Packet doesn't contain BTMAC (e.g. connection failed) */
-				memset(btMac, 0, 6);
+				memset(btMac, 0, sizeof(btMac));
 			}
 			callbacks.connectCb(success, btMac);
 		}
@@ -334,7 +350,7 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 
 	case PROTEUSE_CMD_DISCONNECT_IND:
 	{
-		bleState = ProteusE_DriverState_BLE_Invalid;
+		bleState = ProteusE_DriverState_BLE_Idle;
 		if (callbacks.disconnectCb != NULL)
 		{
 			ProteusE_DisconnectReason_t reason = ProteusE_DisconnectReason_Unknown;
@@ -391,18 +407,17 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	{
 		if (callbacks.phyUpdateCb != NULL)
 		{
-			bool success = (rxPacket.Data[0] == CMD_Status_Success);
-			uint8_t btMac[6];
+			uint8_t btMac[BTMAC_LENGTH];
 			if (rxPacket.Length >= 9)
 			{
-				memcpy(btMac, &rxPacket.Data[3], 6);
+				memcpy(btMac, &rxPacket.Data[3], sizeof(btMac));
 			}
 			else
 			{
 				/* Packet doesn't contain BTMAC (e.g. Phy update failed) */
-				memset(btMac, 0, 6);
+				memset(btMac, 0, sizeof(btMac));
 			}
-			callbacks.phyUpdateCb(success, btMac, (ProteusE_Phy_t) rxPacket.Data[1], (ProteusE_Phy_t) rxPacket.Data[2]);
+			callbacks.phyUpdateCb((rxPacket.Data[0] == CMD_Status_Success), btMac, (ProteusE_Phy_t) rxPacket.Data[1], (ProteusE_Phy_t) rxPacket.Data[2]);
 		}
 		break;
 	}
@@ -501,60 +516,66 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	}
 }
 
-void ProteusE_HandleRxByte(uint8_t receivedByte)
+void ProteusE_HandleRxByte(uint8_t *dataP, size_t size)
 {
-	rxBuffer[rxByteCounter] = receivedByte;
-
-	switch (rxByteCounter)
+	for (; size > 0; size--, dataP++)
 	{
-	case 0:
-		/* wait for start byte of frame */
-		if (rxBuffer[rxByteCounter] == CMD_STX)
+		if (rxByteCounter < sizeof(rxBuffer))
 		{
-			bytesToReceive = 0;
-			rxByteCounter = 1;
+			rxBuffer[rxByteCounter] = *dataP;
 		}
-		break;
 
-	case 1:
-		/* CMD */
-		rxByteCounter++;
-		break;
-
-	case 2:
-		/* length field LSB */
-		rxByteCounter++;
-		bytesToReceive = (uint16_t) (rxBuffer[rxByteCounter - 1]);
-		break;
-
-	case 3:
-		/* length field MSB */
-		rxByteCounter++;
-		bytesToReceive += (((uint16_t) rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD ); /* len_msb + len_lsb + crc + sfd + cmd */
-		break;
-
-	default:
-		/* data field */
-		rxByteCounter++;
-		if (rxByteCounter == bytesToReceive)
+		switch (rxByteCounter)
 		{
-			/* check CRC */
-			checksum = 0;
-			for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
+		case 0:
+			/* wait for start byte of frame */
+			if (rxBuffer[rxByteCounter] == CMD_STX)
 			{
-				checksum ^= rxBuffer[i];
+				bytesToReceive = 0;
+				rxByteCounter = 1;
 			}
+			break;
 
-			if (checksum == rxBuffer[bytesToReceive - 1])
+		case 1:
+			/* CMD */
+			rxByteCounter++;
+			break;
+
+		case 2:
+			/* length field LSB */
+			rxByteCounter++;
+			bytesToReceive = (uint16_t) (rxBuffer[rxByteCounter - 1]);
+			break;
+
+		case 3:
+			/* length field MSB */
+			rxByteCounter++;
+			bytesToReceive += (((uint16_t) rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD ); /* len_msb + len_lsb + crc + sfd + cmd */
+			break;
+
+		default:
+			/* data field */
+			rxByteCounter++;
+			if (rxByteCounter >= bytesToReceive)
 			{
-				/* received frame ok, interpret it now */
-				HandleRxPacket(rxBuffer);
-			}
+				/* check CRC */
+				checksum = 0;
+				for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
+				{
+					checksum ^= rxBuffer[i];
+				}
 
-			rxByteCounter = 0;
-			bytesToReceive = 0;
+				if (checksum == rxBuffer[bytesToReceive - 1])
+				{
+					/* received frame ok, interpret it now */
+					HandleRxPacket(rxBuffer);
+				}
+
+				rxByteCounter = 0;
+				bytesToReceive = 0;
+			}
+			break;
 		}
-		break;
 	}
 }
 
@@ -568,18 +589,17 @@ bool resetConfirmState)
 	int count = 0;
 	int timeStepMs = 5; /* 5ms */
 	int maxCount = maxTimeMs / timeStepMs;
-	int i = 0;
 
 	if (resetConfirmState)
 	{
-		for (i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 		{
 			cmdConfirmationArray[i].cmd = CNFINVALID;
 		}
 	}
 	while (1)
 	{
-		for (i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 		{
 			if (expectedCmdConfirmation == cmdConfirmationArray[i].cmd)
 			{
@@ -605,28 +625,35 @@ bool resetConfirmState)
  */
 static bool FillChecksum(ProteusE_CMD_Frame_t *cmd)
 {
-	if ((cmd->Length >= 0) && (cmd->Stx == CMD_STX))
+	uint8_t checksum = (uint8_t) cmd->Stx;
+	uint8_t *pArray = (uint8_t*) cmd;
+	for (uint16_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
 	{
-		uint8_t checksum = (uint8_t) 0;
-		uint8_t *pArray = (uint8_t*) cmd;
-		uint16_t i = 0;
-		for (i = 0; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
-		{
-			checksum ^= pArray[i];
-		}
-		cmd->Data[cmd->Length] = checksum;
-		return true;
+		checksum ^= pArray[i];
 	}
-	return false;
+	cmd->Data[cmd->Length] = checksum;
+	return true;
 }
 
 /**************************************
  *         Global functions           *
  **************************************/
-
-void WE_UART_HandleRxByte(uint8_t receivedByte)
+/**
+ * @brief Transmitting the data via UART.
+ *
+ * @param[in] data    :  pointer to the data.
+ * @param[in] dataLength : length of the data.
+ *
+ * @return true if transmission succeeded,
+ *         false otherwise
+ */
+bool ProteusE_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
 {
-	byteRxCallback(receivedByte);
+	if ((data == NULL) || (dataLength == 0))
+	{
+		return false;
+	}
+	return ProteusE_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
 
 /**
@@ -636,48 +663,65 @@ void WE_UART_HandleRxByte(uint8_t receivedByte)
  *          The baudrate parameter must match to perform a successful FTDI communication.
  *          Updating this parameter during runtime may lead to communication errors.
  *
- * @param[in] baudrate:         baudrate of the interface
- * @param[in] flowControl:      enable/disable flowcontrol
+ * @param[in] uartP :         definition of the uart connected to the module
+ * @param[in] pinoutP:        definition of the gpios connected to the module
  * @param[in] opMode:           operation mode
  * @param[in] callbackConfig:   callback configuration
  *
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool ProteusE_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusE_OperationMode_t opMode, ProteusE_CallbackConfig_t callbackConfig)
+bool ProteusE_Init(WE_UART_t *uartP, ProteusE_Pins_t *pinoutP, ProteusE_OperationMode_t opMode, ProteusE_CallbackConfig_t callbackConfig)
 {
 	operationMode = opMode;
 
 	/* initialize the pins */
-	ProteusE_pins[ProteusE_Pin_Reset].port = GPIOA;
-	ProteusE_pins[ProteusE_Pin_Reset].pin = GPIO_PIN_10;
-	ProteusE_pins[ProteusE_Pin_Reset].type = WE_Pin_Type_Output;
-	ProteusE_pins[ProteusE_Pin_BusyUartEnable].port = GPIOB;
-	ProteusE_pins[ProteusE_Pin_BusyUartEnable].pin = GPIO_PIN_8;
-	ProteusE_pins[ProteusE_Pin_BusyUartEnable].type = (operationMode == ProteusE_OperationMode_TransparentMode) ? WE_Pin_Type_Input : WE_Pin_Type_Output;
-	ProteusE_pins[ProteusE_Pin_Mode].port = GPIOA;
-	ProteusE_pins[ProteusE_Pin_Mode].pin = GPIO_PIN_8;
-	ProteusE_pins[ProteusE_Pin_Mode].type = WE_Pin_Type_Output;
-	ProteusE_pins[ProteusE_Pin_StatusLed1].port = GPIOB;
-	ProteusE_pins[ProteusE_Pin_StatusLed1].pin = GPIO_PIN_9;
-	ProteusE_pins[ProteusE_Pin_StatusLed1].type = WE_Pin_Type_Input;
-	if (false == WE_InitPins(ProteusE_pins, ProteusE_Pin_Count))
+	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+	{
+		return false;
+	}
+
+	ProteusE_pinsP = pinoutP;
+	ProteusE_pinsP->ProteusE_Pin_Reset.type = WE_Pin_Type_Output;
+	ProteusE_pinsP->ProteusE_Pin_Mode.type = WE_Pin_Type_Output;
+	ProteusE_pinsP->ProteusE_Pin_StatusLed1.type = WE_Pin_Type_Input;
+	ProteusE_pinsP->ProteusE_Pin_BusyUartEnable.type = (opMode == ProteusE_OperationMode_TransparentMode) ? WE_Pin_Type_Input : WE_Pin_Type_Output;
+
+	WE_Pin_t pins[sizeof(ProteusE_Pins_t) / sizeof(WE_Pin_t)];
+	uint8_t pin_count = 0;
+	memcpy(&pins[pin_count++], &ProteusE_pinsP->ProteusE_Pin_Reset, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusE_pinsP->ProteusE_Pin_BusyUartEnable, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusE_pinsP->ProteusE_Pin_Mode, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusE_pinsP->ProteusE_Pin_StatusLed1, sizeof(WE_Pin_t));
+
+	if (!WE_InitPins(pins, pin_count))
 	{
 		/* error */
 		return false;
 	}
+
 	if (operationMode == ProteusE_OperationMode_CommandMode)
 	{
-		WE_SetPin(ProteusE_pins[ProteusE_Pin_BusyUartEnable], WE_Pin_Level_High);
+		if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_BusyUartEnable, WE_Pin_Level_High))
+		{
+			return false;
+		}
 	}
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_Reset], WE_Pin_Level_High);
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_Mode], (operationMode == ProteusE_OperationMode_TransparentMode) ? WE_Pin_Level_High : WE_Pin_Level_Low);
+
+	if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ProteusE_pinsP->ProteusE_Pin_Mode, (operationMode == ProteusE_OperationMode_TransparentMode) ? WE_Pin_Level_High : WE_Pin_Level_Low))
+	{
+		return false;
+	}
 
 	/* set callback functions */
 	callbacks = callbackConfig;
 	byteRxCallback = ProteusE_HandleRxByte;
 
-	WE_UART_Init(baudrate, flowControl, WE_Parity_None, true);
+	ProteusE_uartP = uartP;
+	if (false == ProteusE_uartP->uartInit(ProteusE_uartP->baudrate, ProteusE_uartP->flowControl, ProteusE_uartP->parity, &byteRxCallback))
+	{
+		return false;
+	}
 	WE_Delay(10);
 
 	/* reset module */
@@ -687,17 +731,17 @@ bool ProteusE_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusE_Ope
 	}
 	else
 	{
-		fprintf(stdout, "Pin reset failed\n");
+		printf("Pin reset failed\n");
 		ProteusE_Deinit();
 		return false;
 	}
 
-	bleState = ProteusE_DriverState_BLE_Invalid;
+	bleState = ProteusE_DriverState_BLE_Idle;
 
 	uint8_t driverVersion[3];
 	if (WE_GetDriverVersion(driverVersion))
 	{
-		fprintf(stdout, "Proteus-e driver version %d.%d.%d\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+		printf("Proteus-e driver version %d.%d.%d\n", driverVersion[0], driverVersion[1], driverVersion[2]);
 	}
 	WE_Delay(100);
 
@@ -712,14 +756,11 @@ bool ProteusE_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusE_Ope
  */
 bool ProteusE_Deinit()
 {
-	/* close the communication interface to the module */
-	WE_UART_DeInit();
-
 	/* deinit pins */
-	WE_DeinitPin(ProteusE_pins[ProteusE_Pin_Reset]);
-	WE_DeinitPin(ProteusE_pins[ProteusE_Pin_BusyUartEnable]);
-	WE_DeinitPin(ProteusE_pins[ProteusE_Pin_Mode]);
-	WE_DeinitPin(ProteusE_pins[ProteusE_Pin_StatusLed1]);
+	if (!WE_DeinitPin(ProteusE_pinsP->ProteusE_Pin_Reset) || !WE_DeinitPin(ProteusE_pinsP->ProteusE_Pin_BusyUartEnable) || !WE_DeinitPin(ProteusE_pinsP->ProteusE_Pin_Mode) || !WE_DeinitPin(ProteusE_pinsP->ProteusE_Pin_StatusLed1))
+	{
+		return false;
+	}
 
 	/* reset callbacks */
 	memset(&callbacks, 0, sizeof(callbacks));
@@ -727,7 +768,7 @@ bool ProteusE_Deinit()
 	/* make sure any bytes remaining in receive buffer are discarded */
 	ClearReceiveBuffers();
 
-	return true;
+	return ProteusE_uartP->uartDeinit();
 }
 
 /**
@@ -739,11 +780,17 @@ bool ProteusE_Deinit()
 bool ProteusE_PinReset()
 {
 	/* set to output mode */
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_Reset], WE_Pin_Level_Low);
+	if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_Reset, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 	WE_Delay(5);
 	/* make sure any bytes remaining in receive buffer are discarded */
 	ClearReceiveBuffers();
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_Reset], WE_Pin_Level_High);
+	if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_Reset, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
 	if (operationMode == ProteusE_OperationMode_TransparentMode)
 	{
@@ -766,14 +813,14 @@ bool ProteusE_Reset()
 	txPacket.Cmd = PROTEUSE_CMD_RESET_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
 /**
@@ -790,14 +837,14 @@ bool ProteusE_UartDisable()
 	txPacket.Cmd = PROTEUSE_CMD_UART_DISABLE_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_UART_DISABLE_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_UART_DISABLE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -814,14 +861,20 @@ bool ProteusE_PinUartEnable()
 		return false;
 	}
 
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_BusyUartEnable], WE_Pin_Level_Low);
+	if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_BusyUartEnable, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 	WE_Delay(15);
 	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 	{
 		cmdConfirmationArray[i].status = CMD_Status_Invalid;
 		cmdConfirmationArray[i].cmd = CNFINVALID;
 	}
-	WE_SetPin(ProteusE_pins[ProteusE_Pin_BusyUartEnable], WE_Pin_Level_High);
+	if (!WE_SetPin(ProteusE_pinsP->ProteusE_Pin_BusyUartEnable, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
 	/* wait for UART enable indication */
 	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_UART_ENABLE_IND, CMD_Status_Success, false);
@@ -838,14 +891,14 @@ bool ProteusE_Disconnect()
 	txPacket.Cmd = PROTEUSE_CMD_DISCONNECT_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* Confirmation is sent before performing the disconnect. After disconnect, the module sends a disconnect indication */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* Confirmation is sent before performing the disconnect. After disconnect, the module sends a disconnect indication */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -859,14 +912,14 @@ bool ProteusE_Sleep()
 	txPacket.Cmd = PROTEUSE_CMD_SLEEP_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SLEEP_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SLEEP_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -880,20 +933,23 @@ bool ProteusE_Sleep()
  */
 bool ProteusE_Transmit(uint8_t *payloadP, uint16_t length)
 {
-	if ((length <= PROTEUSE_MAX_RADIO_PAYLOAD_LENGTH ) && (ProteusE_DriverState_BLE_ChannelOpen == ProteusE_GetDriverState()))
+	if ((payloadP == NULL) || (length == 0) || (length > PROTEUSE_MAX_RADIO_PAYLOAD_LENGTH ) || (ProteusE_DriverState_BLE_ChannelOpen != ProteusE_GetDriverState()))
 	{
-		txPacket.Cmd = PROTEUSE_CMD_DATA_REQ;
-		txPacket.Length = length;
-
-		memcpy(&txPacket.Data[0], payloadP, length);
-
-		if (FillChecksum(&txPacket))
-		{
-			WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-			return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
-		}
+		return false;
 	}
-	return false;
+
+	txPacket.Cmd = PROTEUSE_CMD_DATA_REQ;
+	txPacket.Length = length;
+
+	memcpy(&txPacket.Data[0], payloadP, length);
+
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
 }
 
 /*
@@ -907,14 +963,57 @@ bool ProteusE_FactoryReset()
 	txPacket.Cmd = PROTEUSE_CMD_FACTORYRESET_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for reset after factory reset */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+		return false;
 	}
-	return false;
+
+	/* wait for reset after factory reset */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+}
+
+/**
+ * @brief Set a special user setting, but checks first if the value is already ok
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] userSetting:  user setting to be updated
+ * @param[in] valueP:       pointer to the new settings value
+ * @param[in] length:       length of the value
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusE_CheckNSet(ProteusE_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+{
+	if ((valueP == NULL) || (length == 0))
+	{
+		return false;
+	}
+
+	uint8_t current_value[length];
+	uint16_t current_length = length;
+
+	if (true == ProteusE_Get(userSetting, current_value, &current_length))
+	{
+		if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+		{
+			/* value is already set, no need to set it again */
+			return true;
+		}
+		else
+		{
+			/* value differs, and thus must be set */
+			return ProteusE_Set(userSetting, valueP, length);
+		}
+	}
+	else
+	{
+		/* failed reading current value */
+		return false;
+	}
 }
 
 /**
@@ -932,19 +1031,24 @@ bool ProteusE_FactoryReset()
  */
 bool ProteusE_Set(ProteusE_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
 {
+	if ((valueP == NULL) || (length == 0))
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSE_CMD_SET_REQ;
 	txPacket.Length = (1 + length);
 	txPacket.Data[0] = userSetting;
 	memcpy(&txPacket.Data[1], valueP, length);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1141,6 +1245,22 @@ bool ProteusE_SetBaudrateIndex(ProteusE_BaudRate_t baudrate, ProteusE_UartParity
 }
 
 /**
+ * @brief Sets the Bluetooth MAC address
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] btMacP: Pointer to the MAC (of 6 bytes)
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusE_SetBTMAC(uint8_t *btMacP)
+{
+	return ProteusE_Set(ProteusE_USERSETTING_FS_BTMAC, btMacP, 6);
+}
+
+/**
  * @brief Set the BLE static passkey
  *
  * Note: Reset the module after the adaption of the setting so that it can take effect.
@@ -1252,22 +1372,28 @@ bool ProteusE_SetSppTxUuid(uint8_t *uuidP)
  */
 bool ProteusE_Get(ProteusE_UserSettings_t userSetting, uint8_t *responseP, uint16_t *responseLengthP)
 {
+	if ((responseP == NULL) || (responseLengthP == NULL))
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSE_CMD_GET_REQ;
 	txPacket.Length = 1;
 	txPacket.Data[0] = userSetting;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GET_CNF, CMD_Status_Success, true))
-		{
-			uint16_t length = rxPacket.Length;
-			memcpy(responseP, &rxPacket.Data[1], length - 1); /* First data byte is status, following bytes response */
-			*responseLengthP = length - 1;
-			return true;
-		}
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GET_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+		memcpy(responseP, &rxPacket.Data[1], length - 1); /* First data byte is status, following bytes response */
+		*responseLengthP = length - 1;
+		return true;
 	}
 	return false;
 }
@@ -1296,6 +1422,11 @@ bool ProteusE_GetFWVersion(uint8_t *versionP)
  */
 bool ProteusE_GetDeviceInfo(ProteusE_DeviceInfo_t *deviceInfoP)
 {
+	if (deviceInfoP == NULL)
+	{
+		return false;
+	}
+
 	uint8_t help[12];
 	uint16_t length;
 	if (!ProteusE_Get(ProteusE_USERSETTING_FS_DEVICE_INFO, help, &length))
@@ -1379,14 +1510,21 @@ bool ProteusE_GetBTMAC(uint8_t *btMacP)
  */
 bool ProteusE_GetAdvertisingTimeout(uint16_t *advTimeoutP)
 {
+	if (advTimeoutP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
 
-	ret = ProteusE_Get(ProteusE_USERSETTING_RF_ADVERTISING_TIMEOUT, help, &length);
-	memcpy((uint8_t*) advTimeoutP, help, 2);
+	if (ProteusE_Get(ProteusE_USERSETTING_RF_ADVERTISING_TIMEOUT, help, &length))
+	{
+		memcpy((uint8_t*) advTimeoutP, help, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1400,15 +1538,22 @@ bool ProteusE_GetAdvertisingTimeout(uint16_t *advTimeoutP)
  */
 bool ProteusE_GetConnectionInterval(uint16_t *minIntervalMsP, uint16_t *maxIntervalMsP)
 {
+	if ((minIntervalMsP == NULL) || (maxIntervalMsP == NULL))
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[4];
 
-	ret = ProteusE_Get(ProteusE_USERSETTING_RF_CONNECTION_INTERVAL, help, &length);
-	memcpy((uint8_t*) minIntervalMsP, help, 2);
-	memcpy((uint8_t*) maxIntervalMsP, help + 2, 2);
+	if (ProteusE_Get(ProteusE_USERSETTING_RF_CONNECTION_INTERVAL, help, &length))
+	{
+		memcpy((uint8_t*) minIntervalMsP, help, 2);
+		memcpy((uint8_t*) maxIntervalMsP, help + 2, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1421,14 +1566,21 @@ bool ProteusE_GetConnectionInterval(uint16_t *minIntervalMsP, uint16_t *maxInter
  */
 bool ProteusE_GetAdvertisingInterval(uint16_t *intervalMsP)
 {
+	if (intervalMsP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
 
-	ret = ProteusE_Get(ProteusE_USERSETTING_RF_ADVERTISING_INTERVAL, help, &length);
-	memcpy((uint8_t*) intervalMsP, help, 2);
+	if (ProteusE_Get(ProteusE_USERSETTING_RF_ADVERTISING_INTERVAL, help, &length))
+	{
+		memcpy((uint8_t*) intervalMsP, help, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1499,6 +1651,11 @@ bool ProteusE_GetScanResponseData(uint8_t *dataP, uint16_t *lengthP)
  */
 bool ProteusE_GetBaudrateIndex(ProteusE_BaudRate_t *baudrateP, ProteusE_UartParity_t *parityP, bool *flowControlEnableP)
 {
+	if ((baudrateP == NULL) || (parityP == NULL) || (flowControlEnableP == NULL))
+	{
+		return false;
+	}
+
 	uint16_t length;
 	uint8_t uartIndex;
 
@@ -1559,14 +1716,21 @@ bool ProteusE_GetStaticPasskey(uint8_t *staticPasskeyP)
  */
 bool ProteusE_GetAppearance(uint16_t *appearanceP)
 {
+	if (appearanceP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
 
-	ret = ProteusE_Get(ProteusE_USERSETTING_RF_APPEARANCE, help, &length);
-	memcpy((uint8_t*) appearanceP, help, 2);
+	if (ProteusE_Get(ProteusE_USERSETTING_RF_APPEARANCE, help, &length))
+	{
+		memcpy((uint8_t*) appearanceP, help, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1628,21 +1792,28 @@ bool ProteusE_GetSppTxUuid(uint8_t *uuidP)
 /**
  * @brief Request the CFG flags (see ProteusE_CfgFlags_t)
  *
- * @param[out] cfgFlags: pointer to the CFG flags (see ProteusE_CfgFlags_t)
+ * @param[out] cfgFlagsP: pointer to the CFG flags (see ProteusE_CfgFlags_t)
  *
  * @return true if request succeeded,
  *         false otherwise
  */
 bool ProteusE_GetCFGFlags(uint16_t *cfgFlagsP)
 {
+	if (cfgFlagsP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
 
-	ret = ProteusE_Get(ProteusE_USERSETTING_RF_CFGFLAGS, help, &length);
-	memcpy((uint8_t*) cfgFlagsP, help, 2);
+	if (ProteusE_Get(ProteusE_USERSETTING_RF_CFGFLAGS, help, &length))
+	{
+		memcpy((uint8_t*) cfgFlagsP, help, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1655,32 +1826,38 @@ bool ProteusE_GetCFGFlags(uint16_t *cfgFlagsP)
  */
 bool ProteusE_GetState(ProteusE_ModuleState_t *moduleStateP)
 {
+	if (moduleStateP == NULL)
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSE_CMD_GETSTATE_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	{
+		moduleStateP->role = rxPacket.Data[0];
+		moduleStateP->action = rxPacket.Data[1];
+
+		if (moduleStateP->action == ProteusE_BLE_Action_Connected && rxPacket.Length >= 9)
 		{
-			moduleStateP->role = rxPacket.Data[0];
-			moduleStateP->action = rxPacket.Data[1];
-
-			if (moduleStateP->action == ProteusE_BLE_Action_Connected && rxPacket.Length >= 9)
-			{
-				memcpy(moduleStateP->connectedDeviceBtMac, &rxPacket.Data[2], 6);
-				moduleStateP->connectedDeviceMaxPayloadSize = rxPacket.Data[8];
-			}
-			else
-			{
-				memset(moduleStateP->connectedDeviceBtMac, 0, 6);
-				moduleStateP->connectedDeviceMaxPayloadSize = 0;
-			}
-
-			return true;
+			memcpy(moduleStateP->connectedDeviceBtMac, &rxPacket.Data[2], 6);
+			moduleStateP->connectedDeviceMaxPayloadSize = rxPacket.Data[8];
 		}
+		else
+		{
+			memset(moduleStateP->connectedDeviceBtMac, 0, 6);
+			moduleStateP->connectedDeviceMaxPayloadSize = 0;
+		}
+
+		return true;
 	}
 	return false;
 }
@@ -1711,13 +1888,14 @@ bool ProteusE_PhyUpdate(ProteusE_Phy_t phy)
 		txPacket.Length = 1;
 		txPacket.Data[0] = (uint8_t) phy;
 
-		if (FillChecksum(&txPacket))
+		FillChecksum(&txPacket);
+		if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 		{
-			WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-			/* wait for cnf */
-			return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_PHYUPDATE_CNF, CMD_Status_Success, true);
+			return false;
 		}
+
+		/* wait for cnf */
+		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_PHYUPDATE_CNF, CMD_Status_Success, true);
 	}
 	return false;
 }
@@ -1728,7 +1906,7 @@ bool ProteusE_PhyUpdate(ProteusE_Phy_t phy)
  */
 bool ProteusE_GetStatusPinLed1Level()
 {
-	return WE_Pin_Level_High == WE_GetPinLevel(ProteusE_pins[ProteusE_Pin_StatusLed1]);
+	return WE_Pin_Level_High == WE_GetPinLevel(ProteusE_pinsP->ProteusE_Pin_StatusLed1);
 }
 
 /**
@@ -1737,7 +1915,7 @@ bool ProteusE_GetStatusPinLed1Level()
  */
 bool ProteusE_IsTransparentModeBusy()
 {
-	return WE_Pin_Level_High == WE_GetPinLevel(ProteusE_pins[ProteusE_Pin_BusyUartEnable]);
+	return WE_Pin_Level_High == WE_GetPinLevel(ProteusE_pinsP->ProteusE_Pin_BusyUartEnable);
 }
 
 /**
@@ -1747,7 +1925,7 @@ bool ProteusE_IsTransparentModeBusy()
  *
  * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
  */
-void ProteusE_SetByteRxCallback(ProteusE_ByteRxCallback callback)
+void ProteusE_SetByteRxCallback(WE_UART_HandleRxByte_t callback)
 {
 	byteRxCallback = (callback == NULL) ? ProteusE_HandleRxByte : callback;
 }
@@ -1763,6 +1941,11 @@ void ProteusE_SetByteRxCallback(ProteusE_ByteRxCallback callback)
  */
 bool ProteusE_GPIOLocalWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t numberOfConfigs)
 {
+	if (configP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length = 0;
 
 	for (uint16_t i = 0; i < numberOfConfigs; i++)
@@ -1809,14 +1992,14 @@ bool ProteusE_GPIOLocalWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_LOCAL_WRITECONFIG_REQ;
 	txPacket.Length = length;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_WRITECONFIG_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_WRITECONFIG_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1830,77 +2013,80 @@ bool ProteusE_GPIOLocalWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t
  */
 bool ProteusE_GPIOLocalReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t *numberOfConfigsP)
 {
-	bool ret = false;
+	if ((configP == NULL) || (numberOfConfigsP == NULL))
+	{
+		return false;
+	}
 
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_LOCAL_READCONFIG_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_READCONFIG_CNF, CMD_Status_Success, true);
-
-		if (ret == true)
-		{
-			uint16_t length = rxPacket.Length;
-
-			*numberOfConfigsP = 0;
-			uint8_t *uartP = &rxPacket.Data[1];
-			ProteusE_GPIOConfigBlock_t *configP_running = configP;
-			while (uartP < &rxPacket.Data[length])
-			{
-				switch (*(uartP + 2))
-				{
-				case ProteusE_GPIO_IO_Disconnected:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				case ProteusE_GPIO_IO_Input:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-						configP_running->value.input = *(uartP + 3);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				case ProteusE_GPIO_IO_Output:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-						configP_running->value.output = *(uartP + 3);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				default:
-					break;
-				}
-
-				uartP += *uartP + 1;
-			}
-		}
+		return false;
 	}
 
-	return ret;
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_READCONFIG_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+
+		*numberOfConfigsP = 0;
+		uint8_t *uartP = &rxPacket.Data[1];
+		ProteusE_GPIOConfigBlock_t *configP_running = configP;
+		while (uartP < &rxPacket.Data[length])
+		{
+			switch (*(uartP + 2))
+			{
+			case ProteusE_GPIO_IO_Disconnected:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			case ProteusE_GPIO_IO_Input:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+					configP_running->value.input = *(uartP + 3);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			case ProteusE_GPIO_IO_Output:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+					configP_running->value.output = *(uartP + 3);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			default:
+				break;
+			}
+
+			uartP += *uartP + 1;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -1915,6 +2101,11 @@ bool ProteusE_GPIOLocalReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t 
  */
 bool ProteusE_GPIOLocalWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t numberOfControls)
 {
+	if ((controlP == NULL) || (numberOfControls == 0))
+	{
+		return false;
+	}
+
 	uint16_t length = 0;
 
 	for (uint16_t i = 0; i < numberOfControls; i++)
@@ -1931,14 +2122,14 @@ bool ProteusE_GPIOLocalWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t num
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_LOCAL_WRITE_REQ;
 	txPacket.Length = length;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_WRITE_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_WRITE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1955,47 +2146,50 @@ bool ProteusE_GPIOLocalWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t num
  */
 bool ProteusE_GPIOLocalRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, ProteusE_GPIOControlBlock_t *controlP, uint16_t *numberOfControlsP)
 {
-	bool ret = false;
+	if ((gpioToReadP == NULL) || (controlP == NULL) || (numberOfControlsP == NULL) || (amountGPIOToRead == 0))
+	{
+		return false;
+	}
 
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_LOCAL_READ_REQ;
 	txPacket.Length = amountGPIOToRead + 1;
 	txPacket.Data[0] = amountGPIOToRead;
 	memcpy(&txPacket.Data[1], gpioToReadP, amountGPIOToRead);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_READ_CNF, CMD_Status_Success, true);
-
-		if (ret)
-		{
-			uint16_t length = rxPacket.Length;
-
-			*numberOfControlsP = 0;
-			uint8_t *uartP = &rxPacket.Data[1];
-			ProteusE_GPIOControlBlock_t *controlP_running = controlP;
-			while (uartP < &rxPacket.Data[length])
-			{
-				/* each ControlBlock starts with length field which is currently fixed to "2" */
-				if (*uartP == 2)
-				{
-					controlP_running->gpioId = *(uartP + 1);
-					controlP_running->value.output = *(uartP + 2);
-
-					/* Move pointer to next element. configP is increased by sizeof(ProteusE_GPIOControlBlock_t)*/
-					controlP_running++;
-					*numberOfControlsP += 1;
-				}
-
-				/* uartP points to length field of control block. So increase address by value of length + 1 */
-				uartP += *uartP + 1;
-			}
-		}
+		return false;
 	}
 
-	return ret;
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_LOCAL_READ_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+
+		*numberOfControlsP = 0;
+		uint8_t *uartP = &rxPacket.Data[1];
+		ProteusE_GPIOControlBlock_t *controlP_running = controlP;
+		while (uartP < &rxPacket.Data[length])
+		{
+			/* each ControlBlock starts with length field which is currently fixed to "2" */
+			if (*uartP == 2)
+			{
+				controlP_running->gpioId = *(uartP + 1);
+				controlP_running->value.output = *(uartP + 2);
+
+				/* Move pointer to next element. configP is increased by sizeof(ProteusE_GPIOControlBlock_t)*/
+				controlP_running++;
+				*numberOfControlsP += 1;
+			}
+
+			/* uartP points to length field of control block. So increase address by value of length + 1 */
+			uartP += *uartP + 1;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -2009,6 +2203,11 @@ bool ProteusE_GPIOLocalRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, Prot
  */
 bool ProteusE_GPIORemoteWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t numberOfConfigs)
 {
+	if ((configP == NULL) || (numberOfConfigs == 0))
+	{
+		return false;
+	}
+
 	uint16_t length = 0;
 
 	for (uint16_t i = 0; i < numberOfConfigs; i++)
@@ -2051,14 +2250,14 @@ bool ProteusE_GPIORemoteWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_REMOTE_WRITECONFIG_REQ;
 	txPacket.Length = length;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_WRITECONFIG_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_WRITECONFIG_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2072,76 +2271,79 @@ bool ProteusE_GPIORemoteWriteConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_
  */
 bool ProteusE_GPIORemoteReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t *numberOfConfigsP)
 {
-	bool ret = false;
+	if ((configP == NULL) || (numberOfConfigsP == NULL))
+	{
+		return false;
+	}
 
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_REMOTE_READCONFIG_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_READCONFIG_CNF, CMD_Status_Success, true);
-
-		if (ret == true)
-		{
-			uint16_t length = rxPacket.Length;
-
-			*numberOfConfigsP = 0;
-			uint8_t *uartP = &rxPacket.Data[1];
-			ProteusE_GPIOConfigBlock_t *configP_running = configP;
-			while (uartP < &rxPacket.Data[length])
-			{
-				switch (*(uartP + 2))
-				{
-				case ProteusE_GPIO_IO_Disconnected:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				case ProteusE_GPIO_IO_Input:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-						configP_running->value.input = *(uartP + 3);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				case ProteusE_GPIO_IO_Output:
-				{
-					if (*uartP == 3)
-					{
-						configP_running->gpioId = *(uartP + 1);
-						configP_running->function = *(uartP + 2);
-						configP_running->value.output = *(uartP + 3);
-
-						configP_running++;
-						*numberOfConfigsP += 1;
-					}
-					break;
-				}
-				default:
-					break;
-				}
-				uartP += *uartP + 1;
-			}
-		}
+		return false;
 	}
 
-	return ret;
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_READCONFIG_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+
+		*numberOfConfigsP = 0;
+		uint8_t *uartP = &rxPacket.Data[1];
+		ProteusE_GPIOConfigBlock_t *configP_running = configP;
+		while (uartP < &rxPacket.Data[length])
+		{
+			switch (*(uartP + 2))
+			{
+			case ProteusE_GPIO_IO_Disconnected:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			case ProteusE_GPIO_IO_Input:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+					configP_running->value.input = *(uartP + 3);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			case ProteusE_GPIO_IO_Output:
+			{
+				if (*uartP == 3)
+				{
+					configP_running->gpioId = *(uartP + 1);
+					configP_running->function = *(uartP + 2);
+					configP_running->value.output = *(uartP + 3);
+
+					configP_running++;
+					*numberOfConfigsP += 1;
+				}
+				break;
+			}
+			default:
+				break;
+			}
+			uartP += *uartP + 1;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -2156,6 +2358,11 @@ bool ProteusE_GPIORemoteReadConfig(ProteusE_GPIOConfigBlock_t *configP, uint16_t
  */
 bool ProteusE_GPIORemoteWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t numberOfControls)
 {
+	if ((controlP == NULL) || (numberOfControls == 0))
+	{
+		return false;
+	}
+
 	uint16_t length = 0;
 
 	for (uint16_t i = 0; i < numberOfControls; i++)
@@ -2170,14 +2377,14 @@ bool ProteusE_GPIORemoteWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t nu
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_REMOTE_WRITE_REQ;
 	txPacket.Length = length;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_WRITE_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_WRITE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2194,43 +2401,46 @@ bool ProteusE_GPIORemoteWrite(ProteusE_GPIOControlBlock_t *controlP, uint16_t nu
  */
 bool ProteusE_GPIORemoteRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, ProteusE_GPIOControlBlock_t *controlP, uint16_t *numberOfControlsP)
 {
-	bool ret = false;
+	if ((gpioToReadP == NULL) || (controlP == NULL) || (numberOfControlsP == NULL) || (amountGPIOToRead == 0))
+	{
+		return false;
+	}
 
 	txPacket.Cmd = PROTEUSE_CMD_GPIO_REMOTE_READ_REQ;
 	txPacket.Length = amountGPIOToRead + 1;
 	txPacket.Data[0] = amountGPIOToRead;
 	memcpy(&txPacket.Data[1], gpioToReadP, amountGPIOToRead);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_READ_CNF, CMD_Status_Success, true);
-
-		if (ret)
-		{
-			uint16_t length = rxPacket.Length;
-
-			*numberOfControlsP = 0;
-			uint8_t *uartP = &rxPacket.Data[1];
-			ProteusE_GPIOControlBlock_t *controlP_running = controlP;
-			while (uartP < &rxPacket.Data[length])
-			{
-				if (*uartP == 2)
-				{
-					controlP_running->gpioId = *(uartP + 1);
-					controlP_running->value.output = *(uartP + 2);
-
-					controlP_running++;
-					*numberOfControlsP += 1;
-				}
-				uartP += *uartP + 1;
-			}
-		}
+		return false;
 	}
 
-	return ret;
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GPIO_REMOTE_READ_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+
+		*numberOfControlsP = 0;
+		uint8_t *uartP = &rxPacket.Data[1];
+		ProteusE_GPIOControlBlock_t *controlP_running = controlP;
+		while (uartP < &rxPacket.Data[length])
+		{
+			if (*uartP == 2)
+			{
+				controlP_running->gpioId = *(uartP + 1);
+				controlP_running->value.output = *(uartP + 2);
+
+				controlP_running++;
+				*numberOfControlsP += 1;
+			}
+			uartP += *uartP + 1;
+		}
+		return true;
+	}
+
+	return false;
 }
 
 /**
@@ -2243,15 +2453,19 @@ bool ProteusE_GPIORemoteRead(uint8_t *gpioToReadP, uint8_t amountGPIOToRead, Pro
  */
 bool ProteusE_GetBonds(ProteusE_BondDatabase_t *bondDatabaseP)
 {
-	txPacket.Cmd = PROTEUSE_CMD_GET_BONDS_REQ;
-	txPacket.Length = 0;
-
-	if (!FillChecksum(&txPacket))
+	if (bondDatabaseP == NULL)
 	{
 		return false;
 	}
 
-	WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+	txPacket.Cmd = PROTEUSE_CMD_GET_BONDS_REQ;
+	txPacket.Length = 0;
+
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
 
 	/* wait for cnf */
 	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GET_BONDS_CNF, CMD_Status_Success, true))
@@ -2286,14 +2500,14 @@ bool ProteusE_DeleteBonds()
 	txPacket.Cmd = PROTEUSE_CMD_DELETE_BONDS_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2311,14 +2525,14 @@ bool ProteusE_DeleteBond(uint8_t bondId)
 	txPacket.Data[0] = bondId;
 	txPacket.Data[1] = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2332,14 +2546,14 @@ bool ProteusE_AllowUnbondedConnections()
 	txPacket.Cmd = PROTEUSE_CMD_ALLOWUNBONDEDCONNECTIONS_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_ALLOWUNBONDEDCONNECTIONS_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_ALLOWUNBONDEDCONNECTIONS_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2359,14 +2573,14 @@ bool ProteusE_SetRAM(ProteusE_UserSettings_t userSetting, uint8_t *valueP, uint8
 	txPacket.Data[0] = userSetting;
 	memcpy(&txPacket.Data[1], valueP, length);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_RAM_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_RAM_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2413,21 +2627,22 @@ bool ProteusE_SetScanResponseDataRAM(uint8_t *dataP, uint8_t length)
 bool ProteusE_GetRAM(ProteusE_UserSettings_t userSetting, uint8_t *responseP, uint16_t *responseLengthP)
 {
 	txPacket.Cmd = PROTEUSE_CMD_GET_RAM_REQ;
-	txPacket.Length = 0;
+	txPacket.Length = 1;
 	txPacket.Data[0] = userSetting;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GET_RAM_CNF, CMD_Status_Success, true))
-		{
-			uint16_t length = rxPacket.Length;
-			memcpy(responseP, &rxPacket.Data[1], length - 1); /* First data byte is status, following bytes response */
-			*responseLengthP = length - 1;
-			return true;
-		}
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GET_RAM_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+		memcpy(responseP, &rxPacket.Data[1], length - 1); /* First data byte is status, following bytes response */
+		*responseLengthP = length - 1;
+		return true;
 	}
 	return false;
 }
@@ -2436,7 +2651,7 @@ bool ProteusE_GetRAM(ProteusE_UserSettings_t userSetting, uint8_t *responseP, ui
  * @brief Request the (custom) content of the advertising packet from RAM (not persistent)
  *
  * @param[in] dataP: Pointer to (custom) content of advertising packet
- * @param[in] length: Pointer to length of content
+ * @param[in] lengthP: Pointer to length of content
  *
  * @return true if request succeeded,
  *         false otherwise
@@ -2450,7 +2665,7 @@ bool ProteusE_GetAdvertisingDataRAM(uint8_t *dataP, uint16_t *lengthP)
  * @brief Request the (custom) content of the scan response packet from RAM (not persistent)
  *
  * @param[in] dataP: Pointer to (custom) content of scan response packet
- * @param[in] length: Pointer to length of content
+ * @param[in] lengthP: Pointer to length of content
  *
  * @return true if request succeeded,
  *         false otherwise
@@ -2471,22 +2686,22 @@ bool ProteusE_DTMEnable()
 	txPacket.Cmd = PROTEUSE_CMD_DTMSTART_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	{
+		if ((rxPacket.Data[0] == (uint8_t) ProteusE_BLE_Role_DTM) && (rxPacket.Data[1] == (uint8_t) ProteusE_BLE_Action_DTM))
 		{
-			if((rxPacket.Data[0] == (uint8_t)ProteusE_BLE_Role_DTM) && (rxPacket.Data[1] == (uint8_t)ProteusE_BLE_Action_DTM))
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 	return false;
 }
-
 
 /**
  * @brief Run a direct test mode (DTM) command
@@ -2508,14 +2723,14 @@ bool ProteusE_DTMRun(ProteusE_DTMCommand_t command, uint8_t channel_vendoroption
 	txPacket.Data[2] = length_vendorcmd;
 	txPacket.Data[3] = payload;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DTM_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DTM_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2530,7 +2745,7 @@ bool ProteusE_DTMRun(ProteusE_DTMCommand_t command, uint8_t channel_vendoroption
  */
 bool ProteusE_DTMStartTX(uint8_t channel, uint8_t length, ProteusE_DTMTXPattern_t pattern)
 {
-	return ProteusE_DTMRun(ProteusE_DTMCommand_StartTX, channel, length, (uint8_t)pattern);
+	return ProteusE_DTMRun(ProteusE_DTMCommand_StartTX, channel, length, (uint8_t) pattern);
 }
 
 /**
@@ -2567,7 +2782,7 @@ bool ProteusE_DTMStop()
  */
 bool ProteusE_DTMSetPhy(ProteusE_Phy_t phy)
 {
-	return ProteusE_DTMRun(ProteusE_DTMCommand_Setup, 0x02, (uint8_t)phy, 0x00);
+	return ProteusE_DTMRun(ProteusE_DTMCommand_Setup, 0x02, (uint8_t) phy, 0x00);
 }
 
 /**
@@ -2580,7 +2795,6 @@ bool ProteusE_DTMSetPhy(ProteusE_Phy_t phy)
  */
 bool ProteusE_DTMSetTXPower(ProteusE_TXPower_t power)
 {
-	return ProteusE_DTMRun(ProteusE_DTMCommand_StartTX, (uint8_t)power, 0x02, 0x03);
+	return ProteusE_DTMRun(ProteusE_DTMCommand_StartTX, (uint8_t) power, 0x02, 0x03);
 }
-
 

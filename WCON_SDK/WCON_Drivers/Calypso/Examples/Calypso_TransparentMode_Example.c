@@ -27,16 +27,12 @@
  * @file
  * @brief Calypso transparent mode example.
  */
-
-#include "Calypso_TransparentMode_Example.h"
-
+#include <Calypso/Examples/Calypso_TransparentMode_Example.h>
 #include <stdio.h>
-
 #include <Calypso/ATCommands/ATDevice.h>
 #include <Calypso/ATCommands/ATNetCfg.h>
 #include <Calypso/ATCommands/ATWLAN.h>
-
-#include "Calypso_Examples.h"
+#include <Calypso/Examples/Calypso_Examples.h>
 
 /**
  * @brief Max. size of payload used in this example (max. length of transmitted lines)
@@ -46,7 +42,7 @@
 /**
  * @brief IPv4 remote address (address of peer to exchange data with)
  */
-static char* transparentModeExampleRemoteAddress = "192.168.178.86";
+static char *transparentModeExampleRemoteAddress = "192.168.178.86";
 
 /**
  * @brief Remote port
@@ -61,16 +57,16 @@ static uint16_t transparentModeExampleLocalPort = 8888;
 /**
  * @brief Type of socket to use
  */
-static ATDevice_TransparentModeSocketType_t transparentModeExampleSocketType = ATDevice_TransparentModeSocketType_TCPClient;
+static Calypso_ATDevice_TransparentModeSocketType_t transparentModeExampleSocketType = Calypso_ATDevice_TransparentModeSocketType_TCPClient;
 
 /**
  * @brief Trigger configuration for transparent mode (trigger for transmitting data)
  */
-static uint8_t transparentModeExampleTrigger = ATDevice_TransparentModeUartTrigger_OneETX | ATDevice_TransparentModeUartTrigger_TransmitETX;
+static uint8_t transparentModeExampleTrigger = Calypso_ATDevice_TransparentModeUartTrigger_OneETX | Calypso_ATDevice_TransparentModeUartTrigger_TransmitETX;
 
 /**
  * @brief Trigger timeout in milliseconds
- * (only applicable if using ATDevice_TransparentModeUartTrigger_Timer)
+ * (only applicable if using Calypso_ATDevice_TransparentModeUartTrigger_Timer)
  */
 static uint16_t transparentModeExampleTriggerTimeoutMs = 6;
 
@@ -81,7 +77,7 @@ static char transparentModeExampleEtx1 = '\r';
 
 /**
  * @brief Second end of transmission character used for transparent mode
- * (only applicable if using ATDevice_TransparentModeUartTrigger_TwoETX)
+ * (only applicable if using Calypso_ATDevice_TransparentModeUartTrigger_TwoETX)
  */
 static char transparentModeExampleEtx2 = '\n';
 
@@ -121,7 +117,7 @@ static uint16_t transparentModeExampleBytesReceived = 0;
  */
 static uint32_t transparentModeExampleLastByteReceivedTimestamp = 0;
 
-static void Calypso_TransparentModeExampleByteHandler(uint8_t byte);
+static void Calypso_TransparentModeExampleByteHandler(uint8_t *dataP, size_t size);
 
 /**
  * @brief Transparent mode example.
@@ -133,279 +129,275 @@ static void Calypso_TransparentModeExampleByteHandler(uint8_t byte);
  *
  * Note that for this example to work, it is required to connect the Calypso's
  * application mode pins APP_MODE_0 and APP_MODE_1 as well as the status pins
- * STATUS_IND_0 and STATUS_IND_1 (see readme in the root folder of this repository or
- * Calypso_GetDefaultPinConfig() for the default pins used for controlling the
- * application mode and for reading the module's status).
+ * STATUS_IND_0 and STATUS_IND_1
  */
 void Calypso_TransparentMode_Example(void)
 {
-    printf("*** Start of Calypso transparent mode example ***\r\n");
+	printf("*** Start of Calypso transparent mode example ***\r\n");
 
-    bool ret = false;
+	bool ret = false;
 
-    if (!Calypso_Init(Calypso_Examples_baudRate, Calypso_Examples_flowControl, Calypso_Examples_parity, &Calypso_Examples_EventCallback, NULL))
-    {
-        return;
-    }
+	if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
+	{
+		printf("Initialization error\r\n");
+		return;
+	}
 
-    Calypso_PinReset();
+	Calypso_PinReset();
 
-    Calypso_Examples_WaitForStartup(5000);
+	Calypso_Examples_WaitForStartup(5000);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
-    /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-     * Calypso_firmwareVersionPatch for later use. */
-    ATDevice_Value_t deviceValue;
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &deviceValue);
-    Calypso_Examples_Print("Get device version", ret);
+	/* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
+	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+	 * Calypso_firmwareVersionPatch for later use. */
+	Calypso_ATDevice_Value_t deviceValue;
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
+	Calypso_Examples_Print("Get device version", ret);
 
-    /* Set IPv4 address method DHCP */
-    ATNetCfg_IPv4Config_t newIpV4Config = {0};
-    newIpV4Config.method = ATNetCfg_IPv4Method_Dhcp;
-    ret = ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
-    Calypso_Examples_Print("Set DHCP mode", ret);
+	/* Set IPv4 address method DHCP */
+	Calypso_ATNetCfg_IPv4Config_t newIpV4Config = {
+			0 };
+	newIpV4Config.method = Calypso_ATNetCfg_IPv4Method_Dhcp;
+	ret = Calypso_ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
+	Calypso_Examples_Print("Set DHCP mode", ret);
 
-    /* WLAN station mode */
-    ret = ATWLAN_SetMode(ATWLAN_SetMode_Station);
-    Calypso_Examples_Print("Set WLAN mode to station", ret);
+	/* WLAN station mode */
+	ret = Calypso_ATWLAN_SetMode(Calypso_ATWLAN_SetMode_Station);
+	Calypso_Examples_Print("Set WLAN mode to station", ret);
 
-    ret = ATDevice_Restart(0);
-    Calypso_Examples_Print("Restart network processor", ret);
+	ret = Calypso_ATDevice_Restart(0);
+	Calypso_Examples_Print("Restart network processor", ret);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
-    /* Set connection policy to AUTO|FAST */
-    ret = ATWLAN_SetConnectionPolicy(ATWLAN_PolicyConnection_Auto | ATWLAN_PolicyConnection_Fast);
-    Calypso_Examples_Print("Set WLAN connection policy to AUTO|FAST", ret);
+	/* Set connection policy to AUTO|FAST */
+	ret = Calypso_ATWLAN_SetConnectionPolicy(Calypso_ATWLAN_PolicyConnection_Auto | Calypso_ATWLAN_PolicyConnection_Fast);
+	Calypso_Examples_Print("Set WLAN connection policy to AUTO|FAST", ret);
 
-    /* Connect to WLAN.
-     * When starting in transparent mode later on, Calypso will connect to the last used WLAN.
-     * Alternatively, one or more WLAN profiles containing connection credentials (of
-     * networks to be used in transparent mode) can be added. */
-    ATWLAN_ConnectionArguments_t connectArgs;
-    memset(&connectArgs, 0, sizeof(connectArgs));
-    strcpy(connectArgs.SSID, Calypso_Examples_wlanSSID);
-    connectArgs.securityParams.securityType = ATWLAN_SecurityType_WPA_WPA2;
-    strcpy(connectArgs.securityParams.securityKey, Calypso_Examples_wlanKey);
+	/* Connect to WLAN.
+	 * When starting in transparent mode later on, Calypso will connect to the last used WLAN.
+	 * Alternatively, one or more WLAN profiles containing connection credentials (of
+	 * networks to be used in transparent mode) can be added. */
+	Calypso_ATWLAN_ConnectionArguments_t connectArgs;
+	memset(&connectArgs, 0, sizeof(connectArgs));
+	strcpy(connectArgs.SSID, Calypso_Examples_wlanSSID);
+	connectArgs.securityParams.securityType = Calypso_ATWLAN_SecurityType_WPA_WPA2;
+	strcpy(connectArgs.securityParams.securityKey, Calypso_Examples_wlanKey);
 
-    ret = ATWLAN_Connect(connectArgs);
-    Calypso_Examples_Print("Connect to WLAN", ret);
+	ret = Calypso_ATWLAN_Connect(connectArgs);
+	Calypso_Examples_Print("Connect to WLAN", ret);
 
-    /* Wait for WLAN connection to be established */
-    Calypso_Examples_WaitForIPv4Acquired(5000);
+	/* Wait for WLAN connection to be established */
+	Calypso_Examples_WaitForIPv4Acquired(5000);
 
-    /* Get IPv4 configuration (station) */
-    ATNetCfg_IPv4Config_t ipV4Config;
-    ret = ATNetCfg_GetIPv4AddressStation(&ipV4Config);
-    Calypso_Examples_Print("AT+netCfgGet=IPV4_STA_ADDR", ret);
-    if (ret)
-    {
-        printf("*** Station IPv4 configuration ***\r\n");
-        printf("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        printf("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        printf("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        printf("DNS address: %s\r\n", ipV4Config.dnsAddress);
-    }
+	/* Get IPv4 configuration (station) */
+	Calypso_ATNetCfg_IPv4Config_t ipV4Config;
+	ret = Calypso_ATNetCfg_GetIPv4AddressStation(&ipV4Config);
+	Calypso_Examples_Print("AT+netCfgGet=IPV4_STA_ADDR", ret);
+	if (ret)
+	{
+		printf("*** Station IPv4 configuration ***\r\n");
+		printf("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+		printf("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+		printf("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+		printf("DNS address: %s\r\n", ipV4Config.dnsAddress);
+	}
 
-    /* Set transparent mode parameters */
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    strcpy(deviceValue.transparentMode.remoteAddress, transparentModeExampleRemoteAddress);
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_RemoteAddress, &deviceValue);
-    Calypso_Examples_Print("Set remote address", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.remotePort = transparentModeExampleRemotePort;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_RemotePort, &deviceValue);
-    Calypso_Examples_Print("Set remote port", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.localPort = transparentModeExampleLocalPort;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_LocalPort, &deviceValue);
-    Calypso_Examples_Print("Set local port", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.socketType = transparentModeExampleSocketType;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_SocketType, &deviceValue);
-    Calypso_Examples_Print("Set socket type", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.secureMethod = ATDevice_TransparentModeSecureMethod_None;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_SecureMethod, &deviceValue);
-    Calypso_Examples_Print("Set secure method", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.powerSave = transparentModeExamplePowerSave;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_PowerSave, &deviceValue);
-    Calypso_Examples_Print("Set power save parameter", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.skipDateVerify = false;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_SkipDateVerify, &deviceValue);
-    Calypso_Examples_Print("Set skip date verify", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.transparentMode.disableCertificateStore = false;
-    ret = ATDevice_Set(ATDevice_GetId_TransparentMode, ATDevice_GetTransparentMode_DisableCertificateStore, &deviceValue);
-    Calypso_Examples_Print("Set disable certificate store", ret);
+	/* Set transparent mode parameters */
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	strcpy(deviceValue.transparentMode.remoteAddress, transparentModeExampleRemoteAddress);
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_RemoteAddress, &deviceValue);
+	Calypso_Examples_Print("Set remote address", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.remotePort = transparentModeExampleRemotePort;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_RemotePort, &deviceValue);
+	Calypso_Examples_Print("Set remote port", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.localPort = transparentModeExampleLocalPort;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_LocalPort, &deviceValue);
+	Calypso_Examples_Print("Set local port", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.socketType = transparentModeExampleSocketType;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_SocketType, &deviceValue);
+	Calypso_Examples_Print("Set socket type", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.secureMethod = Calypso_ATDevice_TransparentModeSecureMethod_None;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_SecureMethod, &deviceValue);
+	Calypso_Examples_Print("Set secure method", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.powerSave = transparentModeExamplePowerSave;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_PowerSave, &deviceValue);
+	Calypso_Examples_Print("Set power save parameter", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.skipDateVerify = false;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_SkipDateVerify, &deviceValue);
+	Calypso_Examples_Print("Set skip date verify", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.transparentMode.disableCertificateStore = false;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_TransparentMode, Calypso_ATDevice_GetTransparentMode_DisableCertificateStore, &deviceValue);
+	Calypso_Examples_Print("Set disable certificate store", ret);
 
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.uart.transparentTrigger = transparentModeExampleTrigger;
-    ret = ATDevice_Set(ATDevice_GetId_UART, ATDevice_GetUart_TransparentTrigger, &deviceValue);
-    Calypso_Examples_Print("Set transparent trigger", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.uart.transparentTimeoutMs = transparentModeExampleTriggerTimeoutMs;
-    ret = ATDevice_Set(ATDevice_GetId_UART, ATDevice_GetUart_TransparentTimeout, &deviceValue);
-    Calypso_Examples_Print("Set transparent timeout", ret);
-    memset(&deviceValue, 0, sizeof(deviceValue));
-    deviceValue.uart.transparentETX[0] = transparentModeExampleEtx1;
-    deviceValue.uart.transparentETX[1] = transparentModeExampleEtx2;
-    ret = ATDevice_Set(ATDevice_GetId_UART, ATDevice_GetUart_TransparentETX, &deviceValue);
-    Calypso_Examples_Print("Set transparent ETX", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.uart.transparentTrigger = transparentModeExampleTrigger;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_TransparentTrigger, &deviceValue);
+	Calypso_Examples_Print("Set transparent trigger", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.uart.transparentTimeoutMs = transparentModeExampleTriggerTimeoutMs;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_TransparentTimeout, &deviceValue);
+	Calypso_Examples_Print("Set transparent timeout", ret);
+	memset(&deviceValue, 0, sizeof(deviceValue));
+	deviceValue.uart.transparentETX[0] = transparentModeExampleEtx1;
+	deviceValue.uart.transparentETX[1] = transparentModeExampleEtx2;
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_TransparentETX, &deviceValue);
+	Calypso_Examples_Print("Set transparent ETX", ret);
 
+	/* Set app mode pins to enable transparent mode after reset */
+	ret = Calypso_SetApplicationModePins(Calypso_ApplicationMode_TransparentMode);
+	Calypso_Examples_Print("Set app mode pins to transparent mode", ret);
 
-    /* Set app mode pins to enable transparent mode after reset */
-    ret = Calypso_SetApplicationModePins(Calypso_ApplicationMode_TransparentMode);
-    Calypso_Examples_Print("Set app mode pins to transparent mode", ret);
+	/* Reset Calypso (will enter transparent mode after restart) */
+	ret = Calypso_PinReset();
+	Calypso_Examples_Print("Reset Calypso", ret);
 
+	/* Must wait for startup */
+	Calypso_Examples_WaitForStartup(2000);
 
-    /* Reset Calypso (will enter transparent mode after restart) */
-    ret = Calypso_PinReset();
-    Calypso_Examples_Print("Reset Calypso", ret);
+	/* Wait for connection of WLAN and socket (wait for status pins to turn high) */
+	printf("Will now wait for STATUS_IND_0 pin to turn high (WLAN connected)...\r\n");
+	while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0))
+	{
+	}
+	Calypso_Examples_Print("Wait for STATUS_IND_0 pin to turn high", true);
 
-    /* Must wait for startup */
-    WE_Delay(2000);
+	printf("Will now wait for STATUS_IND_1 pin to turn high (socket connected)...\r\n");
+	while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd1))
+	{
+	}
+	Calypso_Examples_Print("Wait for STATUS_IND_1 pin to turn high", true);
 
-    /* Wait for connection of WLAN and socket (wait for status pins to turn high) */
-    printf("Will now wait for STATUS_IND_0 pin to turn high (WLAN connected)...\r\n");
-    while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd0))
-    {
-    }
-    Calypso_Examples_Print("Wait for STATUS_IND_0 pin to turn high", true);
+	char payload[CALYPSO_TRANSPARENT_MODE_EXAMPLE_MAX_PAYLOAD_SIZE];
+	transparentModeExampleBytesReceived = 0;
+	transparentModeExampleLineReceived = false;
 
-    printf("Will now wait for STATUS_IND_1 pin to turn high (socket connected)...\r\n");
-    while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd1))
-    {
-    }
-    Calypso_Examples_Print("Wait for STATUS_IND_1 pin to turn high", true);
+	/* Set byte received callback. This circumvents the SDK's regular processing of
+	 * incoming data (which the SDK would interpret as AT commands / responses) and
+	 * instead calls the custom callback for every byte received. */
+	Calypso_SetByteRxCallback(Calypso_TransparentModeExampleByteHandler);
 
+	uint16_t counter = 0;
 
-    char payload[CALYPSO_TRANSPARENT_MODE_EXAMPLE_MAX_PAYLOAD_SIZE];
-    transparentModeExampleBytesReceived = 0;
-    transparentModeExampleLineReceived = false;
+	/* Start data transmission. In this example, it is assumed that the peer will
+	 * send a response for each line sent by this device. Additionally, it is assumed
+	 * that the response is terminated the same way as the request (i.e. one or two
+	 * ETX characters). If the response is not terminated using the ETX character(s),
+	 * it is assumed that all data has been received if a timeout is reached. */
+	while (true)
+	{
+		sprintf(payload, "Hello Calypso (%u)!", counter++);
 
-    /* Set byte received callback. This circumvents the SDK's regular processing of
-     * incoming data (which the SDK would interpret as AT commands / responses) and
-     * instead calls the custom callback for every byte received. */
-    Calypso_SetByteRxCallback(Calypso_TransparentModeExampleByteHandler);
+		/* Reset tick value to check for rx timeout */
+		transparentModeExampleLastByteReceivedTimestamp = WE_GetTick();
 
-    uint16_t counter = 0;
+		if (transparentModeExamplePowerSave)
+		{
+			/* Wake up Calypso so that it can forward the data that we are about to send */
+			Calypso_PinWakeUp();
 
-    /* Start data transmission. In this example, it is assumed that the peer will
-     * send a response for each line sent by this device. Additionally, it is assumed
-     * that the response is terminated the same way as the request (i.e. one or two
-     * ETX characters). If the response is not terminated using the ETX character(s),
-     * it is assumed that all data has been received if a timeout is reached. */
-    while (true)
-    {
-        sprintf(payload, "Hello Calypso (%u)!", counter++);
+			/* Guard interval is required before sending data (wake-up signal is HIGH for 5ms + 5ms delay = 10ms in total)  */
+			WE_Delay(5);
+		}
 
-        /* Reset tick value to check for rx timeout */
-        transparentModeExampleLastByteReceivedTimestamp = WE_GetTick();
+		/* Transmit payload (plain data, directly written to UART) */
+		Calypso_Transparent_Transmit(payload, strlen(payload));
 
-        if (transparentModeExamplePowerSave)
-        {
-            /* Wake up Calypso so that it can forward the data that we are about to send */
-            Calypso_PinWakeUp();
+		/* Transmit ETX character(s), if enabled */
+		if (0 != (transparentModeExampleTrigger & Calypso_ATDevice_TransparentModeUartTrigger_OneETX) || 0 != (transparentModeExampleTrigger & Calypso_ATDevice_TransparentModeUartTrigger_TwoETX))
+		{
+			Calypso_Transparent_Transmit(&transparentModeExampleEtx1, 1);
+		}
+		if (0 != (transparentModeExampleTrigger & Calypso_ATDevice_TransparentModeUartTrigger_TwoETX))
+		{
+			Calypso_Transparent_Transmit(&transparentModeExampleEtx2, 1);
+		}
 
-            /* Guard interval is required before sending data (wake-up signal is HIGH for 5ms + 5ms delay = 10ms in total)  */
-            WE_Delay(5);
-        }
+		/* Wait until either a complete line has been received (ETX character(s) have been
+		 * detected) or no bytes have been received for transparentModeExampleRxTimeoutMs
+		 * milliseconds. */
+		while (!transparentModeExampleLineReceived && (WE_GetTick() - transparentModeExampleLastByteReceivedTimestamp) < transparentModeExampleRxTimeoutMs)
+		{
+		}
 
-        /* Transmit payload (plain data, directly written to UART) */
-        Calypso_Transmit(payload, strlen(payload));
+		/* Print received text (if any) */
+		if (transparentModeExampleBytesReceived > 0)
+		{
+			transparentModeExampleRxBuffer[transparentModeExampleBytesReceived] = '\0';
+			printf("Received \"%s\"\r\n", transparentModeExampleRxBuffer);
+		}
 
-        /* Transmit ETX character(s), if enabled */
-        if (0 != (transparentModeExampleTrigger & ATDevice_TransparentModeUartTrigger_OneETX) ||
-                0 != (transparentModeExampleTrigger & ATDevice_TransparentModeUartTrigger_TwoETX))
-        {
-            Calypso_Transmit(&transparentModeExampleEtx1, 1);
-        }
-        if (0 != (transparentModeExampleTrigger & ATDevice_TransparentModeUartTrigger_TwoETX))
-        {
-            Calypso_Transmit(&transparentModeExampleEtx2, 1);
-        }
+		transparentModeExampleBytesReceived = 0;
+		transparentModeExampleLineReceived = false;
 
-        /* Wait until either a complete line has been received (ETX character(s) have been
-         * detected) or no bytes have been received for transparentModeExampleRxTimeoutMs
-         * milliseconds. */
-        while (!transparentModeExampleLineReceived &&
-                (WE_GetTick() - transparentModeExampleLastByteReceivedTimestamp) < transparentModeExampleRxTimeoutMs)
-        {
-        }
+		/* 1s delay */
+		WE_Delay(1000);
 
-        /* Print received text (if any) */
-        if (transparentModeExampleBytesReceived > 0)
-        {
-            transparentModeExampleRxBuffer[transparentModeExampleBytesReceived] = '\0';
-            printf("Received \"%s\"\r\n", transparentModeExampleRxBuffer);
-        }
+		/* Check if still connected */
+		if (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0) || WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd1))
+		{
+			printf("ERROR: Connection to peer lost (WLAN or socket disconnected). Will now wait for reconnect.\r\n");
+			while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0) || WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd1))
+			{
+			}
+			printf("Reconnected!\r\n");
 
-        transparentModeExampleBytesReceived = 0;
-        transparentModeExampleLineReceived = false;
+			/* Guard interval (required especially when power save mode is active) */
+			WE_Delay(5);
+		}
+	}
 
-        /* 1s delay */
-        WE_Delay(1000);
-
-        /* Check if still connected */
-        if (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd0) ||
-            WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd1))
-        {
-            printf("ERROR: Connection to peer lost (WLAN or socket disconnected). Will now wait for reconnect.\r\n");
-            while (WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd0) ||
-                   WE_Pin_Level_Low == Calypso_GetPinLevel(Calypso_Pin_StatusInd1))
-            {
-            }
-            printf("Reconnected!\r\n");
-
-            /* Guard interval (required especially when power save mode is active) */
-            WE_Delay(5);
-        }
-    }
-
-    Calypso_Deinit();
+	Calypso_Deinit();
 }
 
 /**
  * @brief Is called when a byte has been received in transparent mode.
  */
-void Calypso_TransparentModeExampleByteHandler(uint8_t byte)
+void Calypso_TransparentModeExampleByteHandler(uint8_t *dataP, size_t size)
 {
-    if (transparentModeExampleLineReceived)
-    {
-        /* Ignore all received data until the previous line has been read */
-        return;
-    }
+	uint8_t byte;
+	for (; size > 0; size--, dataP++)
+	{
+		byte = *dataP;
+		if (transparentModeExampleLineReceived)
+		{
+			/* Ignore all received data until the previous line has been read */
+			return;
+		}
 
-    /* Store current tick value for checking timeout (see Calypso_TransparentMode_Example()) */
-    transparentModeExampleLastByteReceivedTimestamp = WE_GetTick();
+		/* Store current tick value for checking timeout (see Calypso_TransparentMode_Example()) */
+		transparentModeExampleLastByteReceivedTimestamp = WE_GetTick();
 
-    if (transparentModeExampleBytesReceived < CALYPSO_TRANSPARENT_MODE_EXAMPLE_MAX_PAYLOAD_SIZE)
-    {
-        /* Store received byte in rx buffer */
-        transparentModeExampleRxBuffer[transparentModeExampleBytesReceived] = byte;
-        transparentModeExampleBytesReceived++;
+		if (transparentModeExampleBytesReceived < CALYPSO_TRANSPARENT_MODE_EXAMPLE_MAX_PAYLOAD_SIZE)
+		{
+			/* Store received byte in rx buffer */
+			transparentModeExampleRxBuffer[transparentModeExampleBytesReceived] = byte;
+			transparentModeExampleBytesReceived++;
 
-        /* Check if line is complete and set flag if so */
-        if (0 != (transparentModeExampleTrigger & ATDevice_TransparentModeUartTrigger_OneETX))
-        {
-            if (byte == transparentModeExampleEtx1)
-            {
-                transparentModeExampleLineReceived = true;
-            }
-        }
-        else if (0 != (transparentModeExampleTrigger & ATDevice_TransparentModeUartTrigger_TwoETX) &&
-                transparentModeExampleBytesReceived > 1)
-        {
-            if (byte == transparentModeExampleEtx2 &&
-                    transparentModeExampleRxBuffer[transparentModeExampleBytesReceived - 2] == transparentModeExampleEtx1)
-            {
-                transparentModeExampleLineReceived = true;
-            }
-        }
-    }
+			/* Check if line is complete and set flag if so */
+			if (0 != (transparentModeExampleTrigger & Calypso_ATDevice_TransparentModeUartTrigger_OneETX))
+			{
+				if (byte == transparentModeExampleEtx1)
+				{
+					transparentModeExampleLineReceived = true;
+				}
+			}
+			else if (0 != (transparentModeExampleTrigger & Calypso_ATDevice_TransparentModeUartTrigger_TwoETX) && transparentModeExampleBytesReceived > 1)
+			{
+				if (byte == transparentModeExampleEtx2 && transparentModeExampleRxBuffer[transparentModeExampleBytesReceived - 2] == transparentModeExampleEtx1)
+				{
+					transparentModeExampleLineReceived = true;
+				}
+			}
+		}
+	}
 }

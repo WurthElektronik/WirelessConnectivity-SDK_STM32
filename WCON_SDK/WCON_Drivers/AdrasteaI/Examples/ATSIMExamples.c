@@ -22,136 +22,108 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATSIMExamples.h>
+#include <AdrasteaI/ATCommands/ATSIM.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/ATCommands/ATProprietary.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATSIMExamples.h"
-#include "../ATCommands/ATSIM.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "../ATCommands/ATProprietary.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATSIM_EventCallback(char *eventText);
 
-void Adrastea_ATSIM_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
 
 void ATSIMExample()
 {
+	printf("*** Start of Adrastea-I ATSIM example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATSIM_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATSIM_EventCallback))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATSIM example ***\r\n");
-
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
-
-	ATSIM_IMSI_t imsi;
-
-	ret = ATSIM_RequestInternationalMobileSubscriberIdentity(&imsi);
-
-	AdrasteaExamplesPrint("Request International Mobile Subscriber Identity", ret);
-
+	AdrasteaI_ATSIM_IMSI_t imsi;
+	ret = AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(&imsi);
+	AdrasteaI_ExamplesPrint("Request International Mobile Subscriber Identity", ret);
 	if (ret)
 	{
 		printf("IMSI: %s\r\n", imsi);
 	}
 
-	ATSIM_ICCID_t iccid;
-
-	ret = ATSIM_RequestIntegratedCircuitCardIdentifier(&iccid);
-
-	AdrasteaExamplesPrint("Request Integrated Circuit Card Identifier", ret);
-
+	AdrasteaI_ATSIM_ICCID_t iccid;
+	ret = AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(&iccid);
+	AdrasteaI_ExamplesPrint("Request Integrated Circuit Card Identifier", ret);
 	if (ret)
 	{
 		printf("ICCID: %s\r\n", iccid);
 	}
 
-	ATSIM_PIN_Status_t pinStatus;
-
-	ret = ATSIM_ReadPinStatus(&pinStatus);
-
-	AdrasteaExamplesPrint("Read Pin Status", ret);
-
+	AdrasteaI_ATSIM_PIN_Status_t pinStatus;
+	ret = AdrasteaI_ATSIM_ReadPinStatus(&pinStatus);
+	AdrasteaI_ExamplesPrint("Read Pin Status", ret);
 	if (ret)
 	{
 		printf("Pin Status: %d\r\n", pinStatus);
 	}
 
-	ret = ATSIM_SetFacilityLock(ATSIM_Facility_SC, ATSIM_Lock_Mode_Lock, "2912");
+	ret = AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_SC, AdrasteaI_ATSIM_Lock_Mode_Lock, "2912");
+	AdrasteaI_ExamplesPrint("Set Facility Lock", ret);
 
-	AdrasteaExamplesPrint("Set Facility Lock", ret);
-
-	ATSIM_Lock_Status_t lockStatus;
-
-	ret = ATSIM_ReadFacilityLock(ATSIM_Facility_SC, &lockStatus);
-
-	AdrasteaExamplesPrint("Read Facility Lock", ret);
-
+	AdrasteaI_ATSIM_Lock_Status_t lockStatus;
+	ret = AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_SC, &lockStatus);
+	AdrasteaI_ExamplesPrint("Read Facility Lock", ret);
 	if (ret)
 	{
 		printf("Lock Status: %d\r\n", lockStatus);
 	}
 
-	ret = ATSIM_SetFacilityLock(ATSIM_Facility_SC, ATSIM_Lock_Mode_Unlock, "2912");
-
-	AdrasteaExamplesPrint("Set Facility Unlock", ret);
+	ret = AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_SC, AdrasteaI_ATSIM_Lock_Mode_Unlock, "2912");
+	AdrasteaI_ExamplesPrint("Set Facility Unlock", ret);
 
 	lockStatus = -1;
-
-	ret = ATSIM_ReadFacilityLock(ATSIM_Facility_SC, &lockStatus);
-
-	AdrasteaExamplesPrint("Read Facility Lock", ret);
-
+	ret = AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_SC, &lockStatus);
+	AdrasteaI_ExamplesPrint("Read Facility Lock", ret);
 	if (ret)
 	{
 		printf("Lock Status: %d\r\n", lockStatus);
 	}
 
-	ATSIM_Restricted_Access_Response_t ras;
-
-	char repsonse[256];
-
-	ras.responseRead = repsonse;
-
-	ras.responseReadMaxBufferSize = 256;
-
-	ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_Status, 0, 0, 0, 0, NULL, &ras);
-
-	AdrasteaExamplesPrint("Restricted SIM Access", ret);
-
+	AdrasteaI_ATSIM_Restricted_Access_Response_t ras;
+	char response[256];
+	ras.responseRead = response;
+	ras.responseReadMaxBufferSize = sizeof(response);
+	AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Command_Status, 0, 0, 0, 0, NULL, &ras);
+	AdrasteaI_ExamplesPrint("Restricted SIM Access", ret);
 	if (ret)
 	{
 		printf("SW1 : %d, SW2 : %d, Response : %s\r\n", ras.sw1, ras.sw2, ras.responseRead);
 	}
 }
 
-void Adrastea_ATSIM_EventCallback(char *eventText)
+void AdrasteaI_ATSIM_EventCallback(char *eventText)
 {
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
 	switch (event)
 	{
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
 	default:

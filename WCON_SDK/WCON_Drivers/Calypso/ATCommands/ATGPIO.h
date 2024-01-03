@@ -28,9 +28,8 @@
  * @brief AT commands for GPIO functionality.
  */
 
-#ifndef AT_GPIO_H_INCLUDED
-#define AT_GPIO_H_INCLUDED
-
+#ifndef CALYPSO_AT_GPIO_H_INCLUDED
+#define CALYPSO_AT_GPIO_H_INCLUDED
 #include <global/ATCommands.h>
 #include <Calypso/Calypso.h>
 #include <stdbool.h>
@@ -43,136 +42,136 @@ extern "C" {
 /**
  * @brief GPIOs that are available on the Calypso module.
  */
-typedef enum ATGPIO_GPIOId_t
+typedef enum Calypso_ATGPIO_GPIOId_t
 {
-    ATGPIO_GPIOId_0,
-    ATGPIO_GPIOId_1,
-    ATGPIO_GPIOId_2,
-    ATGPIO_GPIOId_3,
-    ATGPIO_GPIOId_NumberOfValues
-} ATGPIO_GPIOId_t;
+	Calypso_ATGPIO_GPIOId_0,
+	Calypso_ATGPIO_GPIOId_1,
+	Calypso_ATGPIO_GPIOId_2,
+	Calypso_ATGPIO_GPIOId_3,
+	Calypso_ATGPIO_GPIOId_NumberOfValues
+} Calypso_ATGPIO_GPIOId_t;
 
 /**
  * @brief Types of functions that can be assigned to GPIOs.
  */
-typedef enum ATGPIO_GPIOType_t
+typedef enum Calypso_ATGPIO_GPIOType_t
 {
-    ATGPIO_GPIOType_Unused,
-    ATGPIO_GPIOType_Input,
-    ATGPIO_GPIOType_Output,
-    ATGPIO_GPIOType_PWM,
-    ATGPIO_GPIOType_NumberOfValues
-} ATGPIO_GPIOType_t;
+	Calypso_ATGPIO_GPIOType_Unused,
+	Calypso_ATGPIO_GPIOType_Input,
+	Calypso_ATGPIO_GPIOType_Output,
+	Calypso_ATGPIO_GPIOType_PWM,
+	Calypso_ATGPIO_GPIOType_NumberOfValues
+} Calypso_ATGPIO_GPIOType_t;
 
 /**
  * @brief GPIO input pull types.
  */
-typedef enum ATGPIO_PullType_t
+typedef enum Calypso_ATGPIO_PullType_t
 {
-    ATGPIO_PullType_NoPull,
-    ATGPIO_PullType_PullUp,
-    ATGPIO_PullType_PullDown,
-    ATGPIO_PullType_NumberOfValues
-} ATGPIO_PullType_t;
+	Calypso_ATGPIO_PullType_NoPull,
+	Calypso_ATGPIO_PullType_PullUp,
+	Calypso_ATGPIO_PullType_PullDown,
+	Calypso_ATGPIO_PullType_NumberOfValues
+} Calypso_ATGPIO_PullType_t;
 
 /**
  * @brief GPIO input/output state.
  */
-typedef enum ATGPIO_GPIOState_t
+typedef enum Calypso_ATGPIO_GPIOState_t
 {
-    ATGPIO_GPIOState_Low = 0,
-    ATGPIO_GPIOState_High = 1,
-    ATGPIO_GPIOState_NumberOfValues = 2
-} ATGPIO_GPIOState_t;
+	Calypso_ATGPIO_GPIOState_Low = 0,
+	Calypso_ATGPIO_GPIOState_High = 1,
+	Calypso_ATGPIO_GPIOState_NumberOfValues = 2
+} Calypso_ATGPIO_GPIOState_t;
 
 /**
  * @brief Input parameters and/or state (depending on usage).
  */
-typedef struct ATGPIO_Input_t
+typedef struct Calypso_ATGPIO_Input_t
 {
-    /**
-     * @brief Input level
-     */
-    ATGPIO_GPIOState_t state;
+	/**
+	 * @brief Input level
+	 */
+	Calypso_ATGPIO_GPIOState_t state;
 
-    /**
-     * @brief Input pull type
-     */
-    ATGPIO_PullType_t pullType;
-} ATGPIO_Input_t;
+	/**
+	 * @brief Input pull type
+	 */
+	Calypso_ATGPIO_PullType_t pullType;
+} Calypso_ATGPIO_Input_t;
 
 /**
  * @brief Output parameters and/or state (depending on usage).
  */
-typedef struct ATGPIO_Output_t
+typedef struct Calypso_ATGPIO_Output_t
 {
-    /**
-     * @brief Output level
-     */
-    ATGPIO_GPIOState_t state;
-} ATGPIO_Output_t;
+	/**
+	 * @brief Output level
+	 */
+	Calypso_ATGPIO_GPIOState_t state;
+} Calypso_ATGPIO_Output_t;
 
 /**
  * @brief PWM parameters and/or state (depending on usage).
  */
-typedef struct ATGPIO_PWM_t
+typedef struct Calypso_ATGPIO_PWM_t
 {
-    /**
-     * @brief PWM Period in milliseconds
-     */
-    uint16_t period;
+	/**
+	 * @brief PWM Period in milliseconds
+	 */
+	uint16_t period;
 
-    /**
-     * @brief PWM ratio in percent
-     */
-    uint8_t ratio;
-} ATGPIO_PWM_t;
+	/**
+	 * @brief PWM ratio in percent
+	 */
+	uint8_t ratio;
+} Calypso_ATGPIO_PWM_t;
 
 /**
  * @brief GPIO parameters and/or state (depending on usage).
  *
- * Provide this union as an argument to ATGPIO_Get() or ATGPIO_Set() and use
+ * Provide this union as an argument to Calypso_ATGPIO_Get() or Calypso_ATGPIO_Set() and use
  * the element of the union that corresponds to the used GPIO type.
  *
- * @see ATGPIO_Get(), ATGPIO_Set()
+ * @see Calypso_ATGPIO_Get(), Calypso_ATGPIO_Set()
  */
-typedef union ATGPIO_Parameters_t
+typedef union Calypso_ATGPIO_Parameters_t
 {
-    ATGPIO_Input_t input;
-    ATGPIO_Output_t output;
-    ATGPIO_PWM_t pwm;
-} ATGPIO_Parameters_t;
+	Calypso_ATGPIO_Input_t input;
+	Calypso_ATGPIO_Output_t output;
+	Calypso_ATGPIO_PWM_t pwm;
+} Calypso_ATGPIO_Parameters_t;
 
 /**
  * @brief GPIO configuration and/or state (depending on usage).
  *
- * @see ATGPIO_Get(), ATGPIO_Set()
+ * @see Calypso_ATGPIO_Get(), Calypso_ATGPIO_Set()
  */
-typedef struct ATGPIO_GPIO_t
+typedef struct Calypso_ATGPIO_GPIO_t
 {
-    /**
-     * @brief GPIO ID
-     */
-    ATGPIO_GPIOId_t id;
+	/**
+	 * @brief GPIO ID
+	 */
+	Calypso_ATGPIO_GPIOId_t id;
 
-    /**
-     * @brief Function assigned to the GPIO.
-     */
-    ATGPIO_GPIOType_t type;
+	/**
+	 * @brief Function assigned to the GPIO.
+	 */
+	Calypso_ATGPIO_GPIOType_t type;
 
-    /**
-     * @brief Parameters of the GPIO.
-     * Use the element of the ATGPIO_Parameters_t union that matches the selected GPIO type.
-     */
-    ATGPIO_Parameters_t parameters;
-} ATGPIO_GPIO_t;
+	/**
+	 * @brief Parameters of the GPIO.
+	 * Use the element of the Calypso_ATGPIO_Parameters_t union that matches the selected GPIO type.
+	 */
+	Calypso_ATGPIO_Parameters_t parameters;
+} Calypso_ATGPIO_GPIO_t;
 
-extern bool ATGPIO_Get(ATGPIO_GPIOId_t id, bool defaultSetting, ATGPIO_GPIO_t *gpio);
-extern bool ATGPIO_Set(ATGPIO_GPIO_t *gpio, bool save);
-extern bool ATGPIO_IsFunctionSupported(ATGPIO_GPIOId_t id, ATGPIO_GPIOType_t type);
+extern bool Calypso_ATGPIO_Get(Calypso_ATGPIO_GPIOId_t id, bool defaultSetting, Calypso_ATGPIO_GPIO_t *gpio);
+extern bool Calypso_ATGPIO_Set(Calypso_ATGPIO_GPIO_t *gpio, bool save);
+extern bool Calypso_ATGPIO_IsFunctionSupported(Calypso_ATGPIO_GPIOId_t id, Calypso_ATGPIO_GPIOType_t type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_GPIO_H_INCLUDED */
+#endif /* CALYPSO_AT_GPIO_H_INCLUDED */

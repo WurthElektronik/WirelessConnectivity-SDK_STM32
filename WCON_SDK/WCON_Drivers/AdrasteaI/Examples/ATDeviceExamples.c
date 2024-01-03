@@ -22,104 +22,76 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATDeviceExamples.h>
+#include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATDeviceExamples.h"
-#include "../ATCommands/ATDevice.h"
-#include <AdrasteaI/Adrastea.h>
-#include "AdrasteaExamples.h"
-
+/**
+ * @brief Running device specific commands (read out configuration values)
+ *
+ */
 void ATDeviceExample()
 {
+	printf("*** Start of Adrastea-I ATDevice example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, NULL, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, NULL))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATDevice example ***\r\n");
-
 	WE_Delay(1000);
 
-	bool ret = false;
+	AdrasteaI_ATDevice_Manufacturer_Identity_t manufacturerIdentity;
 
-	ATDevice_Manufacturer_Identity_t manufacturerIdentity;
-
-	ret = ATDevice_RequestManufacturerIdentity(&manufacturerIdentity);
-
-	AdrasteaExamplesPrint("Request Manufacturer Identity", ret);
-
+	bool ret = AdrasteaI_ATDevice_RequestManufacturerIdentity(&manufacturerIdentity);
+	AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
 	printf("Manufacturer Identity: %s\r\n", manufacturerIdentity);
 
-	ATDevice_Model_Identity_t modelIdentity;
-
-	ret = ATDevice_RequestModelIdentity(&modelIdentity);
-
-	AdrasteaExamplesPrint("Request Model Identity", ret);
-
+	AdrasteaI_ATDevice_Model_Identity_t modelIdentity;
+	ret = AdrasteaI_ATDevice_RequestModelIdentity(&modelIdentity);
+	AdrasteaI_ExamplesPrint("Request Model Identity", ret);
 	printf("Model Identity: %s\r\n", modelIdentity);
 
-	ATDevice_Revision_Identity_t revisionIdentity;
-
-	ret = ATDevice_RequestRevisionIdentity(&revisionIdentity);
-
-	AdrasteaExamplesPrint("Request Revision Identity", ret);
-
+	AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
+	ret = AdrasteaI_ATDevice_RequestRevisionIdentity(&revisionIdentity);
+	AdrasteaI_ExamplesPrint("Request Revision Identity", ret);
 	printf("Revision Identity Major: %d Minor: %d \r\n", revisionIdentity.major, revisionIdentity.minor);
 
-	ATDevice_IMEI_t imei;
-
-	ret = ATDevice_RequestIMEI(&imei);
-
-	AdrasteaExamplesPrint("Request IMEI", ret);
-
+	AdrasteaI_ATDevice_IMEI_t imei;
+	ret = AdrasteaI_ATDevice_RequestIMEI(&imei);
+	AdrasteaI_ExamplesPrint("Request IMEI", ret);
 	printf("IMEI: %s\r\n", imei);
 
-	ATDevice_IMEISV_t imeisv;
-
-	ret = ATDevice_RequestIMEISV(&imeisv);
-
-	AdrasteaExamplesPrint("Request IMEISV", ret);
-
+	AdrasteaI_ATDevice_IMEISV_t imeisv;
+	ret = AdrasteaI_ATDevice_RequestIMEISV(&imeisv);
+	AdrasteaI_ExamplesPrint("Request IMEISV", ret);
 	printf("IMEISV: %s\r\n", imeisv);
 
-	ATDevice_SVN_t svn;
-
-	ret = ATDevice_RequestSVN(&svn);
-
-	AdrasteaExamplesPrint("Request SVN", ret);
-
+	AdrasteaI_ATDevice_SVN_t svn;
+	ret = AdrasteaI_ATDevice_RequestSVN(&svn);
+	AdrasteaI_ExamplesPrint("Request SVN", ret);
 	printf("SVN: %s\r\n", svn);
 
-	ATDevice_Serial_Number_t serialNumber;
-
-	ret = ATDevice_RequestSerialNumber(&serialNumber);
-
-	AdrasteaExamplesPrint("Request Serial Number", ret);
-
+	AdrasteaI_ATDevice_Serial_Number_t serialNumber;
+	ret = AdrasteaI_ATDevice_RequestSerialNumber(&serialNumber);
+	AdrasteaI_ExamplesPrint("Request Serial Number", ret);
 	printf("Serial Number: %s\r\n", serialNumber);
 
-	ATDevice_Character_Set_t charset;
-
-	ret = ATDevice_GetTECharacterSet(&charset);
-
-	AdrasteaExamplesPrint("Request Charset", ret);
-
+	AdrasteaI_ATDevice_Character_Set_t charset;
+	ret = AdrasteaI_ATDevice_GetTECharacterSet(&charset);
+	AdrasteaI_ExamplesPrint("Request Charset", ret);
 	printf("Charset: %d\r\n", charset);
 
 	char capList[64];
-
-	ret = ATDevice_GetCapabilitiesList(capList, 64);
-
-	AdrasteaExamplesPrint("Request Manufacturer Identity", ret);
-
+	ret = AdrasteaI_ATDevice_GetCapabilitiesList(capList, sizeof(capList));
+	AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
 	printf("Manufacturer Identity: %s\r\n", capList);
 
-	ATDevice_Phone_Functionality_t phoneFun;
-
-	ret = ATDevice_GetPhoneFunctionality(&phoneFun);
-
-	AdrasteaExamplesPrint("Request Phone Functionality", ret);
-
+	AdrasteaI_ATDevice_Phone_Functionality_t phoneFun;
+	ret = AdrasteaI_ATDevice_GetPhoneFunctionality(&phoneFun);
+	AdrasteaI_ExamplesPrint("Request Phone Functionality", ret);
 	printf("Phone Functionality: %d\r\n", phoneFun);
 }

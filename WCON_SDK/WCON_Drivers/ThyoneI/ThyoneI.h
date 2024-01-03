@@ -28,10 +28,6 @@
  * @brief Thyone-I driver header file.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-#include "../global/global.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,12 +35,25 @@ extern "C" {
 #ifndef THYONEI_H_INCLUDED
 #define THYONEI_H_INCLUDED
 
+#include <global/global_types.h>
+#include <stdbool.h>
+
 /* timings */
 #define THYONEI_BOOT_DURATION (uint16_t)75
 
 #define THYONEI_DEFAULT_BAUDRATE (uint32_t)115200
 
 #define THYONEI_AMOUNT_GPIO_PINS    6
+
+typedef struct ThyoneI_Pins_t
+{
+	WE_Pin_t ThyoneI_Pin_Reset;
+	WE_Pin_t ThyoneI_Pin_SleepWakeUp;
+	WE_Pin_t ThyoneI_Pin_Boot;
+	WE_Pin_t ThyoneI_Pin_Mode;
+	WE_Pin_t ThyoneI_Pin_Busy;
+
+} ThyoneI_Pins_t;
 
 typedef enum ThyoneI_GPIO_t
 {
@@ -107,10 +116,9 @@ typedef struct ThyoneI_GPIOControlBlock_t
 
 typedef enum ThyoneI_ResetReason_t
 {
-	ThyoneI_ResetReason_PowerOn = (uint8_t) 0x01,
+	ThyoneI_ResetReason_PowerOn_WakeUp = (uint8_t) 0x01,
 	ThyoneI_ResetReason_PinReset = (uint8_t) 0x02,
 	ThyoneI_ResetReason_SoftReset = (uint8_t) 0x04,
-	ThyoneI_ResetReason_WakeUp = (uint8_t) 0x06,
 	ThyoneI_ResetReason_Invalid = (uint8_t) 0xFF,
 } ThyoneI_ResetReason_t;
 
@@ -223,7 +231,7 @@ typedef enum ThyoneI_AddressMode_t
 	ThyoneI_AddressMode_Unicast = (uint8_t) 2,
 } ThyoneI_AddressMode_t;
 
-extern bool ThyoneI_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThyoneI_OperationMode_t opMode, void (*RXcb)(uint8_t*, uint16_t, uint32_t, int8_t));
+extern bool ThyoneI_Init(WE_UART_t *uartP, ThyoneI_Pins_t *pinoutP, ThyoneI_OperationMode_t opMode, void (*RXcb)(uint8_t*, uint16_t, uint32_t, int8_t));
 extern bool ThyoneI_Deinit(void);
 
 extern bool ThyoneI_PinReset(void);
@@ -236,6 +244,7 @@ extern bool ThyoneI_IsTransparentModeBusy();
 extern bool ThyoneI_TransmitBroadcast(uint8_t *payloadP, uint16_t length);
 extern bool ThyoneI_TransmitMulticast(uint8_t *payloadP, uint16_t length);
 extern bool ThyoneI_TransmitUnicast(uint8_t *payloadP, uint16_t length);
+extern bool ThyoneI_Transparent_Transmit(const uint8_t *data, uint16_t dataLength);
 
 extern bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint16_t length);
 extern bool ThyoneI_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16_t length);
@@ -257,6 +266,7 @@ extern bool ThyoneI_GPIORemoteRead(uint32_t destAddress, uint8_t *GPIOToReadP, u
  */
 extern bool ThyoneI_FactoryReset();
 extern bool ThyoneI_Set(ThyoneI_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length);
+extern bool ThyoneI_CheckNSet(ThyoneI_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length);
 extern bool ThyoneI_SetBaudrateIndex(ThyoneI_BaudRateIndex_t baudrate, ThyoneI_UartParity_t parity, bool flowcontrolEnable);
 extern bool ThyoneI_SetEncryptionMode(ThyoneI_EncryptionMode_t encryptionMode);
 extern bool ThyoneI_SetRfProfile(ThyoneI_Profile_t profile);

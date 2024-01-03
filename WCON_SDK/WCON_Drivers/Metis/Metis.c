@@ -28,24 +28,20 @@
  * @brief Metis driver source file.
  */
 
+#include <Metis/Metis.h>
+#include <global/global.h>
+#include <string.h>
 #include <stdio.h>
-
-#include "string.h"
-
-#include "Metis.h"
-#include "../global/global.h"
-
-typedef enum Metis_Pin_t
-{
-    Metis_Pin_Reset,
-    Metis_Pin_Count
-} Metis_Pin_t;
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
-#define MAX_PAYLOAD_LENGTH 255
+#define MAX_PAYLOAD_LENGTH 254
 #define TXPOWERINVALID -128
 #define RSSIINVALID -128
+
+#define LENGTH_CMD_OVERHEAD             (uint16_t)4
+#define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
+#define MAX_CMD_LENGTH                  (uint16_t)(Metis_MAX_PAYLOAD_LENGTH + LENGTH_CMD_OVERHEAD)
 
 #define CMD_STX 0xFF
 #define METIS_CMD_TYPE_REQ (0 << 6)
@@ -93,77 +89,95 @@ typedef enum Metis_Pin_t
 #define METIS_CMD_FACTORYRESET_REQ (METIS_CMD_FACTORYRESET | METIS_CMD_TYPE_REQ)
 #define METIS_CMD_FACTORYRESET_CNF (METIS_CMD_FACTORYRESET | METIS_CMD_TYPE_CNF)
 
+void Metis_HandleRxByte(uint8_t *dataP, size_t size);
+static WE_UART_HandleRxByte_t byteRxCallback = Metis_HandleRxByte;
+
 /**
  * @brief Type used to check the response, when a command was sent to the module
  */
 typedef enum Metis_CMD_Status_t
 {
-    CMD_Status_Success = 0x00,
-    CMD_Status_Failed,
-    CMD_Status_Invalid,
-    CMD_Status_Reset,
+	CMD_Status_Success = 0x00,
+	CMD_Status_Failed,
+	CMD_Status_Invalid,
+	CMD_Status_Reset,
 } Metis_CMD_Status_t;
 
 typedef struct
 {
-    uint8_t Stx;
-    uint8_t Cmd;
-    uint8_t Length;
-    uint8_t Data[MAX_PAYLOAD_LENGTH + 1]; /* +1 for the CS */
+	const uint8_t Stx;
+	uint8_t Cmd;
+	uint8_t Length;
+	uint8_t Data[MAX_PAYLOAD_LENGTH + 1]; /* +1 for the CS */
 } Metis_CMD_Frame_t;
 
 typedef struct
 {
-    uint8_t cmd;                        /* variable to check if correct CMD has been confirmed */
-    Metis_CMD_Status_t status;          /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the module */
+	uint8_t cmd; /* variable to check if correct CMD has been confirmed */
+	Metis_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the module */
 } Metis_CMD_Confirmation_t;
 
 typedef struct
 {
-    uint8_t memoryPosition;             /* memory position of requested usersetting */
-    uint8_t lengthGetRequest;           /* length of one or more requested usersetting */
+	uint8_t memoryPosition; /* memory position of requested usersetting */
+	uint8_t lengthGetRequest; /* length of one or more requested usersetting */
 } Metis_US_Confirmation_t;
 
 /**************************************
  *          Static variables          *
  **************************************/
 
-static WE_Pin_t Metis_pins[Metis_Pin_Count] = {0};
+/**
+ * @brief Pin configuration struct pointer.
+ */
+static Metis_Pins_t *Metis_pinsP = NULL;
 
-static Metis_CMD_Frame_t RxPacket;                      /* data buffer for RX */
+/**
+ * @brief Uart configuration struct pointer.
+ */
+static WE_UART_t *Metis_uartP = NULL;
+static Metis_CMD_Frame_t rxPacket; /* data buffer for RX */
+static Metis_CMD_Frame_t txPacket = {
+		.Stx = CMD_STX,
+		.Length = 0 }; /* request to be sent to the module */
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
 static Metis_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
-static Metis_US_Confirmation_t usConfirmation;          /* variable used to check if GET function was successful */
-static Metis_Frequency_t frequency;                     /* frequency used by module */
+static Metis_US_Confirmation_t usConfirmation; /* variable used to check if GET function was successful */
+static Metis_Frequency_t frequency; /* frequency used by module */
 static bool rssi_enable = false;
 static uint8_t checksum = 0;
-static uint8_t RxByteCounter = 0;
-static uint8_t BytesToReceive = 0;                      /* read buffer for next available byte */
-static uint8_t RxBuffer[sizeof(Metis_CMD_Frame_t)];     /* data buffer for RX */
-static Metis_RxCallback RxCallback;                     /* callback function */
+static uint8_t rxByteCounter = 0;
+static uint8_t bytesToReceive = 0; /* read buffer for next available byte */
+static uint8_t rxBuffer[sizeof(Metis_CMD_Frame_t)]; /* data buffer for RX */
+static Metis_RxCallback_t RxCallback;
+/* callback function */
 
 /**************************************
  *          Static functions          *
  **************************************/
 
 /**
+ * @brief Function to add the checksum at the end of the data packet. 
+ */
+static void FillChecksum(Metis_CMD_Frame_t *cmd)
+{
+	uint8_t checksum = (uint8_t) cmd->Stx;
+	uint8_t *pArray = (uint8_t*) cmd;
+	for (uint8_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
+	{
+		checksum ^= pArray[i];
+	}
+	cmd->Data[cmd->Length] = checksum;
+}
+
+/**
  * @brief Function to calculate the rssi value from the rx level
  */
 static int8_t CalculateRSSIValue(uint8_t rxLevel)
 {
-    uint8_t offset = 74;
-    int8_t rssi_value = RSSIINVALID;
-
-    if(rxLevel < 128)
-    {
-        rssi_value = rxLevel/2 - offset;
-    }
-    else
-    {
-        rssi_value = (rxLevel - 256)/2 - offset;
-    }
-    return rssi_value;
+	const uint8_t offset = 74;
+	return (rxLevel < 128) ? (rxLevel / 2 - offset) : ((rxLevel - 256) / 2 - offset);
 }
 
 /**
@@ -171,218 +185,122 @@ static int8_t CalculateRSSIValue(uint8_t rxLevel)
  */
 static void HandleRxPacket(uint8_t *packetData)
 {
-    Metis_CMD_Confirmation_t cmdConfirmation;
-    cmdConfirmation.cmd = CNFINVALID;
-    cmdConfirmation.status = CMD_Status_Invalid;
+	Metis_CMD_Confirmation_t cmdConfirmation;
+	cmdConfirmation.cmd = CNFINVALID;
+	cmdConfirmation.status = CMD_Status_Invalid;
 
-    uint8_t cmd_length = packetData[2];
-    memcpy((uint8_t*)&RxPacket, packetData, cmd_length + 4); /* payload + std + command + length byte + checksum */
+	uint8_t cmd_length = packetData[2];
+	memcpy((uint8_t*) &rxPacket, packetData, cmd_length + 4); /* payload + std + command + length byte + checksum */
 
-    switch (RxPacket.Cmd)
-    {
-    case METIS_CMD_SET_MODE_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+	switch (rxPacket.Cmd)
+	{
+	case METIS_CMD_DATA_IND:
+	{
+		/* the call of the RxCallback strongly depends on the configuration of the module */
+		if (RxCallback != NULL)
+		{
+			if (rssi_enable == 0x01)
+			{
+				/* the following implementation expects that the RSSI_Enable usersetting is enabled */
+				rxPacket.Length = rxPacket.Length - 1;
+				RxCallback(&rxPacket.Length, rxPacket.Length + 1, CalculateRSSIValue(rxPacket.Data[rxPacket.Length]));
+			}
+			else
+			{
+				/* the following implementation expects that the RSSI_Enable usersetting is disabled */
+				RxCallback(&rxPacket.Length, rxPacket.Length + 1, (int8_t) RSSIINVALID);
+			}
+		}
+	}
+		break;
 
-    case METIS_CMD_RESET_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+	case METIS_CMD_GET_CNF:
+	{
+		/* Data[0] contains memory position of usersetting
+		 * Data[1] contains length of parameter, which is depending on usersetting
+		 * On success mode responds with usersetting, length of parameter and parameter
+		 */
+		switch (rxPacket.Data[0])
+		{
+		/* usersettings with value length of 1 byte */
+		case (Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE):
+		case (Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE):
+		case (Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER):
+		case (Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE):
+		case (Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT):
+		{
+			/* check if correct usersetting was changed and if length corresponds to usersetting */
+			if ((usConfirmation.memoryPosition == rxPacket.Data[0]) && (usConfirmation.lengthGetRequest == rxPacket.Data[1]))
+			{
+				cmdConfirmation.status = CMD_Status_Success;
+			}
+			else
+			{
+				cmdConfirmation.status = CMD_Status_Failed;
+			}
+			cmdConfirmation.cmd = rxPacket.Cmd;
+		}
+			break;
+			/* usersettings with value length of 2 byte*/
+		case (Metis_USERSETTING_MEMPOSITION_CFG_FLAGS):
+		{
+			/* check if correct usersetting was changed and if length corresponds to usersetting */
+			if ((usConfirmation.memoryPosition == rxPacket.Data[0]) && (usConfirmation.lengthGetRequest == rxPacket.Data[1]))
+			{
+				cmdConfirmation.status = CMD_Status_Success;
+			}
+			else
+			{
+				cmdConfirmation.status = CMD_Status_Failed;
+			}
+			cmdConfirmation.cmd = rxPacket.Cmd;
+		}
+			break;
 
-    case METIS_CMD_DATA_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+		default:
+			break;
+		}
+	}
+		break;
 
-    case METIS_CMD_DATA_IND:
-    {
-        /* the call of the RxCallback strongly depends on the configuration of the module */
-        if(RxCallback != NULL)
-        {
-            if(rssi_enable == 0x01)
-            {
-                /* the following implementation expects that the RSSI_Enable usersetting is enabled */
-                RxPacket.Length = RxPacket.Length - 1;
-                RxCallback(&RxPacket.Length, RxPacket.Length + 1, CalculateRSSIValue(RxPacket.Data[RxPacket.Length]));
-            }
-            else
-            {
-                /* the following implementation expects that the RSSI_Enable usersetting is disabled */
-                RxCallback(&RxPacket.Length, RxPacket.Length + 1, (int8_t)RSSIINVALID);
-            }
-        }
-    }
-    break;
+	case METIS_CMD_FACTORYRESET_CNF:
+	case METIS_CMD_SET_CNF:
+	case METIS_CMD_SET_MODE_CNF:
+	case METIS_CMD_RESET_CNF:
+	case METIS_CMD_DATA_CNF:
+	case METIS_CMD_SETUARTSPEED_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Data[0] == 0x00) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-    case METIS_CMD_GET_CNF:
-    {
-        /* Data[0] contains memory position of usersetting
-         * Data[1] contains length of parameter, which is depending on usersetting
-         * On success mode responds with usersetting, length of parameter and parameter
-         */
-        switch(RxPacket.Data[0])
-        {
-        /* usersettings with value length of 1 byte */
-        case(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE):
-        case(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE):
-        case(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER):
-        case(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE):
-        case(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT):
-        {
-            /* check if correct usersetting was changed and if length corresponds to usersetting */
-            if((usConfirmation.memoryPosition == RxPacket.Data[0]) && (usConfirmation.lengthGetRequest == RxPacket.Data[1]))
-            {
-                cmdConfirmation.status = CMD_Status_Success;
-            }
-            else
-            {
-                cmdConfirmation.status = CMD_Status_Failed;
-            }
-            cmdConfirmation.cmd = RxPacket.Cmd;
-        }
-        break;
-        /* usersettings with value length of 2 byte*/
-        case(Metis_USERSETTING_MEMPOSITION_CFG_FLAGS):
-        {
-            /* check if correct usersetting was changed and if length corresponds to usersetting */
-            if((usConfirmation.memoryPosition == RxPacket.Data[0]) && (usConfirmation.lengthGetRequest == RxPacket.Data[1]))
-            {
-                cmdConfirmation.status = CMD_Status_Success;
-            }
-            else
-            {
-                cmdConfirmation.status = CMD_Status_Failed;
-            }
-            cmdConfirmation.cmd = RxPacket.Cmd;
-        }
-        break;
+	case METIS_CMD_GET_SERIALNO_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Length == 4) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-        default:
-            break;
-        }
-    }
-    break;
+	case METIS_CMD_GET_FWRELEASE_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Length == 3) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
+	default:
+		break;
+	}
 
-    case METIS_CMD_SET_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case METIS_CMD_GET_SERIALNO_CNF:
-    {
-        /* check whether the module returns serial number of 4 bytes */
-        if (RxPacket.Length == 4)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case METIS_CMD_GET_FWRELEASE_CNF:
-    {
-        /* check whether the module returns firmware version of 3 bytes */
-        if (RxPacket.Length == 3)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case METIS_CMD_SETUARTSPEED_CNF:
-    {
-        /* check whether the module returns success*/
-        if(RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case METIS_CMD_FACTORYRESET_CNF:
-    {
-        /* check whether the module returns success*/
-        if(RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    default:
-        break;
-    }
-
-    int i = 0;
-    for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-    {
-        if(cmdConfirmation_array[i].cmd == CNFINVALID)
-        {
-            cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
-            cmdConfirmation_array[i].status = cmdConfirmation.status;
-            break;
-        }
-    }
+	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+	{
+		if (cmdConfirmation_array[i].cmd == CNFINVALID)
+		{
+			cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
+			cmdConfirmation_array[i].status = cmdConfirmation.status;
+			break;
+		}
+	}
 }
 
 /**
@@ -390,120 +308,109 @@ static void HandleRxPacket(uint8_t *packetData)
  */
 static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, Metis_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
-    int count = 0;
-    int time_step_ms = 5; /* 5ms */
-    int max_count = max_time_ms / time_step_ms;
-    int i = 0;
+	int count = 0;
+	int time_step_ms = 5; /* 5ms */
+	int max_count = max_time_ms / time_step_ms;
 
-    if(reset_confirmstate)
-    {
-        for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-        {
-            cmdConfirmation_array[i].cmd = CNFINVALID;
-        }
-    }
-    while (1)
-    {
-        for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-        {
-            if(expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
-            {
-                return (cmdConfirmation_array[i].status == expectedStatus);
-            }
-        }
+	if (reset_confirmstate)
+	{
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		{
+			cmdConfirmation_array[i].cmd = CNFINVALID;
+		}
+	}
+	while (1)
+	{
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		{
+			if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
+			{
+				return (cmdConfirmation_array[i].status == expectedStatus);
+			}
+		}
 
-        if (count >= max_count)
-        {
-            /* received no correct response within timeout */
-            return false;
-        }
+		if (count >= max_count)
+		{
+			/* received no correct response within timeout */
+			return false;
+		}
 
-        /* wait */
-        count++;
-        WE_Delay(time_step_ms);
-    }
-    return true;
+		/* wait */
+		count++;
+		WE_Delay(time_step_ms);
+	}
+	return true;
 }
 
-/**
- * @brief Function to add the checksum at the end of the data packet
- */
-static bool FillChecksum(uint8_t* array, uint8_t length)
+void Metis_HandleRxByte(uint8_t *dataP, size_t size)
 {
-    bool ret = false;
+	for (; size > 0; size--, dataP++)
+	{
+		if (rxByteCounter < sizeof(rxBuffer))
+		{
+			rxBuffer[rxByteCounter] = *dataP;
+		}
 
-    if ((length >= 4) && (array[0] == CMD_STX))
-    {
-        uint8_t checksum = 0;
-        uint8_t payload_length = array[2];
-        int i = 0;
-        for (i = 0;
-                i < payload_length + 3;
-                i++)
-        {
-            checksum ^= array[i];
-        }
-        array[payload_length + 3] = checksum;
-        ret = true;
-    }
-    return ret;
+		switch (rxByteCounter)
+		{
+		case 0:
+			/* wait for SFD */
+			if (rxBuffer[rxByteCounter] == CMD_STX)
+			{
+				bytesToReceive = 0;
+				rxByteCounter = 1;
+			}
+			break;
+
+		case 1:
+			/* CMD */
+			rxByteCounter++;
+			break;
+
+		case 2:
+			/* length field */
+			rxByteCounter++;
+			bytesToReceive = (rxBuffer[rxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+			break;
+
+		default:
+			/* data field */
+			rxByteCounter++;
+			if (rxByteCounter >= bytesToReceive)
+			{
+				/* check CRC */
+				checksum = 0;
+				for (uint8_t i = 0; i < (bytesToReceive - 1); i++)
+				{
+					checksum ^= rxBuffer[i];
+				}
+
+				if (checksum == rxBuffer[bytesToReceive - 1])
+				{
+					/* received frame ok, interpret it now */
+					HandleRxPacket(rxBuffer);
+				}
+
+				rxByteCounter = 0;
+				bytesToReceive = 0;
+			}
+			break;
+		}
+	}
 }
-
 
 /**************************************
  *         Global functions           *
  **************************************/
- 
-void WE_UART_HandleRxByte(uint8_t received_byte)
+
+bool Metis_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
 {
-    RxBuffer[RxByteCounter] = received_byte;
+	if ((data == NULL) || (dataLength == 0))
+	{
+		return false;
+	}
 
-    switch (RxByteCounter)
-    {
-    case 0:
-        /* wait for SFD */
-        if (RxBuffer[RxByteCounter] == CMD_STX)
-        {
-            BytesToReceive = 0;
-            RxByteCounter = 1;
-        }
-        break;
-
-    case 1:
-        /* CMD */
-        RxByteCounter++;
-        break;
-
-    case 2:
-        /* length field */
-        RxByteCounter++;
-        BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-        break;
-
-    default:
-        /* data field */
-        RxByteCounter++;
-        if (RxByteCounter == BytesToReceive)
-        {
-            /* check CRC */
-            checksum = 0;
-            int i = 0;
-            for (i = 0; i < (BytesToReceive - 1); i++)
-            {
-                checksum ^= RxBuffer[i];
-            }
-
-            if (checksum == RxBuffer[BytesToReceive - 1])
-            {
-                /* received frame ok, interpret it now */
-                HandleRxPacket(RxBuffer);
-            }
-
-            RxByteCounter = 0;
-            BytesToReceive = 0;
-        }
-        break;
-    }
+	return Metis_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
 
 /**
@@ -514,9 +421,9 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
  *          The mode parameter must match the other participant of the RF communication.
  *          Check manual of the wM-Bus AMB modules for the suitable modes.
  *
- * @param[in] baudrate       baud rate of the interface
- * @param[in] flow_control   enable/disable flow control
- * @param[in] frequency      frequency used by the AMBER module(AMB8xxx-M uses 868Mhz, AMB36xx-M uses 169MHz)
+ * @param[in] uartP :         definition of the uart connected to the module
+ * @param[in] pinoutP:        definition of the gpios connected to the module
+ * @param[in] freq           frequency used by the AMBER module(AMB8xxx-M uses 868Mhz, AMB36xx-M uses 169MHz)
  * @param[in] mode           wM-Bus mode preselect of the AMBER module
  * @param[in] enable_rssi    enable rssi in data reception
  * @param[in] RXcb           RX callback function
@@ -524,129 +431,158 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool Metis_Init(uint32_t baudrate,
-                WE_FlowControl_t flow_control,
-                Metis_Frequency_t freq,
-                Metis_Mode_Preselect_t mode,
-                bool enable_rssi,
-                Metis_RxCallback RXcb)
+bool Metis_Init(WE_UART_t *uartP, Metis_Pins_t *pinoutP, Metis_Frequency_t freq, Metis_Mode_Preselect_t mode,
+bool enable_rssi, Metis_RxCallback_t RXcb)
 {
-    /* set frequency used by module */
-    frequency = freq;
+	/* set frequency used by module */
+	frequency = freq;
 
-    /* set RX callback function */
-    RxCallback = RXcb;
+	/* set RX callback function */
+	RxCallback = RXcb;
 
-    /* set rssi_enable */
-    rssi_enable = enable_rssi;
+	/* set rssi_enable */
+	rssi_enable = enable_rssi;
 
-    Metis_pins[Metis_Pin_Reset].port = GPIOA;
-    Metis_pins[Metis_Pin_Reset].pin = GPIO_PIN_10;
-    Metis_pins[Metis_Pin_Reset].type = WE_Pin_Type_Output;
-    if (false == WE_InitPins(Metis_pins, Metis_Pin_Count))
-    {
-        /* error */
-        return false;
-    }
-    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_High);
-    
-    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
-    WE_Delay(1000);
+	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+	{
+		return false;
+	}
 
-    /* set recommended settings as described in the manual section 5.1 */
+	Metis_pinsP = pinoutP;
+	Metis_pinsP->Metis_Pin_Reset.type = WE_Pin_Type_Output;
 
-    /* enable uartOutEnable to print out received frames
-     * Setting is written to flash so write only if necessary
-     */
-    uint8_t uartEnable;
-    bool ret = Metis_GetUartOutEnable(&uartEnable);
-    if(uartEnable != 1)
-    {
-        WE_Delay(50);
-        if(Metis_SetUartOutEnable(1))
-        {
-            WE_Delay(50);
-        }
-        else
-        {
-            fprintf(stdout, "Set UART_CMD_OUT_MODE failed\n");
-            Metis_Deinit();
-            return false;
-        }
-    }
+	WE_Pin_t pins[sizeof(Metis_Pins_t) / sizeof(WE_Pin_t)];
+	uint8_t pin_count = 0;
+	memcpy(&pins[pin_count++], &Metis_pinsP->Metis_Pin_Reset, sizeof(WE_Pin_t));
 
-    /* enable rssi to be added to received frames
-     * Setting is written to flash so write only if necessary
-     */
-    uint8_t rssi;
-    ret = Metis_GetRSSIEnable(&rssi);
-    if(rssi != rssi_enable)
-    {
-        WE_Delay(50);
-        if(Metis_SetRSSIEnable(rssi_enable ? 1 : 0))
-        {
-            WE_Delay(50);
-        }
-        else
-        {
-            fprintf(stdout, "Set RSSI failed\n");
-            Metis_Deinit();
-            return false;
-        }
-    }
+	if (!WE_InitPins(pins, pin_count))
+	{
+		/* error */
+		return false;
+	}
 
-    /* disable AES encryption
-     * Setting is written to flash so write only if necessary
-     */
-    uint8_t aesEnable;
-    ret = Metis_GetAESEnable(&aesEnable);
-    if(aesEnable != 0)
-    {
-        WE_Delay(50);
-        if(Metis_SetAESEnable(0))
-        {
-            WE_Delay(50);
-        }
-        else
-        {
-            fprintf(stdout, "Set AESEnable failed\n");
-            Metis_Deinit();
-            return false;
-        }
-    }
+	if (!WE_SetPin(Metis_pinsP->Metis_Pin_Reset, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
-    /* set mode preselect
-     * Setting is written to flash so write only if necessary
-     */
-    uint8_t modePreselect;
-    ret = Metis_GetModePreselect(&modePreselect);
-    if(modePreselect != mode)
-    {
-        WE_Delay(50);
-        if(Metis_SetModePreselect(mode))
-        {
-            WE_Delay(50);
-        }
-        else
-        {
-            fprintf(stdout, "Set mode preselect failed\n");
-            Metis_Deinit();
-            return false;
-        }
-    }
+	Metis_uartP = uartP;
+	if (!Metis_uartP->uartInit(Metis_uartP->baudrate, Metis_uartP->flowControl, Metis_uartP->parity, &byteRxCallback))
+	{
+		return false;
+	}
+	WE_Delay(1000);
 
-    /* Reset module to apply changes */
-    if(Metis_Reset())
-    {
-        WE_Delay(300);
-    }
-    else
-    {
-        fprintf(stdout, "Reset failed\n");
-        Metis_Deinit();
-        return false;
-    }
-    return true;
+	/* set recommended settings as described in the manual section 5.1 */
+
+	/* enable uartOutEnable to print out received frames
+	 * Setting is written to flash so write only if necessary
+	 */
+	uint8_t uartEnable;
+	if (!Metis_GetUartOutEnable(&uartEnable))
+	{
+		return false;
+	}
+
+	if (uartEnable != 1)
+	{
+		WE_Delay(50);
+		if (Metis_SetUartOutEnable(1))
+		{
+			WE_Delay(50);
+		}
+		else
+		{
+			printf("Set UART_CMD_OUT_MODE failed\n");
+			Metis_Deinit();
+			return false;
+		}
+	}
+
+	/* enable rssi to be added to received frames
+	 * Setting is written to flash so write only if necessary
+	 */
+	uint8_t rssi;
+	if (!Metis_GetRSSIEnable(&rssi))
+	{
+		return false;
+	}
+
+	if (rssi != rssi_enable)
+	{
+		WE_Delay(50);
+		if (Metis_SetRSSIEnable(rssi_enable ? 1 : 0))
+		{
+			WE_Delay(50);
+		}
+		else
+		{
+			printf("Set RSSI failed\n");
+			Metis_Deinit();
+			return false;
+		}
+	}
+
+	/* disable AES encryption
+	 * Setting is written to flash so write only if necessary
+	 */
+	uint8_t aesEnable;
+	if (!Metis_GetAESEnable(&aesEnable))
+	{
+		return false;
+	}
+
+	if (aesEnable != 0)
+	{
+		WE_Delay(50);
+		if (Metis_SetAESEnable(0))
+		{
+			WE_Delay(50);
+		}
+		else
+		{
+			printf("Set AESEnable failed\n");
+			Metis_Deinit();
+			return false;
+		}
+	}
+
+	/* set mode preselect
+	 * Setting is written to flash so write only if necessary
+	 */
+	uint8_t modePreselect;
+	if (!Metis_GetModePreselect(&modePreselect))
+	{
+		return false;
+	}
+
+	if (modePreselect != mode)
+	{
+		WE_Delay(50);
+		if (Metis_SetModePreselect(mode))
+		{
+			WE_Delay(50);
+		}
+		else
+		{
+			printf("Set mode preselect failed\n");
+			Metis_Deinit();
+			return false;
+		}
+	}
+
+	/* Reset module to apply changes */
+	if (Metis_Reset())
+	{
+		WE_Delay(300);
+	}
+	else
+	{
+		printf("Reset failed\n");
+		Metis_Deinit();
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -657,16 +593,16 @@ bool Metis_Init(uint32_t baudrate,
  */
 bool Metis_Deinit()
 {
-    /* close the communication interface to the module */
-    WE_UART_DeInit();
+	/* deinit pins */
+	if (!WE_DeinitPin(Metis_pinsP->Metis_Pin_Reset))
+	{
+		return false;
+	}
 
-    /* deinit pins */
-    WE_DeinitPin(Metis_pins[Metis_Pin_Reset]);
+	/* deinit RX callback */
+	RxCallback = NULL;
 
-    /* deinit RX callback */
-    RxCallback = NULL;
-
-    return true;
+	return Metis_uartP->uartDeinit();
 }
 
 /**
@@ -677,11 +613,14 @@ bool Metis_Deinit()
  */
 bool Metis_PinReset()
 {
-    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_Low);
-    WE_Delay(5);
-    WE_SetPin(Metis_pins[Metis_Pin_Reset], WE_Pin_Level_High);
+	if (!WE_SetPin(Metis_pinsP->Metis_Pin_Reset, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 
-    return true;
+	WE_Delay(5);
+
+	return WE_SetPin(Metis_pinsP->Metis_Pin_Reset, WE_Pin_Level_High);;
 }
 
 /**
@@ -692,22 +631,18 @@ bool Metis_PinReset()
  */
 bool Metis_Reset()
 {
-    bool ret = false;
+	txPacket.Cmd = METIS_CMD_RESET_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_RESET_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_RESET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_RESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -721,22 +656,18 @@ bool Metis_Reset()
  */
 bool Metis_FactoryReset()
 {
-    bool ret = false;
+	txPacket.Cmd = METIS_CMD_FACTORYRESET_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_FACTORYRESET_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_FACTORYRESET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_FACTORYRESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -751,24 +682,19 @@ bool Metis_FactoryReset()
  */
 bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate)
 {
-    bool ret = false;
+	txPacket.Cmd = METIS_CMD_SETUARTSPEED;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = baudrate;
 
-    /* fill REQ */
-    uint8_t CMD_ARRAY[5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_SETUARTSPEED;
-    CMD_ARRAY[2] = 0x01;
-    CMD_ARRAY[3] = baudrate;
+	FillChecksum(&txPacket);
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SETUARTSPEED_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SETUARTSPEED_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -781,59 +707,63 @@ bool Metis_SetUartSpeed(Metis_UartBaudrate_t baudrate)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_length)
+bool Metis_Get(Metis_UserSettings_t us, uint8_t *response, uint8_t *response_length)
 {
-    bool ret = false;
+	if (response == NULL || response_length == NULL)
+	{
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[6];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_GET_REQ;
-    CMD_ARRAY[2] = 0x02;
-    CMD_ARRAY[3] = us;
+	txPacket.Cmd = METIS_CMD_GET_REQ;
+	txPacket.Length = 0x02;
+	txPacket.Data[0] = us;
 
-    switch(us)
-    {
-    /* usersettings with value length 1 */
-    case(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE):
-    case(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE):
-    case(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER):
-    case(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE):
-    case(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT):
-    {
-        CMD_ARRAY[4] = 0x01;
-    }
-    break;
-    /* usersettings with value length 2 */
-    case(Metis_USERSETTING_MEMPOSITION_CFG_FLAGS):
-    {
-        CMD_ARRAY[4] = 0x02;
-    }
-    break;
-    default:
-        break;
-    }
+	switch (us)
+	{
+	/* usersettings with value length 1 */
+	case (Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE):
+	case (Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE):
+	case (Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER):
+	case (Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE):
+	case (Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT):
+	{
+		txPacket.Data[1] = 0x01;
+	}
+		break;
+		/* usersettings with value length 2 */
+	case (Metis_USERSETTING_MEMPOSITION_CFG_FLAGS):
+	{
+		txPacket.Data[1] = 0x02;
+	}
+		break;
+	default:
+		break;
+	}
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        usConfirmation.memoryPosition = us;
-        usConfirmation.lengthGetRequest = CMD_ARRAY[4];
+	FillChecksum(&txPacket);
 
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	usConfirmation.memoryPosition = us;
+	usConfirmation.lengthGetRequest = txPacket.Data[1];
 
-        /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_CNF, CMD_Status_Success, true))
-        {
-            int length = RxPacket.Length - 2;
-            memcpy(response,&RxPacket.Data[2],length);
-            *response_length = length;
-            ret = true;
-        }
-        usConfirmation.memoryPosition = -1;
-        usConfirmation.lengthGetRequest = -1;
-    }
-    return ret;
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	bool ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_CNF, CMD_Status_Success, true);
+
+	if (ret)
+	{
+		int length = rxPacket.Length - 2;
+		memcpy(response, &rxPacket.Data[2], length);
+		*response_length = length;
+	}
+
+	usConfirmation.memoryPosition = -1;
+	usConfirmation.lengthGetRequest = -1;
+
+	return ret;
 }
 
 /**
@@ -849,35 +779,78 @@ bool Metis_Get(Metis_UserSettings_t us, uint8_t* response, uint8_t* response_len
  */
 bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *response, uint8_t *response_length)
 {
-    bool ret = false;
+	if ((response == NULL) || (response_length == NULL) || (lengthToRead == 0))
+	{
+		return false;
+	}
 
-    uint8_t CMD_ARRAY[6];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_GET_REQ;
-    CMD_ARRAY[2] = 0x02;
-    CMD_ARRAY[3] = startAddress;
-    CMD_ARRAY[4] = lengthToRead;
+	txPacket.Cmd = METIS_CMD_GET_REQ;
+	txPacket.Length = 0x02;
+	txPacket.Data[0] = startAddress;
+	txPacket.Data[1] = lengthToRead;
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        usConfirmation.memoryPosition = startAddress;
-        usConfirmation.lengthGetRequest = lengthToRead;
+	FillChecksum(&txPacket);
 
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	usConfirmation.memoryPosition = startAddress;
+	usConfirmation.lengthGetRequest = lengthToRead;
 
-        /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_CNF, CMD_Status_Success, true))
-        {
-            int length = RxPacket.Length - 2;
-            memcpy(response,&RxPacket.Data[2],length);
-            *response_length = length;
-            ret = true;
-        }
-        usConfirmation.memoryPosition = -1;
-        usConfirmation.lengthGetRequest = -1;
-    }
-    return ret;
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	bool ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_CNF, CMD_Status_Success, true);
+
+	if (ret)
+	{
+		int length = rxPacket.Length - 2;
+		memcpy(response, &rxPacket.Data[2], length);
+		*response_length = length;
+	}
+
+	usConfirmation.memoryPosition = -1;
+	usConfirmation.lengthGetRequest = -1;
+
+	return ret;
+}
+
+/**
+ * @brief Set a special user setting, but checks first if the value is already ok
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] userSetting:  user setting to be updated
+ * @param[in] valueP:       pointer to the new settings value
+ * @param[in] length:       length of the value
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool Metis_CheckNSet(Metis_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+{
+	if (valueP == NULL)
+	{
+		return false;
+	}
+
+	uint8_t current_value[length];
+	uint8_t current_length = length;
+
+	if (!Metis_Get(userSetting, current_value, &current_length))
+	{
+		return false;
+	}
+
+	if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+	{
+		/* value is already set, no need to set it again */
+		return true;
+	}
+
+	/* value differs, and thus must be set */
+	return Metis_Set(userSetting, valueP, length);
 }
 
 /**
@@ -893,27 +866,28 @@ bool Metis_GetMultiple(uint8_t startAddress, uint8_t lengthToRead, uint8_t *resp
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_Set(Metis_UserSettings_t us, uint8_t* value, uint8_t length)
+bool Metis_Set(Metis_UserSettings_t us, uint8_t *value, uint8_t length)
 {
-    bool ret = false;
+	if (value == NULL)
+	{
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[length + 6];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_SET_REQ;
-    CMD_ARRAY[2] = (2 + length);
-    CMD_ARRAY[3] = us;
-    CMD_ARRAY[4] = length;
-    memcpy(&CMD_ARRAY[5],value,length);
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = METIS_CMD_SET_REQ;
+	txPacket.Length = (2 + length);
+	txPacket.Data[0] = us;
+	txPacket.Data[1] = length;
+	memcpy(&txPacket.Data[2], value, length);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	FillChecksum(&txPacket);
+
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -924,26 +898,31 @@ bool Metis_Set(Metis_UserSettings_t us, uint8_t* value, uint8_t length)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetFirmwareVersion(uint8_t* fw)
+bool Metis_GetFirmwareVersion(uint8_t *fw)
 {
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_GET_FWRELEASE;
-    CMD_ARRAY[2] = 0;
+	if (fw == NULL)
+	{
+		return false;
+	}
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = METIS_CMD_GET_FWRELEASE;
+	txPacket.Length = 0;
 
-        /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_FWRELEASE_CNF, CMD_Status_Success, true))
-        {
-            memcpy(fw,&RxPacket.Data[0],RxPacket.Length);
-            return true;
-        }
-    }
-    return false;
+	FillChecksum(&txPacket);
+
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	if (!Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_FWRELEASE_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	memcpy(fw, &rxPacket.Data[0], rxPacket.Length);
+	return true;
 }
 
 /**
@@ -954,26 +933,31 @@ bool Metis_GetFirmwareVersion(uint8_t* fw)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetSerialNumber(uint8_t* sn)
+bool Metis_GetSerialNumber(uint8_t *sn)
 {
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_GET_SERIALNO;
-    CMD_ARRAY[2] = 0;
+	if (sn == NULL)
+	{
+		return false;
+	}
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = METIS_CMD_GET_SERIALNO;
+	txPacket.Length = 0;
 
-        /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_SERIALNO_CNF, CMD_Status_Success, true))
-        {
-            memcpy(sn,&RxPacket.Data[0], RxPacket.Length);
-            return true;
-        }
-    }
-    return false;
+	FillChecksum(&txPacket);
+
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	if (!Wait4CNF(CMD_WAIT_TIME, METIS_CMD_GET_SERIALNO_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	memcpy(sn, &rxPacket.Data[0], rxPacket.Length);
+	return true;
 }
 
 /**
@@ -984,19 +968,17 @@ bool Metis_GetSerialNumber(uint8_t* sn)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetDefaultTXPower(int8_t* txpower)
+bool Metis_GetDefaultTXPower(int8_t *txpower)
 {
-    uint8_t length;
+	if (txpower == NULL)
+	{
+		return false;
+	}
 
-    if(Metis_Get(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER, (uint8_t*)txpower, &length))
-    {
-        return true;
-    }
-    else
-    {
-        *txpower = TXPOWERINVALID;
-        return false;
-    }
+	*txpower = TXPOWERINVALID;
+	uint8_t length;
+
+	return Metis_Get(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER, (uint8_t*) txpower, &length);
 }
 
 /**
@@ -1007,10 +989,10 @@ bool Metis_GetDefaultTXPower(int8_t* txpower)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetUartOutEnable(uint8_t* uartEnable)
+bool Metis_GetUartOutEnable(uint8_t *uartEnable)
 {
-    uint8_t length;
-    return Metis_Get(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, uartEnable, &length);
+	uint8_t length;
+	return Metis_Get(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, uartEnable, &length);
 }
 
 /**
@@ -1021,10 +1003,10 @@ bool Metis_GetUartOutEnable(uint8_t* uartEnable)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetRSSIEnable(uint8_t* rssiEnable)
+bool Metis_GetRSSIEnable(uint8_t *rssiEnable)
 {
-    uint8_t length;
-    return Metis_Get(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, rssiEnable, &length);
+	uint8_t length;
+	return Metis_Get(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, rssiEnable, &length);
 }
 
 /**
@@ -1036,10 +1018,10 @@ bool Metis_GetRSSIEnable(uint8_t* rssiEnable)
  *         false otherwise
  */
 
-bool Metis_GetModePreselect(uint8_t* modePreselect)
+bool Metis_GetModePreselect(uint8_t *modePreselect)
 {
-    uint8_t length;
-    return Metis_Get(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, modePreselect, &length);
+	uint8_t length;
+	return Metis_Get(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, modePreselect, &length);
 }
 
 /**
@@ -1050,10 +1032,10 @@ bool Metis_GetModePreselect(uint8_t* modePreselect)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_GetAESEnable(uint8_t* aesEnable)
+bool Metis_GetAESEnable(uint8_t *aesEnable)
 {
-    uint8_t length;
-    return Metis_Get(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, aesEnable, &length);
+	uint8_t length;
+	return Metis_Get(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, aesEnable, &length);
 }
 
 /**
@@ -1070,13 +1052,13 @@ bool Metis_GetAESEnable(uint8_t* aesEnable)
  */
 bool Metis_SetDefaultTXPower(int8_t txpower)
 {
-    /* check for invalid power */
-    if((txpower < -11) || (txpower > 15))
-    {
-        /* invalid power */
-        return false;
-    }
-    return Metis_Set(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER, (uint8_t*)&txpower, 1);
+	/* check for invalid power */
+	if ((txpower < -11) || (txpower > 15))
+	{
+		/* invalid power */
+		return false;
+	}
+	return Metis_Set(Metis_USERSETTING_MEMPOSITION_DEFAULTRFTXPOWER, (uint8_t*) &txpower, 1);
 }
 
 /**
@@ -1092,11 +1074,11 @@ bool Metis_SetDefaultTXPower(int8_t txpower)
  */
 bool Metis_SetUartOutEnable(uint8_t uartEnable)
 {
-    if((uartEnable != 0) && (uartEnable != 1))
-    {
-        return false;
-    }
-    return Metis_Set(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, &uartEnable, 1);
+	if ((uartEnable != 0) && (uartEnable != 1))
+	{
+		return false;
+	}
+	return Metis_Set(Metis_USERSETTING_MEMPOSITION_UART_CMD_OUT_ENABLE, &uartEnable, 1);
 }
 /**
  * @brief Set the RSSI Enable byte
@@ -1111,11 +1093,11 @@ bool Metis_SetUartOutEnable(uint8_t uartEnable)
  */
 bool Metis_SetRSSIEnable(uint8_t rssiEnable)
 {
-    if((rssiEnable !=0) && (rssiEnable != 1))
-    {
-        return false;
-    }
-    return Metis_Set(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, &rssiEnable,1);
+	if ((rssiEnable != 0) && (rssiEnable != 1))
+	{
+		return false;
+	}
+	return Metis_Set(Metis_USERSETTING_MEMPOSITION_RSSI_ENABLE, &rssiEnable, 1);
 }
 
 /**
@@ -1132,11 +1114,11 @@ bool Metis_SetRSSIEnable(uint8_t rssiEnable)
  */
 bool Metis_SetAESEnable(uint8_t aesEnable)
 {
-    if(aesEnable !=0)
-    {
-        return false;
-    }
-    return Metis_Set(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, &aesEnable,1);
+	if (aesEnable != 0)
+	{
+		return false;
+	}
+	return Metis_Set(Metis_USERSETTING_MEMPOSITION_APP_AES_ENABLE, &aesEnable, 1);
 }
 
 /**
@@ -1153,7 +1135,7 @@ bool Metis_SetAESEnable(uint8_t aesEnable)
  */
 bool Metis_SetModePreselect(Metis_Mode_Preselect_t modePreselect)
 {
-    return Metis_Set(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, (uint8_t*)&modePreselect, 1);
+	return Metis_Set(Metis_USERSETTING_MEMPOSITION_MODE_PRESELECT, (uint8_t*) &modePreselect, 1);
 }
 
 /**
@@ -1166,23 +1148,19 @@ bool Metis_SetModePreselect(Metis_Mode_Preselect_t modePreselect)
  */
 bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect)
 {
-    bool ret = false;
+	txPacket.Cmd = METIS_CMD_SET_MODE;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = modePreselect;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_SET_MODE;
-    CMD_ARRAY[2] = 0x01;
-    CMD_ARRAY[3] = modePreselect;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf*/
-        ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf*/
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_SET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1193,46 +1171,50 @@ bool Metis_SetVolatile_ModePreselect(Metis_Mode_Preselect_t modePreselect)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool Metis_Transmit(uint8_t* payload)
+bool Metis_Transmit(uint8_t *payload)
 {
-    bool ret = false;
-    uint8_t length = *payload; /* first byte of wM-BUS frame is length field */
+	if (payload == NULL)
+	{
+		return false;
+	}
 
-    if(length > MAX_PAYLOAD_LENGTH)
-    {
-        fprintf(stdout, "Data exceeds maximal payload length");
-        return false;
-    }
+	uint8_t length = *payload; /* first byte of wM-BUS frame is length field */
 
-    /* mode preselect C2/T2 for frequency 868 is not suitable for sending frames */
-    if((frequency == MBus_Frequency_868))
-    {
-        uint8_t modePreselect;
-        Metis_GetModePreselect(&modePreselect);
-        if(modePreselect == MBus_Mode_868_C2_T2_other)
-        {
-            /* module can not send in this mode. */
-            fprintf(stdout, "Mode Preselect %x is not suitable for transmitting\n", modePreselect);
-            return false;
-        }
-    }
+	if (length > MAX_PAYLOAD_LENGTH)
+	{
+		printf("Data exceeds maximal payload length");
+		return false;
+	}
 
+	/* mode preselect C2/T2 for frequency 868 is not suitable for sending frames */
+	if ((frequency == Metis_Frequency_868))
+	{
+		uint8_t modePreselect;
+		if (!Metis_GetModePreselect(&modePreselect))
+		{
+			return false;
+		}
+		if (modePreselect == Metis_Mode_Preselect_868_C2_T2_other)
+		{
+			/* module can not send in this mode. */
+			printf("Mode Preselect %x is not suitable for transmitting\n", modePreselect);
+			return false;
+		}
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[length + 4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = METIS_CMD_DATA_REQ;
-    CMD_ARRAY[2] = length;
-    memcpy(&CMD_ARRAY[3],&payload[1],length);
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = METIS_CMD_DATA_REQ;
+	txPacket.Length = length;
+	memcpy(&txPacket.Data[0], &payload[1], length);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, METIS_CMD_DATA_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	FillChecksum(&txPacket);
+
+	if (!Metis_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, METIS_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1244,57 +1226,57 @@ bool Metis_Transmit(uint8_t* payload)
  *
  * @return true if request succeeded,
  *         false otherwise
-*/
-bool Metis_Configure(Metis_Configuration_t* config, uint8_t config_length, bool factory_reset)
+ */
+bool Metis_Configure(Metis_Configuration_t *config, uint8_t config_length, bool factory_reset)
 {
-    int i = 0;
-    uint8_t help_length;
-    uint8_t help[METIS_MAX_USERSETTING_LENGTH];
+	if ((config == NULL) || (config_length == 0))
+	{
+		return false;
+	}
 
-    if(factory_reset)
-    {
-        /* perform a factory reset */
-        if(false == Metis_FactoryReset())
-        {
-            /* error */
-            return false;
-        }
-    }
-    WE_Delay(500);
+	uint8_t help_length;
+	uint8_t help[METIS_MAX_USERSETTING_LENGTH];
 
-    /* now check all settings and update them if necessary */
-    for(i=0; i<config_length; i++)
-    {
-        /* read current value */
-        if(false == Metis_Get(config[i].usersetting, help, &help_length))
-        {
-            /* error */
-            return false;
-        }
-        WE_Delay(200);
+	if (factory_reset)
+	{
+		/* perform a factory reset */
+		if (!Metis_FactoryReset())
+		{
+			/* error */
+			return false;
+		}
+	}
+	WE_Delay(500);
 
-        /* check the value read out */
-        if(help_length != config[i].value_length)
-        {
-            /* error, length does not match */
-            return false;
-        }
-        if(memcmp(help,config[i].value,config[i].value_length) != 0)
-        {
-            /* read value is not up to date, thus write the new value */
-            if(false == Metis_Set(config[i].usersetting, config[i].value, config[i].value_length))
-            {
-                /* error */
-                return false;
-            }
-        }
-        WE_Delay(200);
-    }
+	/* now check all settings and update them if necessary */
+	for (uint8_t i = 0; i < config_length; i++)
+	{
+		/* read current value */
+		if (!Metis_Get(config[i].usersetting, help, &help_length))
+		{
+			/* error */
+			return false;
+		}
+		WE_Delay(200);
 
-    /* reset to take effect of the updated parameters */
-    if(false == Metis_PinReset())
-    {
-        return false;
-    }
-    return true;
+		/* check the value read out */
+		if (help_length != config[i].value_length)
+		{
+			/* error, length does not match */
+			return false;
+		}
+		if (memcmp(help, config[i].value, config[i].value_length) != 0)
+		{
+			/* read value is not up to date, thus write the new value */
+			if (!Metis_Set(config[i].usersetting, config[i].value, config[i].value_length))
+			{
+				/* error */
+				return false;
+			}
+		}
+		WE_Delay(200);
+	}
+
+	/* reset to take effect of the updated parameters */
+	return Metis_PinReset();
 }

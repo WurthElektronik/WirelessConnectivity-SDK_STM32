@@ -28,8 +28,8 @@
  * @brief Adrastea ATProprietary Example header file.
  */
 
-#ifndef ATPROPRIETARYEXAMPLES_H_INCLUDED
-#define ATPROPRIETARYEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATPROPRIETARYEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATPROPRIETARYEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATProprietaryExample();
 }
 #endif
 
-#endif // ATPROPRIETARYEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATPROPRIETARYEXAMPLES_H_INCLUDED

@@ -30,7 +30,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../global/global.h"
+#include <global/global_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,7 +53,7 @@ extern "C" {
 #define PROTEUSII_BOOT_DURATION (uint16_t)75
 
 /* Channel is considered to be connected if status pin (LED_2) is on for this duration */
-#define PROTEUSII_STATUS_LED_CONNECTED_TIMEOUT (uint16_t)5
+#define PROTEUSII_STATUS_LED_CONNECTED_TIMEOUT_MS (uint16_t)5
 
 /* Default UART baudrate of Proteus-II module */
 #define PROTEUSII_DEFAULT_BAUDRATE (uint32_t)115200
@@ -87,6 +87,17 @@ typedef struct ProteusII_GetDevices_t
 	ProteusII_Device_t devices[PROTEUSII_MAX_NUMBER_OF_DEVICES ];
 } ProteusII_GetDevices_t;
 
+typedef struct ProteusII_Pins_t
+{
+	WE_Pin_t ProteusII_Pin_Reset;
+	WE_Pin_t ProteusII_Pin_SleepWakeUp;
+	WE_Pin_t ProteusII_Pin_Boot;
+	WE_Pin_t ProteusII_Pin_Mode;
+	WE_Pin_t ProteusII_Pin_Busy;
+	WE_Pin_t ProteusII_Pin_StatusLed2;
+
+} ProteusII_Pins_t;
+
 typedef enum ProteusII_DisplayPasskeyAction_t
 {
 	ProteusII_DisplayPasskeyAction_NoAction = (uint8_t) 0x00,
@@ -95,7 +106,7 @@ typedef enum ProteusII_DisplayPasskeyAction_t
 
 typedef enum ProteusII_DriverState_t
 {
-	ProteusII_DriverState_BLE_Invalid = (uint8_t) 0x00,
+	ProteusII_DriverState_BLE_Idle = (uint8_t) 0x00,
 	ProteusII_DriverState_BLE_Connected = (uint8_t) 0x01,
 	ProteusII_DriverState_BLE_ChannelOpen = (uint8_t) 0x02
 } ProteusII_DriverState_t;
@@ -350,20 +361,19 @@ typedef enum ProteusII_DTMTXPattern_t
 
 /* Callback definition */
 
-typedef void (*ProteusII_RxCallback)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
+typedef void (*ProteusII_RxCallback_t)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusII_ConnectCallback)(bool success, uint8_t *btMac);
-typedef void (*ProteusII_SecurityCallback)(uint8_t *btMac, ProteusII_SecurityState_t securityState);
-typedef void (*ProteusII_PasskeyCallback)(uint8_t *btMac);
-typedef void (*ProteusII_DisplayPasskeyCallback)(ProteusII_DisplayPasskeyAction_t action, uint8_t *btMac, uint8_t *passkey);
-typedef void (*ProteusII_DisconnectCallback)(ProteusII_DisconnectReason_t reason);
-typedef void (*ProteusII_ChannelOpenCallback)(uint8_t *btMac, uint16_t maxPayload);
+typedef void (*ProteusII_ConnectCallback_t)(bool success, uint8_t *btMac);
+typedef void (*ProteusII_SecurityCallback_t)(uint8_t *btMac, ProteusII_SecurityState_t securityState);
+typedef void (*ProteusII_PasskeyCallback_t)(uint8_t *btMac);
+typedef void (*ProteusII_DisplayPasskeyCallback_t)(ProteusII_DisplayPasskeyAction_t action, uint8_t *btMac, uint8_t *passkey);
+typedef void (*ProteusII_DisconnectCallback_t)(ProteusII_DisconnectReason_t reason);
+typedef void (*ProteusII_ChannelOpenCallback_t)(uint8_t *btMac, uint16_t maxPayload);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusII_PhyUpdateCallback)(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
-typedef void (*ProteusII_SleepCallback)();
-typedef void (*ProteusII_RssiCallback)(uint8_t *btMac, int8_t rssi, int8_t txPower);
-typedef void (*ProteusII_ErrorCallback)(uint8_t errorCode);
-typedef void (*ProteusII_ByteRxCallback)(uint8_t receivedByte);
+typedef void (*ProteusII_PhyUpdateCallback_t)(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
+typedef void (*ProteusII_SleepCallback_t)();
+typedef void (*ProteusII_RssiCallback_t)(uint8_t *btMac, int8_t rssi, int8_t txPower);
+typedef void (*ProteusII_ErrorCallback_t)(uint8_t errorCode);
 
 /**
  * @brief Callback configuration structure. Used as argument for ProteusII_Init().
@@ -374,21 +384,21 @@ typedef void (*ProteusII_ByteRxCallback)(uint8_t receivedByte);
  */
 typedef struct ProteusII_CallbackConfig_t
 {
-	ProteusII_RxCallback rxCb; /**< Callback for CMD_DATA_IND */
-	ProteusII_RxCallback beaconRxCb; /**< Callback for CMD_BEACON_IND and CMD_BEACON_RSP */
-	ProteusII_ConnectCallback connectCb; /**< Callback for CMD_CONNECT_IND */
-	ProteusII_SecurityCallback securityCb; /**< Callback for CMD_SECURITY_IND */
-	ProteusII_PasskeyCallback passkeyCb; /**< Callback for CMD_PASSKEY_IND */
-	ProteusII_DisplayPasskeyCallback displayPasskeyCb; /**< Callback for CMD_DISPLAY_PASSKEY_IND */
-	ProteusII_DisconnectCallback disconnectCb; /**< Callback for CMD_DISCONNECT_IND */
-	ProteusII_ChannelOpenCallback channelOpenCb; /**< Callback for CMD_CHANNELOPEN_RSP */
-	ProteusII_PhyUpdateCallback phyUpdateCb; /**< Callback for CMD_PHYUPDATE_IND */
-	ProteusII_SleepCallback sleepCb; /**< Callback for CMD_SLEEP_IND */
-	ProteusII_RssiCallback rssiCb; /**< Callback for CMD_RSSI_IND */
-	ProteusII_ErrorCallback errorCb; /**< Callback for CMD_ERROR_IND */
+	ProteusII_RxCallback_t rxCb; /**< Callback for CMD_DATA_IND */
+	ProteusII_RxCallback_t beaconRxCb; /**< Callback for CMD_BEACON_IND and CMD_BEACON_RSP */
+	ProteusII_ConnectCallback_t connectCb; /**< Callback for CMD_CONNECT_IND */
+	ProteusII_SecurityCallback_t securityCb; /**< Callback for CMD_SECURITY_IND */
+	ProteusII_PasskeyCallback_t passkeyCb; /**< Callback for CMD_PASSKEY_IND */
+	ProteusII_DisplayPasskeyCallback_t displayPasskeyCb; /**< Callback for CMD_DISPLAY_PASSKEY_IND */
+	ProteusII_DisconnectCallback_t disconnectCb; /**< Callback for CMD_DISCONNECT_IND */
+	ProteusII_ChannelOpenCallback_t channelOpenCb; /**< Callback for CMD_CHANNELOPEN_RSP */
+	ProteusII_PhyUpdateCallback_t phyUpdateCb; /**< Callback for CMD_PHYUPDATE_IND */
+	ProteusII_SleepCallback_t sleepCb; /**< Callback for CMD_SLEEP_IND */
+	ProteusII_RssiCallback_t rssiCb; /**< Callback for CMD_RSSI_IND */
+	ProteusII_ErrorCallback_t errorCb; /**< Callback for CMD_ERROR_IND */
 } ProteusII_CallbackConfig_t;
 
-extern bool ProteusII_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusII_OperationMode_t opMode, ProteusII_CallbackConfig_t callbackConfig);
+extern bool ProteusII_Init(WE_UART_t *uartP, ProteusII_Pins_t *pinoutP, ProteusII_OperationMode_t opMode, ProteusII_CallbackConfig_t callbackConfig);
 extern bool ProteusII_Deinit(void);
 
 extern bool ProteusII_GetState(ProteusII_ModuleState_t *moduleStateP);
@@ -410,6 +420,7 @@ extern bool ProteusII_ScanStop();
 extern bool ProteusII_GetDevices(ProteusII_GetDevices_t *devicesP);
 
 extern bool ProteusII_Transmit(uint8_t *payloadP, uint16_t length);
+extern bool ProteusII_Transparent_Transmit(const uint8_t *data, uint16_t dataLength);
 
 extern bool ProteusII_SetBeacon(uint8_t *beaconDataP, uint16_t length);
 
@@ -422,7 +433,7 @@ extern ProteusII_DriverState_t ProteusII_GetDriverState();
 
 extern bool ProteusII_GetStatusLed2PinLevel();
 extern bool ProteusII_IsPeripheralOnlyModeBusy();
-extern void ProteusII_SetByteRxCallback(ProteusII_ByteRxCallback callback);
+extern void ProteusII_SetByteRxCallback(WE_UART_HandleRxByte_t callback);
 
 extern bool ProteusII_GetBonds(ProteusII_BondDatabase_t *bondDatabaseP);
 extern bool ProteusII_DeleteBonds();
@@ -434,6 +445,7 @@ extern bool ProteusII_DeleteBond(uint8_t bondId);
  */
 extern bool ProteusII_FactoryReset();
 extern bool ProteusII_Set(ProteusII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length);
+extern bool ProteusII_CheckNSet(ProteusII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length);
 extern bool ProteusII_SetDeviceName(uint8_t *deviceNameP, uint8_t nameLength);
 extern bool ProteusII_SetAdvertisingTimeout(uint16_t advTimeout);
 extern bool ProteusII_SetAdvertisingFlags(ProteusII_AdvertisingFlags_t advFlags);

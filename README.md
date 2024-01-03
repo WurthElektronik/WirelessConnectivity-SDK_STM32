@@ -5,14 +5,17 @@ Products supported by this SDK:
 
 - Adrastea-I
 - Calypso
+- Daphnis
 - Metis (-I and -II)
 - Proteus-e
 - Proteus-II
 - Proteus-III
+- Stephano-I
 - Tarvos-III
 - Telesto-III
 - Thebe-II
 - Themisto-I
+- Thyone-e
 - Thyone-I
 
 For all our Legacy Products please use the previous SDK at https://github.com/WurthElektronik/WirelessConnectivity-SDK.

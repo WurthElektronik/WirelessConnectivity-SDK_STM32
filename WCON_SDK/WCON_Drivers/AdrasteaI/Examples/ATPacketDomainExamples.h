@@ -28,8 +28,8 @@
  * @brief Adrastea ATPacketDomain Example header file.
  */
 
-#ifndef ATPACKETDOMAINEXAMPLES_H_INCLUDED
-#define ATPACKETDOMAINEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATPACKETDOMAINEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATPACKETDOMAINEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATPacketDomainExample();
 }
 #endif
 
-#endif // ATPACKETDOMAINEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATPACKETDOMAINEXAMPLES_H_INCLUDED

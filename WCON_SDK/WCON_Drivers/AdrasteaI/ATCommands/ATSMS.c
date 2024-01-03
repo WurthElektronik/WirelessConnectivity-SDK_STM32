@@ -27,20 +27,19 @@
  * @file
  * @brief AT commands for SMS functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATSMS.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATSMS.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATSMS_Message_State_Strings[ATSMS_Message_State_NumberOfValues] = {
+static const char *AdrasteaI_ATSMS_Message_State_Strings[AdrasteaI_ATSMS_Message_State_NumberOfValues] = {
 		"REC UNREAD",
 		"REC READ",
 		"STO UNSENT",
 		"STO SENT",
 		"ALL" };
 
-static const char *ATSMS_Storage_Location_Strings[ATSMS_Storage_Location_NumberOfValues] = {
+static const char *AdrasteaI_ATSMS_Storage_Location_Strings[AdrasteaI_ATSMS_Storage_Location_NumberOfValues] = {
 		"BM",
 		"ME",
 		"MT",
@@ -55,7 +54,7 @@ static const char *ATSMS_Storage_Location_Strings[ATSMS_Storage_Location_NumberO
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_DeleteMessage(ATSMS_Message_Index_t index)
+bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -71,12 +70,12 @@ bool ATSMS_DeleteMessage(ATSMS_Message_Index_t index)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -89,14 +88,14 @@ bool ATSMS_DeleteMessage(ATSMS_Message_Index_t index)
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_DeleteAllMessages()
+bool AdrasteaI_ATSMS_DeleteAllMessages()
 {
-	if (!Adrastea_SendRequest("AT+CMGD=0,4\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CMGD=0,4\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -107,15 +106,17 @@ bool ATSMS_DeleteAllMessages()
 /**
  * @brief List Messages (using the AT+CMGL command).
  *
+ * @param[in] listType State of the messages to list.
+ *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ListMessages(ATSMS_Message_State_t listType)
+bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT+CMGL=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSMS_Message_State_Strings[listType], ATCOMMAND_STRING_TERMINATE))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Message_State_Strings[listType], ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
@@ -125,12 +126,12 @@ bool ATSMS_ListMessages(ATSMS_Message_State_t listType)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -145,7 +146,7 @@ bool ATSMS_ListMessages(ATSMS_Message_State_t listType)
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ReadMessage(ATSMS_Message_Index_t index)
+bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -161,12 +162,12 @@ bool ATSMS_ReadMessage(ATSMS_Message_Index_t index)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -177,34 +178,34 @@ bool ATSMS_ReadMessage(ATSMS_Message_Index_t index)
 /**
  * @brief Set Message Storage Locations (using the AT+CPMS command).
  *
- * @param[in] readDeleteStorage Storage for Read and Deleted Messages. See ATSMS_Storage_Location_t.
+ * @param[in] readDeleteStorage Storage for Read and Deleted Messages. See AdrasteaI_ATSMS_Storage_Location_t.
  *
- * @param[in] writeSendStorage Storage for Write and Send Messages (optional pass ATSMS_Storage_Location_Invalid to skip). See ATSMS_Storage_Location_t.
+ * @param[in] writeSendStorage Storage for Write and Send Messages (optional pass AdrasteaI_ATSMS_Storage_Location_Invalid to skip). See AdrasteaI_ATSMS_Storage_Location_t.
  *
- * @param[in] receiveStorage Storage for Received Messages (optional pass ATSMS_Storage_Location_Invalid to skip). See ATSMS_Storage_Location_t.
+ * @param[in] receiveStorage Storage for Received Messages (optional pass AdrasteaI_ATSMS_Storage_Location_Invalid to skip). See AdrasteaI_ATSMS_Storage_Location_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SetMessageStorageLocations(ATSMS_Storage_Location_t readDeleteStorage, ATSMS_Storage_Location_t writeSendStorage, ATSMS_Storage_Location_t receiveStorage)
+bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location_t readDeleteStorage, AdrasteaI_ATSMS_Storage_Location_t writeSendStorage, AdrasteaI_ATSMS_Storage_Location_t receiveStorage)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT+CPMS=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSMS_Storage_Location_Strings[readDeleteStorage], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[readDeleteStorage], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
 
-	if (writeSendStorage != ATSMS_Storage_Location_Invalid)
+	if (writeSendStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
 	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSMS_Storage_Location_Strings[writeSendStorage], ATCOMMAND_ARGUMENT_DELIM))
+		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[writeSendStorage], ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -212,31 +213,31 @@ bool ATSMS_SetMessageStorageLocations(ATSMS_Storage_Location_t readDeleteStorage
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (receiveStorage != ATSMS_Storage_Location_Invalid)
+	if (receiveStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
 	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSMS_Storage_Location_Strings[receiveStorage], ATCOMMAND_STRING_TERMINATE))
+		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[receiveStorage], ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -247,32 +248,32 @@ bool ATSMS_SetMessageStorageLocations(ATSMS_Storage_Location_t readDeleteStorage
 /**
  * @brief Read Message Storage Usage (using the AT+CPMS command).
  *
- * @param[out] storageUsageP Storage Usage is returned in this argument. See ATSMS_Message_Storage_Usage_t.
+ * @param[out] storageUsageP Storage Usage is returned in this argument. See AdrasteaI_ATSMS_Message_Storage_Usage_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ReadMessageStorageUsage(ATSMS_Message_Storage_Usage_t *storageUsageP)
+bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usage_t *storageUsageP)
 {
 	if (storageUsageP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CPMS?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CPMS?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->readDeleteStorageUsage.storageLocation, ATSMS_Storage_Location_Strings, ATSMS_Storage_Location_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->readDeleteStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -288,7 +289,7 @@ bool ATSMS_ReadMessageStorageUsage(ATSMS_Message_Storage_Usage_t *storageUsageP)
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->writeSendStorageUsage.storageLocation, ATSMS_Storage_Location_Strings, ATSMS_Storage_Location_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->writeSendStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -304,7 +305,7 @@ bool ATSMS_ReadMessageStorageUsage(ATSMS_Message_Storage_Usage_t *storageUsageP)
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->receiveStorageUsage.storageLocation, ATSMS_Storage_Location_Strings, ATSMS_Storage_Location_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->receiveStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -330,9 +331,9 @@ bool ATSMS_ReadMessageStorageUsage(ATSMS_Message_Storage_Usage_t *storageUsageP)
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SetServiceCenterAddress(ATSMS_Service_Center_Address_t serviceCenterAddress)
+bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t serviceCenterAddress)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -343,28 +344,28 @@ bool ATSMS_SetServiceCenterAddress(ATSMS_Service_Center_Address_t serviceCenterA
 		return false;
 	}
 
-	if (serviceCenterAddress.addressType != ATSMS_Address_Type_Invalid)
+	if (serviceCenterAddress.addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, serviceCenterAddress.addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -379,21 +380,21 @@ bool ATSMS_SetServiceCenterAddress(ATSMS_Service_Center_Address_t serviceCenterA
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ReadServiceCenterAddress(ATSMS_Service_Center_Address_t *serviceCenterAddressP)
+bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t *serviceCenterAddressP)
 {
 	if (serviceCenterAddressP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CSCA?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CSCA?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -418,7 +419,7 @@ bool ATSMS_ReadServiceCenterAddress(ATSMS_Service_Center_Address_t *serviceCente
  *
  * @param[in] address Address.
  *
- * @param[in] addressType Address Type (optional pass ATSMS_Address_Type_Invalid to skip). See ATSMS_Address_Type_t.
+ * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
  *
  * @param[in] message Message Payload.
  *
@@ -426,14 +427,14 @@ bool ATSMS_ReadServiceCenterAddress(ATSMS_Service_Center_Address_t *serviceCente
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
 {
 	if (messageReferenceP == NULL)
 	{
 		return false;
 	}
 
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -444,16 +445,16 @@ bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType
 		return false;
 	}
 
-	if (addressType != ATSMS_Address_Type_Invalid)
+	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
 	{
@@ -470,14 +471,14 @@ bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -502,7 +503,7 @@ bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType
  *
  * @param[in] address Address.
  *
- * @param[in] addressType Address Type (optional pass ATSMS_Address_Type_Invalid to skip). See ATSMS_Address_Type_t.
+ * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
  *
  * @param[in] message Message Payload.
  *
@@ -510,14 +511,14 @@ bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
 {
 	if (messageReferenceP == NULL)
 	{
 		return false;
 	}
 
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -528,16 +529,16 @@ bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addres
 		return false;
 	}
 
-	if (addressType != ATSMS_Address_Type_Invalid)
+	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
 	{
@@ -554,14 +555,14 @@ bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addres
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -586,7 +587,7 @@ bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addres
  *
  * @param[in] address Address.
  *
- * @param[in] addressType Address Type (optional pass ATSMS_Address_Type_Invalid to skip). See ATSMS_Address_Type_t.
+ * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
  *
  * @param[in] message Message Payload.
  *
@@ -594,14 +595,14 @@ bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addres
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_WriteMessageToStorage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Index_t *messageIndexP)
+bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Index_t *messageIndexP)
 {
 	if (messageIndexP == NULL)
 	{
 		return false;
 	}
 
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -612,16 +613,16 @@ bool ATSMS_WriteMessageToStorage(ATSMS_Address_t address, ATSMS_Address_Type_t a
 		return false;
 	}
 
-	if (addressType != ATSMS_Address_Type_Invalid)
+	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
 	{
@@ -638,14 +639,14 @@ bool ATSMS_WriteMessageToStorage(ATSMS_Address_t address, ATSMS_Address_Type_t a
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -674,7 +675,7 @@ bool ATSMS_WriteMessageToStorage(ATSMS_Address_t address, ATSMS_Address_Type_t a
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SendMessageFromStorage(ATSMS_Message_Index_t index, ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t index, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
 {
 	if (messageReferenceP == NULL)
 	{
@@ -695,14 +696,14 @@ bool ATSMS_SendMessageFromStorage(ATSMS_Message_Index_t index, ATSMS_Message_Ref
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -724,21 +725,21 @@ bool ATSMS_SendMessageFromStorage(ATSMS_Message_Index_t index, ATSMS_Message_Ref
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_SetSMSUnsolicitedNotificationEvents(ATCommon_Event_State_t eventState)
+bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Event_State_t eventState)
 {
 	switch (eventState)
 	{
-	case ATCommon_Event_State_Enable:
+	case AdrasteaI_ATCommon_Event_State_Enable:
 	{
-		if (!Adrastea_SendRequest("AT+CNMI=2,1\r\n"))
+		if (!AdrasteaI_SendRequest("AT+CNMI=2,1\r\n"))
 		{
 			return false;
 		}
 		break;
 	}
-	case ATCommon_Event_State_Disable:
+	case AdrasteaI_ATCommon_Event_State_Disable:
 	{
-		if (!Adrastea_SendRequest("AT+CNMI=1,0\r\n"))
+		if (!AdrasteaI_SendRequest("AT+CNMI=1,0\r\n"))
 		{
 			return false;
 		}
@@ -748,7 +749,7 @@ bool ATSMS_SetSMSUnsolicitedNotificationEvents(ATCommon_Event_State_t eventState
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SMS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -759,11 +760,12 @@ bool ATSMS_SetSMSUnsolicitedNotificationEvents(ATCommon_Event_State_t eventState
 /**
  * @brief Parses the value of Read Message event arguments.
  *
- * @param[out] dataP SMS Message is returned in this argument. See ATSMS_Message_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP SMS Message is returned in this argument. See AdrasteaI_ATSMS_Message_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ParseReadMessageEvent(char *pEventArguments, ATSMS_Message_t *dataP)
+bool AdrasteaI_ATSMS_ParseReadMessageEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -776,7 +778,7 @@ bool ATSMS_ParseReadMessageEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 
 	dataP->messageIndex = 0;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, ATSMS_Message_State_Strings, ATSMS_Message_State_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -787,7 +789,7 @@ bool ATSMS_ParseReadMessageEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 		return false;
 	}
 
-	if (Adrastea_CountArgs(argumentsP) == 3)
+	if (ATCommand_CountArgs(argumentsP) == 3)
 	{
 		char extraData[40];
 
@@ -813,11 +815,12 @@ bool ATSMS_ParseReadMessageEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 /**
  * @brief Parses the value of List Message event arguments.
  *
- * @param[out] dataP SMS Message is returned in this argument. See ATSMS_Message_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP SMS Message is returned in this argument. See AdrasteaI_ATSMS_Message_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ParseListMessagesEvent(char *pEventArguments, ATSMS_Message_t *dataP)
+bool AdrasteaI_ATSMS_ParseListMessagesEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -833,7 +836,7 @@ bool ATSMS_ParseListMessagesEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, ATSMS_Message_State_Strings, ATSMS_Message_State_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -844,7 +847,7 @@ bool ATSMS_ParseListMessagesEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 		return false;
 	}
 
-	if (Adrastea_CountArgs(argumentsP) == 3)
+	if (ATCommand_CountArgs(argumentsP) == 3)
 	{
 		char extraData[40];
 
@@ -870,11 +873,12 @@ bool ATSMS_ParseListMessagesEvent(char *pEventArguments, ATSMS_Message_t *dataP)
 /**
  * @brief Parses the value of Message Received event arguments.
  *
- * @param[out] dataP SMS Message Received Result is returned in this argument. See ATSMS_Message_Received_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP SMS Message Received Result is returned in this argument. See AdrasteaI_ATSMS_Message_Received_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ParseMessageReceivedEvent(char *pEventArguments, ATSMS_Message_Received_Result_t *dataP)
+bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_Received_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -885,7 +889,7 @@ bool ATSMS_ParseMessageReceivedEvent(char *pEventArguments, ATSMS_Message_Receiv
 
 	argumentsP += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->storageLocation, ATSMS_Storage_Location_Strings, ATSMS_Storage_Location_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -902,11 +906,12 @@ bool ATSMS_ParseMessageReceivedEvent(char *pEventArguments, ATSMS_Message_Receiv
 /**
  * @brief Parses the value of SMS Error event arguments.
  *
- * @param[out] dataP SMS Error is returned in this argument. See ATSMS_Error_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP SMS Error is returned in this argument. See AdrasteaI_ATSMS_Error_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ParseSMSErrorEvent(char *pEventArguments, ATSMS_Error_t *dataP)
+bool AdrasteaI_ATSMS_ParseSMSErrorEvent(char *pEventArguments, AdrasteaI_ATSMS_Error_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{

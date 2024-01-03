@@ -28,8 +28,8 @@
  * @brief Adrastea ATHTTP Example header file.
  */
 
-#ifndef ATHTTPEXAMPLES_H_INCLUDED
-#define ATHTTPEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATHTTPEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATHTTPEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATHTTPExample();
 }
 #endif
 
-#endif // ATHTTPEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATHTTPEXAMPLES_H_INCLUDED

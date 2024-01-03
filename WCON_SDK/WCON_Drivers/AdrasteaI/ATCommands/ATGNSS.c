@@ -27,17 +27,16 @@
  * @file
  * @brief AT commands for GNSS functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATGNSS.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATGNSS.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATGNSS_Satellite_Systems_Strings[ATGNSS_Satellite_Systems_Strings_NumberOfValues] = {
+static const char *AdrasteaI_ATGNSS_Satellite_Systems_Strings[AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues] = {
 		"GPS",
 		"GLONASS", };
 
-static const char *ATGNSS_NMEA_Sentences_Strings[ATGNSS_NMEA_Sentences_Strings_NumberOfValues] = {
+static const char *AdrasteaI_ATGNSS_NMEA_Sentences_Strings[AdrasteaI_ATGNSS_NMEA_Sentences_Strings_NumberOfValues] = {
 		"GGA",
 		"GLL",
 		"GSA",
@@ -49,16 +48,16 @@ static const char *ATGNSS_NMEA_Sentences_Strings[ATGNSS_NMEA_Sentences_Strings_N
 		"ZDA",
 		"GST", };
 
-static const char *ATGNSS_Ephemeris_Strings[ATGNSS_Ephemeris_NumberOfValues] = {
+static const char *AdrasteaI_ATGNSS_Ephemeris_Strings[AdrasteaI_ATGNSS_Ephemeris_NumberOfValues] = {
 		"B",
 		"C", };
 
-static const char *ATGNSS_Event_Strings[ATGNSS_Event_NumberOfValues] = {
+static const char *AdrasteaI_ATGNSS_Event_Strings[AdrasteaI_ATGNSS_Event_NumberOfValues] = {
 		"NMEA",
 		"SESSIONSTAT",
 		"ALLOWSTAT", };
 
-static const char *ATGNSS_Deletion_Option_Strings[ATGNSS_Deletion_Option_NumberOfValues] = {
+static const char *AdrasteaI_ATGNSS_Deletion_Option_Strings[AdrasteaI_ATGNSS_Deletion_Option_NumberOfValues] = {
 		"0",
 		"0001",
 		"0002",
@@ -70,14 +69,14 @@ static const char *ATGNSS_Deletion_Option_Strings[ATGNSS_Deletion_Option_NumberO
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_StopGNSS()
+bool AdrasteaI_ATGNSS_StopGNSS()
 {
-	if (!Adrastea_SendRequest("AT%IGNSSACT=0\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSACT=0\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -88,40 +87,40 @@ bool ATGNSS_StopGNSS()
 /**
  * @brief Start GNSS (using the AT%IGNSSACT command).
  *
- * @param[in] startMode GNSS Start Mode (optional pass ATGNSS_Start_Mode_Invalid to skip). See ATGNSS_Start_Mode_t.
+ * @param[in] startMode GNSS Start Mode (optional pass AdrasteaI_ATGNSS_Start_Mode_Invalid to skip). See AdrasteaI_ATGNSS_Start_Mode_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_StartGNSS(ATGNSS_Start_Mode_t startMode)
+bool AdrasteaI_ATGNSS_StartGNSS(AdrasteaI_ATGNSS_Start_Mode_t startMode)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%IGNSSACT=1,");
 
-	if (startMode != ATGNSS_Start_Mode_Invalid)
+	if (startMode != AdrasteaI_ATGNSS_Start_Mode_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, startMode, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -136,7 +135,7 @@ bool ATGNSS_StartGNSS(ATGNSS_Start_Mode_t startMode)
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_StartGNSSWithTolerance(ATGNSS_Tolerance_t tolerance)
+bool AdrasteaI_ATGNSS_StartGNSSWithTolerance(AdrasteaI_ATGNSS_Tolerance_t tolerance)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -152,12 +151,12 @@ bool ATGNSS_StartGNSSWithTolerance(ATGNSS_Tolerance_t tolerance)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -168,25 +167,25 @@ bool ATGNSS_StartGNSSWithTolerance(ATGNSS_Tolerance_t tolerance)
 /**
  * @brief Read GNSS Active (using the AT%IGNSSACT command).
  *
- * @param[out] activeModeP GNSS Active is returned in this argument. See ATGNSS_Active_Mode_t.
+ * @param[out] activeModeP GNSS Active is returned in this argument. See AdrasteaI_ATGNSS_Active_Mode_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_ReadGNSSActiveMode(ATGNSS_Active_Mode_t *activeModeP)
+bool AdrasteaI_ATGNSS_ReadGNSSActiveMode(AdrasteaI_ATGNSS_Active_Mode_t *activeModeP)
 {
 	if (activeModeP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSACT?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSACT?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -202,42 +201,42 @@ bool ATGNSS_ReadGNSSActiveMode(ATGNSS_Active_Mode_t *activeModeP)
 /**
  * @brief Set Satellite Systems (using the AT%IGNSSCFG command).
  *
- * @param[in] satSystems Satellite Systems used. See ATGNSS_Satellite_Systems_t.
+ * @param[in] satSystems Satellite Systems used. See AdrasteaI_ATGNSS_Satellite_Systems_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_SetSatelliteSystems(ATGNSS_Satellite_Systems_t satSystems)
+bool AdrasteaI_ATGNSS_SetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t satSystems)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%IGNSSCFG=\"SET\",\"SAT\",");
 
-	for (uint8_t i = 0; i < ATGNSS_Satellite_Systems_Strings_NumberOfValues; i++)
+	for (uint8_t i = 0; i < AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues; i++)
 	{
-		if ((satSystems.satSystemsStates & (ATGNSS_Runtime_Mode_State_Set << i)) >> i)
+		if ((satSystems.satSystemsStates & (AdrasteaI_ATGNSS_Runtime_Mode_State_Set << i)) >> i)
 		{
-			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATGNSS_Satellite_Systems_Strings[i], ATCOMMAND_ARGUMENT_DELIM))
+			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATGNSS_Satellite_Systems_Strings[i], ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
 			}
 		}
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -248,25 +247,25 @@ bool ATGNSS_SetSatelliteSystems(ATGNSS_Satellite_Systems_t satSystems)
 /**
  * @brief Read Used Satellite Systems (using the AT%IGNSSCFG command).
  *
- * @param[out] satSystemsP Used Satellite Systems are returned in this argument. See ATGNSS_Satellite_Systems_t.
+ * @param[out] satSystemsP Used Satellite Systems are returned in this argument. See AdrasteaI_ATGNSS_Satellite_Systems_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_GetSatelliteSystems(ATGNSS_Satellite_Systems_t *satSystemsP)
+bool AdrasteaI_ATGNSS_GetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t *satSystemsP)
 {
 	if (satSystemsP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSCFG=\"GET\",\"SAT\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSCFG=\"GET\",\"SAT\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -275,16 +274,15 @@ bool ATGNSS_GetSatelliteSystems(ATGNSS_Satellite_Systems_t *satSystemsP)
 
 	satSystemsP->satSystemsStates = 0;
 
-	uint8_t argscount = Adrastea_CountArgs(pResponseCommand);
+	uint8_t argscount = ATCommand_CountArgs(pResponseCommand);
 
 	for (uint8_t i = 0; i < argscount; i++)
 	{
 		uint8_t satSystem;
 		if (i == argscount - 1)
 		{
-
-			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &satSystem, ATGNSS_Satellite_Systems_Strings,
-			ATGNSS_Satellite_Systems_Strings_NumberOfValues, 30,
+			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &satSystem, AdrasteaI_ATGNSS_Satellite_Systems_Strings,
+			AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues, 30,
 			ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
@@ -293,16 +291,15 @@ bool ATGNSS_GetSatelliteSystems(ATGNSS_Satellite_Systems_t *satSystemsP)
 		}
 		else
 		{
-
-			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &satSystem, ATGNSS_Satellite_Systems_Strings,
-			ATGNSS_Satellite_Systems_Strings_NumberOfValues, 30,
+			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &satSystem, AdrasteaI_ATGNSS_Satellite_Systems_Strings,
+			AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues, 30,
 			ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
 			}
 		}
 
-		satSystemsP->satSystemsStates |= ATGNSS_Runtime_Mode_State_Set << satSystem;
+		satSystemsP->satSystemsStates |= AdrasteaI_ATGNSS_Runtime_Mode_State_Set << satSystem;
 	}
 
 	return true;
@@ -311,42 +308,42 @@ bool ATGNSS_GetSatelliteSystems(ATGNSS_Satellite_Systems_t *satSystemsP)
 /**
  * @brief Set NMEA Sentences (using the AT%IGNSSCFG command).
  *
- * @param[in] nmeaSentences NMEA Sentences. See ATGNSS_NMEA_Sentences_t.
+ * @param[in] nmeaSentences NMEA Sentences. See AdrasteaI_ATGNSS_NMEA_Sentences_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_SetNMEASentences(ATGNSS_NMEA_Sentences_t nmeaSentences)
+bool AdrasteaI_ATGNSS_SetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t nmeaSentences)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%IGNSSCFG=\"SET\",\"NMEA\"");
 
-	for (uint8_t i = 0; i < ATGNSS_NMEA_Sentences_Strings_NumberOfValues; i++)
+	for (uint8_t i = 0; i < AdrasteaI_ATGNSS_NMEA_Sentences_Strings_NumberOfValues; i++)
 	{
-		if ((nmeaSentences.nmeaSentencesStates & (ATGNSS_Runtime_Mode_State_Set << i)) >> i)
+		if ((nmeaSentences.nmeaSentencesStates & (AdrasteaI_ATGNSS_Runtime_Mode_State_Set << i)) >> i)
 		{
-			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATGNSS_NMEA_Sentences_Strings[i], ATCOMMAND_ARGUMENT_DELIM))
+			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATGNSS_NMEA_Sentences_Strings[i], ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
 			}
 		}
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -357,25 +354,25 @@ bool ATGNSS_SetNMEASentences(ATGNSS_NMEA_Sentences_t nmeaSentences)
 /**
  * @brief Read Used NMEA Sentences (using the AT%IGNSSCFG command).
  *
- * @param[out] nmeaSentencesP Used NMEA Sentences are returned in this argument. See ATGNSS_NMEA_Sentences_t.
+ * @param[out] nmeaSentencesP Used NMEA Sentences are returned in this argument. See AdrasteaI_ATGNSS_NMEA_Sentences_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_GetNMEASentences(ATGNSS_NMEA_Sentences_t *nmeaSentencesP)
+bool AdrasteaI_ATGNSS_GetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t *nmeaSentencesP)
 {
 	if (nmeaSentencesP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSCFG=\"GET\",\"NMEA\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSCFG=\"GET\",\"NMEA\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -384,16 +381,15 @@ bool ATGNSS_GetNMEASentences(ATGNSS_NMEA_Sentences_t *nmeaSentencesP)
 
 	nmeaSentencesP->nmeaSentencesStates = 0;
 
-	uint8_t argscount = Adrastea_CountArgs(pResponseCommand);
+	uint8_t argscount = ATCommand_CountArgs(pResponseCommand);
 
 	for (uint8_t i = 0; i < argscount; i++)
 	{
 		uint8_t nmeaSentence;
 		if (i == argscount - 1)
 		{
-
-			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &nmeaSentence, ATGNSS_NMEA_Sentences_Strings,
-			ATGNSS_NMEA_Sentences_Strings_NumberOfValues, 30,
+			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &nmeaSentence, AdrasteaI_ATGNSS_NMEA_Sentences_Strings,
+			AdrasteaI_ATGNSS_NMEA_Sentences_Strings_NumberOfValues, 30,
 			ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
@@ -402,16 +398,15 @@ bool ATGNSS_GetNMEASentences(ATGNSS_NMEA_Sentences_t *nmeaSentencesP)
 		}
 		else
 		{
-
-			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &nmeaSentence, ATGNSS_NMEA_Sentences_Strings,
-			ATGNSS_NMEA_Sentences_Strings_NumberOfValues, 30,
+			if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, &nmeaSentence, AdrasteaI_ATGNSS_NMEA_Sentences_Strings,
+			AdrasteaI_ATGNSS_NMEA_Sentences_Strings_NumberOfValues, 30,
 			ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
 			}
 		}
 
-		nmeaSentencesP->nmeaSentencesStates |= ATGNSS_Runtime_Mode_State_Set << nmeaSentence;
+		nmeaSentencesP->nmeaSentencesStates |= AdrasteaI_ATGNSS_Runtime_Mode_State_Set << nmeaSentence;
 	}
 
 	return true;
@@ -424,21 +419,21 @@ bool ATGNSS_GetNMEASentences(ATGNSS_NMEA_Sentences_t *nmeaSentencesP)
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_QueryGNSSSatellites(ATGNSS_Satellite_Count_t *satCountP)
+bool AdrasteaI_ATGNSS_QueryGNSSSatellites(AdrasteaI_ATGNSS_Satellite_Count_t *satCountP)
 {
 	if (satCountP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSINFO=\"SAT\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSINFO=\"SAT\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -457,10 +452,11 @@ bool ATGNSS_QueryGNSSSatellites(ATGNSS_Satellite_Count_t *satCountP)
  * @brief Parses the value of Query GNSS Satellites event arguments.
  *
  * @param[out] dataP Satellite information is returned in this argument
+ * @param[in] pEventArguments String containing arguments of the AT command
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_ParseSatelliteQueryEvent(char *pEventArguments, ATGNSS_Satellite_t *dataP)
+bool AdrasteaI_ATGNSS_ParseSatelliteQueryEvent(char *pEventArguments, AdrasteaI_ATGNSS_Satellite_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -469,11 +465,10 @@ bool ATGNSS_ParseSatelliteQueryEvent(char *pEventArguments, ATGNSS_Satellite_t *
 
 	char *argumentsP = pEventArguments;
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 4:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->prn, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -507,13 +502,13 @@ bool ATGNSS_ParseSatelliteQueryEvent(char *pEventArguments, ATGNSS_Satellite_t *
 /**
  * @brief Query GNSS Fix (using the AT%IGNSSINFO command).
  *
- * @param[in] relevancy Determines if Last Fix or Current Fix should be queried. See ATGNSS_Fix_Relavancy_t.
+ * @param[in] relevancy Determines if Last Fix or Current Fix should be queried. See AdrasteaI_ATGNSS_Fix_Relavancy_t.
  *
  * @param[out] fixP GNSS Fix is returned in this argument
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_t relevancy, ATGNSS_Fix_t *fixP)
+bool AdrasteaI_ATGNSS_QueryGNSSFix(AdrasteaI_ATGNSS_Fix_Relavancy_t relevancy, AdrasteaI_ATGNSS_Fix_t *fixP)
 {
 	if (fixP == NULL)
 	{
@@ -524,10 +519,10 @@ bool ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_t relevancy, ATGNSS_Fix_t *fixP)
 
 	switch (relevancy)
 	{
-	case ATGNSS_Fix_Relavancy_Current:
+	case AdrasteaI_ATGNSS_Fix_Relavancy_Current:
 		strcpy(pRequestCommand, "AT%IGNSSINFO=\"FIX\"\r\n");
 		break;
-	case ATGNSS_Fix_Relavancy_Last:
+	case AdrasteaI_ATGNSS_Fix_Relavancy_Last:
 		strcpy(pRequestCommand, "AT%IGNSSINFO=\"LASTFIX\"\r\n");
 		break;
 	default:
@@ -535,23 +530,23 @@ bool ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_t relevancy, ATGNSS_Fix_t *fixP)
 		break;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
-	memset(fixP, -1, sizeof(ATGNSS_Fix_t));
+	memset(fixP, -1, sizeof(AdrasteaI_ATGNSS_Fix_t));
 
 	pResponseCommand += 1;
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &fixP->fixType, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
@@ -645,7 +640,7 @@ bool ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_t relevancy, ATGNSS_Fix_t *fixP)
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &fixP->ephType, ATGNSS_Ephemeris_Strings, ATGNSS_Ephemeris_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &fixP->ephType, AdrasteaI_ATGNSS_Ephemeris_Strings, AdrasteaI_ATGNSS_Ephemeris_NumberOfValues, 30,
 	ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
@@ -661,21 +656,21 @@ bool ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_t relevancy, ATGNSS_Fix_t *fixP)
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_QueryGNSSTTFF(ATGNSS_TTFF_t *ttffP)
+bool AdrasteaI_ATGNSS_QueryGNSSTTFF(AdrasteaI_ATGNSS_TTFF_t *ttffP)
 {
 	if (ttffP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSINFO=\"TTFF\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSINFO=\"TTFF\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -697,21 +692,21 @@ bool ATGNSS_QueryGNSSTTFF(ATGNSS_TTFF_t *ttffP)
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_QueryGNSSEphemerisStatus(ATGNSS_Ephemeris_Status_t *statusP)
+bool AdrasteaI_ATGNSS_QueryGNSSEphemerisStatus(AdrasteaI_ATGNSS_Ephemeris_Status_t *statusP)
 {
 	if (statusP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSINFO=\"EPH\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSINFO=\"EPH\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -727,19 +722,19 @@ bool ATGNSS_QueryGNSSEphemerisStatus(ATGNSS_Ephemeris_Status_t *statusP)
 /**
  * @brief Set GNSS Notification Events (using the AT%IGNSSINFO command).
  *
- * @param[in] event GNSS event type. See ATGNSS_Event_t.
+ * @param[in] event GNSS event type. See AdrasteaI_ATGNSS_Event_t.
  *
  * @param[in] state Event State
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_SetGNSSUnsolicitedNotificationEvents(ATGNSS_Event_t event, ATCommon_Event_State_t state)
+bool AdrasteaI_ATGNSS_SetGNSSUnsolicitedNotificationEvents(AdrasteaI_ATGNSS_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%IGNSSEV=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATGNSS_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATGNSS_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -754,12 +749,12 @@ bool ATGNSS_SetGNSSUnsolicitedNotificationEvents(ATGNSS_Event_t event, ATCommon_
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -771,10 +766,11 @@ bool ATGNSS_SetGNSSUnsolicitedNotificationEvents(ATGNSS_Event_t event, ATCommon_
  * @brief Parses the value of Session Status Change event arguments.
  *
  * @param[out] dataP Session Status is returned in this argument
+ * @param[in] pEventArguments String containing arguments of the AT command
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_ParseSessionStatusChangedEvent(char *pEventArguments, ATGNSS_Session_Status_t *dataP)
+bool AdrasteaI_ATGNSS_ParseSessionStatusChangedEvent(char *pEventArguments, AdrasteaI_ATGNSS_Session_Status_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -795,10 +791,11 @@ bool ATGNSS_ParseSessionStatusChangedEvent(char *pEventArguments, ATGNSS_Session
  * @brief Parses the value of Allowed Status Change event arguments.
  *
  * @param[out] dataP Allowed Status is returned in this argument
+ * @param[in] pEventArguments String containing arguments of the AT command
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_ParseAllowedStatusChangedEvent(char *pEventArguments, ATGNSS_Allowed_Status_t *dataP)
+bool AdrasteaI_ATGNSS_ParseAllowedStatusChangedEvent(char *pEventArguments, AdrasteaI_ATGNSS_Allowed_Status_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -819,10 +816,11 @@ bool ATGNSS_ParseAllowedStatusChangedEvent(char *pEventArguments, ATGNSS_Allowed
  * @brief Parses the value of NMEA event arguments.
  *
  * @param[out] dataP NMEA Sentence is returned in this argument
+ * @param[in] pEventArguments String containing arguments of the AT command
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_ParseNMEAEvent(char *pEventArguments, ATGNSS_NMEA_Sentence_t *dataP)
+bool AdrasteaI_ATGNSS_ParseNMEAEvent(char *pEventArguments, AdrasteaI_ATGNSS_NMEA_Sentence_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -837,17 +835,17 @@ bool ATGNSS_ParseNMEAEvent(char *pEventArguments, ATGNSS_NMEA_Sentence_t *dataP)
 /**
  * @brief Deletes GNSS Data (using the AT%IGNSSMEM command).
  *
- * @param[in] deleteOption GNSS data to delete. See ATGNSS_Deletion_Option_t.
+ * @param[in] deleteOption GNSS data to delete. See AdrasteaI_ATGNSS_Deletion_Option_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_DeleteData(ATGNSS_Deletion_Option_t deleteOption)
+bool AdrasteaI_ATGNSS_DeleteData(AdrasteaI_ATGNSS_Deletion_Option_t deleteOption)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%IGNSSMEM=\"ERASE\",");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATGNSS_Deletion_Option_Strings[deleteOption], ATCOMMAND_STRING_TERMINATE))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATGNSS_Deletion_Option_Strings[deleteOption], ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
@@ -857,12 +855,12 @@ bool ATGNSS_DeleteData(ATGNSS_Deletion_Option_t deleteOption)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -873,11 +871,11 @@ bool ATGNSS_DeleteData(ATGNSS_Deletion_Option_t deleteOption)
 /**
  * @brief Downloads CEP File (using the AT%IGNSSCEP command).
  *
- * @param[in] numDays Number of days for the downlaoded CEP file. See ATGNSS_CEP_Number_of_Days_t.
+ * @param[in] numDays Number of days for the downlaoded CEP file. See AdrasteaI_ATGNSS_CEP_Number_of_Days_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_DownloadCEPFile(ATGNSS_CEP_Number_of_Days_t numDays)
+bool AdrasteaI_ATGNSS_DownloadCEPFile(AdrasteaI_ATGNSS_CEP_Number_of_Days_t numDays)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -893,12 +891,12 @@ bool ATGNSS_DownloadCEPFile(ATGNSS_CEP_Number_of_Days_t numDays)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -911,14 +909,14 @@ bool ATGNSS_DownloadCEPFile(ATGNSS_CEP_Number_of_Days_t numDays)
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_EraseCEPFile()
+bool AdrasteaI_ATGNSS_EraseCEPFile()
 {
-	if (!Adrastea_SendRequest("AT%IGNSSCEP=\"ERASE\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSCEP=\"ERASE\"\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -929,36 +927,35 @@ bool ATGNSS_EraseCEPFile()
 /**
  * @brief Query Information about CEP File (using the AT%IGNSSCEP command).
  *
- * @param[out] Status of CEP file is returned in this argument. See ATGNSS_CEP_Status_t.
+ * @param[out] Status of CEP file is returned in this argument. See AdrasteaI_ATGNSS_CEP_Status_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATGNSS_QueryCEPFileStatus(ATGNSS_CEP_Status_t *status)
+bool AdrasteaI_ATGNSS_QueryCEPFileStatus(AdrasteaI_ATGNSS_CEP_Status_t *status)
 {
 	if (status == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%IGNSSCEP=\"STAT\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%IGNSSCEP=\"STAT\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_GNSS), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_GNSS), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &status->validity, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -968,7 +965,6 @@ bool ATGNSS_QueryCEPFileStatus(ATGNSS_CEP_Status_t *status)
 	}
 	case 4:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &status->validity, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;

@@ -27,47 +27,219 @@
  * @file
  * @brief Calypso driver source file.
  */
-
-#include "Calypso.h"
-
+#include <Calypso/Calypso.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <Calypso/ATCommands/ATDevice.h>
+#include <Calypso/ATCommands/ATEvent.h>
+#include <global/global.h>
 
-#include "ATCommands/ATDevice.h"
-#include "ATCommands/ATEvent.h"
-
-static void Calypso_HandleRxByte(uint8_t receivedByte);
+static void Calypso_HandleRxByte(uint8_t *dataP, size_t size);
 static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength);
 
 /**
  * @brief Base64 encoding table
  */
-static uint8_t Calypso_base64EncTable[64] =  {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                                              'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-                                              'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-                                              'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-                                              'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-                                              'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-                                              'w', 'x', 'y', 'z', '0', '1', '2', '3',
-                                              '4', '5', '6', '7', '8', '9', '+', '/'
-                                             };
+static uint8_t Calypso_base64EncTable[64] = {
+		'A',
+		'B',
+		'C',
+		'D',
+		'E',
+		'F',
+		'G',
+		'H',
+		'I',
+		'J',
+		'K',
+		'L',
+		'M',
+		'N',
+		'O',
+		'P',
+		'Q',
+		'R',
+		'S',
+		'T',
+		'U',
+		'V',
+		'W',
+		'X',
+		'Y',
+		'Z',
+		'a',
+		'b',
+		'c',
+		'd',
+		'e',
+		'f',
+		'g',
+		'h',
+		'i',
+		'j',
+		'k',
+		'l',
+		'm',
+		'n',
+		'o',
+		'p',
+		'q',
+		'r',
+		's',
+		't',
+		'u',
+		'v',
+		'w',
+		'x',
+		'y',
+		'z',
+		'0',
+		'1',
+		'2',
+		'3',
+		'4',
+		'5',
+		'6',
+		'7',
+		'8',
+		'9',
+		'+',
+		'/' };
 
 /**
  * @brief Base64 decoding table
  */
-static uint8_t Calypso_base64DecTable[123] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,62,0,0,0,63,
-                                              52,53,54,55,56,57,58,59,60,61, /* 0-9 */
-                                              0,0,0,0,0,0,0,
-                                              0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25, /* A-Z */
-                                              0,0,0,0,0,0,
-                                              26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51
-                                             }; /* a-z */
+static uint8_t Calypso_base64DecTable[123] = {
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		62,
+		0,
+		0,
+		0,
+		63,
+		52,
+		53,
+		54,
+		55,
+		56,
+		57,
+		58,
+		59,
+		60,
+		61, /* 0-9 */
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		1,
+		2,
+		3,
+		4,
+		5,
+		6,
+		7,
+		8,
+		9,
+		10,
+		11,
+		12,
+		13,
+		14,
+		15,
+		16,
+		17,
+		18,
+		19,
+		20,
+		21,
+		22,
+		23,
+		24,
+		25, /* A-Z */
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+		26,
+		27,
+		28,
+		29,
+		30,
+		31,
+		32,
+		33,
+		34,
+		35,
+		36,
+		37,
+		38,
+		39,
+		40,
+		41,
+		42,
+		43,
+		44,
+		45,
+		46,
+		47,
+		48,
+		49,
+		50,
+		51 }; /* a-z */
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
  * Initialization is done in Calypso_Init().
  */
-static uint32_t Calypso_timeouts[Calypso_Timeout_NumberOfValues] = {0};
+static uint32_t Calypso_timeouts[Calypso_Timeout_NumberOfValues] = {
+		0 };
 
 /**
  * @brief Is set to true when sending an AT command and is reset to false when the response has been received.
@@ -77,7 +249,8 @@ static bool Calypso_requestPending = false;
 /**
  * @brief Name of the command last sent using Calypso_SendRequest() (without prefix "AT+").
  */
-static char Calypso_pendingCommandName[64] = {0};
+static char Calypso_pendingCommandName[64] = {
+		0 };
 
 /**
  * @brief Length of Calypso_pendingCommandName.
@@ -98,7 +271,8 @@ static size_t Calypso_currentResponseLength = 0;
 /**
  * @brief Last error text (if any).
  */
-static char Calypso_lastErrorText[32] = {0};
+static char Calypso_lastErrorText[32] = {
+		0 };
 
 /**
  * @brief Last error code (if any).
@@ -147,12 +321,6 @@ static uint8_t Calypso_eolChar2 = '\n';
 static bool Calypso_twoEolCharacters = true;
 
 /**
- * @brief Pin configuration array.
- * The values in Calypso_Pin_t are used to access the entries in this array.
- */
-static WE_Pin_t Calypso_pins[Calypso_Pin_Count] = {0};
-
-/**
  * @brief Time step (microseconds) when waiting for responses from Calypso.
  *
  * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
@@ -185,7 +353,7 @@ static uint32_t Calypso_lastConfirmTimeUsec = 0;
  * Note that some functions may behave differently depending on the firmware version.
  *
  * The firmware version can be determined during runtime using
- * ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &version) - this will
+ * Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &version) - this will
  * update the variables Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
  * Calypso_firmwareVersionPatch.
  */
@@ -197,7 +365,7 @@ uint8_t Calypso_firmwareVersionMajor = 2;
  * Note that some functions may behave differently depending on the firmware version.
  *
  * The firmware version can be determined during runtime using
- * ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &version) - this will
+ * Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &version) - this will
  * update the variables Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
  * Calypso_firmwareVersionPatch.
  */
@@ -209,7 +377,7 @@ uint8_t Calypso_firmwareVersionMinor = 0;
  * Note that some functions may behave differently depending on the firmware version.
  *
  * The firmware version can be determined during runtime using
- * ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &version) - this will
+ * Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &version) - this will
  * update the variables Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
  * Calypso_firmwareVersionPatch.
  */
@@ -230,7 +398,7 @@ static bool Calypso_executingEventCallback = false;
  * The default callback is Calypso_HandleRxByte().
  * @see Calypso_SetByteRxCallback()
  */
-Calypso_ByteRxCallback_t Calypso_byteRxCallback = NULL;
+static WE_UART_HandleRxByte_t byteRxCallback = NULL;
 
 /**
  * @brief Optional callback function which is executed if a line is received from Calypso.
@@ -240,74 +408,89 @@ Calypso_ByteRxCallback_t Calypso_byteRxCallback = NULL;
 Calypso_LineRxCallback_t Calypso_lineRxCallback = NULL;
 
 /**
+ * @brief Pin configuration struct pointer.
+ */
+static Calypso_Pins_t *Calypso_pinsP = NULL;
+
+/**
+ * @brief Uart configuration struct pointer.
+ */
+static WE_UART_t *Calypso_uartP = NULL;
+
+/**
  * @brief Initializes the serial communication with the module
  *
- * @param[in] baudrate       Baud rate of the serial communication
- * @param[in] flowControl    Flow control setting for the serial communication
- * @param[in] parity         Parity bit configuration for the serial communication
+ * @param[in] uartP:          definition of the uart connected to the module
+ * @param[in] pinoutP:        definition of the gpios connected to the module
  * @param[in] eventCallback  Function pointer to event handler (optional)
- * @param[in] pins           Pin configuration, pointer to array with Calypso_Pin_Count elements
- *                           (optional, default configuration is used if NULL, see Calypso_GetDefaultPinConfig())
 
  * @return true if successful, false otherwise
  */
-bool Calypso_Init(uint32_t baudrate,
-                  WE_FlowControl_t flowControl,
-                  WE_Parity_t parity,
-                  Calypso_EventCallback_t eventCallback,
-                  WE_Pin_t *pins)
+bool Calypso_Init(WE_UART_t *uartP, Calypso_Pins_t *pinoutP, Calypso_EventCallback_t eventCallback)
 {
-    Calypso_requestPending = false;
+	Calypso_requestPending = false;
 
-    /* Callbacks */
-    Calypso_byteRxCallback = Calypso_HandleRxByte;
-    Calypso_lineRxCallback = NULL;
-    Calypso_eventCallback = eventCallback;
+	/* Callbacks */
+	byteRxCallback = Calypso_HandleRxByte;
+	Calypso_lineRxCallback = NULL;
+	Calypso_eventCallback = eventCallback;
 
-    /* Initialize the pins */
-    if (NULL == pins)
-    {
-        /* Use default pin config */
-        Calypso_GetDefaultPinConfig(Calypso_pins);
-    }
-    else
-    {
-        /* Use the supplied pin config */
-        for (uint8_t i = 0; i < Calypso_Pin_Count; i++)
-        {
-            Calypso_pins[i] = pins[i];
-        }
-    }
+	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+	{
+		return false;
+	}
 
-    if (false == WE_InitPins(Calypso_pins, Calypso_Pin_Count))
-    {
-        /* Error */
-        return false;
-    }
+	Calypso_pinsP = pinoutP;
+	Calypso_pinsP->Calypso_Pin_Reset.type = WE_Pin_Type_Output;
+	Calypso_pinsP->Calypso_Pin_WakeUp.type = WE_Pin_Type_Output;
+	Calypso_pinsP->Calypso_Pin_Boot.type = WE_Pin_Type_Output;
+	Calypso_pinsP->Calypso_Pin_AppMode0.type = WE_Pin_Type_Output;
+	Calypso_pinsP->Calypso_Pin_AppMode1.type = WE_Pin_Type_Output;
+	Calypso_pinsP->Calypso_Pin_StatusInd0.type = WE_Pin_Type_Input;
+	Calypso_pinsP->Calypso_Pin_StatusInd1.type = WE_Pin_Type_Input;
 
-    /* Set initial pin levels */
-    WE_SetPin(Calypso_pins[Calypso_Pin_Boot], WE_Pin_Level_Low);
-    WE_SetPin(Calypso_pins[Calypso_Pin_WakeUp], WE_Pin_Level_Low);
-    WE_SetPin(Calypso_pins[Calypso_Pin_Reset], WE_Pin_Level_High);
-    WE_SetPin(Calypso_pins[Calypso_Pin_AppMode0], WE_Pin_Level_Low);
-    WE_SetPin(Calypso_pins[Calypso_Pin_AppMode1], WE_Pin_Level_Low);
+	WE_Pin_t pins[sizeof(Calypso_Pins_t) / sizeof(WE_Pin_t)];
+	uint8_t pin_count = 0;
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_Reset, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_WakeUp, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_Boot, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_AppMode0, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_AppMode1, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_StatusInd0, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_StatusInd1, sizeof(WE_Pin_t));
 
-    WE_UART_Init(baudrate, flowControl, parity, true); /* Calypso default: 921600 Baud 8e1 */
-    WE_Delay(10);
+	if (!WE_InitPins(pins, pin_count))
+	{
+		/* error */
+		return false;
+	}
 
-    /* Set response timeouts */
-    Calypso_timeouts[Calypso_Timeout_General] = 1000;
-    Calypso_timeouts[Calypso_Timeout_FactoryReset] = 100000;
-    Calypso_timeouts[Calypso_Timeout_WlanAddProfile] = 5000;
-    Calypso_timeouts[Calypso_Timeout_WlanScan] = 1000;
-    Calypso_timeouts[Calypso_Timeout_NetAppUpdateTime] = 30000;
-    Calypso_timeouts[Calypso_Timeout_NetAppHostLookUp] = 5000;
-    Calypso_timeouts[Calypso_Timeout_HttpConnect] = 30000;
-    Calypso_timeouts[Calypso_Timeout_HttpRequest] = 30000;
-    Calypso_timeouts[Calypso_Timeout_FileIO] = 2000;
-    Calypso_timeouts[Calypso_Timeout_GPIO] = 2000;
+	/* Set initial pin levels */
+	if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode0, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode1, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 
-    return true;
+	Calypso_uartP = uartP;
+	if (false == Calypso_uartP->uartInit(Calypso_uartP->baudrate, Calypso_uartP->flowControl, Calypso_uartP->parity, &byteRxCallback))
+	{
+		return false;
+	}
+	WE_Delay(10);
+
+	/* Set response timeouts */
+	Calypso_timeouts[Calypso_Timeout_General] = 1000;
+	Calypso_timeouts[Calypso_Timeout_FactoryReset] = 100000;
+	Calypso_timeouts[Calypso_Timeout_WlanAddProfile] = 5000;
+	Calypso_timeouts[Calypso_Timeout_WlanScan] = 1000;
+	Calypso_timeouts[Calypso_Timeout_NetAppUpdateTime] = 30000;
+	Calypso_timeouts[Calypso_Timeout_NetAppHostLookUp] = 5000;
+	Calypso_timeouts[Calypso_Timeout_HttpConnect] = 30000;
+	Calypso_timeouts[Calypso_Timeout_HttpRequest] = 30000;
+	Calypso_timeouts[Calypso_Timeout_FileIO] = 2000;
+	Calypso_timeouts[Calypso_Timeout_GPIO] = 2000;
+
+	return true;
 }
 
 /**
@@ -317,16 +500,14 @@ bool Calypso_Init(uint32_t baudrate,
  */
 bool Calypso_Deinit(void)
 {
-    Calypso_eventCallback = NULL;
+	Calypso_eventCallback = NULL;
 
-    Calypso_rxByteCounter = 0;
-    Calypso_eolChar1Found = 0;
-    Calypso_requestPending = false;
-    Calypso_currentResponseLength = 0;
+	Calypso_rxByteCounter = 0;
+	Calypso_eolChar1Found = 0;
+	Calypso_requestPending = false;
+	Calypso_currentResponseLength = 0;
 
-    WE_UART_DeInit();
-
-    return true;
+	return Calypso_uartP->uartDeinit();
 }
 
 /**
@@ -338,11 +519,11 @@ bool Calypso_Deinit(void)
  */
 bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode)
 {
-    if (!WE_SetPin(Calypso_pins[Calypso_Pin_AppMode0], (0 != (appMode & 0x01)) ? WE_Pin_Level_High : WE_Pin_Level_Low))
-    {
-        return false;
-    }
-    return WE_SetPin(Calypso_pins[Calypso_Pin_AppMode1], (0 != (appMode & 0x02)) ? WE_Pin_Level_High : WE_Pin_Level_Low);
+	if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode0, (0 != (appMode & 0x01)) ? WE_Pin_Level_High : WE_Pin_Level_Low))
+	{
+		return false;
+	}
+	return WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode1, (0 != (appMode & 0x02)) ? WE_Pin_Level_High : WE_Pin_Level_Low);
 }
 
 /**
@@ -352,12 +533,12 @@ bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode)
  */
 bool Calypso_PinReset(void)
 {
-    if (!WE_SetPin(Calypso_pins[Calypso_Pin_Reset], WE_Pin_Level_Low))
-    {
-        return false;
-    }
-    WE_Delay(5);
-    return WE_SetPin(Calypso_pins[Calypso_Pin_Reset], WE_Pin_Level_High);
+	if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_Low))
+	{
+		return false;
+	}
+	WE_Delay(5);
+	return WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_High);
 }
 
 /**
@@ -367,31 +548,13 @@ bool Calypso_PinReset(void)
  */
 bool Calypso_PinWakeUp(void)
 {
-    if (!WE_SetPin(Calypso_pins[Calypso_Pin_WakeUp], WE_Pin_Level_High))
-    {
-        return false;
-    }
-    WE_Delay(5);
-    return WE_SetPin(Calypso_pins[Calypso_Pin_WakeUp], WE_Pin_Level_Low);
+	if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_High))
+	{
+		return false;
+	}
+	WE_Delay(5);
+	return WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_Low);
 }
-
-/**
- * @brief Sets pin level to high or low.
- *
- * @param[in] pin Output pin to be set
- * @param[in] level Output level to be set
- *
- * @return true if successful, false otherwise
- */
-bool Calypso_SetPin(Calypso_Pin_t pin, WE_Pin_Level_t level)
-{
-    if (pin >= Calypso_Pin_Count)
-    {
-        return false;
-    }
-    return WE_SetPin(Calypso_pins[pin], level);
-}
-
 /**
  * @brief Read current pin level.
  *
@@ -399,13 +562,9 @@ bool Calypso_SetPin(Calypso_Pin_t pin, WE_Pin_Level_t level)
  *
  * @return Current level of pin
  */
-WE_Pin_Level_t Calypso_GetPinLevel(Calypso_Pin_t pin)
+WE_Pin_Level_t Calypso_GetPinLevel(WE_Pin_t pin)
 {
-    if (pin >= Calypso_Pin_Count)
-    {
-        return WE_Pin_Level_Low;
-    }
-    return WE_GetPinLevel(Calypso_pins[pin]);
+	return WE_GetPinLevel(pin);
 }
 
 /**
@@ -417,51 +576,50 @@ WE_Pin_Level_t Calypso_GetPinLevel(Calypso_Pin_t pin)
  */
 bool Calypso_SendRequest(char *data)
 {
-    if (Calypso_executingEventCallback)
-    {
-        /* Don't allow sending AT commands from event handlers, as this will
-         * mess up send/receive states and buffers. */
-        return false;
-    }
+	if (Calypso_executingEventCallback)
+	{
+		/* Don't allow sending AT commands from event handlers, as this will
+		 * mess up send/receive states and buffers. */
+		return false;
+	}
 
-    Calypso_requestPending = true;
-    Calypso_currentResponseLength = 0;
-    *Calypso_lastErrorText = '\0';
-    Calypso_lastErrorCode = 0;
+	Calypso_requestPending = true;
+	Calypso_currentResponseLength = 0;
+	*Calypso_lastErrorText = '\0';
+	Calypso_lastErrorCode = 0;
 
-    /* Make sure that the time between the last confirmation received from the module
-     * and the next command sent to the module is not shorter than Calypso_minCommandIntervalUsec */
-    uint32_t t = WE_GetTickMicroseconds() - Calypso_lastConfirmTimeUsec;
-    if (t < Calypso_minCommandIntervalUsec)
-    {
-        WE_DelayMicroseconds(Calypso_minCommandIntervalUsec - t);
-    }
+	/* Make sure that the time between the last confirmation received from the module
+	 * and the next command sent to the module is not shorter than Calypso_minCommandIntervalUsec */
+	uint32_t t = WE_GetTickMicroseconds() - Calypso_lastConfirmTimeUsec;
+	if (t < Calypso_minCommandIntervalUsec)
+	{
+		WE_DelayMicroseconds(Calypso_minCommandIntervalUsec - t);
+	}
 
-    size_t dataLength = strlen(data);
+	size_t dataLength = strlen(data);
 
-    /* Get command name from request string (remove prefix "AT+" and parameters) */
-    Calypso_pendingCommandName[0] = '\0';
-    Calypso_pendingCommandNameLength = 0;
-    if (dataLength > 3 &&
-            (data[0] == 'a' || data[0] == 'A') &&
-            (data[1] == 't' || data[1] == 'T') &&
-            data[2] == '+')
-    {
-        char *pData = data + 3;
-		char delimiters[] = {ATCOMMAND_COMMAND_DELIM, '\r'};
-		if (ATCommand_GetCmdName(&pData, Calypso_pendingCommandName, delimiters, sizeof(delimiters)))
-        {
-            Calypso_pendingCommandNameLength = strlen(Calypso_pendingCommandName);
-        }
-    }
+	/* Get command name from request string (remove prefix "AT+" and parameters) */
+	Calypso_pendingCommandName[0] = '\0';
+	Calypso_pendingCommandNameLength = 0;
+	if (dataLength > 3 && (data[0] == 'a' || data[0] == 'A') && (data[1] == 't' || data[1] == 'T') && data[2] == '+')
+	{
+		char *pData = data + 3;
+		char delimiters[] = {
+				ATCOMMAND_COMMAND_DELIM,
+				'\r' };
+		if (ATCommand_GetCmdName(&pData, Calypso_pendingCommandName, sizeof(Calypso_pendingCommandName), delimiters, sizeof(delimiters)))
+		{
+			Calypso_pendingCommandNameLength = strlen(Calypso_pendingCommandName);
+		}
+	}
 
 #ifdef WE_DEBUG
-    fprintf(stdout, "> %s", data);
+	printf("> %s", data);
 #endif
 
-    Calypso_Transmit(data, dataLength);
+	Calypso_Transparent_Transmit(data, dataLength);
 
-    return true;
+	return true;
 }
 
 /**
@@ -472,10 +630,16 @@ bool Calypso_SendRequest(char *data)
  *
  * @param[in] data Pointer to data buffer (data to be sent)
  * @param[in] dataLength Number of bytes to be sent
+ *
+ * @return true if successful, false otherwise
  */
-void Calypso_Transmit(const char *data, uint16_t dataLength)
+bool Calypso_Transparent_Transmit(const char *data, uint16_t dataLength)
 {
-    WE_UART_Transmit((uint8_t *) data, dataLength);
+	if ((data == NULL) || (dataLength == 0))
+	{
+		return false;
+	}
+	return Calypso_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
 
 /**
@@ -487,53 +651,51 @@ void Calypso_Transmit(const char *data, uint16_t dataLength)
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_WaitForConfirm(uint32_t maxTimeMs,
-                            Calypso_CNFStatus_t expectedStatus,
-                            char *pOutResponse)
+bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char *pOutResponse)
 {
-    Calypso_cmdConfirmStatus = Calypso_CNFStatus_Invalid;
+	Calypso_cmdConfirmStatus = Calypso_CNFStatus_Invalid;
 
-    uint32_t t0 = WE_GetTick();
+	uint32_t t0 = WE_GetTick();
 
-    while (1)
-    {
-        if (Calypso_CNFStatus_Invalid != Calypso_cmdConfirmStatus)
-        {
-            /* Store current time to enable check for min. time between received confirm and next command. */
-            Calypso_lastConfirmTimeUsec = WE_GetTickMicroseconds();
+	while (1)
+	{
+		if (Calypso_CNFStatus_Invalid != Calypso_cmdConfirmStatus)
+		{
+			/* Store current time to enable check for min. time between received confirm and next command. */
+			Calypso_lastConfirmTimeUsec = WE_GetTickMicroseconds();
 
-            Calypso_requestPending = false;
+			Calypso_requestPending = false;
 
-            if (Calypso_cmdConfirmStatus == expectedStatus)
-            {
-                if (NULL != pOutResponse)
-                {
-                    /* Copy response for further processing */
-                    memcpy(pOutResponse, Calypso_currentResponseText, Calypso_currentResponseLength);
-                }
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+			if (Calypso_cmdConfirmStatus == expectedStatus)
+			{
+				if (NULL != pOutResponse)
+				{
+					/* Copy response for further processing */
+					memcpy(pOutResponse, Calypso_currentResponseText, Calypso_currentResponseLength);
+				}
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
 
-        uint32_t now = WE_GetTick();
-        if (now - t0 > maxTimeMs)
-        {
-            /* Timeout */
-            break;
-        }
+		uint32_t now = WE_GetTick();
+		if (now - t0 > maxTimeMs)
+		{
+			/* Timeout */
+			break;
+		}
 
-        if (Calypso_waitTimeStepUsec > 0)
-        {
-            WE_DelayMicroseconds(Calypso_waitTimeStepUsec);
-        }
-    }
+		if (Calypso_waitTimeStepUsec > 0)
+		{
+			WE_DelayMicroseconds(Calypso_waitTimeStepUsec);
+		}
+	}
 
-    Calypso_requestPending = false;
-    return false;
+	Calypso_requestPending = false;
+	return false;
 }
 
 /**
@@ -545,11 +707,11 @@ bool Calypso_WaitForConfirm(uint32_t maxTimeMs,
  */
 int32_t Calypso_GetLastError(char *lastErrorText)
 {
-    if (NULL != lastErrorText)
-    {
-        strcpy(lastErrorText, Calypso_lastErrorText);
-    }
-    return Calypso_lastErrorCode;
+	if (NULL != lastErrorText)
+	{
+		strcpy(lastErrorText, Calypso_lastErrorText);
+	}
+	return Calypso_lastErrorCode;
 }
 
 /**
@@ -564,9 +726,9 @@ int32_t Calypso_GetLastError(char *lastErrorText)
  */
 bool Calypso_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
-    Calypso_waitTimeStepUsec = waitTimeStepUsec;
-    Calypso_minCommandIntervalUsec = minCommandIntervalUsec;
-    return true;
+	Calypso_waitTimeStepUsec = waitTimeStepUsec;
+	Calypso_minCommandIntervalUsec = minCommandIntervalUsec;
+	return true;
 }
 
 /**
@@ -577,7 +739,7 @@ bool Calypso_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandI
  */
 void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout)
 {
-    Calypso_timeouts[type] = timeout;
+	Calypso_timeouts[type] = timeout;
 }
 
 /**
@@ -589,37 +751,7 @@ void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout)
  */
 uint32_t Calypso_GetTimeout(Calypso_Timeout_t type)
 {
-    return Calypso_timeouts[type];
-}
-
-/**
- * @brief Returns the default pin configuration.
- *
- * @param[out] pins Pin configuration array of length Calypso_Pin_Count
- */
-void Calypso_GetDefaultPinConfig(WE_Pin_t *pins)
-{
-    pins[Calypso_Pin_Reset].port = GPIOA;
-    pins[Calypso_Pin_Reset].pin = GPIO_PIN_10;
-    pins[Calypso_Pin_Reset].type = WE_Pin_Type_Output;
-    pins[Calypso_Pin_WakeUp].port = GPIOA;
-    pins[Calypso_Pin_WakeUp].pin = GPIO_PIN_9;
-    pins[Calypso_Pin_WakeUp].type = WE_Pin_Type_Output;
-    pins[Calypso_Pin_Boot].port = GPIOA;
-    pins[Calypso_Pin_Boot].pin = GPIO_PIN_7;
-    pins[Calypso_Pin_Boot].type = WE_Pin_Type_Output;
-    pins[Calypso_Pin_AppMode0].port = GPIOA;
-    pins[Calypso_Pin_AppMode0].pin = GPIO_PIN_0;
-    pins[Calypso_Pin_AppMode0].type = WE_Pin_Type_Output;
-    pins[Calypso_Pin_AppMode1].port = GPIOA;
-    pins[Calypso_Pin_AppMode1].pin = GPIO_PIN_1;
-    pins[Calypso_Pin_AppMode1].type = WE_Pin_Type_Output;
-    pins[Calypso_Pin_StatusInd0].port = GPIOB;
-    pins[Calypso_Pin_StatusInd0].pin = GPIO_PIN_8;
-    pins[Calypso_Pin_StatusInd0].type = WE_Pin_Type_Input;
-    pins[Calypso_Pin_StatusInd1].port = GPIOB;
-    pins[Calypso_Pin_StatusInd1].pin = GPIO_PIN_9;
-    pins[Calypso_Pin_StatusInd1].type = WE_Pin_Type_Input;
+	return Calypso_timeouts[type];
 }
 
 /**
@@ -635,26 +767,26 @@ void Calypso_GetDefaultPinConfig(WE_Pin_t *pins)
  * @param[in] inputLength Length of base64 data
  *
  * @return Decoded data size.
-*/
+ */
 uint32_t Calypso_GetBase64DecBufSize(uint8_t *inputData, uint32_t inputLength)
 {
-    uint32_t outputLength = inputLength / 4 * 3;
+	uint32_t outputLength = inputLength / 4 * 3;
 
-    if (outputLength == 0)
-    {
-        return 0;
-    }
-    if (inputData[inputLength - 1] == '=')
-    {
-        outputLength--;
-    }
-    if (inputData[inputLength - 2] == '=')
-    {
-        outputLength--;
-    }
+	if (outputLength == 0)
+	{
+		return 0;
+	}
+	if (inputData[inputLength - 1] == '=')
+	{
+		outputLength--;
+	}
+	if (inputData[inputLength - 2] == '=')
+	{
+		outputLength--;
+	}
 
-    /* Data size plus string termination character */
-    return outputLength + 1;
+	/* Data size plus string termination character */
+	return outputLength + 1;
 }
 
 /**
@@ -669,11 +801,11 @@ uint32_t Calypso_GetBase64DecBufSize(uint8_t *inputData, uint32_t inputLength)
  * @param[in] inputLength Raw buffer size
  *
  * @return Encoded data size.
-*/
+ */
 uint32_t Calypso_GetBase64EncBufSize(uint32_t inputLength)
 {
-    /* Data size plus string termination character */
-    return (4 * ((inputLength + 2) / 3)) + 1;
+	/* Data size plus string termination character */
+	return (4 * ((inputLength + 2) / 3)) + 1;
 }
 
 /**
@@ -692,56 +824,52 @@ uint32_t Calypso_GetBase64EncBufSize(uint32_t inputLength)
  * @param[out] outputLength Decoded data size
  *
  * @return true if successful, false otherwise
-*/
-bool Calypso_DecodeBase64(uint8_t *inputData,
-                          uint32_t inputLength,
-                          uint8_t *outputData,
-                          uint32_t *outputLength)
+ */
+bool Calypso_DecodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength)
 {
-    *outputLength = 0;
+	*outputLength = 0;
 
-    uint32_t decode_value;
-    uint32_t nibble6_1, nibble6_2, nibble6_3, nibble6_4;
-    uint32_t i, j;
+	uint32_t decode_value;
+	uint32_t nibble6_1, nibble6_2, nibble6_3, nibble6_4;
+	uint32_t i, j;
 
-    if (inputLength % 4 != 0)
-    {
-        return false;
-    }
+	if (inputLength % 4 != 0)
+	{
+		return false;
+	}
 
-    if (outputData == NULL)
-    {
-        return false;
-    }
+	if (outputData == NULL)
+	{
+		return false;
+	}
 
-    *outputLength = Calypso_GetBase64DecBufSize(inputData, inputLength);
+	*outputLength = Calypso_GetBase64DecBufSize(inputData, inputLength);
 
-    for (i = 0, j = 0; i < inputLength;)
-    {
-        nibble6_1 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
-        nibble6_2 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
-        nibble6_3 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
-        nibble6_4 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
+	for (i = 0, j = 0; i < inputLength;)
+	{
+		nibble6_1 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
+		nibble6_2 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
+		nibble6_3 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
+		nibble6_4 = inputData[i] == '=' ? 0 & i++ : Calypso_base64DecTable[inputData[i++]];
 
-        decode_value = (nibble6_1 << 3 * 6) + (nibble6_2 << 2 * 6) +
-                (nibble6_3 << 1 * 6) + (nibble6_4 << 0 * 6);
+		decode_value = (nibble6_1 << 3 * 6) + (nibble6_2 << 2 * 6) + (nibble6_3 << 1 * 6) + (nibble6_4 << 0 * 6);
 
-        if (j < *outputLength - 1)
-        {
-            outputData[j++] = (decode_value >> 2 * 8) & 0xFF;
-        }
-        if (j < *outputLength - 1)
-        {
-            outputData[j++] = (decode_value >> 1 * 8) & 0xFF;
-        }
-        if (j < *outputLength - 1)
-        {
-            outputData[j++] = (decode_value >> 0 * 8) & 0xFF;
-        }
-    }
-    outputData[j] = 0;
+		if (j < *outputLength - 1)
+		{
+			outputData[j++] = (decode_value >> 2 * 8) & 0xFF;
+		}
+		if (j < *outputLength - 1)
+		{
+			outputData[j++] = (decode_value >> 1 * 8) & 0xFF;
+		}
+		if (j < *outputLength - 1)
+		{
+			outputData[j++] = (decode_value >> 0 * 8) & 0xFF;
+		}
+	}
+	outputData[j] = 0;
 
-    return true;
+	return true;
 }
 
 /**
@@ -761,53 +889,45 @@ bool Calypso_DecodeBase64(uint8_t *inputData,
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_EncodeBase64(uint8_t *inputData,
-                          uint32_t inputLength,
-                          uint8_t *outputData,
-                          uint32_t *outputLength)
+bool Calypso_EncodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength)
 {
-    uint32_t encodeValue;
-    uint32_t nibble6_1, nibble6_2, nibble6_3;
-    uint32_t i, j;
+	uint32_t encodeValue;
+	uint32_t nibble6_1, nibble6_2, nibble6_3;
+	uint32_t i, j;
 
-    *outputLength = Calypso_GetBase64EncBufSize(inputLength);
+	*outputLength = Calypso_GetBase64EncBufSize(inputLength);
 
-    if (outputData == NULL)
-    {
-        return false;;
-    }
+	if (outputData == NULL)
+	{
+		return false;
+	}
 
-    for (i = 0, j = 0; i < inputLength;)
-    {
-        nibble6_1 = i < inputLength ? inputData[i++] : 0;
-        nibble6_2 = i < inputLength ? inputData[i++] : 0;
-        nibble6_3 = i < inputLength ? inputData[i++] : 0;
+	for (i = 0, j = 0; i < inputLength;)
+	{
+		nibble6_1 = i < inputLength ? inputData[i++] : 0;
+		nibble6_2 = i < inputLength ? inputData[i++] : 0;
+		nibble6_3 = i < inputLength ? inputData[i++] : 0;
 
-        encodeValue = (nibble6_1 << 0x10) + (nibble6_2 << 0x08) + nibble6_3;
+		encodeValue = (nibble6_1 << 0x10) + (nibble6_2 << 0x08) + nibble6_3;
 
-        outputData[j++] = Calypso_base64EncTable[(encodeValue >> 3 * 6) & 0x3F];
-        outputData[j++] = Calypso_base64EncTable[(encodeValue >> 2 * 6) & 0x3F];
-        outputData[j++] = Calypso_base64EncTable[(encodeValue >> 1 * 6) & 0x3F];
-        outputData[j++] = Calypso_base64EncTable[(encodeValue >> 0 * 6) & 0x3F];
-    }
+		outputData[j++] = Calypso_base64EncTable[(encodeValue >> 3 * 6) & 0x3F];
+		outputData[j++] = Calypso_base64EncTable[(encodeValue >> 2 * 6) & 0x3F];
+		outputData[j++] = Calypso_base64EncTable[(encodeValue >> 1 * 6) & 0x3F];
+		outputData[j++] = Calypso_base64EncTable[(encodeValue >> 0 * 6) & 0x3F];
+	}
 
-    if (inputLength % 3 >= 1)
-    {
-        outputData[*outputLength - 2] = '=';
-    }
-    if (inputLength % 3 == 1)
-    {
-        outputData[*outputLength - 3] = '=';
-    }
+	if (inputLength % 3 >= 1)
+	{
+		outputData[*outputLength - 2] = '=';
+	}
+	if (inputLength % 3 == 1)
+	{
+		outputData[*outputLength - 3] = '=';
+	}
 
-    outputData[*outputLength - 1] = 0;
+	outputData[*outputLength - 1] = 0;
 
-    return true;
-}
-
-void WE_UART_HandleRxByte(uint8_t receivedByte)
-{
-    Calypso_byteRxCallback(receivedByte);
+	return true;
 }
 
 /**
@@ -817,61 +937,65 @@ void WE_UART_HandleRxByte(uint8_t receivedByte)
  *
  * @param[in] receivedByte The received byte.
  */
-static void Calypso_HandleRxByte(uint8_t receivedByte)
+static void Calypso_HandleRxByte(uint8_t *dataP, size_t size)
 {
-    /* Interpret received byte */
-    if (Calypso_rxByteCounter == 0)
-    {
-        /* This is the first character - i.e. the start of a new line */
-        /* Possible responses: OK, Error, +[event], +[cmdResponse] */
-        if (('O' == receivedByte) || ('o' == receivedByte) ||
-                ('E' == receivedByte) || ('e' == receivedByte) ||
-                ('+' == receivedByte))
-        {
-            Calypso_rxBuffer[Calypso_rxByteCounter] = receivedByte;
-            Calypso_rxByteCounter++;
-        }
-    }
-    else
-    {
-        if (Calypso_rxByteCounter >= CALYPSO_LINE_MAX_SIZE)
-        {
-            Calypso_rxByteCounter = 0;
-            Calypso_eolChar1Found = false;
-            return;
-        }
+	uint8_t receivedByte;
+	for (; size > 0; size--, dataP++)
+	{
+		receivedByte = *dataP;
 
-        if (receivedByte == Calypso_eolChar1)
-        {
-            Calypso_eolChar1Found = true;
+		/* Interpret received byte */
+		if (Calypso_rxByteCounter == 0)
+		{
+			/* This is the first character - i.e. the start of a new line */
+			/* Possible responses: OK, Error, +[event], +[cmdResponse] */
+			if (('O' == receivedByte) || ('o' == receivedByte) || ('E' == receivedByte) || ('e' == receivedByte) || ('+' == receivedByte))
+			{
+				Calypso_rxBuffer[Calypso_rxByteCounter] = receivedByte;
+				Calypso_rxByteCounter++;
+			}
+		}
+		else
+		{
+			if (Calypso_rxByteCounter >= CALYPSO_LINE_MAX_SIZE)
+			{
+				Calypso_rxByteCounter = 0;
+				Calypso_eolChar1Found = false;
+				return;
+			}
 
-            if (!Calypso_twoEolCharacters)
-            {
-                /* Interpret it now */
-                Calypso_rxBuffer[Calypso_rxByteCounter] = '\0';
-                Calypso_rxByteCounter++;
-                Calypso_HandleRxLine(Calypso_rxBuffer, Calypso_rxByteCounter);
-                Calypso_eolChar1Found = false;
-                Calypso_rxByteCounter = 0;
-            }
-        }
-        else if (Calypso_eolChar1Found)
-        {
-            if (receivedByte == Calypso_eolChar2)
-            {
-                /* Interpret it now */
-                Calypso_rxBuffer[Calypso_rxByteCounter] = '\0';
-                Calypso_rxByteCounter++;
-                Calypso_HandleRxLine(Calypso_rxBuffer, Calypso_rxByteCounter);
-                Calypso_eolChar1Found = false;
-                Calypso_rxByteCounter = 0;
-            }
-        }
-        else
-        {
-            Calypso_rxBuffer[Calypso_rxByteCounter++] = receivedByte;
-        }
-    }
+			if (receivedByte == Calypso_eolChar1)
+			{
+				Calypso_eolChar1Found = true;
+
+				if (!Calypso_twoEolCharacters)
+				{
+					/* Interpret it now */
+					Calypso_rxBuffer[Calypso_rxByteCounter] = '\0';
+					Calypso_rxByteCounter++;
+					Calypso_HandleRxLine(Calypso_rxBuffer, Calypso_rxByteCounter);
+					Calypso_eolChar1Found = false;
+					Calypso_rxByteCounter = 0;
+				}
+			}
+			else if (Calypso_eolChar1Found)
+			{
+				if (receivedByte == Calypso_eolChar2)
+				{
+					/* Interpret it now */
+					Calypso_rxBuffer[Calypso_rxByteCounter] = '\0';
+					Calypso_rxByteCounter++;
+					Calypso_HandleRxLine(Calypso_rxBuffer, Calypso_rxByteCounter);
+					Calypso_eolChar1Found = false;
+					Calypso_rxByteCounter = 0;
+				}
+			}
+			else
+			{
+				Calypso_rxBuffer[Calypso_rxByteCounter++] = receivedByte;
+			}
+		}
+	}
 }
 
 /**
@@ -883,94 +1007,89 @@ static void Calypso_HandleRxByte(uint8_t receivedByte)
 static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-    fprintf(stdout, "< %s\r\n", rxPacket);
+	printf("< %s\r\n", rxPacket);
 #endif
 
-    /* Check if a custom line rx callback is specified and call it if so */
-    if (NULL != Calypso_lineRxCallback)
-    {
-        /* Custom callback returns true if the line has been handled */
-        bool handled = Calypso_lineRxCallback(rxPacket, rxLength);
-        if (handled)
-        {
-            return;
-        }
-    }
-    if (Calypso_requestPending)
-    {
-        /* AT command was sent to module. Waiting for response. */
+	/* Check if a custom line rx callback is specified and call it if so */
+	if (NULL != Calypso_lineRxCallback)
+	{
+		/* Custom callback returns true if the line has been handled */
+		bool handled = Calypso_lineRxCallback(rxPacket, rxLength);
+		if (handled)
+		{
+			return;
+		}
+	}
+	if (Calypso_requestPending)
+	{
+		/* AT command was sent to module. Waiting for response. */
 
-        /* If starts with 'O', check if response is "OK\r\n" */
-        if (('O' == rxPacket[0]) || ('o' == rxPacket[0]))
-        {
-            if (0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_OK, strlen(ATCOMMAND_RESPONSE_OK)))
-            {
-                Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
-            }
-            else
-            {
-                Calypso_cmdConfirmStatus = Calypso_CNFStatus_Failed;
-            }
-        }
-        /* If starts with 'E', check if response is "Error:[arguments]\r\n" */
-        else if (('E' == rxPacket[0]) || ('e' == rxPacket[0]))
-        {
-            if (!(0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_ERROR, strlen(ATCOMMAND_RESPONSE_ERROR))))
-            {
+		/* If starts with 'O', check if response is "OK\r\n" */
+		if (('O' == rxPacket[0]) || ('o' == rxPacket[0]))
+		{
+			if (0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_OK, strlen(ATCOMMAND_RESPONSE_OK)))
+			{
+				Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
+			}
+			else
+			{
+				Calypso_cmdConfirmStatus = Calypso_CNFStatus_Failed;
+			}
+		}
+		/* If starts with 'E', check if response is "Error:[arguments]\r\n" */
+		else if (('E' == rxPacket[0]) || ('e' == rxPacket[0]))
+		{
+			if (!(0 == strncasecmp(&rxPacket[0], ATCOMMAND_RESPONSE_ERROR, strlen(ATCOMMAND_RESPONSE_ERROR))))
+			{
 
-                Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
-            }
-            else
-            {
-                char* packetPtr = rxPacket;
-                ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ':', sizeof(Calypso_lastErrorText));
+				Calypso_cmdConfirmStatus = Calypso_CNFStatus_Success;
+			}
+			else
+			{
+				char *packetPtr = rxPacket;
+				ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ':', sizeof(Calypso_lastErrorText));
 
-                while (*packetPtr == ' ')
-                {
-                    packetPtr++;
-                }
+				while (*packetPtr == ' ')
+				{
+					packetPtr++;
+				}
 
-                ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_lastErrorText));
-                ATCommand_GetNextArgumentInt(&packetPtr,
-                                           &Calypso_lastErrorCode,
-                                           ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIGNED | ATCOMMAND_INTFLAGS_SIZE32,
-                                           ATCOMMAND_STRING_TERMINATE);
+				ATCommand_GetNextArgumentString(&packetPtr, Calypso_lastErrorText, ATCOMMAND_ARGUMENT_DELIM, sizeof(Calypso_lastErrorText));
+				ATCommand_GetNextArgumentInt(&packetPtr, &Calypso_lastErrorCode,
+				ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIGNED | ATCOMMAND_INTFLAGS_SIZE32,
+				ATCOMMAND_STRING_TERMINATE);
 
-                Calypso_cmdConfirmStatus = Calypso_CNFStatus_Failed;
-            }
-        }
-        else
-        {
-            /* Doesn't start with o or e - copy to response text buffer, if the start
-             * of the response matches the pending command name preceded by '+' */
-            if (rxLength < CALYPSO_LINE_MAX_SIZE &&
-                    rxLength > 1 &&
-                    Calypso_rxBuffer[0] == '+' &&
-                    Calypso_pendingCommandName[0] != '\0' &&
-                    0 == strncasecmp(Calypso_pendingCommandName, Calypso_rxBuffer + 1, Calypso_pendingCommandNameLength))
-            {
-                /* Copy to response text buffer, taking care not to exceed buffer size */
-                uint16_t chunkLength = rxLength;
-                if (Calypso_currentResponseLength + chunkLength >= CALYPSO_MAX_RESPONSE_TEXT_LENGTH)
-                {
-                    chunkLength = CALYPSO_MAX_RESPONSE_TEXT_LENGTH - Calypso_currentResponseLength;
-                }
-                memcpy(&Calypso_currentResponseText[Calypso_currentResponseLength], Calypso_rxBuffer, chunkLength);
-                Calypso_currentResponseLength += chunkLength;
-            }
-        }
-    }
+				Calypso_cmdConfirmStatus = Calypso_CNFStatus_Failed;
+			}
+		}
+		else
+		{
+			/* Doesn't start with o or e - copy to response text buffer, if the start
+			 * of the response matches the pending command name preceded by '+' */
+			if (rxLength < CALYPSO_LINE_MAX_SIZE && rxLength > 1 && Calypso_rxBuffer[0] == '+' && Calypso_pendingCommandName[0] != '\0' && 0 == strncasecmp(Calypso_pendingCommandName, Calypso_rxBuffer + 1, Calypso_pendingCommandNameLength))
+			{
+				/* Copy to response text buffer, taking care not to exceed buffer size */
+				uint16_t chunkLength = rxLength;
+				if (Calypso_currentResponseLength + chunkLength >= CALYPSO_MAX_RESPONSE_TEXT_LENGTH)
+				{
+					chunkLength = CALYPSO_MAX_RESPONSE_TEXT_LENGTH - Calypso_currentResponseLength;
+				}
+				memcpy(&Calypso_currentResponseText[Calypso_currentResponseLength], Calypso_rxBuffer, chunkLength);
+				Calypso_currentResponseLength += chunkLength;
+			}
+		}
+	}
 
-    if ('+' == rxPacket[0])
-    {
-        /* An event occurred. Execute callback (if specified). */
-        if (NULL != Calypso_eventCallback)
-        {
-            Calypso_executingEventCallback = true;
-            Calypso_eventCallback(Calypso_rxBuffer);
-            Calypso_executingEventCallback = false;
-        }
-    }
+	if ('+' == rxPacket[0])
+	{
+		/* An event occurred. Execute callback (if specified). */
+		if (NULL != Calypso_eventCallback)
+		{
+			Calypso_executingEventCallback = true;
+			Calypso_eventCallback(Calypso_rxBuffer);
+			Calypso_executingEventCallback = false;
+		}
+	}
 }
 
 /**
@@ -980,9 +1099,9 @@ static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
  *
  * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
  */
-void Calypso_SetByteRxCallback(Calypso_ByteRxCallback_t callback)
+void Calypso_SetByteRxCallback(WE_UART_HandleRxByte_t callback)
 {
-    Calypso_byteRxCallback = (callback == NULL) ? Calypso_HandleRxByte : callback;
+	byteRxCallback = (callback == NULL) ? Calypso_HandleRxByte : callback;
 }
 
 /**
@@ -996,7 +1115,7 @@ void Calypso_SetByteRxCallback(Calypso_ByteRxCallback_t callback)
  */
 void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback)
 {
-    Calypso_lineRxCallback = callback;
+	Calypso_lineRxCallback = callback;
 }
 
 /**
@@ -1008,7 +1127,7 @@ void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback)
  */
 void Calypso_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
-    Calypso_eolChar1 = eol1;
-    Calypso_eolChar2 = eol2;
-    Calypso_twoEolCharacters = twoEolCharacters;
+	Calypso_eolChar1 = eol1;
+	Calypso_eolChar2 = eol2;
+	Calypso_twoEolCharacters = twoEolCharacters;
 }

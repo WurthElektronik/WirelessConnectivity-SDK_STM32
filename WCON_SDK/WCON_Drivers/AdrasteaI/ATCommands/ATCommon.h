@@ -28,8 +28,8 @@
  * @brief AT event definitions.
  */
 
-#ifndef AT_COMMON_H_INCLUDED
-#define AT_COMMON_H_INCLUDED
+#ifndef ADRASTEAI_AT_COMMON_H_INCLUDED
+#define ADRASTEAI_AT_COMMON_H_INCLUDED
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -41,89 +41,89 @@ extern "C" {
 /**
  * @brief Supported Access Technologies
  */
-typedef enum ATCommon_AcT_t
+typedef enum AdrasteaI_ATCommon_AcT_t
 {
-	ATCommon_AcT_Invalid = -1,
-	ATCommon_AcT_GSM,
-	ATCommon_AcT_GSM_Compact,
-	ATCommon_AcT_UTRAN,
-	ATCommon_AcT_GSM_EGPRS,
-	ATCommon_AcT_UTRAN_HSDPA,
-	ATCommon_AcT_UTRAN_HSUPA,
-	ATCommon_AcT_UTRAN_HSDPA_HSUPA,
-	ATCommon_AcT_E_UTRAN,
-	ATCommon_AcT_E_UTRAN_NB_S1 = 9,
-	ATCommon_AcT_NumberOfValues
-} ATCommon_AcT_t;
+	AdrasteaI_ATCommon_AcT_Invalid = -1,
+	AdrasteaI_ATCommon_AcT_GSM,
+	AdrasteaI_ATCommon_AcT_GSM_Compact,
+	AdrasteaI_ATCommon_AcT_UTRAN,
+	AdrasteaI_ATCommon_AcT_GSM_EGPRS,
+	AdrasteaI_ATCommon_AcT_UTRAN_HSDPA,
+	AdrasteaI_ATCommon_AcT_UTRAN_HSUPA,
+	AdrasteaI_ATCommon_AcT_UTRAN_HSDPA_HSUPA,
+	AdrasteaI_ATCommon_AcT_E_UTRAN,
+	AdrasteaI_ATCommon_AcT_E_UTRAN_NB_S1 = 9,
+	AdrasteaI_ATCommon_AcT_NumberOfValues
+} AdrasteaI_ATCommon_AcT_t;
 
 /**
  * @brief IP Address
  */
-typedef char ATCommon_IP_Addr_t[128];
+typedef char AdrasteaI_ATCommon_IP_Addr_t[128];
 
 /**
  * @brief Time
  */
-typedef struct ATCommon_Time_t
+typedef struct AdrasteaI_ATCommon_Time_t
 {
 	uint8_t Seconds;
 	uint8_t Minutes;
 	uint8_t Hours;
-} ATCommon_Time_t;
+} AdrasteaI_ATCommon_Time_t;
 
 /**
  * @brief Date
  */
-typedef struct ATCommon_Date_t
+typedef struct AdrasteaI_ATCommon_Date_t
 {
 	uint8_t Day;
 	uint8_t Month;
 	uint16_t Year;
-} ATCommon_Date_t;
+} AdrasteaI_ATCommon_Date_t;
 
-typedef double ATCommon_Latitude_t, ATCommon_Longitude_t, ATCommon_Altitude_t;
+typedef double AdrasteaI_ATCommon_Latitude_t, AdrasteaI_ATCommon_Longitude_t, AdrasteaI_ATCommon_Altitude_t;
 
-typedef uint64_t ATCommon_UTC_Timestamp_t;
+typedef uint64_t AdrasteaI_ATCommon_UTC_Timestamp_t;
 
 /**
  * @brief Unsolicited Event States
  */
-typedef enum ATCommon_Event_State_t
+typedef enum AdrasteaI_ATCommon_Event_State_t
 {
-	ATCommon_Event_State_Invalid = -1,
-	ATCommon_Event_State_Disable,
-	ATCommon_Event_State_Enable,
-	ATCommon_Event_State_NumberOfValues
-} ATCommon_Event_State_t;
+	AdrasteaI_ATCommon_Event_State_Invalid = -1,
+	AdrasteaI_ATCommon_Event_State_Disable,
+	AdrasteaI_ATCommon_Event_State_Enable,
+	AdrasteaI_ATCommon_Event_State_NumberOfValues
+} AdrasteaI_ATCommon_Event_State_t;
 
-typedef char ATCommon_Auth_Username_t[64], ATCommon_Auth_Password_t[64];
+typedef char AdrasteaI_ATCommon_Auth_Username_t[64], AdrasteaI_ATCommon_Auth_Password_t[64];
 
 /**
  * @brief SSL/TLS Authentication Modes
  */
 typedef enum
 {
-	ATCommon_Auth_Mode_Invalid = -1,
-	ATCommon_Auth_Mode_Mutual,
-	ATCommon_Auth_Mode_Client_Side_Only,
-	ATCommon_Auth_Mode_Server_Side_Only,
-	ATCommon_Auth_Mode_NumberOfValues
-} ATCommon_TLS_Auth_Mode_t, ATCommon_SSL_Auth_Mode_t;
+	AdrasteaI_ATCommon_Auth_Mode_Invalid = -1,
+	AdrasteaI_ATCommon_Auth_Mode_Mutual,
+	AdrasteaI_ATCommon_Auth_Mode_Client_Side_Only,
+	AdrasteaI_ATCommon_Auth_Mode_Server_Side_Only,
+	AdrasteaI_ATCommon_Auth_Mode_NumberOfValues
+} AdrasteaI_ATCommon_TLS_Auth_Mode_t, AdrasteaI_ATCommon_SSL_Auth_Mode_t;
 
-typedef uint8_t ATCommon_TLS_Profile_ID_t, ATCommon_SSL_Profile_ID_t, ATCommon_TLS_Profile_ID_Count_t;
+typedef uint8_t AdrasteaI_ATCommon_TLS_Profile_ID_t, AdrasteaI_ATCommon_SSL_Profile_ID_t, AdrasteaI_ATCommon_TLS_Profile_ID_Count_t;
 
-typedef uint16_t ATCommon_Port_Number_t;
+typedef uint16_t AdrasteaI_ATCommon_Port_Number_t;
 
-#define ATCommon_Port_Number_Invalid 0
+#define AdrasteaI_ATCommon_Port_Number_Invalid 0
 
-typedef uint8_t ATCommon_Session_ID_t;
+typedef uint8_t AdrasteaI_ATCommon_Session_ID_t;
 
-#define ATCommon_Session_ID_Invalid 0
+#define AdrasteaI_ATCommon_Session_ID_Invalid 0
 
-typedef char ATCommon_APN_Name_t[64];
+typedef char AdrasteaI_ATCommon_APN_Name_t[64];
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // AT_COMMON_H_INCLUDED
+#endif // ADRASTEAI_AT_COMMON_H_INCLUDED

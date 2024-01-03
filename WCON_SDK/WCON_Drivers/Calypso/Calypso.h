@@ -30,13 +30,11 @@
 
 #ifndef CALYPSO_H_INCLUDED
 #define CALYPSO_H_INCLUDED
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <global/global.h>
+#include <global/global_types.h>
 
 /**
  * @brief Max recommended payload size is 1460 bytes.
@@ -69,7 +67,6 @@
  */
 #define CALYPSO_MAX_RESPONSE_TEXT_LENGTH CALYPSO_LINE_MAX_SIZE
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,10 +76,10 @@ extern "C" {
  */
 typedef enum Calypso_CNFStatus_t
 {
-    Calypso_CNFStatus_Success,
-    Calypso_CNFStatus_Failed,
-    Calypso_CNFStatus_Invalid,
-    Calypso_CNFStatus_NumberOfValues
+	Calypso_CNFStatus_Success,
+	Calypso_CNFStatus_Failed,
+	Calypso_CNFStatus_Invalid,
+	Calypso_CNFStatus_NumberOfValues
 } Calypso_CNFStatus_t;
 
 /**
@@ -90,9 +87,9 @@ typedef enum Calypso_CNFStatus_t
  */
 typedef enum Calypso_DataFormat_t
 {
-    Calypso_DataFormat_Binary,
-    Calypso_DataFormat_Base64,
-    Calypso_DataFormat_NumberOfValues,
+	Calypso_DataFormat_Binary,
+	Calypso_DataFormat_Base64,
+	Calypso_DataFormat_NumberOfValues,
 } Calypso_DataFormat_t;
 
 /**
@@ -101,62 +98,49 @@ typedef enum Calypso_DataFormat_t
  */
 typedef enum Calypso_Timeout_t
 {
-    Calypso_Timeout_General,
-    Calypso_Timeout_FactoryReset,
-    Calypso_Timeout_WlanAddProfile,
-    Calypso_Timeout_WlanScan,
-    Calypso_Timeout_NetAppUpdateTime,
-    Calypso_Timeout_NetAppHostLookUp,
-    Calypso_Timeout_HttpConnect,
-    Calypso_Timeout_HttpRequest,
-    Calypso_Timeout_FileIO,
-    Calypso_Timeout_GPIO,
-    Calypso_Timeout_NumberOfValues
+	Calypso_Timeout_General,
+	Calypso_Timeout_FactoryReset,
+	Calypso_Timeout_WlanAddProfile,
+	Calypso_Timeout_WlanScan,
+	Calypso_Timeout_NetAppUpdateTime,
+	Calypso_Timeout_NetAppHostLookUp,
+	Calypso_Timeout_HttpConnect,
+	Calypso_Timeout_HttpRequest,
+	Calypso_Timeout_FileIO,
+	Calypso_Timeout_GPIO,
+	Calypso_Timeout_NumberOfValues
 } Calypso_Timeout_t;
-
 
 /**
  * @brief Application modes. Used with Calypso_SetApplicationModePins().
  */
 typedef enum Calypso_ApplicationMode_t
 {
-    Calypso_ApplicationMode_ATCommandMode = 0,
-    Calypso_ApplicationMode_OTAUpdate = 1,
-    Calypso_ApplicationMode_Provisioning = 2,
-    Calypso_ApplicationMode_TransparentMode = 3
+	Calypso_ApplicationMode_ATCommandMode = 0,
+	Calypso_ApplicationMode_OTAUpdate = 1,
+	Calypso_ApplicationMode_Provisioning = 2,
+	Calypso_ApplicationMode_TransparentMode = 3
 } Calypso_ApplicationMode_t;
 
 /**
  * @brief Pins used by this driver.
  */
-typedef enum Calypso_Pin_t
+typedef struct Calypso_Pins_t
 {
-    Calypso_Pin_Reset,
-    Calypso_Pin_WakeUp,
-    Calypso_Pin_Boot,
-    Calypso_Pin_AppMode0,
-    Calypso_Pin_AppMode1,
-    Calypso_Pin_StatusInd0,
-    Calypso_Pin_StatusInd1,
-    Calypso_Pin_Count
-} Calypso_Pin_t;
+	WE_Pin_t Calypso_Pin_Reset;
+	WE_Pin_t Calypso_Pin_WakeUp;
+	WE_Pin_t Calypso_Pin_Boot;
+	WE_Pin_t Calypso_Pin_AppMode0;
+	WE_Pin_t Calypso_Pin_AppMode1;
+	WE_Pin_t Calypso_Pin_StatusInd0;
+	WE_Pin_t Calypso_Pin_StatusInd1;
+} Calypso_Pins_t;
 
 /**
  * @brief Calypso event callback.
  * Arguments: Event text
  */
-typedef void (*Calypso_EventCallback_t)(char *);
-
-/**
- * @brief Calypso byte received callback.
- *
- * Is used to handle responses (byte per byte) from Calypso.
- *
- * Arguments: Received byte
- *
- * @see Calypso_SetByteRxCallback()
- */
-typedef void (*Calypso_ByteRxCallback_t)(uint8_t);
+typedef void (*Calypso_EventCallback_t)(char*);
 
 /**
  * @brief Calypso line received callback.
@@ -169,52 +153,37 @@ typedef void (*Calypso_ByteRxCallback_t)(uint8_t);
  *
  * @see Calypso_SetLineRxCallback()
  */
-typedef bool (*Calypso_LineRxCallback_t)(char *, uint16_t);
+typedef bool (*Calypso_LineRxCallback_t)(char*, uint16_t);
 
 extern uint8_t Calypso_firmwareVersionMajor;
 extern uint8_t Calypso_firmwareVersionMinor;
 extern uint8_t Calypso_firmwareVersionPatch;
 
+extern bool Calypso_Init(WE_UART_t *uartP, Calypso_Pins_t *pinoutP, Calypso_EventCallback_t eventCallback);
 
-extern bool Calypso_Init(uint32_t baudrate,
-                         WE_FlowControl_t flowControl,
-                         WE_Parity_t parity,
-                         Calypso_EventCallback_t eventCallback,
-                         WE_Pin_t *pins);
 extern bool Calypso_Deinit(void);
 
 extern bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode);
 extern bool Calypso_PinReset(void);
 extern bool Calypso_PinWakeUp(void);
-extern bool Calypso_SetPin(Calypso_Pin_t pin, WE_Pin_Level_t level);
-extern WE_Pin_Level_t Calypso_GetPinLevel(Calypso_Pin_t pin);
+extern WE_Pin_Level_t Calypso_GetPinLevel(WE_Pin_t pin);
 
 extern bool Calypso_SendRequest(char *data);
-extern bool Calypso_WaitForConfirm(uint32_t maxTimeMs,
-                                   Calypso_CNFStatus_t expectedStatus,
-                                   char *pOutResponse);
+extern bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char *pOutResponse);
 
 extern int32_t Calypso_GetLastError(char *lastErrorText);
 
 extern uint32_t Calypso_GetBase64DecBufSize(uint8_t *inputData, uint32_t inputLength);
 extern uint32_t Calypso_GetBase64EncBufSize(uint32_t inputLength);
-extern bool Calypso_DecodeBase64(uint8_t *inputData,
-                                 uint32_t inputLength,
-                                 uint8_t *outputData,
-                                 uint32_t *outputLength);
-extern bool Calypso_EncodeBase64(uint8_t *inputData,
-                                 uint32_t inputLength,
-                                 uint8_t *outputData,
-                                 uint32_t *outputLength);
-
+extern bool Calypso_DecodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
+extern bool Calypso_EncodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
 
 extern bool Calypso_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
 extern void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout);
 extern uint32_t Calypso_GetTimeout(Calypso_Timeout_t type);
-extern void Calypso_GetDefaultPinConfig(WE_Pin_t *pins);
 
-extern void Calypso_Transmit(const char *data, uint16_t dataLength);
-extern void Calypso_SetByteRxCallback(Calypso_ByteRxCallback_t callback);
+extern bool Calypso_Transparent_Transmit(const char *data, uint16_t dataLength);
+extern void Calypso_SetByteRxCallback(WE_UART_HandleRxByte_t callback);
 extern void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback);
 extern void Calypso_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters);
 

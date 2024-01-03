@@ -27,19 +27,17 @@
  * @file
  * @brief AT commands for Proprietary functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATProprietary.h"
+#include <AdrasteaI/ATCommands/ATProprietary.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-#include "../Adrastea.h"
-
-static const char *ATProprietary_RAT_Strings[ATProprietary_RAT_NumberOfValues] = {
+static const char *AdrasteaI_ATProprietary_RAT_Strings[AdrasteaI_ATProprietary_RAT_NumberOfValues] = {
 		"DEFAULT",
 		"CATM",
 		"NBIOT", };
 
-static const char *ATProprietary_IP_Addr_Format_Strings[ATProprietary_IP_Addr_Format_NumberOfValues] = {
+static const char *AdrasteaI_ATProprietary_IP_Addr_Format_Strings[AdrasteaI_ATProprietary_IP_Addr_Format_NumberOfValues] = {
 		"IP",
 		"IPV6",
 		"IPV4V6", };
@@ -47,26 +45,25 @@ static const char *ATProprietary_IP_Addr_Format_Strings[ATProprietary_IP_Addr_Fo
 /**
  * @brief Read Network Attachment State (using the AT%CMATT command).
  *
- * @param[out] stateP Network Attachment State is returned in this argument. See ATProprietary_Network_Attachment_State_t.
+ * @param[out] stateP Network Attachment State is returned in this argument. See AdrasteaI_ATProprietary_Network_Attachment_State_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ReadNetworkAttachmentState(ATProprietary_Network_Attachment_State_t *stateP)
+bool AdrasteaI_ATProprietary_ReadNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t *stateP)
 {
-
 	if (stateP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%CMATT?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%CMATT?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -84,11 +81,11 @@ bool ATProprietary_ReadNetworkAttachmentState(ATProprietary_Network_Attachment_S
 /**
  * @brief Set Network Attachment State (using the AT%CMATT command).
  *
- * @param[in] state Network Attachment State. See ATProprietary_Network_Attachment_State_t.
+ * @param[in] state Network Attachment State. See AdrasteaI_ATProprietary_Network_Attachment_State_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_SetNetworkAttachmentState(ATProprietary_Network_Attachment_State_t state)
+bool AdrasteaI_ATProprietary_SetNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -104,12 +101,12 @@ bool ATProprietary_SetNetworkAttachmentState(ATProprietary_Network_Attachment_St
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -120,25 +117,25 @@ bool ATProprietary_SetNetworkAttachmentState(ATProprietary_Network_Attachment_St
 /**
  * @brief Read Remaining PIN and PUK Attempts left (using the AT%CPININFO command).
  *
- * @param[out] attemptsP Remaining Attempts are returned in this argument. See ATProprietary_PIN_PUK_Attempts_t.
+ * @param[out] attemptsP Remaining Attempts are returned in this argument. See AdrasteaI_ATProprietary_PIN_PUK_Attempts_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ReadRemainingPINPUKAttempts(ATProprietary_PIN_PUK_Attempts_t *attemptsP)
+bool AdrasteaI_ATProprietary_ReadRemainingPINPUKAttempts(AdrasteaI_ATProprietary_PIN_PUK_Attempts_t *attemptsP)
 {
 	if (attemptsP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%CPININFO\r\n"))
+	if (!AdrasteaI_SendRequest("AT%CPININFO\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -171,34 +168,34 @@ bool ATProprietary_ReadRemainingPINPUKAttempts(ATProprietary_PIN_PUK_Attempts_t 
 /**
  * @brief Switch to RAT without Full Reboot (using the AT%RATACT command).
  *
- * @param[in] rat RAT. See ATProprietary_RAT_t.
+ * @param[in] rat RAT. See AdrasteaI_ATProprietary_RAT_t.
  *
- * @param[in] storage RAT Storage (optional pass ATProprietary_RAT_Storage_Invalid to skip). See ATProprietary_RAT_Storage_t.
+ * @param[in] storage RAT Storage (optional pass AdrasteaI_ATProprietary_RAT_Storage_Invalid to skip). See AdrasteaI_ATProprietary_RAT_Storage_t.
  *
- * @param[in] source RAT Source (optional pass ATProprietary_RAT_Source_Invalid to skip). See ATProprietary_RAT_Source_t.
+ * @param[in] source RAT Source (optional pass AdrasteaI_ATProprietary_RAT_Source_Invalid to skip). See AdrasteaI_ATProprietary_RAT_Source_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_SwitchToRATWithoutFullReboot(ATProprietary_RAT_t rat, ATProprietary_RAT_Storage_t storage, ATProprietary_RAT_Source_t source)
+bool AdrasteaI_ATProprietary_SwitchToRATWithoutFullReboot(AdrasteaI_ATProprietary_RAT_t rat, AdrasteaI_ATProprietary_RAT_Storage_t storage, AdrasteaI_ATProprietary_RAT_Source_t source)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%RATACT=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATProprietary_RAT_Strings[rat], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATProprietary_RAT_Strings[rat], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
 
-	if (storage != ATProprietary_RAT_Storage_Invalid)
+	if (storage != AdrasteaI_ATProprietary_RAT_Storage_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, storage, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -206,33 +203,32 @@ bool ATProprietary_SwitchToRATWithoutFullReboot(ATProprietary_RAT_t rat, ATPropr
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (source != ATProprietary_RAT_Source_Invalid)
+	if (source != AdrasteaI_ATProprietary_RAT_Source_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, source, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -243,32 +239,32 @@ bool ATProprietary_SwitchToRATWithoutFullReboot(ATProprietary_RAT_t rat, ATPropr
 /**
  * @brief Read RAT Status (using the AT%RATACT command).
  *
- * @param[out] ratstatusP RAT Status is returned in this argument. See ATProprietary_RAT_Status_t.
+ * @param[out] ratstatusP RAT Status is returned in this argument. See AdrasteaI_ATProprietary_RAT_Status_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ReadRATStatus(ATProprietary_RAT_Status_t *ratstatusP)
+bool AdrasteaI_ATProprietary_ReadRATStatus(AdrasteaI_ATProprietary_RAT_Status_t *ratstatusP)
 {
 	if (ratstatusP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%RATACT?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%RATACT?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &ratstatusP->rat, ATProprietary_RAT_Strings, ATProprietary_RAT_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &ratstatusP->rat, AdrasteaI_ATProprietary_RAT_Strings, AdrasteaI_ATProprietary_RAT_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -294,7 +290,7 @@ bool ATProprietary_ReadRATStatus(ATProprietary_RAT_Status_t *ratstatusP)
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_SetBootDelay(ATProprietary_Boot_Delay_t delay)
+bool AdrasteaI_ATProprietary_SetBootDelay(AdrasteaI_ATProprietary_Boot_Delay_t delay)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -310,12 +306,12 @@ bool ATProprietary_SetBootDelay(ATProprietary_Boot_Delay_t delay)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -330,13 +326,13 @@ bool ATProprietary_SetBootDelay(ATProprietary_Boot_Delay_t delay)
  *
  * @param[in] domain Domain Name (URL).
  *
- * @param[in] format IP Address Format (optional pass ATProprietary_IP_Addr_Format_Invalid to skip). See ATProprietary_IP_Addr_Format_t.
+ * @param[in] format IP Address Format (optional pass AdrasteaI_ATProprietary_IP_Addr_Format_Invalid to skip). See AdrasteaI_ATProprietary_IP_Addr_Format_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ResolveDomainName(ATCommon_Session_ID_t sessionid, ATProprietary_Domain_Name_t domain, ATProprietary_IP_Addr_Format_t format)
+bool AdrasteaI_ATProprietary_ResolveDomainName(AdrasteaI_ATCommon_Session_ID_t sessionid, AdrasteaI_ATProprietary_Domain_Name_t domain, AdrasteaI_ATProprietary_IP_Addr_Format_t format)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -352,30 +348,29 @@ bool ATProprietary_ResolveDomainName(ATCommon_Session_ID_t sessionid, ATPropriet
 		return false;
 	}
 
-	if (format != ATProprietary_IP_Addr_Format_Invalid)
+	if (format != AdrasteaI_ATProprietary_IP_Addr_Format_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, format, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -386,11 +381,12 @@ bool ATProprietary_ResolveDomainName(ATCommon_Session_ID_t sessionid, ATPropriet
 /**
  * @brief Parses the value of Resolve Domain Name event arguments.
  *
- * @param[out] dataP Domain Name Resolve Result is returned in this argument. See ATPacketDomain_PDP_Context_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP Domain Name Resolve Result is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ParseResolveDomainNameEvent(char *pEventArguments, ATProprietary_Domain_Name_Resolve_Result_t *dataP)
+bool AdrasteaI_ATProprietary_ParseResolveDomainNameEvent(char *pEventArguments, AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -415,21 +411,21 @@ bool ATProprietary_ParseResolveDomainNameEvent(char *pEventArguments, ATPropriet
 /**
  * @brief Ping an address (using the AT%PINGCMD command).
  *
- * @param[in] format IP Address Format. See ATProprietary_IP_Addr_Format_t.
+ * @param[in] format IP Address Format. See AdrasteaI_ATProprietary_IP_Addr_Format_t.
  *
  * @param[in] destaddr Destination IP Address.
  *
- * @param[in] packetcount Packet Count (optional pass ATProprietary_Ping_Packet_Count_Invalid to skip).
+ * @param[in] packetcount Packet Count (optional pass AdrasteaI_ATProprietary_Ping_Packet_Count_Invalid to skip).
  *
- * @param[in] packetsize Packet Size in Bytes (optional pass ATProprietary_Ping_Packet_Size_Invalid to skip).
+ * @param[in] packetsize Packet Size in Bytes (optional pass AdrasteaI_ATProprietary_Ping_Packet_Size_Invalid to skip).
  *
- * @param[in] timeout Ping Timeout (optional pass ATProprietary_Ping_Timeout_Invalid to skip).
+ * @param[in] timeout Ping Timeout (optional pass AdrasteaI_ATProprietary_Ping_Timeout_Invalid to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_t destaddr, ATProprietary_Ping_Packet_Count_t packetcount, ATProprietary_Ping_Packet_Size_t packetsize, ATProprietary_Ping_Timeout_t timeout)
+bool AdrasteaI_ATProprietary_Ping(AdrasteaI_ATProprietary_IP_Addr_Format_t format, AdrasteaI_ATCommon_IP_Addr_t destaddr, AdrasteaI_ATProprietary_Ping_Packet_Count_t packetcount, AdrasteaI_ATProprietary_Ping_Packet_Size_t packetsize, AdrasteaI_ATProprietary_Ping_Timeout_t timeout)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -445,14 +441,13 @@ bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_
 		return false;
 	}
 
-	if (packetcount != ATProprietary_Ping_Packet_Count_Invalid)
+	if (packetcount != AdrasteaI_ATProprietary_Ping_Packet_Count_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, packetcount, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 	}
 	else
@@ -461,17 +456,16 @@ bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (packetsize != ATProprietary_Ping_Packet_Size_Invalid)
+	if (packetsize != AdrasteaI_ATProprietary_Ping_Packet_Size_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, packetsize, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 	}
 	else
@@ -480,33 +474,32 @@ bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (timeout != ATProprietary_Ping_Timeout_Invalid)
+	if (timeout != AdrasteaI_ATProprietary_Ping_Timeout_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, timeout, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -517,11 +510,12 @@ bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_
 /**
  * @brief Parses the value of Ping Result event arguments.
  *
- * @param[out] dataP Ping Result is returned in this argument. See ATPacketDomain_PDP_Context_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP Ping Result is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ParsePingResultEvent(char *pEventArguments, ATProprietary_Ping_Result_t *dataP)
+bool AdrasteaI_ATProprietary_ParsePingResultEvent(char *pEventArguments, AdrasteaI_ATProprietary_Ping_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -556,13 +550,15 @@ bool ATProprietary_ParsePingResultEvent(char *pEventArguments, ATProprietary_Pin
 /**
  * @brief Read a credential (using the AT%CERTCMD command).
  *
- * @param[in] filename Name of file to read.
+ * @param[in]  filename Name of file to read.
  *
  * @param[out] dataP Contents of file is read to this argument.
  *
+ * @param[in]  dataMaxBufferSize Size of the buffer.
+ *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ReadCredential(ATProprietary_File_Name_t filename, char *dataP, uint16_t dataMaxBufferSize)
+bool AdrasteaI_ATProprietary_ReadCredential(AdrasteaI_ATProprietary_File_Name_t filename, char *dataP, uint16_t dataMaxBufferSize)
 {
 	if (dataP == NULL)
 	{
@@ -583,14 +579,14 @@ bool ATProprietary_ReadCredential(ATProprietary_File_Name_t filename, char *data
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -608,13 +604,13 @@ bool ATProprietary_ReadCredential(ATProprietary_File_Name_t filename, char *data
  *
  * @param[in] filename Name of file to write.
  *
- * @param[in] format Format of credential. See ATProprietary_Credential_Format_t.
+ * @param[in] format Format of credential. See AdrasteaI_ATProprietary_Credential_Format_t.
  *
  * @param[out] data Data to write to file.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_WriteCredential(ATProprietary_File_Name_t filename, ATProprietary_Credential_Format_t format, char *data)
+bool AdrasteaI_ATProprietary_WriteCredential(AdrasteaI_ATProprietary_File_Name_t filename, AdrasteaI_ATProprietary_Credential_Format_t format, char *data)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -640,14 +636,14 @@ bool ATProprietary_WriteCredential(ATProprietary_File_Name_t filename, ATProprie
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -662,33 +658,32 @@ bool ATProprietary_WriteCredential(ATProprietary_File_Name_t filename, ATProprie
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ListCredentials(ATProprietary_File_Names_List_t *filenamesList)
+bool AdrasteaI_ATProprietary_ListCredentials(AdrasteaI_ATProprietary_File_Names_List_t *filenamesList)
 {
 	if (filenamesList == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%CERTCMD=\"DIR\"\r\n"))
+	if (!AdrasteaI_SendRequest("AT%CERTCMD=\"DIR\"\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	filenamesList->filenames = NULL;
 
-	filenamesList->count = Adrastea_CountArgs(pResponseCommand);
+	filenamesList->count = ATCommand_CountArgs(pResponseCommand);
 
 	if (filenamesList->count != 0)
 	{
-
-		filenamesList->filenames = malloc(filenamesList->count * sizeof(ATProprietary_File_Name_t));
+		filenamesList->filenames = malloc(filenamesList->count * sizeof(AdrasteaI_ATProprietary_File_Name_t));
 
 		if (filenamesList->filenames == NULL)
 		{
@@ -697,13 +692,13 @@ bool ATProprietary_ListCredentials(ATProprietary_File_Names_List_t *filenamesLis
 
 		for (uint8_t i = 0; i < filenamesList->count - 1; i++)
 		{
-			if (!ATCommand_GetNextArgumentString(&pResponseCommand, filenamesList->filenames[i], ATCOMMAND_ARGUMENT_DELIM, sizeof(ATProprietary_File_Name_t)))
+			if (!ATCommand_GetNextArgumentString(&pResponseCommand, filenamesList->filenames[i], ATCOMMAND_ARGUMENT_DELIM, sizeof(AdrasteaI_ATProprietary_File_Name_t)))
 			{
 				return false;
 			}
 		}
 
-		if (!ATCommand_GetNextArgumentString(&pResponseCommand, filenamesList->filenames[filenamesList->count - 1], ATCOMMAND_STRING_TERMINATE, sizeof(ATProprietary_File_Name_t)))
+		if (!ATCommand_GetNextArgumentString(&pResponseCommand, filenamesList->filenames[filenamesList->count - 1], ATCOMMAND_STRING_TERMINATE, sizeof(AdrasteaI_ATProprietary_File_Name_t)))
 		{
 			return false;
 		}
@@ -720,7 +715,7 @@ bool ATProprietary_ListCredentials(ATProprietary_File_Names_List_t *filenamesLis
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_DeleteCredential(ATProprietary_File_Name_t filename)
+bool AdrasteaI_ATProprietary_DeleteCredential(AdrasteaI_ATProprietary_File_Name_t filename)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -736,12 +731,12 @@ bool ATProprietary_DeleteCredential(ATProprietary_File_Name_t filename)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -756,14 +751,14 @@ bool ATProprietary_DeleteCredential(ATProprietary_File_Name_t filename)
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ListTLSProfiles(ATProprietary_TLS_Profile_ID_List_t *profileIDsList)
+bool AdrasteaI_ATProprietary_ListTLSProfiles(AdrasteaI_ATProprietary_TLS_Profile_ID_List_t *profileIDsList)
 {
 	if (profileIDsList == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%CERTCFG?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%CERTCFG?\r\n"))
 	{
 		return false;
 	}
@@ -772,21 +767,20 @@ bool ATProprietary_ListTLSProfiles(ATProprietary_TLS_Profile_ID_List_t *profileI
 
 	pResponseCommand[0] = '\0';
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	profileIDsList->profileIDs = NULL;
 
-	if (Adrastea_CountArgs(pResponseCommand) != 0)
+	if (ATCommand_CountArgs(pResponseCommand) != 0)
 	{
-
 		pResponseCommand += 1;
 
-		profileIDsList->count = Adrastea_CountArgs(pResponseCommand);
+		profileIDsList->count = ATCommand_CountArgs(pResponseCommand);
 
-		profileIDsList->profileIDs = malloc(profileIDsList->count * sizeof(ATCommon_TLS_Profile_ID_t));
+		profileIDsList->profileIDs = malloc(profileIDsList->count * sizeof(AdrasteaI_ATCommon_TLS_Profile_ID_t));
 
 		if (profileIDsList->profileIDs == NULL)
 		{
@@ -834,9 +828,9 @@ bool ATProprietary_ListTLSProfiles(ATProprietary_TLS_Profile_ID_List_t *profileI
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATProprietary_File_Name_t CA, ATProprietary_File_Path_t CAPath, ATProprietary_File_Name_t deviceCert, ATProprietary_File_Name_t deviceKey, ATProprietary_File_Name_t pskID, ATProprietary_File_Name_t pskKey)
+bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID, AdrasteaI_ATProprietary_File_Name_t CA, AdrasteaI_ATProprietary_File_Path_t CAPath, AdrasteaI_ATProprietary_File_Name_t deviceCert, AdrasteaI_ATProprietary_File_Name_t deviceKey, AdrasteaI_ATProprietary_File_Name_t pskID, AdrasteaI_ATProprietary_File_Name_t pskKey)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -849,13 +843,12 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
 
 	if (CA != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, CA, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 		if (CAPath != NULL)
 		{
@@ -863,7 +856,7 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount = 1;
+			AdrasteaI_optionalParamsDelimCount = 1;
 		}
 		else
 		{
@@ -871,31 +864,29 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount++;
+			AdrasteaI_optionalParamsDelimCount++;
 		}
 
 	}
 	else
 	{
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+
+		AdrasteaI_optionalParamsDelimCount++;
 
 		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount++;
-
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
 	if (deviceCert != NULL && deviceKey != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, deviceCert, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -906,30 +897,28 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 	}
 	else
 	{
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+
+		AdrasteaI_optionalParamsDelimCount++;
 
 		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount++;
-
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
 	if (pskID != NULL && pskKey != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -940,22 +929,22 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -970,7 +959,7 @@ bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATPropriet
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_DeleteTLSProfile(ATCommon_TLS_Profile_ID_t profileID)
+bool AdrasteaI_ATProprietary_DeleteTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -986,12 +975,12 @@ bool ATProprietary_DeleteTLSProfile(ATCommon_TLS_Profile_ID_t profileID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1002,13 +991,13 @@ bool ATProprietary_DeleteTLSProfile(ATCommon_TLS_Profile_ID_t profileID)
 /**
  * @brief Set PDN Parameters (using the AT%PDNSET command).
  *
- * @param[in] parameters PDN Parameters. See ATProprietary_PDN_Parameters_t.
+ * @param[in] parameters PDN Parameters. See AdrasteaI_ATProprietary_PDN_Parameters_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_SetPDNParameters(ATProprietary_PDN_Parameters_t parameters)
+bool AdrasteaI_ATProprietary_SetPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t parameters)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -1025,7 +1014,7 @@ bool ATProprietary_SetPDNParameters(ATProprietary_PDN_Parameters_t parameters)
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -1033,31 +1022,31 @@ bool ATProprietary_SetPDNParameters(ATProprietary_PDN_Parameters_t parameters)
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (parameters.ipFormat != ATProprietary_IP_Addr_Format_Invalid)
+	if (parameters.ipFormat != AdrasteaI_ATProprietary_IP_Addr_Format_Invalid)
 	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATProprietary_IP_Addr_Format_Strings[parameters.ipFormat], ATCOMMAND_STRING_TERMINATE))
+		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATProprietary_IP_Addr_Format_Strings[parameters.ipFormat], ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1068,25 +1057,25 @@ bool ATProprietary_SetPDNParameters(ATProprietary_PDN_Parameters_t parameters)
 /**
  * @brief Read PDN Parameters (using the AT%PDNSET command).
  *
- * @param[out] parameters PDN Parameters are returned in this argument. See ATProprietary_PDN_Parameters_t.
+ * @param[out] parameters PDN Parameters are returned in this argument. See AdrasteaI_ATProprietary_PDN_Parameters_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATProprietary_ReadPDNParameters(ATProprietary_PDN_Parameters_t *parameters)
+bool AdrasteaI_ATProprietary_ReadPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t *parameters)
 {
 	if (parameters == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%PDNSET?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%PDNSET?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Proprietary), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Proprietary), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -1098,12 +1087,12 @@ bool ATProprietary_ReadPDNParameters(ATProprietary_PDN_Parameters_t *parameters)
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentString(&pResponseCommand, parameters->apnName, ATCOMMAND_ARGUMENT_DELIM, sizeof(ATCommon_APN_Name_t)))
+	if (!ATCommand_GetNextArgumentString(&pResponseCommand, parameters->apnName, ATCOMMAND_ARGUMENT_DELIM, sizeof(AdrasteaI_ATCommon_APN_Name_t)))
 	{
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*) &parameters->ipFormat, ATProprietary_IP_Addr_Format_Strings, ATProprietary_IP_Addr_Format_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*) &parameters->ipFormat, AdrasteaI_ATProprietary_IP_Addr_Format_Strings, AdrasteaI_ATProprietary_IP_Addr_Format_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;

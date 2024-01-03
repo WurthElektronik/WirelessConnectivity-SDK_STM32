@@ -27,83 +27,74 @@
  * @file
  * @brief AT commands for network configuration.
  */
-
-#include "ATNetCfg.h"
-
+#include <Calypso/ATCommands/ATNetCfg.h>
 #include <string.h>
+#include <Calypso/Calypso.h>
 
-#include "../Calypso.h"
+bool Calypso_ATNetCfg_GetIPv4Address(Calypso_ATNetCfg_IPv4Config_t *ipConfig, bool ap);
+bool Calypso_ATNetCfg_SetIPv4Address(Calypso_ATNetCfg_IPv4Config_t *ipConfig, bool ap);
 
-bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap);
-bool ATNetCfg_SetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap);
+bool Calypso_ATNetCfg_GetIPv6Address(Calypso_ATNetCfg_IPv6Config_t *ipConfig, bool global);
+bool Calypso_ATNetCfg_SetIPv6Address(Calypso_ATNetCfg_IPv6Config_t *ipConfig, bool global);
 
-bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global);
-bool ATNetCfg_SetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global);
+static const char *Calypso_ATNetCfg_InterfaceModeStrings[Calypso_ATNetCfg_InterfaceMode_NumberOfValues] = {
+		"IPV6_STA_LOCAL",
+		"IPV6_STA_GLOBAL",
+		"DISABLE_IPV4_DHCP",
+		"IPV6_LOCAL_STATIC",
+		"IPV6_LOCAL_STATELESS",
+		"IPV6_LOCAL_STATEFUL",
+		"IPV6_GLOBAL_STATIC",
+		"IPV6_GLOBAL_STATEFUL",
+		"DISABLE_IPV4_LLA",
+		"ENABLE_DHCP_RELEASE",
+		"IPV6_GLOBAL_STATELESS",
+		"DISABLE_FAST_RENEW" };
 
-static const char *ATNetCfg_InterfaceModeStrings[ATNetCfg_InterfaceMode_NumberOfValues] = {
-    "IPV6_STA_LOCAL",
-    "IPV6_STA_GLOBAL",
-    "DISABLE_IPV4_DHCP",
-    "IPV6_LOCAL_STATIC",
-    "IPV6_LOCAL_STATELESS",
-    "IPV6_LOCAL_STATEFUL",
-    "IPV6_GLOBAL_STATIC",
-    "IPV6_GLOBAL_STATEFUL",
-    "DISABLE_IPV4_LLA",
-    "ENABLE_DHCP_RELEASE",
-    "IPV6_GLOBAL_STATELESS",
-    "DISABLE_FAST_RENEW"
-};
+static const char *Calypso_ATNetCfg_IPv4MethodStrings[Calypso_ATNetCfg_IPv4Method_NumberOfValues] = {
+		"UNKNOWN",
+		"STATIC",
+		"DHCP",
+		"DHCP_LLA",
+		"RELEASE_IP_SET",
+		"RELEASE_IP_OFF" };
 
-static const char *ATNetCfg_IPv4MethodStrings[ATNetCfg_IPv4Method_NumberOfValues] = {
-    "UNKNOWN",
-    "STATIC",
-    "DHCP",
-    "DHCP_LLA",
-    "RELEASE_IP_SET",
-    "RELEASE_IP_OFF"
-};
-
-static const char *ATNetCfg_IPv6MethodStrings[ATNetCfg_IPv6Method_NumberOfValues] = {
-    "UNKNOWN",
-    "STATIC",
-    "STATELESS",
-    "STATEFUL"
-};
+static const char *Calypso_ATNetCfg_IPv6MethodStrings[Calypso_ATNetCfg_IPv6Method_NumberOfValues] = {
+		"UNKNOWN",
+		"STATIC",
+		"STATELESS",
+		"STATEFUL" };
 
 /**
  * @brief Enables or disables network interface modes.
  *
- * @param[in] modes Flags of modes to enable. See ATNetCfg_InterfaceMode_t. Set to ATNetCfg_InterfaceMode_None to disable all modes.
+ * @param[in] modes Flags of modes to enable. See Calypso_ATNetCfg_InterfaceMode_t. Set to Calypso_ATNetCfg_InterfaceMode_None to disable all modes.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetInterfaceModes(uint16_t modes)
+bool Calypso_ATNetCfg_SetInterfaceModes(uint16_t modes)
 {
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgSet=IF,STATE,");
+	strcpy(pRequestCommand, "AT+netCfgSet=IF,STATE,");
 
-    if (!ATCommand_AppendArgumentBitmask(pRequestCommand,
-                                       ATNetCfg_InterfaceModeStrings,
-                                       ATNetCfg_InterfaceMode_NumberOfValues,
-                                       modes,
-                                       ATCOMMAND_STRING_TERMINATE,
-                                       AT_MAX_COMMAND_BUFFER_SIZE))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentBitmask(pRequestCommand, Calypso_ATNetCfg_InterfaceModeStrings, Calypso_ATNetCfg_InterfaceMode_NumberOfValues, modes,
+	ATCOMMAND_STRING_TERMINATE,
+	AT_MAX_COMMAND_BUFFER_SIZE))
+	{
+		return false;
+	}
 
-    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+	{
+		return false;
+	}
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -113,49 +104,46 @@ bool ATNetCfg_SetInterfaceModes(uint16_t modes)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetMacAddress(uint8_t macAddress[6])
+bool Calypso_ATNetCfg_GetMacAddress(uint8_t macAddress[6])
 {
-    if (NULL == macAddress)
-    {
-        return false;
-    }
+	if (NULL == macAddress)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
-    char *pRespondCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
+	char *pRespondCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgGet=GET_MAC_ADDR");
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	strcpy(pRequestCommand, "AT+netCfgGet=GET_MAC_ADDR");
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-    {
-        return false;
-    }
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+	{
+		return false;
+	}
 
-    const char *expectedCmd = "+netcfgget:";
-    const size_t cmdLength = strlen(expectedCmd);
-    if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
-    {
-        return false;
-    }
+	const char *expectedCmd = "+netcfgget:";
+	const size_t cmdLength = strlen(expectedCmd);
+	if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
+	{
+		return false;
+	}
 
-    pRespondCommand += cmdLength;
+	pRespondCommand += cmdLength;
 
-    for (uint8_t i = 0; i < 6; i++)
-    {
-        if (!ATCommand_GetNextArgumentInt(&pRespondCommand,
-                                        macAddress + i,
-                                        (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8),
-                                        i < 5 ? ATCOMMAND_CONFIRM_DELIM : ATCOMMAND_STRING_TERMINATE))
-        {
-            return false;
-        }
-    }
+	for (uint8_t i = 0; i < 6; i++)
+	{
+		if (!ATCommand_GetNextArgumentInt(&pRespondCommand, macAddress + i, (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), i < 5 ? ATCOMMAND_CONFIRM_DELIM : ATCOMMAND_STRING_TERMINATE))
+		{
+			return false;
+		}
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -165,95 +153,93 @@ bool ATNetCfg_GetMacAddress(uint8_t macAddress[6])
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetMacAddress(uint8_t macAddress[6])
+bool Calypso_ATNetCfg_SetMacAddress(uint8_t macAddress[6])
 {
-    if (NULL == macAddress)
-    {
-        return false;
-    }
+	if (NULL == macAddress)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgSet=SET_MAC_ADDR,,");
+	strcpy(pRequestCommand, "AT+netCfgSet=SET_MAC_ADDR,,");
 
-    for (uint8_t i = 0; i < 6; i++)
-    {
-        if (!ATCommand_AppendArgumentInt(pRequestCommand,
-                                       macAddress[i],
-                                       ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX,
-                                       i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
-        {
-            return false;
-        }
-    }
+	for (uint8_t i = 0; i < 6; i++)
+	{
+		if (!ATCommand_AppendArgumentInt(pRequestCommand, macAddress[i],
+		ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX, i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
+		{
+			return false;
+		}
+	}
 
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
  * @brief Returns the device's IPv4 station address and other IPv4 info (subnet mask, gateway, DNS).
  *
  * This is the configuration used when the device is used as a WLAN station
- * (use ATNetCfg_GetIPv4AddressAP() for getting AP configuration).
+ * (use Calypso_ATNetCfg_GetIPv4AddressAP() for getting AP configuration).
  *
  * @param[out] ipConfig The returned IPv4 configuration.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv4AddressStation(ATNetCfg_IPv4Config_t *ipConfig)
+bool Calypso_ATNetCfg_GetIPv4AddressStation(Calypso_ATNetCfg_IPv4Config_t *ipConfig)
 {
-    return ATNetCfg_GetIPv4Address(ipConfig, false);
+	return Calypso_ATNetCfg_GetIPv4Address(ipConfig, false);
 }
 
 /**
  * @brief Sets the device's IPv4 station address and other IPv4 info (subnet mask, gateway, DNS).
  *
  * This is the configuration used when the device is used as a WLAN station
- * (use ATNetCfg_SetIPv4AddressAP() for setting AP configuration).
+ * (use Calypso_ATNetCfg_SetIPv4AddressAP() for setting AP configuration).
  *
  * @param[in] ipConfig The IPv4 configuration to be set.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv4AddressStation(ATNetCfg_IPv4Config_t *ipConfig)
+bool Calypso_ATNetCfg_SetIPv4AddressStation(Calypso_ATNetCfg_IPv4Config_t *ipConfig)
 {
-    return ATNetCfg_SetIPv4Address(ipConfig, false);
+	return Calypso_ATNetCfg_SetIPv4Address(ipConfig, false);
 }
 
 /**
  * @brief Returns the device's IPv4 access point address and other IPv4 info (subnet mask, gateway, DNS).
  *
  * This is the configuration used when the device is used as a WLAN access point
- * (use ATNetCfg_GetIPv4AddressStation() for getting station configuration).
+ * (use Calypso_ATNetCfg_GetIPv4AddressStation() for getting station configuration).
  *
  * @param[out] ipConfig The returned IPv4 configuration.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv4AddressAP(ATNetCfg_IPv4Config_t *ipConfig)
+bool Calypso_ATNetCfg_GetIPv4AddressAP(Calypso_ATNetCfg_IPv4Config_t *ipConfig)
 {
-    return ATNetCfg_GetIPv4Address(ipConfig, true);
+	return Calypso_ATNetCfg_GetIPv4Address(ipConfig, true);
 }
 
 /**
  * @brief Sets the device's IPv4 access point address and other IPv4 info (subnet mask, gateway, DNS).
  *
  * This is the configuration used when the device is used as a WLAN access point
- * (use ATNetCfg_SetIPv4AddressStation() for setting station configuration).
+ * (use Calypso_ATNetCfg_SetIPv4AddressStation() for setting station configuration).
  *
  * @param[in] ipConfig The IPv4 configuration to be set.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv4AddressAP(ATNetCfg_IPv4Config_t *ipConfig)
+bool Calypso_ATNetCfg_SetIPv4AddressAP(Calypso_ATNetCfg_IPv4Config_t *ipConfig)
 {
-    return ATNetCfg_SetIPv4Address(ipConfig, true);
+	return Calypso_ATNetCfg_SetIPv4Address(ipConfig, true);
 }
 
 /**
@@ -265,85 +251,84 @@ bool ATNetCfg_SetIPv4AddressAP(ATNetCfg_IPv4Config_t *ipConfig)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
+bool Calypso_ATNetCfg_GetIPv4Address(Calypso_ATNetCfg_IPv4Config_t *ipConfig, bool ap)
 {
-    if (NULL == ipConfig)
-    {
-        return false;
-    }
+	if (NULL == ipConfig)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
-    char *pRespondCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
+	char *pRespondCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, ap ? "AT+netCfgGet=IPV4_AP_ADDR" : "AT+netCfgGet=IPV4_STA_ADDR");
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	strcpy(pRequestCommand, ap ? "AT+netCfgGet=IPV4_AP_ADDR" : "AT+netCfgGet=IPV4_STA_ADDR");
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+	{
+		return false;
+	}
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-    {
-        return false;
-    }
+	const char *expectedCmd = "+netcfgget:";
+	const size_t cmdLength = strlen(expectedCmd);
+	if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
+	{
+		return false;
+	}
 
-    const char *expectedCmd = "+netcfgget:";
-    const size_t cmdLength = strlen(expectedCmd);
-    if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
-    {
-        return false;
-    }
+	pRespondCommand += cmdLength;
 
-    pRespondCommand += cmdLength;
+	char ipModeStr[9];
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
+	{
+		return false;
+	}
 
-    char ipModeStr[9];
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
-    {
-        return false;
-    }
+	char *dhcpMode = "dhcp";
+	char *dhcpLlaMode = "dhcp_lla";
+	char *staticMode = "static";
+	if (0 == strncmp(ipModeStr, dhcpMode, strlen(dhcpMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv4Method_Dhcp;
+	}
+	else if (0 == strncmp(ipModeStr, dhcpLlaMode, strlen(dhcpLlaMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv4Method_DhcpLla;
+	}
+	else if (0 == strncmp(ipModeStr, staticMode, strlen(staticMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv4Method_Static;
+	}
+	else
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv4Method_Unknown;
+	}
 
-    char *dhcpMode = "dhcp";
-    char *dhcpLlaMode = "dhcp_lla";
-    char *staticMode = "static";
-    if (0 == strncmp(ipModeStr, dhcpMode, strlen(dhcpMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv4Method_Dhcp;
-    }
-    else if (0 == strncmp(ipModeStr, dhcpLlaMode, strlen(dhcpLlaMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv4Method_DhcpLla;
-    }
-    else if (0 == strncmp(ipModeStr, staticMode, strlen(staticMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv4Method_Static;
-    }
-    else
-    {
-        ipConfig->method = ATNetCfg_IPv4Method_Unknown;
-    }
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->ipAddress)))
+	{
+		return false;
+	}
 
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->ipAddress)))
-    {
-        return false;
-    }
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->subnetMask)))
+	{
+		return false;
+	}
 
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->subnetMask)))
-    {
-        return false;
-    }
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->gatewayAddress)))
+	{
+		return false;
+	}
 
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipConfig->gatewayAddress)))
-    {
-        return false;
-    }
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->dnsAddress)))
+	{
+		return false;
+	}
 
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->dnsAddress)))
-    {
-        return false;
-    }
-
-    return true;
+	return true;
 }
 
 /**
@@ -355,54 +340,54 @@ bool ATNetCfg_GetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
+bool Calypso_ATNetCfg_SetIPv4Address(Calypso_ATNetCfg_IPv4Config_t *ipConfig, bool ap)
 {
-    if (NULL == ipConfig)
-    {
-        return false;
-    }
+	if (NULL == ipConfig)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, ap ? "AT+netCfgSet=IPV4_AP_ADDR," : "AT+netCfgSet=IPV4_STA_ADDR,");
+	strcpy(pRequestCommand, ap ? "AT+netCfgSet=IPV4_AP_ADDR," : "AT+netCfgSet=IPV4_STA_ADDR,");
 
-    if (ap)
-    {
-        ipConfig->method = ATNetCfg_IPv4Method_Static;
-    }
+	if (ap)
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv4Method_Static;
+	}
 
-    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetCfg_IPv4MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentString(pRequestCommand, Calypso_ATNetCfg_IPv4MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
+	{
+		return false;
+	}
 
-    if (ATNetCfg_IPv4Method_Static == ipConfig->method)
-    {
-        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
-        {
-            return false;
-        }
-        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM))
-        {
-            return false;
-        }
-        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM))
-        {
-            return false;
-        }
-        if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
-        {
-            return false;
-        }
-    }
+	if (Calypso_ATNetCfg_IPv4Method_Static == ipConfig->method)
+	{
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->subnetMask, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->gatewayAddress, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+		if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
+		{
+			return false;
+		}
+	}
 
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -412,9 +397,9 @@ bool ATNetCfg_SetIPv4Address(ATNetCfg_IPv4Config_t *ipConfig, bool ap)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv6AddressLocal(ATNetCfg_IPv6Config_t *ipConfig)
+bool Calypso_ATNetCfg_GetIPv6AddressLocal(Calypso_ATNetCfg_IPv6Config_t *ipConfig)
 {
-    return ATNetCfg_GetIPv6Address(ipConfig, false);
+	return Calypso_ATNetCfg_GetIPv6Address(ipConfig, false);
 }
 
 /**
@@ -424,9 +409,9 @@ bool ATNetCfg_GetIPv6AddressLocal(ATNetCfg_IPv6Config_t *ipConfig)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv6AddressLocal(ATNetCfg_IPv6Config_t *ipConfig)
+bool Calypso_ATNetCfg_SetIPv6AddressLocal(Calypso_ATNetCfg_IPv6Config_t *ipConfig)
 {
-    return ATNetCfg_SetIPv6Address(ipConfig, false);
+	return Calypso_ATNetCfg_SetIPv6Address(ipConfig, false);
 }
 
 /**
@@ -436,9 +421,9 @@ bool ATNetCfg_SetIPv6AddressLocal(ATNetCfg_IPv6Config_t *ipConfig)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv6AddressGlobal(ATNetCfg_IPv6Config_t *ipConfig)
+bool Calypso_ATNetCfg_GetIPv6AddressGlobal(Calypso_ATNetCfg_IPv6Config_t *ipConfig)
 {
-    return ATNetCfg_GetIPv6Address(ipConfig, true);
+	return Calypso_ATNetCfg_GetIPv6Address(ipConfig, true);
 }
 
 /**
@@ -448,9 +433,9 @@ bool ATNetCfg_GetIPv6AddressGlobal(ATNetCfg_IPv6Config_t *ipConfig)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv6AddressGlobal(ATNetCfg_IPv6Config_t *ipConfig)
+bool Calypso_ATNetCfg_SetIPv6AddressGlobal(Calypso_ATNetCfg_IPv6Config_t *ipConfig)
 {
-    return ATNetCfg_SetIPv6Address(ipConfig, true);
+	return Calypso_ATNetCfg_SetIPv6Address(ipConfig, true);
 }
 
 /**
@@ -461,65 +446,64 @@ bool ATNetCfg_SetIPv6AddressGlobal(ATNetCfg_IPv6Config_t *ipConfig)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
+bool Calypso_ATNetCfg_GetIPv6Address(Calypso_ATNetCfg_IPv6Config_t *ipConfig, bool global)
 {
-    if (NULL == ipConfig)
-    {
-        return false;
-    }
+	if (NULL == ipConfig)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
-    char *pRespondCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
+	char *pRespondCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, global ? "AT+netCfgGet=IPV6_ADDR_GLOBAL" : "AT+netCfgGet=IPV6_ADDR_LOCAL");
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	strcpy(pRequestCommand, global ? "AT+netCfgGet=IPV6_ADDR_GLOBAL" : "AT+netCfgGet=IPV6_ADDR_LOCAL");
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+	{
+		return false;
+	}
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-    {
-        return false;
-    }
+	const char *expectedCmd = "+netcfgget:";
+	const size_t cmdLength = strlen(expectedCmd);
+	if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
+	{
+		return false;
+	}
 
-    const char *expectedCmd = "+netcfgget:";
-    const size_t cmdLength = strlen(expectedCmd);
-    if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
-    {
-        return false;
-    }
+	pRespondCommand += cmdLength;
 
-    pRespondCommand += cmdLength;
+	char ipModeStr[9];
+	if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
+	{
+		return false;
+	}
 
-    char ipModeStr[9];
-    if (!ATCommand_GetNextArgumentString(&pRespondCommand, ipModeStr, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipModeStr)))
-    {
-        return false;
-    }
+	char *statelessMode = "stateless";
+	char *statefulMode = "stateful";
+	char *staticMode = "static";
+	if (0 == strncmp(ipModeStr, statelessMode, strlen(statelessMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv6Method_Stateless;
+	}
+	else if (0 == strncmp(ipModeStr, statefulMode, strlen(statefulMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv6Method_Stateful;
+	}
+	else if (0 == strncmp(ipModeStr, staticMode, strlen(staticMode)))
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv6Method_Static;
+	}
+	else
+	{
+		ipConfig->method = Calypso_ATNetCfg_IPv6Method_Unknown;
+	}
 
-    char *statelessMode = "stateless";
-    char *statefulMode = "stateful";
-    char *staticMode = "static";
-    if (0 == strncmp(ipModeStr, statelessMode, strlen(statelessMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv6Method_Stateless;
-    }
-    else if (0 == strncmp(ipModeStr, statefulMode, strlen(statefulMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv6Method_Stateful;
-    }
-    else if (0 == strncmp(ipModeStr, staticMode, strlen(staticMode)))
-    {
-        ipConfig->method = ATNetCfg_IPv6Method_Static;
-    }
-    else
-    {
-        ipConfig->method = ATNetCfg_IPv6Method_Unknown;
-    }
-
-    return ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->ipAddress));
+	return ATCommand_GetNextArgumentString(&pRespondCommand, ipConfig->ipAddress, ATCOMMAND_STRING_TERMINATE, sizeof(ipConfig->ipAddress));
 }
 
 /**
@@ -530,39 +514,39 @@ bool ATNetCfg_GetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
+bool Calypso_ATNetCfg_SetIPv6Address(Calypso_ATNetCfg_IPv6Config_t *ipConfig, bool global)
 {
-    if (NULL == ipConfig)
-    {
-        return false;
-    }
+	if (NULL == ipConfig)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, global ? "AT+netCfgSet=IPV6_ADDR_GLOBAL," : "AT+netCfgSet=IPV6_ADDR_LOCAL,");
+	strcpy(pRequestCommand, global ? "AT+netCfgSet=IPV6_ADDR_GLOBAL," : "AT+netCfgSet=IPV6_ADDR_LOCAL,");
 
-    if (!ATCommand_AppendArgumentString(pRequestCommand, ATNetCfg_IPv6MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentString(pRequestCommand, Calypso_ATNetCfg_IPv6MethodStrings[ipConfig->method], ATCOMMAND_ARGUMENT_DELIM))
+	{
+		return false;
+	}
 
-    if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->ipAddress, ATCOMMAND_ARGUMENT_DELIM))
+	{
+		return false;
+	}
 
-    if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
-    {
-        return false;
-    }
+	if (!ATCommand_AppendArgumentString(pRequestCommand, ipConfig->dnsAddress, ATCOMMAND_STRING_TERMINATE))
+	{
+		return false;
+	}
 
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -572,35 +556,33 @@ bool ATNetCfg_SetIPv6Address(ATNetCfg_IPv6Config_t *ipConfig, bool global)
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
+bool Calypso_ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
 {
-    if (NULL == macAddress)
-    {
-        return false;
-    }
+	if (NULL == macAddress)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgSet=AP_STATION_DISCONNECT,,");
+	strcpy(pRequestCommand, "AT+netCfgSet=AP_STATION_DISCONNECT,,");
 
-    for (uint8_t i = 0; i < 6; i++)
-    {
-        if (!ATCommand_AppendArgumentInt(pRequestCommand,
-                                       macAddress[i],
-                                       ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX,
-                                       i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
-        {
-            return false;
-        }
-    }
+	for (uint8_t i = 0; i < 6; i++)
+	{
+		if (!ATCommand_AppendArgumentInt(pRequestCommand, macAddress[i],
+		ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX, i < 5 ? ':' : ATCOMMAND_STRING_TERMINATE))
+		{
+			return false;
+		}
+	}
 
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -610,39 +592,38 @@ bool ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
+bool Calypso_ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
 {
-    if (NULL == dns2ndServerAddress)
-    {
-        return false;
-    }
+	if (NULL == dns2ndServerAddress)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
-    char *pRespondCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
+	char *pRespondCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgGet=IPV4_DNS_CLIENT");
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	strcpy(pRequestCommand, "AT+netCfgGet=IPV4_DNS_CLIENT");
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+	{
+		return false;
+	}
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-    {
-        return false;
-    }
+	const char *expectedCmd = "+netcfgget:";
+	const size_t cmdLength = strlen(expectedCmd);
+	if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
+	{
+		return false;
+	}
 
-    const char *expectedCmd = "+netcfgget:";
-    const size_t cmdLength = strlen(expectedCmd);
-    if (0 != strncmp(pRespondCommand, expectedCmd, cmdLength))
-    {
-        return false;
-    }
+	pRespondCommand += cmdLength;
 
-    pRespondCommand += cmdLength;
-
-    return ATCommand_GetNextArgumentString(&pRespondCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE, 16);
+	return ATCommand_GetNextArgumentString(&pRespondCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE, 16);
 }
 
 /**
@@ -652,23 +633,23 @@ bool ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
  *
  * @return true if successful, false otherwise
  */
-bool ATNetCfg_SetIPv4DnsClient(const char dns2ndServerAddress[16])
+bool Calypso_ATNetCfg_SetIPv4DnsClient(const char dns2ndServerAddress[16])
 {
-    if (NULL == dns2ndServerAddress)
-    {
-        return false;
-    }
+	if (NULL == dns2ndServerAddress)
+	{
+		return false;
+	}
 
-    char *pRequestCommand = AT_commandBuffer;
+	char *pRequestCommand = AT_commandBuffer;
 
-    strcpy(pRequestCommand, "AT+netCfgSet=IPV4_DNS_CLIENT,,");
+	strcpy(pRequestCommand, "AT+netCfgSet=IPV4_DNS_CLIENT,,");
 
-    ATCommand_AppendArgumentString(pRequestCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE);
-    ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE);
+	ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 
-    if (!Calypso_SendRequest(pRequestCommand))
-    {
-        return false;
-    }
-    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+	if (!Calypso_SendRequest(pRequestCommand))
+	{
+		return false;
+	}
+	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }

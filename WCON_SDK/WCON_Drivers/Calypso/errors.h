@@ -32,23 +32,19 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-*/
-
+ */
 
 /**
  * @file
  * @brief Error codes returned by the Calypso module.
  */
 
-
-#ifndef __ERROR_H__
-#define __ERROR_H__
-
+#ifndef CALYPSO_ERROR_H_INCLUDED
+#define CALYPSO_ERROR_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #define SL_RET_CODE_OK                                                  (0L)    /* Success */
 
@@ -238,7 +234,6 @@ extern "C" {
 #define SL_ERROR_BSD_ESEC_UNSUPPORTED_SUITE                             (-790L) /* unsupported cipher suite */
 #define SL_ERROR_BSD_ESEC_MATCH_SUITE_ERROR                             (-791L) /* can't match cipher suite */
 
-
 /* WLAN ERRORS CODES*/
 #define  SL_ERROR_WLAN_KEY_ERROR                                        (-2049L)
 #define  SL_ERROR_WLAN_INVALID_ROLE                                     (-2050L)
@@ -370,7 +365,6 @@ extern "C" {
 #define SL_ERROR_WLAN_AP_SCAN_INTERVAL_TOO_SHORT                        (-2176L)
 #define SL_ERROR_WLAN_PROVISIONING_CMD_NOT_EXPECTED                     (-2177L)
 
-
 #define SL_ERROR_WLAN_AP_ACCESS_LIST_NO_ADDRESS_TO_DELETE               (-2178L) /*  List is empty, no address to delete */
 #define SL_ERROR_WLAN_AP_ACCESS_LIST_FULL                               (-2179L) /*  access list is full */
 #define SL_ERROR_WLAN_AP_ACCESS_LIST_DISABLED                           (-2180L) /*  access list is disabled */
@@ -380,7 +374,6 @@ extern "C" {
 #define SL_ERROR_WLAN_DMS_REQUEST_TIMEOUT                               (-2186L) /* Warning - DMS request was timed out (IGMP process succeeded) */
 #define SL_ERROR_WLAN_DMS_NOT_SUPPORTED_BY_AP                           (-2187L) /* Warning - AP does not support DMS (IGMP process succeeded) */
 #define SL_ERROR_WLAN_APPLY_COMMAND_IN_DISCONNECT                       (-2188L) /* Apply command in disconnect mode only */
-
 
 /* DEVICE ERRORS CODES*/
 #define SL_ERROR_SUPPLICANT_ERROR                                       (-4097L)
@@ -400,7 +393,6 @@ extern "C" {
 #define SL_ERROR_GENERAL_ERR                                            (-4115L) /*  General error during init */
 #define SL_ERROR_WRONG_ROLE                                             (-4116L)
 #define SL_ERROR_INCOMPLETE_PROGRAMMING                                 (-4117L) /*  Error during programming, Program new image should be invoked (see sl_FsProgram) */
-
 
 #define SL_ERROR_PENDING_TXRX_STOP_TIMEOUT_EXP                          (-4118L) /*  Timeout expired before completing all TX\RX */
 #define SL_ERROR_PENDING_TXRX_NO_TIMEOUT                                (-4119L) /*  No Timeout , still have pending  TX\RX */
@@ -497,7 +489,6 @@ extern "C" {
 #define SL_ERROR_INCORRECT_IPV6_STATIC_LOCAL_ADDR                       (-8194L) /*  Ipv6 Local address prefix is wrong */
 #define SL_ERROR_INCORRECT_IPV6_STATIC_GLOBAL_ADDR                      (-8195L) /*  Ipv6 Global address prefix is wrong */
 #define SL_ERROR_IPV6_LOCAL_ADDR_SHOULD_BE_SET_FIRST                    (-8196L) /* Attempt to set ipv6 global address before ipv6 local address is set */
-
 
 /* FS ERRORS CODES*/
 #define SL_FS_OK                                                        (0L)
@@ -633,7 +624,6 @@ extern "C" {
 #define SL_ERROR_FS_ALERT_CANT_BE_SET_ON_NON_SECURE_DEVICE              (-10371L) /* Alerts can be configured on non-secure device. */
 #define SL_ERROR_FS_WRONG_CERTIFICATE_FILE_NAME                         (-10372L)
 
-
 /* NETUTIL ERRORS CODES */
 #define SL_ERROR_NETUTIL_CRYPTO_GENERAL                                 (-12289L)
 #define SL_ERROR_NETUTIL_CRYPTO_INVALID_INDEX                           (-12290L)
@@ -652,7 +642,6 @@ extern "C" {
 #define SL_ERROR_UTILS_IP_NOT_FOUND                                     (-12303L)
 #define SL_ERROR_UTILS_IP_NOT_ALLOWED                                   (-12304L)
 
-
 /* GENERAL ERRORS CODES*/
 #define SL_ERROR_INVALID_OPCODE                                         (-14337L)
 #define SL_ERROR_INVALID_PARAM                                          (-14338L)
@@ -665,7 +654,7 @@ extern "C" {
 #define SL_ERROR_LOADING_CERTIFICATE_STORE                              (-28673L)
 
 /* Device is Locked! Return to Factory Image or Program new
-   image should be invoked (see sl_FsCtl, sl_FsProgram) */
+ image should be invoked (see sl_FsCtl, sl_FsProgram) */
 #define SL_ERROR_DEVICE_LOCKED_SECURITY_ALERT                           (-28674L)
 
 #define SL_ERROR_LENGTH_ERROR_PREFIX                                    (-30734L)
@@ -677,21 +666,20 @@ extern "C" {
 #define SL_ERROR_DHCP_SERVER_ENABLE_FAILED                              (-30740L)
 #define SL_ERROR_WPS_NO_PIN_OR_WRONG_PIN_LEN                            (-30741L)
 
-
 /* INTERNAL HOST ERRORS CODES*/
 
 /* Receive this error in case there are no resources to issue the command
-   If possible, increase the number of MAX_CONCURRENT_ACTIONS (result in memory increaseL)
-   If not, try again later */
+ If possible, increase the number of MAX_CONCURRENT_ACTIONS (result in memory increaseL)
+ If not, try again later */
 #define SL_POOL_IS_EMPTY                                                (-2000L)
 
 /* Receive this error in case a given length for RX buffer was too small.
-   Receive payload was bigger than the given buffer size. Therefore, payload is cut according to receive size
-   Recommend to increase buffer size */
+ Receive payload was bigger than the given buffer size. Therefore, payload is cut according to receive size
+ Recommend to increase buffer size */
 #define SL_ESMALLBUF                                                    (-2001L)
 
 /* Receive this error in case zero length is supplied to a "get" API
-   Recommend to supply length according to requested information (view options defines for helpL) */
+ Recommend to supply length according to requested information (view options defines for helpL) */
 #define SL_EZEROLEN                                                     (-2002L)
 
 /* User supplied invalid parameter */
@@ -731,14 +719,14 @@ extern "C" {
 #define SL_RET_CODE_PROVISIONING_IN_PROGRESS                            (-2014L)
 
 /* Wrong ping parameters - ping cannot be called with the following parameters: 
-1. infinite ping packet
-2. report only when finished 
-3. no callback supplied  */
+ 1. infinite ping packet
+ 2. report only when finished 
+ 3. no callback supplied  */
 #define SL_RET_CODE_NET_APP_PING_INVALID_PARAMS                         (-2015L)
 
 /* SL select already in progress.
-   this error will be returned if app will try to call
-   sl_select blocking when there is already select trigger in progress */
+ this error will be returned if app will try to call
+ sl_select blocking when there is already select trigger in progress */
 #define SL_RET_CODE_SOCKET_SELECT_IN_PROGRESS_ERROR                     (-2016L)
 
 #define SL_RET_CODE_STOP_IN_PROGRESS                                    (-2017L)
@@ -750,8 +738,8 @@ extern "C" {
 #define SL_RET_CODE_EVENT_LINK_NOT_FOUND                                (-2019L)
 
 /* In case there are no free buffers for async event which arrived
-   during command context. In this case user needs to increase
-   MAX_CONCURRENT_ACTIONS at user.h */
+ during command context. In this case user needs to increase
+ MAX_CONCURRENT_ACTIONS at user.h */
 #define SL_RET_CODE_NO_FREE_ASYNC_BUFFERS_ERROR                         (-2020L)
 
 /* SPI/UART interface closed */
@@ -770,4 +758,4 @@ extern "C" {
 }
 #endif /*  __cplusplus */
 
-#endif  /*  __ERROR_H__ */
+#endif  /*  CALYPSO_ERROR_H_INCLUDED */

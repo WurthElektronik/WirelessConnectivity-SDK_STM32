@@ -28,8 +28,8 @@
  * @brief Adrastea ATSocket Example header file.
  */
 
-#ifndef ATSOCKETEXAMPLES_H_INCLUDED
-#define ATSOCKETEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATSOCKETEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATSOCKETEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATSocketExample();
 }
 #endif
 
-#endif // ATSOCKETEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATSOCKETEXAMPLES_H_INCLUDED

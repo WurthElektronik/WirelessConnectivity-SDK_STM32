@@ -27,134 +27,119 @@
  * @file
  * @brief Calypso device example.
  */
-
-#include "Calypso_Device_Example.h"
-
+#include <Calypso/Examples/Calypso_Device_Example.h>
 #include <stdio.h>
-
 #include <Calypso/ATCommands/ATDevice.h>
-
-#include "Calypso_Examples.h"
+#include <Calypso/Examples/Calypso_Examples.h>
 
 /**
  * @brief Basic device functionality example.
  */
 void Calypso_Device_Example()
 {
-    printf("*** Start of Calypso ATDevice example ***\r\n");
+	printf("*** Start of Calypso ATDevice example ***\r\n");
 
-    if (!Calypso_Init(Calypso_Examples_baudRate, Calypso_Examples_flowControl, Calypso_Examples_parity, &Calypso_Examples_EventCallback, NULL))
-    {
-        return;
-    }
+	if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
+	{
+		printf("Initialization error\r\n");
+		return;
+	}
 
-    Calypso_PinReset();
+	Calypso_PinReset();
 
-    Calypso_Examples_WaitForStartup(5000);
+	Calypso_Examples_WaitForStartup(5000);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
-    bool ret = false;
+	bool ret = false;
 
-    /* Uncomment the following lines to activate factory reset (takes up to 90s) */
-//        ret = ATDevice_FactoryReset();
+	/* Uncomment the following lines to activate factory reset (takes up to 90s) */
+//        ret = Calypso_ATDevice_FactoryReset();
 //        Calypso_Examples_Print("Factory reset", ret);
 //        /* Must wait for startup event before sending commands */
 //        Calypso_Examples_WaitForStartup(10000);
+	ret = Calypso_ATDevice_Reboot();
+	Calypso_Examples_Print("Reboot", ret);
+	Calypso_Examples_WaitForStartup(5000);
 
+	ret = Calypso_ATDevice_Stop(250);
+	Calypso_Examples_Print("Stop NWP", ret);
 
-    ret = ATDevice_Reboot();
-    Calypso_Examples_Print("Reboot", ret);
-    Calypso_Examples_WaitForStartup(5000);
+	WE_Delay(500);
 
+	ret = Calypso_ATDevice_Start();
+	Calypso_Examples_Print("Start NWP", ret);
 
-    ret = ATDevice_Stop(250);
-    Calypso_Examples_Print("Stop NWP", ret);
+	WE_Delay(500);
 
-    WE_Delay(500);
+	/* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
+	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+	 * Calypso_firmwareVersionPatch for later use. */
+	Calypso_ATDevice_Value_t deviceValue;
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
+	Calypso_Examples_Print("Get device version", ret);
+	if (ret)
+	{
+		printf("Chip ID: %s\r\n", deviceValue.general.version.chipId);
+		printf("MAC Version: %s\r\n", deviceValue.general.version.MACVersion);
+		printf("NWP Version: %s\r\n", deviceValue.general.version.NWPVersion);
+		printf("PHY Version: %s\r\n", deviceValue.general.version.PHYVersion);
+		printf("ROM Version: %s\r\n", deviceValue.general.version.ROMVersion);
+		printf("Calypso firmware version: %s\r\n", deviceValue.general.version.calypsoFirmwareVersion);
+	}
 
-    ret = ATDevice_Start();
-    Calypso_Examples_Print("Start NWP", ret);
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_Baudrate, &deviceValue);
+	Calypso_Examples_Print("Get UART baud rate", ret);
+	if (ret)
+	{
+		printf("baudrate: %lu\r\n", deviceValue.uart.baudrate);
+	}
 
-    WE_Delay(500);
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_Parity, &deviceValue);
+	Calypso_Examples_Print("Get UART parity", ret);
+	if (ret)
+	{
+		printf("parity: %u\r\n", deviceValue.uart.parity);
+	}
 
-    /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-     * Calypso_firmwareVersionPatch for later use. */
-    ATDevice_Value_t deviceValue;
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &deviceValue);
-    Calypso_Examples_Print("Get device version", ret);
-    if (ret)
-    {
-        printf("Chip ID: %s\r\n", deviceValue.general.version.chipId);
-        printf("MAC Version: %s\r\n", deviceValue.general.version.MACVersion);
-        printf("NWP Version: %s\r\n", deviceValue.general.version.NWPVersion);
-        printf("PHY Version: %s\r\n", deviceValue.general.version.PHYVersion);
-        printf("ROM Version: %s\r\n", deviceValue.general.version.ROMVersion);
-        printf("Calypso firmware version: %s\r\n", deviceValue.general.version.calypsoFirmwareVersion);
-    }
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_FlowControl, &deviceValue);
+	Calypso_Examples_Print("Get UART flow control", ret);
+	if (ret)
+	{
+		printf("flow control: %s\r\n", deviceValue.uart.flowControl ? "on" : "off");
+	}
 
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Time, &deviceValue);
+	Calypso_Examples_Print("Get device time", ret);
+	if (ret)
+	{
+		printf("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+	}
 
-    ret = ATDevice_Get(ATDevice_GetId_UART, ATDevice_GetUart_Baudrate, &deviceValue);
-    Calypso_Examples_Print("Get UART baud rate", ret);
-    if (ret)
-    {
-        printf("baudrate: %lu\r\n", deviceValue.uart.baudrate);
-    }
+	WE_Delay(100);
 
-    ret = ATDevice_Get(ATDevice_GetId_UART, ATDevice_GetUart_Parity, &deviceValue);
-    Calypso_Examples_Print("Get UART parity", ret);
-    if (ret)
-    {
-        printf("parity: %u\r\n", deviceValue.uart.parity);
-    }
+	deviceValue.general.time.hour++;
+	deviceValue.general.time.year = 2021;
 
-    ret = ATDevice_Get(ATDevice_GetId_UART, ATDevice_GetUart_FlowControl, &deviceValue);
-    Calypso_Examples_Print("Get UART flow control", ret);
-    if (ret)
-    {
-        printf("flow control: %s\r\n", deviceValue.uart.flowControl ? "on" : "off");
-    }
+	ret = Calypso_ATDevice_Set(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Time, &deviceValue);
+	Calypso_Examples_Print("Set device time", ret);
 
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Time, &deviceValue);
-    Calypso_Examples_Print("Get device time", ret);
-    if (ret)
-    {
-        printf("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n",
-               deviceValue.general.time.day,
-               deviceValue.general.time.month,
-               deviceValue.general.time.year,
-               deviceValue.general.time.hour,
-               deviceValue.general.time.minute,
-               deviceValue.general.time.second);
-    }
+	WE_Delay(100);
 
-    WE_Delay(100);
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Time, &deviceValue);
+	Calypso_Examples_Print("Get device time", ret);
 
-    deviceValue.general.time.hour++;
-    deviceValue.general.time.year = 2021;
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_IOT, Calypso_ATDevice_GetIot_UDID, &deviceValue);
+	Calypso_Examples_Print("Get IoT UDID", ret);
+	if (ret)
+	{
+		printf("IoT UDID: %s\r\n", deviceValue.iot.udid);
+	}
 
-    ret = ATDevice_Set(ATDevice_GetId_General, ATDevice_GetGeneral_Time, &deviceValue);
-    Calypso_Examples_Print("Set device time", ret);
+	ret = Calypso_ATDevice_Sleep(2);
+	Calypso_Examples_Print("Sleep", ret);
 
-    WE_Delay(100);
+	WE_Delay(3000);
 
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Time, &deviceValue);
-    Calypso_Examples_Print("Get device time", ret);
-
-
-    ret = ATDevice_Get(ATDevice_GetId_IOT, ATDevice_GetIot_UDID, &deviceValue);
-	 Calypso_Examples_Print("Get IoT UDID", ret);
-	 if (ret)
-	 {
-		 printf("IoT UDID: %s\r\n", deviceValue.iot.udid);
-	 }
-
-
-    ret = ATDevice_Sleep(2);
-    Calypso_Examples_Print("Sleep", ret);
-
-    WE_Delay(3000);
-
-    Calypso_Deinit();
+	Calypso_Deinit();
 }

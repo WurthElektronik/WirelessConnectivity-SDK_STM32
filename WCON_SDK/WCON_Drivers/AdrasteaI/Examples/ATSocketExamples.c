@@ -22,108 +22,93 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATSMSExamples.h>
+#include <AdrasteaI/ATCommands/ATSocket.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATSMSExamples.h"
-#include "../ATCommands/ATSocket.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATSocket_EventCallback(char *eventText);
 
-void Adrastea_ATSocket_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
-static ATSocket_ID_t dataReceivedsocketID = ATSocket_ID_Invalid;
+static AdrasteaI_ATSocket_ID_t dataReceivedsocketID = AdrasteaI_ATSocket_ID_Invalid;
 static bool dataReceived = false;
 
 void ATSocketExample()
 {
+	printf("*** Start of Adrastea-I ATSocket example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATSocket_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATSocket_EventCallback))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATSocket example ***\r\n");
-
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATSocket_SetSocketUnsolicitedNotificationEvents(AdrasteaI_ATSocket_Event_All, AdrasteaI_ATCommon_Event_State_Enable);
+	AdrasteaI_ExamplesPrint("Set Socket Unsolicited Notification Events", ret);
 
-	ret = ATSocket_SetSocketUnsolicitedNotificationEvents(ATSocket_Event_All, ATCommon_Event_State_Enable);
-
-	AdrasteaExamplesPrint("Set Socket Unsolicited Notification Events", ret);
-
-	ATSocket_ID_t socketID;
-
-	ret = ATSocket_AllocateSocket(1, ATSocket_Type_TCP, ATSocket_Behaviour_Open_Connection, "52.43.121.77", 9001, 0, 0, 0, ATSocket_IP_Addr_Format_IPv4, &socketID);
-
-	AdrasteaExamplesPrint("Allocate Socket", ret);
-
+	AdrasteaI_ATSocket_ID_t socketID;
+	ret = AdrasteaI_ATSocket_AllocateSocket(1, AdrasteaI_ATSocket_Type_TCP, AdrasteaI_ATSocket_Behaviour_Open_Connection, "52.43.121.77", 9001, 0, 0, 0, AdrasteaI_ATSocket_IP_Addr_Format_IPv4, &socketID);
+	AdrasteaI_ExamplesPrint("Allocate Socket", ret);
 	if (ret)
 	{
 		printf("Socket ID: %d\r\n", socketID);
 	}
 
-	ret = ATSocket_ActivateSocket(1, ATCommon_Session_ID_Invalid);
-
-	AdrasteaExamplesPrint("Activate Socket", ret);
+	ret = AdrasteaI_ATSocket_ActivateSocket(1, AdrasteaI_ATCommon_Session_ID_Invalid);
+	AdrasteaI_ExamplesPrint("Activate Socket", ret);
 
 	char Payload[256];
-
-	ATSocket_Data_Read_t dataRead;
-
+	AdrasteaI_ATSocket_Data_Read_t dataRead;
 	dataRead.data = Payload;
-
 	while (dataReceived == false)
 	{
+		WE_Delay(10);
 	}
 
-	ret = ATSocket_ReceiveFromSocket(dataReceivedsocketID, &dataRead, sizeof(Payload));
-
-	AdrasteaExamplesPrint("Receive From Socket", ret);
-
+	ret = AdrasteaI_ATSocket_ReceiveFromSocket(dataReceivedsocketID, &dataRead, sizeof(Payload));
+	AdrasteaI_ExamplesPrint("Receive From Socket", ret);
 	if (ret)
 	{
 		printf("Socket ID: %d, Data length: %d, Payload: %s\r\n", dataRead.socketID, dataRead.dataLength, dataRead.data);
 	}
-
 }
 
-void Adrastea_ATSocket_EventCallback(char *eventText)
+void AdrasteaI_ATSocket_EventCallback(char *eventText)
 {
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
 	switch (event)
 	{
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
-	case ATEvent_Socket_Data_Received:
+	case AdrasteaI_ATEvent_Socket_Data_Received:
 	{
-		ATSocket_ParseDataReceivedEvent(eventText, &dataReceivedsocketID);
+		AdrasteaI_ATSocket_ParseDataReceivedEvent(eventText, &dataReceivedsocketID);
 		dataReceived = true;
 		break;
 	}
-	case ATEvent_Socket_Sockets_Read:
+	case AdrasteaI_ATEvent_Socket_Sockets_Read:
 	{
-		ATSocket_Read_Result_t readResult;
-		ATSocket_ParseSocketsReadEvent(eventText, &readResult);
+		AdrasteaI_ATSocket_Read_Result_t readResult;
+		AdrasteaI_ATSocket_ParseSocketsReadEvent(eventText, &readResult);
 		break;
 	}
 	default:

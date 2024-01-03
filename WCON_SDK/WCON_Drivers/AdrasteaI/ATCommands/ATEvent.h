@@ -28,17 +28,11 @@
  * @brief AT event definitions.
  */
 
-#ifndef AT_EVENT_H_INCLUDED
-#define AT_EVENT_H_INCLUDED
+#ifndef ADRASTEAI_AT_EVENT_H_INCLUDED
+#define ADRASTEAI_AT_EVENT_H_INCLUDED
 
 #include <stdint.h>
 #include <stdbool.h>
-
-#define ATEvent_GNSS_NumberOfValues      3
-#define ATEvent_MQTT_NumberOfValues      7
-#define ATEvent_MQTT_AWSIOT_NumberOfValues      7
-#define ATEvent_HTTP_NumberOfValues      5
-#define ATEvent_Socket_NumberOfValues      4
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,67 +41,66 @@ extern "C" {
 /**
  * @brief AT event IDs.
  */
-typedef enum ATEvent_t
+typedef enum AdrasteaI_ATEvent_t
 {
-	ATEvent_Invalid,
-	ATEvent_NetService_Operator_Read,
-	ATEvent_Proprietary_Ping_Result,
-	ATEvent_Proprietary_Domain_Name_Resolve,
-	ATEvent_PacketDomain_Network_Registration_Status,
-	ATEvent_PacketDomain_PDP_Context,
-	ATEvent_PacketDomain_PDP_Context_State,
-	ATEvent_GNSS_Satalite_Query,
+	AdrasteaI_ATEvent_Invalid = (uint16_t) 0,
 
-	ATEvent_GNSS,
-	ATEvent_GNSS_NMEA = ATEvent_GNSS,
-	ATEvent_GNSS_Session_Status_Change,
-	ATEvent_GNSS_Allowed_Status_Change,
+	AdrasteaI_ATEvent_Ready,
 
-	ATEvent_MQTT,
-	ATEvent_MQTT_Connection_Confirmation = ATEvent_MQTT,
-	ATEvent_MQTT_Disconnection_Confirmation,
-	ATEvent_MQTT_Subscription_Confirmation,
-	ATEvent_MQTT_Unsubsrciption_Confimration,
-	ATEvent_MQTT_Publication_Confirmation,
-	ATEvent_MQTT_Publication_Received,
-	ATEvent_MQTT_Connection_Failure,
+	AdrasteaI_ATEvent_NetService_Operator_Read,
+	AdrasteaI_ATEvent_Proprietary_Ping_Result,
+	AdrasteaI_ATEvent_Proprietary_Domain_Name_Resolve,
+	AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status,
+	AdrasteaI_ATEvent_PacketDomain_PDP_Context,
+	AdrasteaI_ATEvent_PacketDomain_PDP_Context_State,
+	AdrasteaI_ATEvent_GNSS_Satellite_Query,
 
-	ATEvent_MQTT_AWSIOT,
-	ATEvent_MQTT_AWSIOT_Connection_Confirmation = ATEvent_MQTT_AWSIOT,
-	ATEvent_MQTT_AWSIOT_Disconnection_Confirmation,
-	ATEvent_MQTT_AWSIOT_Subscription_Confirmation,
-	ATEvent_MQTT_AWSIOT_Unsubsrciption_Confimration,
-	ATEvent_MQTT_AWSIOT_Publication_Confirmation,
-	ATEvent_MQTT_AWSIOT_Publication_Received,
-	ATEvent_MQTT_AWSIOT_Connection_Failure,
+	AdrasteaI_ATEvent_GNSS_NMEA,
+	AdrasteaI_ATEvent_GNSS_Session_Status_Change,
+	AdrasteaI_ATEvent_GNSS_Allowed_Status_Change,
 
-	ATEvent_HTTP,
-	ATEvent_HTTP_PUT_Confirmation = ATEvent_HTTP,
-	ATEvent_HTTP_POST_Confirmation,
-	ATEvent_HTTP_DELETE_Confirmation,
-	ATEvent_HTTP_GET_Receive,
-	ATEvent_HTTP_Session_Termination,
+	AdrasteaI_ATEvent_GNSS_DataFileSaved,
 
-	ATEvent_SMS_Read_Message,
-	ATEvent_SMS_List_Messages,
-	ATEvent_SMS_Message_Received,
-	ATEvent_SMS_Error,
+	AdrasteaI_ATEvent_MQTT_Connection_Confirmation,
+	AdrasteaI_ATEvent_MQTT_Disconnection_Confirmation,
+	AdrasteaI_ATEvent_MQTT_Subscription_Confirmation,
+	AdrasteaI_ATEvent_MQTT_Unsubscription_Confirmation,
+	AdrasteaI_ATEvent_MQTT_Publication_Confirmation,
+	AdrasteaI_ATEvent_MQTT_Publication_Received,
+	AdrasteaI_ATEvent_MQTT_Connection_Failure,
 
-	ATEvent_Socket,
-	ATEvent_Socket_Data_Received = ATEvent_Socket,
-	ATEvent_Socket_Deactivated_Idle_Timer,
-	ATEvent_Socket_Terminated_By_Peer,
-	ATEvent_Socket_New_Socket_Accepted,
-	ATEvent_Socket_Sockets_Read,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Confirmation,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Disconnection_Confirmation,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Subscription_Confirmation,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Unsubscription_Confirmation,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Publication_Confirmation,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Publication_Received,
+	AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Failure,
 
-	ATEvent_SIM_Subscriber_Number,
+	AdrasteaI_ATEvent_HTTP_PUT_Confirmation,
+	AdrasteaI_ATEvent_HTTP_POST_Confirmation,
+	AdrasteaI_ATEvent_HTTP_DELETE_Confirmation,
+	AdrasteaI_ATEvent_HTTP_GET_Receive,
+	AdrasteaI_ATEvent_HTTP_Session_Termination,
 
-	ATEvent_NumberOfValues
-} ATEvent_t;
+	AdrasteaI_ATEvent_SMS_Read_Message,
+	AdrasteaI_ATEvent_SMS_List_Messages,
+	AdrasteaI_ATEvent_SMS_Message_Received,
+	AdrasteaI_ATEvent_SMS_Error,
 
-extern bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent);
+	AdrasteaI_ATEvent_Socket_Data_Received,
+	AdrasteaI_ATEvent_Socket_Deactivated_Idle_Timer,
+	AdrasteaI_ATEvent_Socket_Terminated_By_Peer,
+	AdrasteaI_ATEvent_Socket_New_Socket_Accepted,
+	AdrasteaI_ATEvent_Socket_Sockets_Read,
 
-extern bool ATEvent_GetEventName(ATEvent_t event, char *pEventName);
+	AdrasteaI_ATEvent_SIM_Subscriber_Number,
+
+	AdrasteaI_ATEvent_NumberOfValues,
+	AdrasteaI_ATEvent_Max = UINT16_MAX
+} AdrasteaI_ATEvent_t;
+
+extern bool AdrasteaI_ATEvent_ParseEventType(char **pAtCommand, AdrasteaI_ATEvent_t *pEvent);
 
 #ifdef __cplusplus
 }

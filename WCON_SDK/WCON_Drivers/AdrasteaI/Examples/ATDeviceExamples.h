@@ -28,8 +28,8 @@
  * @brief Adrastea ATDevice Example header file.
  */
 
-#ifndef ATDEVICEEXAMPLES_H_INCLUDED
-#define ATDEVICEEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATDEVICEEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATDEVICEEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATDeviceExample();
 }
 #endif
 
-#endif // ATDEVICEEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATDEVICEEXAMPLES_H_INCLUDED

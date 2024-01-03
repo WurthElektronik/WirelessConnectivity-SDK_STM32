@@ -28,155 +28,155 @@
  * @brief AT commands for SMS functionality.
  */
 
-#ifndef AT_SMS_H_INCLUDED
-#define AT_SMS_H_INCLUDED
+#ifndef ADRASTEAI_AT_SMS_H_INCLUDED
+#define ADRASTEAI_AT_SMS_H_INCLUDED
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ATCommon.h"
+#include <AdrasteaI/ATCommands/ATCommon.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef uint8_t ATSMS_Message_Index_t;
+typedef uint8_t AdrasteaI_ATSMS_Message_Index_t;
 
 /**
  * @brief Message States
  */
-typedef enum ATSMS_Message_State_t
+typedef enum AdrasteaI_ATSMS_Message_State_t
 {
-	ATSMS_Message_State_Invalid = -1,
-	ATSMS_Message_State_Received_Unread,
-	ATSMS_Message_State_Received_Read,
-	ATSMS_Message_State_Stored_Unsent,
-	ATSMS_Message_State_Stored_Sent,
-	ATSMS_Message_State_All,
-	ATSMS_Message_State_NumberOfValues
-} ATSMS_Message_State_t;
+	AdrasteaI_ATSMS_Message_State_Invalid = -1,
+	AdrasteaI_ATSMS_Message_State_Received_Unread,
+	AdrasteaI_ATSMS_Message_State_Received_Read,
+	AdrasteaI_ATSMS_Message_State_Stored_Unsent,
+	AdrasteaI_ATSMS_Message_State_Stored_Sent,
+	AdrasteaI_ATSMS_Message_State_All,
+	AdrasteaI_ATSMS_Message_State_NumberOfValues
+} AdrasteaI_ATSMS_Message_State_t;
 
 /**
  * @brief Message Storage Locations
  */
-typedef enum ATSMS_Storage_Location_t
+typedef enum AdrasteaI_ATSMS_Storage_Location_t
 {
-	ATSMS_Storage_Location_Invalid = -1,
-	ATSMS_Storage_Location_Broadcast,
-	ATSMS_Storage_Location_ME,
-	ATSMS_Storage_Location_MT,
-	ATSMS_Storage_Location_SIM,
-	ATSMS_Storage_Location_TA,
-	ATSMS_Storage_Location_Status_Report,
-	ATSMS_Storage_Location_NumberOfValues
-} ATSMS_Storage_Location_t;
+	AdrasteaI_ATSMS_Storage_Location_Invalid = -1,
+	AdrasteaI_ATSMS_Storage_Location_Broadcast,
+	AdrasteaI_ATSMS_Storage_Location_ME,
+	AdrasteaI_ATSMS_Storage_Location_MT,
+	AdrasteaI_ATSMS_Storage_Location_SIM,
+	AdrasteaI_ATSMS_Storage_Location_TA,
+	AdrasteaI_ATSMS_Storage_Location_Status_Report,
+	AdrasteaI_ATSMS_Storage_Location_NumberOfValues
+} AdrasteaI_ATSMS_Storage_Location_t;
 
-typedef uint8_t ATSMS_Message_Count_t;
+typedef uint8_t AdrasteaI_ATSMS_Message_Count_t;
 
 /**
  * @brief Storage Usage
  */
-typedef struct ATSMS_Storage_Usage_t
+typedef struct AdrasteaI_ATSMS_Storage_Usage_t
 {
-	ATSMS_Storage_Location_t storageLocation;
-	ATSMS_Message_Count_t usedMessages;
-	ATSMS_Message_Count_t maxMessages;
-} ATSMS_Storage_Usage_t;
+	AdrasteaI_ATSMS_Storage_Location_t storageLocation;
+	AdrasteaI_ATSMS_Message_Count_t usedMessages;
+	AdrasteaI_ATSMS_Message_Count_t maxMessages;
+} AdrasteaI_ATSMS_Storage_Usage_t;
 
 /**
  * @brief Message Storage Usage
  */
-typedef struct ATSMS_Message_Storage_Usage_t
+typedef struct AdrasteaI_ATSMS_Message_Storage_Usage_t
 {
-	ATSMS_Storage_Usage_t readDeleteStorageUsage;
-	ATSMS_Storage_Usage_t writeSendStorageUsage;
-	ATSMS_Storage_Usage_t receiveStorageUsage;
-} ATSMS_Message_Storage_Usage_t;
+	AdrasteaI_ATSMS_Storage_Usage_t readDeleteStorageUsage;
+	AdrasteaI_ATSMS_Storage_Usage_t writeSendStorageUsage;
+	AdrasteaI_ATSMS_Storage_Usage_t receiveStorageUsage;
+} AdrasteaI_ATSMS_Message_Storage_Usage_t;
 
-typedef uint16_t ATSMS_Error_t;
+typedef uint16_t AdrasteaI_ATSMS_Error_t;
 
-typedef char ATSMS_Address_t[64];
+typedef char AdrasteaI_ATSMS_Address_t[64];
 
 /**
  * @brief Address Type
  */
-typedef enum ATSMS_Address_Type_t
+typedef enum AdrasteaI_ATSMS_Address_Type_t
 {
-	ATSMS_Address_Type_Invalid = -1,
-	ATSMS_Address_Type_National_Number = 129,
-	ATSMS_Address_Type_International_Number = 145,
-	ATSMS_Address_Type_NumberOfValues
-} ATSMS_Address_Type_t;
+	AdrasteaI_ATSMS_Address_Type_Invalid = -1,
+	AdrasteaI_ATSMS_Address_Type_National_Number = 129,
+	AdrasteaI_ATSMS_Address_Type_International_Number = 145,
+	AdrasteaI_ATSMS_Address_Type_NumberOfValues
+} AdrasteaI_ATSMS_Address_Type_t;
 
 /**
  * @brief Service Center Address
  */
-typedef struct ATSMS_Service_Center_Address_t
+typedef struct AdrasteaI_ATSMS_Service_Center_Address_t
 {
-	ATSMS_Address_t address;
-	ATSMS_Address_Type_t addressType;
-} ATSMS_Service_Center_Address_t;
+	AdrasteaI_ATSMS_Address_t address;
+	AdrasteaI_ATSMS_Address_Type_t addressType;
+} AdrasteaI_ATSMS_Service_Center_Address_t;
 
-typedef char ATSMS_Message_Payload_t[128];
+typedef char AdrasteaI_ATSMS_Message_Payload_t[128];
 
-typedef uint8_t ATSMS_Message_Reference_t;
+typedef uint8_t AdrasteaI_ATSMS_Message_Reference_t;
 
 /**
  * @brief SMS Message
  */
-typedef struct ATSMS_Message_t
+typedef struct AdrasteaI_ATSMS_Message_t
 {
-	ATSMS_Message_Index_t messageIndex;
-	ATSMS_Message_State_t messageState;
-	ATSMS_Address_t address;
-	ATSMS_Message_Payload_t payload;
-} ATSMS_Message_t;
+	AdrasteaI_ATSMS_Message_Index_t messageIndex;
+	AdrasteaI_ATSMS_Message_State_t messageState;
+	AdrasteaI_ATSMS_Address_t address;
+	AdrasteaI_ATSMS_Message_Payload_t payload;
+} AdrasteaI_ATSMS_Message_t;
 
 /**
  * @brief SMS Message Received result
  */
-typedef struct ATSMS_Message_Received_Result_t
+typedef struct AdrasteaI_ATSMS_Message_Received_Result_t
 {
-	ATSMS_Storage_Location_t storageLocation;
-	ATSMS_Message_Index_t messageIndex;
-} ATSMS_Message_Received_Result_t;
+	AdrasteaI_ATSMS_Storage_Location_t storageLocation;
+	AdrasteaI_ATSMS_Message_Index_t messageIndex;
+} AdrasteaI_ATSMS_Message_Received_Result_t;
 
-extern bool ATSMS_DeleteMessage(ATSMS_Message_Index_t index);
+extern bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index);
 
-extern bool ATSMS_DeleteAllMessages();
+extern bool AdrasteaI_ATSMS_DeleteAllMessages();
 
-extern bool ATSMS_ListMessages(ATSMS_Message_State_t listType);
+extern bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType);
 
-extern bool ATSMS_ReadMessage(ATSMS_Message_Index_t index);
+extern bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index);
 
-extern bool ATSMS_SetMessageStorageLocations(ATSMS_Storage_Location_t readDeleteStorage, ATSMS_Storage_Location_t writeSendStorage, ATSMS_Storage_Location_t receiveStorage);
+extern bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location_t readDeleteStorage, AdrasteaI_ATSMS_Storage_Location_t writeSendStorage, AdrasteaI_ATSMS_Storage_Location_t receiveStorage);
 
-extern bool ATSMS_ReadMessageStorageUsage(ATSMS_Message_Storage_Usage_t *storageUsageP);
+extern bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usage_t *storageUsageP);
 
-extern bool ATSMS_SetServiceCenterAddress(ATSMS_Service_Center_Address_t serviceCenterAddress);
+extern bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t serviceCenterAddress);
 
-extern bool ATSMS_ReadServiceCenterAddress(ATSMS_Service_Center_Address_t *serviceCenterAddressP);
+extern bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t *serviceCenterAddressP);
 
-extern bool ATSMS_SendMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Reference_t *messageReferenceP);
+extern bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP);
 
-extern bool ATSMS_SendLargeMessage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Reference_t *messageReferenceP);
+extern bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP);
 
-extern bool ATSMS_WriteMessageToStorage(ATSMS_Address_t address, ATSMS_Address_Type_t addressType, ATSMS_Message_Payload_t message, ATSMS_Message_Index_t *messageIndexP);
+extern bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Index_t *messageIndexP);
 
-extern bool ATSMS_SendMessageFromStorage(ATSMS_Message_Index_t index, ATSMS_Message_Reference_t *messageReferenceP);
+extern bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t index, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP);
 
-extern bool ATSMS_SetSMSUnsolicitedNotificationEvents(ATCommon_Event_State_t eventState);
+extern bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Event_State_t eventState);
 
-extern bool ATSMS_ParseReadMessageEvent(char *pEventArguments, ATSMS_Message_t *dataP);
+extern bool AdrasteaI_ATSMS_ParseReadMessageEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP);
 
-extern bool ATSMS_ParseListMessagesEvent(char *pEventArguments, ATSMS_Message_t *dataP);
+extern bool AdrasteaI_ATSMS_ParseListMessagesEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP);
 
-extern bool ATSMS_ParseMessageReceivedEvent(char *pEventArguments, ATSMS_Message_Received_Result_t *dataP);
+extern bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_Received_Result_t *dataP);
 
-extern bool ATSMS_ParseSMSErrorEvent(char *pEventArguments, ATSMS_Error_t *dataP);
+extern bool AdrasteaI_ATSMS_ParseSMSErrorEvent(char *pEventArguments, AdrasteaI_ATSMS_Error_t *dataP);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_SMS_H_INCLUDED */
+#endif /* ADRASTEAI_AT_SMS_H_INCLUDED */

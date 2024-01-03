@@ -27,23 +27,19 @@
  * @file
  * @brief Calypso MQTT example.
  */
-
-#include "Calypso_MQTT_Example.h"
-
+#include <Calypso/Examples/Calypso_MQTT_Example.h>
 #include <stdio.h>
-
 #include <Calypso/ATCommands/ATDevice.h>
 #include <Calypso/ATCommands/ATMQTT.h>
 #include <Calypso/ATCommands/ATNetCfg.h>
 #include <Calypso/ATCommands/ATSocket.h>
 #include <Calypso/ATCommands/ATWLAN.h>
-
-#include "Calypso_Examples.h"
+#include <Calypso/Examples/Calypso_Examples.h>
 
 /**
  * @brief MQTT server address (used in MQTT example)
  */
-static const char *mqttServerAddress = "192.168.178.57";
+static const char *mqttServerAddress = "test.mosquitto.org";
 
 /**
  * @brief MQTT server port (used in MQTT example)
@@ -55,131 +51,123 @@ static const uint16_t mqttServerPort = 1883;
  */
 void Calypso_MQTT_Example(void)
 {
-    printf("*** Start of Calypso ATMQTT example ***\r\n");
+	printf("*** Start of Calypso ATMQTT example ***\r\n");
 
-    bool ret = false;
+	bool ret = false;
 
-    if (!Calypso_Init(Calypso_Examples_baudRate, Calypso_Examples_flowControl, Calypso_Examples_parity, &Calypso_Examples_EventCallback, NULL))
-    {
-        return;
-    }
+	if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
+	{
+		return;
+	}
 
-    Calypso_PinReset();
+	Calypso_PinReset();
 
-    Calypso_Examples_WaitForStartup(5000);
+	Calypso_Examples_WaitForStartup(5000);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
-    /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-     * Calypso_firmwareVersionPatch for later use. */
-    ATDevice_Value_t deviceValue;
-    ret = ATDevice_Get(ATDevice_GetId_General, ATDevice_GetGeneral_Version, &deviceValue);
-    Calypso_Examples_Print("Get device version", ret);
+	/* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
+	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+	 * Calypso_firmwareVersionPatch for later use. */
+	Calypso_ATDevice_Value_t deviceValue;
+	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
+	Calypso_Examples_Print("Get device version", ret);
 
-    ATWLAN_Disconnect();
+	Calypso_ATWLAN_Disconnect();
 
-    /* Set IPv4 address method DHCP */
-    ATNetCfg_IPv4Config_t newIpV4Config = {0};
-    newIpV4Config.method = ATNetCfg_IPv4Method_Dhcp;
-    ret = ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
-    Calypso_Examples_Print("Set IPv4 DHCP", ret);
+	/* Set IPv4 address method DHCP */
+	Calypso_ATNetCfg_IPv4Config_t newIpV4Config = {
+			0 };
+	newIpV4Config.method = Calypso_ATNetCfg_IPv4Method_Dhcp;
+	ret = Calypso_ATNetCfg_SetIPv4AddressStation(&newIpV4Config);
+	Calypso_Examples_Print("Set IPv4 DHCP", ret);
 
-    /* No automatic connection */
-    ret = ATWLAN_SetConnectionPolicy(ATWLAN_PolicyConnection_None);
-    Calypso_Examples_Print("Set no WLAN connection policy", ret);
+	/* No automatic connection */
+	ret = Calypso_ATWLAN_SetConnectionPolicy(Calypso_ATWLAN_PolicyConnection_None);
+	Calypso_Examples_Print("Set no WLAN connection policy", ret);
 
-    /* WLAN station mode */
-    ret = ATWLAN_SetMode(ATWLAN_SetMode_Station);
-    Calypso_Examples_Print("Set WLAN station mode", ret);
+	/* WLAN station mode */
+	ret = Calypso_ATWLAN_SetMode(Calypso_ATWLAN_SetMode_Station);
+	Calypso_Examples_Print("Set WLAN station mode", ret);
 
-    ret = ATDevice_Restart(0);
-    Calypso_Examples_Print("Restart network processor", ret);
+	ret = Calypso_ATDevice_Restart(0);
+	Calypso_Examples_Print("Restart network processor", ret);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
-    /* Connect to WLAN */
-    ATWLAN_ConnectionArguments_t connectArgs;
-    memset(&connectArgs, 0, sizeof(connectArgs));
-    strcpy(connectArgs.SSID, Calypso_Examples_wlanSSID);
-    connectArgs.securityParams.securityType = ATWLAN_SecurityType_WPA_WPA2;
-    strcpy(connectArgs.securityParams.securityKey, Calypso_Examples_wlanKey);
+	/* Connect to WLAN */
+	Calypso_ATWLAN_ConnectionArguments_t connectArgs;
+	memset(&connectArgs, 0, sizeof(connectArgs));
+	strcpy(connectArgs.SSID, Calypso_Examples_wlanSSID);
+	connectArgs.securityParams.securityType = Calypso_ATWLAN_SecurityType_WPA_WPA2;
+	strcpy(connectArgs.securityParams.securityKey, Calypso_Examples_wlanKey);
 
-    ret = ATWLAN_Connect(connectArgs);
-    Calypso_Examples_Print("Connect to WLAN", ret);
+	ret = Calypso_ATWLAN_Connect(connectArgs);
+	Calypso_Examples_Print("Connect to WLAN", ret);
 
-    WE_Delay(2000);
+	WE_Delay(2000);
 
+	/* Create MQTT client */
+	Calypso_ATMQTT_ServerInfo_t serverInfo;
+	strcpy(serverInfo.address, mqttServerAddress);
+	serverInfo.port = mqttServerPort;
 
-    /* Create MQTT client */
-    ATMQTT_ServerInfo_t serverInfo;
-    strcpy(serverInfo.address, mqttServerAddress);
-    serverInfo.port = mqttServerPort;
+	Calypso_ATMQTT_SecurityParams_t securityParams;
+	securityParams.securityMethod = Calypso_ATMQTT_SecurityMethod_SSLV3;
+	strcpy(securityParams.CAFile, ATCOMMAND_STRING_EMPTY);
+	strcpy(securityParams.certificateFile, ATCOMMAND_STRING_EMPTY);
+	strcpy(securityParams.DHKey, ATCOMMAND_STRING_EMPTY);
+	strcpy(securityParams.privateKeyFile, ATCOMMAND_STRING_EMPTY);
+	securityParams.cipher = Calypso_ATSocket_Cipher_SSL_RSA_WITH_RC4_128_MD5;
 
-    ATMQTT_SecurityParams_t securityParams;
-    securityParams.securityMethod = ATMQTT_SecurityMethod_SSLV3;
-    strcpy(securityParams.CAFile, ATCOMMAND_STRING_EMPTY);
-    strcpy(securityParams.certificateFile, ATCOMMAND_STRING_EMPTY);
-    strcpy(securityParams.DHKey, ATCOMMAND_STRING_EMPTY);
-    strcpy(securityParams.privateKeyFile, ATCOMMAND_STRING_EMPTY);
-    securityParams.cipher = ATSocket_Cipher_SSL_RSA_WITH_RC4_128_MD5;
+	Calypso_ATMQTT_ConnectionParams_t connectionParams;
+	connectionParams.format = Calypso_DataFormat_Binary;
+	connectionParams.protocolVersion = Calypso_ATMQTT_ProtocolVersion_v3_1;
+	connectionParams.blockingSend = 0;
 
-    ATMQTT_ConnectionParams_t connectionParams;
-    connectionParams.format = Calypso_DataFormat_Binary;
-    connectionParams.protocolVersion = ATMQTT_ProtocolVersion_v3_1;
-    connectionParams.blockingSend = 0;
+	uint8_t mqttIndex = 0;
+	ret = Calypso_ATMQTT_Create("testClient", Calypso_ATMQTT_CreateFlags_URL, serverInfo, securityParams, connectionParams, &mqttIndex);
+	Calypso_Examples_Print("Create MQTT client", ret);
 
-    uint8_t mqttIndex = 0;
-    ret = ATMQTT_Create("testClient",
-                        ATMQTT_CreateFlags_IPv4,
-                        serverInfo,
-                        securityParams,
-                        connectionParams,
-                        &mqttIndex);
-    Calypso_Examples_Print("Create MQTT client", ret);
+	/* Connect to MQTT broker */
+	ret = Calypso_ATMQTT_Connect(mqttIndex);
+	Calypso_Examples_Print("Connect to MQTT broker", ret);
 
+	WE_Delay(2000);
 
-    /* Connect to MQTT broker */
-    ret = ATMQTT_Connect(mqttIndex);
-    Calypso_Examples_Print("Connect to MQTT broker", ret);
+	/* Publish some MQTT topics */
+	char *message = "10.4 deg";
+	ret = Calypso_ATMQTT_Publish(mqttIndex, "kitchen/temp", Calypso_ATMQTT_QoS_QoS0, 1, strlen(message), message);
+	Calypso_Examples_Print("Publish MQTT topic", ret);
 
-    WE_Delay(2000);
+	Calypso_ATMQTT_SubscribeTopic_t topics[4];
+	strcpy(topics[0].topic, "kitchen/temp");
+	topics[0].QoS = Calypso_ATMQTT_QoS_QoS0;
 
-    /* Publish some MQTT topics */
-    char *message = "10.4 deg";
-    ret = ATMQTT_Publish(mqttIndex, "kitchen/temp", ATMQTT_QoS_QoS0, 1, strlen(message), message);
-    Calypso_Examples_Print("Publish MQTT topic", ret);
+	strcpy(topics[1].topic, "kitchen/humidity");
+	topics[1].QoS = Calypso_ATMQTT_QoS_QoS0;
 
-    ATMQTT_SubscribeTopic_t topics[4];
-    strcpy(topics[0].topic, "kitchen/temp");
-    topics[0].QoS = ATMQTT_QoS_QoS0;
+	/* Subscribe to the above topics, then unsubscribe from "kitchen/temp" */
 
-    strcpy(topics[1].topic, "kitchen/humidity");
-    topics[1].QoS = ATMQTT_QoS_QoS0;
+	ret = Calypso_ATMQTT_Subscribe(mqttIndex, 2, topics);
+	Calypso_Examples_Print("MQTT subscribe", ret);
 
+	WE_Delay(1000);
 
-    /* Subscribe to the above topics, then unsubscribe from "kitchen/temp" */
+	ret = Calypso_ATMQTT_Unsubscribe(mqttIndex, "kitchen/temp", "", "", "");
+	Calypso_Examples_Print("MQTT unsubscribe", ret);
 
-    ret = ATMQTT_Subscribe(mqttIndex, 2, topics);
-    Calypso_Examples_Print("MQTT subscribe", ret);
+	WE_Delay(1000);
 
-    WE_Delay(1000);
+	/* Disconnect and delete MQTT client */
 
-    ret = ATMQTT_Unsubscribe(mqttIndex, "kitchen/temp", "", "", "");
-    Calypso_Examples_Print("MQTT unsubscribe", ret);
+	ret = Calypso_ATMQTT_Disconnect(mqttIndex);
+	Calypso_Examples_Print("MQTT disconnect", ret);
 
-    WE_Delay(1000);
+	WE_Delay(1000);
 
+	ret = Calypso_ATMQTT_Delete(mqttIndex);
+	Calypso_Examples_Print("MQTT delete", ret);
 
-    /* Disconnect and delete MQTT client */
-
-    ret = ATMQTT_Disconnect(mqttIndex);
-    Calypso_Examples_Print("MQTT disconnect", ret);
-
-    WE_Delay(1000);
-
-    ret = ATMQTT_Delete(mqttIndex);
-    Calypso_Examples_Print("MQTT delete", ret);
-
-    Calypso_Deinit();
+	Calypso_Deinit();
 }

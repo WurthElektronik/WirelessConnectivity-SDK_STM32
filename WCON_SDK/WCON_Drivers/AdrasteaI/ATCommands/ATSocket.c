@@ -27,22 +27,21 @@
  * @file
  * @brief AT commands for Socket functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATSocket.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATSocket.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATSocket_State_Strings[ATSocket_State_NumberOfValues] = {
+static const char *AdrasteaI_ATSocket_State_Strings[AdrasteaI_ATSocket_State_NumberOfValues] = {
 		"DEACTIVATED",
 		"ACTIVATED",
 		"LISTENING" };
 
-static const char *ATSocket_Type_Strings[ATSocket_Type_NumberOfValues] = {
+static const char *AdrasteaI_ATSocket_Type_Strings[AdrasteaI_ATSocket_Type_NumberOfValues] = {
 		"TCP",
 		"UDP" };
 
-static const char *ATSocket_Behaviour_Strings[ATSocket_Behaviour_NumberOfValues] = {
+static const char *AdrasteaI_ATSocket_Behaviour_Strings[AdrasteaI_ATSocket_Behaviour_NumberOfValues] = {
 		"OPEN",
 		"LISTEN",
 		"LISTENP" };
@@ -52,13 +51,13 @@ static const char *ATSocket_Behaviour_Strings[ATSocket_Behaviour_NumberOfValues]
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ReadCreatedSocketsStates()
+bool AdrasteaI_ATSocket_ReadCreatedSocketsStates()
 {
-	if (!Adrastea_SendRequest("AT%SOCKETCMD?\r\n"))
+	if (!AdrasteaI_SendRequest("AT%SOCKETCMD?\r\n"))
 	{
 		return false;
 	}
-	return Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL);
+	return AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -66,34 +65,34 @@ bool ATSocket_ReadCreatedSocketsStates()
  *
  * @param[in] sessionID Session ID.
  *
- * @param[in] socketType Socket Type. See ATSocket_Type_t.
+ * @param[in] socketType Socket Type. See AdrasteaI_ATSocket_Type_t.
  *
- * @param[in] socketBehaviour Socket Behaviour. See ATSocket_Behaviour_t.
+ * @param[in] socketBehaviour Socket Behaviour. See AdrasteaI_ATSocket_Behaviour_t.
  *
  * @param[in] destinationIPAddress Destination IP Address.
  *
  * @param[in] destinationPortNumber Destination Port Number.
  *
- * @param[in] sourcePortNumber Source Port Number (optional pass ATCommon_Port_Number_Invalid to skip).
+ * @param[in] sourcePortNumber Source Port Number (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
  *
- * @param[in] packetSize Packet Size (optional pass ATSocket_Data_Length_Automatic to skip).
+ * @param[in] packetSize Packet Size (optional pass AdrasteaI_ATSocket_Data_Length_Automatic to skip).
  *
- * @param[in] socketTimeout Socket Timeout in seconds (optional pass ATSocket_Timeout_Invalid to skip).
+ * @param[in] socketTimeout Socket Timeout in seconds (optional pass AdrasteaI_ATSocket_Timeout_Invalid to skip).
  *
- * @param[in] addressFormat IP Address Format (optional pass ATSocket_IP_Addr_Format_Invalid to skip). See ATSocket_IP_Addr_Format_t.
+ * @param[in] addressFormat IP Address Format (optional pass AdrasteaI_ATSocket_IP_Addr_Format_Invalid to skip). See AdrasteaI_ATSocket_IP_Addr_Format_t.
  *
  * @param[out] socketIDP Socket ID.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t socketType, ATSocket_Behaviour_t socketBehaviour, ATCommon_IP_Addr_t destinationIPAddress, ATCommon_Port_Number_t destinationPortNumber, ATCommon_Port_Number_t sourcePortNumber, ATSocket_Data_Length_t packetSize, ATSocket_Timeout_t socketTimeout, ATSocket_IP_Addr_Format_t addressFormat, ATSocket_ID_t *socketIDP)
+bool AdrasteaI_ATSocket_AllocateSocket(AdrasteaI_ATCommon_Session_ID_t sessionID, AdrasteaI_ATSocket_Type_t socketType, AdrasteaI_ATSocket_Behaviour_t socketBehaviour, AdrasteaI_ATCommon_IP_Addr_t destinationIPAddress, AdrasteaI_ATCommon_Port_Number_t destinationPortNumber, AdrasteaI_ATCommon_Port_Number_t sourcePortNumber, AdrasteaI_ATSocket_Data_Length_t packetSize, AdrasteaI_ATSocket_Timeout_t socketTimeout, AdrasteaI_ATSocket_IP_Addr_Format_t addressFormat, AdrasteaI_ATSocket_ID_t *socketIDP)
 {
 	if (socketIDP == NULL)
 	{
 		return false;
 	}
 
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -104,12 +103,12 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
 		return false;
 	}
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSocket_Type_Strings[socketType], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSocket_Type_Strings[socketType], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSocket_Behaviour_Strings[socketBehaviour], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSocket_Behaviour_Strings[socketBehaviour], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -124,13 +123,13 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
 		return false;
 	}
 
-	if (sourcePortNumber != ATCommon_Port_Number_Invalid)
+	if (sourcePortNumber != AdrasteaI_ATCommon_Port_Number_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, sourcePortNumber, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -138,16 +137,16 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (packetSize != ATSocket_Data_Length_Automatic)
+	if (packetSize != AdrasteaI_ATSocket_Data_Length_Automatic)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, packetSize, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -155,16 +154,16 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (socketTimeout != ATSocket_Timeout_Invalid)
+	if (socketTimeout != AdrasteaI_ATSocket_Timeout_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, socketTimeout, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -172,33 +171,33 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (addressFormat != ATSocket_IP_Addr_Format_Invalid)
+	if (addressFormat != AdrasteaI_ATSocket_IP_Addr_Format_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressFormat, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -216,13 +215,13 @@ bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t so
  *
  * @param[in] socketID Socket ID.
  *
- * @param[in] SSLSessionID SSL Session ID (optional pass ATCommon_Session_ID_Invalid to skip).
+ * @param[in] SSLSessionID SSL Session ID (optional pass AdrasteaI_ATCommon_Session_ID_Invalid to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ActivateSocket(ATSocket_ID_t socketID, ATCommon_Session_ID_t SSLSessionID)
+bool AdrasteaI_ATSocket_ActivateSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_Session_ID_t SSLSessionID)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -233,28 +232,28 @@ bool ATSocket_ActivateSocket(ATSocket_ID_t socketID, ATCommon_Session_ID_t SSLSe
 		return false;
 	}
 
-	if (SSLSessionID != ATCommon_Session_ID_Invalid)
+	if (SSLSessionID != AdrasteaI_ATCommon_Session_ID_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, SSLSessionID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -267,11 +266,11 @@ bool ATSocket_ActivateSocket(ATSocket_ID_t socketID, ATCommon_Session_ID_t SSLSe
  *
  * @param[in] socketID Socket ID.
  *
- * @param[out] infoP Socket Info is returned in this argument. See ATSocket_Info_t.
+ * @param[out] infoP Socket Info is returned in this argument. See AdrasteaI_ATSocket_Info_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ReadSocketInfo(ATSocket_ID_t socketID, ATSocket_Info_t *infoP)
+bool AdrasteaI_ATSocket_ReadSocketInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Info_t *infoP)
 {
 	if (infoP == NULL)
 	{
@@ -292,25 +291,25 @@ bool ATSocket_ReadSocketInfo(ATSocket_ID_t socketID, ATSocket_Info_t *infoP)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &infoP->socketState, ATSocket_State_Strings, ATSocket_State_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &infoP->socketState, AdrasteaI_ATSocket_State_Strings, AdrasteaI_ATSocket_State_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &infoP->socketType, ATSocket_Type_Strings, ATSocket_Type_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &infoP->socketType, AdrasteaI_ATSocket_Type_Strings, AdrasteaI_ATSocket_Type_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
@@ -331,25 +330,23 @@ bool ATSocket_ReadSocketInfo(ATSocket_ID_t socketID, ATSocket_Info_t *infoP)
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &infoP->destinationPortNumber, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
 
-		infoP->tcpSocketDirection = ATSocket_Direction_Invalid;
+		infoP->tcpSocketDirection = AdrasteaI_ATSocket_Direction_Invalid;
 
-		infoP->socketTimeout = ATSocket_Timeout_Invalid;
+		infoP->socketTimeout = AdrasteaI_ATSocket_Timeout_Invalid;
 
 		break;
 	}
 	case 3:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &infoP->destinationPortNumber, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -381,7 +378,7 @@ bool ATSocket_ReadSocketInfo(ATSocket_ID_t socketID, ATSocket_Info_t *infoP)
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_DeactivateSocket(ATSocket_ID_t socketID)
+bool AdrasteaI_ATSocket_DeactivateSocket(AdrasteaI_ATSocket_ID_t socketID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -397,12 +394,12 @@ bool ATSocket_DeactivateSocket(ATSocket_ID_t socketID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -423,7 +420,7 @@ bool ATSocket_DeactivateSocket(ATSocket_ID_t socketID)
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_SetSocketOptions(ATSocket_ID_t socketID, ATSocket_Aggregation_Time_t aggregationTime, ATSocket_Aggregation_Buffer_Size_t aggregationBufferSize, ATSocket_TCP_Idle_Time_t idleTime)
+bool AdrasteaI_ATSocket_SetSocketOptions(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Aggregation_Time_t aggregationTime, AdrasteaI_ATSocket_Aggregation_Buffer_Size_t aggregationBufferSize, AdrasteaI_ATSocket_TCP_Idle_Time_t idleTime)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -454,12 +451,12 @@ bool ATSocket_SetSocketOptions(ATSocket_ID_t socketID, ATSocket_Aggregation_Time
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -474,7 +471,7 @@ bool ATSocket_SetSocketOptions(ATSocket_ID_t socketID, ATSocket_Aggregation_Time
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_DeleteSocket(ATSocket_ID_t socketID)
+bool AdrasteaI_ATSocket_DeleteSocket(AdrasteaI_ATSocket_ID_t socketID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -490,12 +487,12 @@ bool ATSocket_DeleteSocket(ATSocket_ID_t socketID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -514,7 +511,7 @@ bool ATSocket_DeleteSocket(ATSocket_ID_t socketID)
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_AddSSLtoSocket(ATSocket_ID_t socketID, ATCommon_SSL_Auth_Mode_t authMode, ATCommon_SSL_Profile_ID_t profileID)
+bool AdrasteaI_ATSocket_AddSSLtoSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_SSL_Auth_Mode_t authMode, AdrasteaI_ATCommon_SSL_Profile_ID_t profileID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -540,12 +537,12 @@ bool ATSocket_AddSSLtoSocket(ATSocket_ID_t socketID, ATCommon_SSL_Auth_Mode_t au
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -558,11 +555,11 @@ bool ATSocket_AddSSLtoSocket(ATSocket_ID_t socketID, ATCommon_SSL_Auth_Mode_t au
  *
  * @param[in] socketID Socket ID.
  *
- * @param[out] errorCodeP Socket Error Code is returned in this argument. See ATSocket_Error_Code_t.
+ * @param[out] errorCodeP Socket Error Code is returned in this argument. See AdrasteaI_ATSocket_Error_Code_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ReadSocketLastError(ATSocket_ID_t socketID, ATSocket_Error_Code_t *errorCodeP)
+bool AdrasteaI_ATSocket_ReadSocketLastError(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Error_Code_t *errorCodeP)
 {
 	if (errorCodeP == NULL)
 	{
@@ -583,14 +580,14 @@ bool ATSocket_ReadSocketLastError(ATSocket_ID_t socketID, ATSocket_Error_Code_t 
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -608,11 +605,11 @@ bool ATSocket_ReadSocketLastError(ATSocket_ID_t socketID, ATSocket_Error_Code_t 
  *
  * @param[in] socketID Socket ID.
  *
- * @param[out] infoP SSL Info is returned in this argument. See ATSocket_SSL_Info_t.
+ * @param[out] infoP SSL Info is returned in this argument. See AdrasteaI_ATSocket_SSL_Info_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ReadSocketSSLInfo(ATSocket_ID_t socketID, ATSocket_SSL_Info_t *infoP)
+bool AdrasteaI_ATSocket_ReadSocketSSLInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_SSL_Info_t *infoP)
 {
 	if (infoP == NULL)
 	{
@@ -633,14 +630,14 @@ bool ATSocket_ReadSocketSSLInfo(ATSocket_ID_t socketID, ATSocket_SSL_Info_t *inf
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -665,7 +662,7 @@ bool ATSocket_ReadSocketSSLInfo(ATSocket_ID_t socketID, ATSocket_SSL_Info_t *inf
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_KeepSocketSSLSession(ATSocket_ID_t socketID)
+bool AdrasteaI_ATSocket_KeepSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -681,12 +678,12 @@ bool ATSocket_KeepSocketSSLSession(ATSocket_ID_t socketID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -701,7 +698,7 @@ bool ATSocket_KeepSocketSSLSession(ATSocket_ID_t socketID)
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_DeleteSocketSSLSession(ATSocket_ID_t socketID)
+bool AdrasteaI_ATSocket_DeleteSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -717,12 +714,12 @@ bool ATSocket_DeleteSocketSSLSession(ATSocket_ID_t socketID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -741,7 +738,7 @@ bool ATSocket_DeleteSocketSSLSession(ATSocket_ID_t socketID)
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *dataReadP, uint16_t maxBufferLength)
+bool AdrasteaI_ATSocket_ReceiveFromSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Data_Read_t *dataReadP, uint16_t maxBufferLength)
 {
 	if (dataReadP == NULL)
 	{
@@ -767,14 +764,14 @@ bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *da
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -794,11 +791,10 @@ bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *da
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, dataReadP->data, ATCOMMAND_STRING_TERMINATE, maxBufferLength))
 		{
 			return false;
@@ -806,13 +802,12 @@ bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *da
 
 		strcpy(dataReadP->sourceIPAddress, "");
 
-		dataReadP->sourcePortNumber = ATCommon_Port_Number_Invalid;
+		dataReadP->sourcePortNumber = AdrasteaI_ATCommon_Port_Number_Invalid;
 
 		break;
 	}
 	case 3:
 	{
-
 		if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, dataReadP->data, ATCOMMAND_ARGUMENT_DELIM, maxBufferLength))
 		{
 			return false;
@@ -848,7 +843,7 @@ bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *da
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_SendToSocket(ATSocket_ID_t socketID, char *data, ATSocket_Data_Length_t dataLength)
+bool AdrasteaI_ATSocket_SendToSocket(AdrasteaI_ATSocket_ID_t socketID, char *data, AdrasteaI_ATSocket_Data_Length_t dataLength)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -874,12 +869,12 @@ bool ATSocket_SendToSocket(ATSocket_ID_t socketID, char *data, ATSocket_Data_Len
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -890,13 +885,13 @@ bool ATSocket_SendToSocket(ATSocket_ID_t socketID, char *data, ATSocket_Data_Len
 /**
  * @brief Set Socket Notification Events (using the AT%SOCKETEV command).
  *
- * @param[in] event Socket event type. See ATSocket_Event_t.
+ * @param[in] event Socket event type. See AdrasteaI_ATSocket_Event_t.
  *
  * @param[in] state Event State
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_SetSocketUnsolicitedNotificationEvents(ATSocket_Event_t event, ATCommon_Event_State_t state)
+bool AdrasteaI_ATSocket_SetSocketUnsolicitedNotificationEvents(AdrasteaI_ATSocket_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -917,12 +912,12 @@ bool ATSocket_SetSocketUnsolicitedNotificationEvents(ATSocket_Event_t event, ATC
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Socket), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -933,11 +928,12 @@ bool ATSocket_SetSocketUnsolicitedNotificationEvents(ATSocket_Event_t event, ATC
 /**
  * @brief Parses the value of Data Received event arguments.
  *
+ * @param[in]  pEventArguments String containing arguments of the AT command
  * @param[out] dataP ID of Socket where data was received is returned in this argument.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ParseDataReceivedEvent(char *pEventArguments, ATSocket_ID_t *dataP)
+bool AdrasteaI_ATSocket_ParseDataReceivedEvent(char *pEventArguments, AdrasteaI_ATSocket_ID_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -957,11 +953,12 @@ bool ATSocket_ParseDataReceivedEvent(char *pEventArguments, ATSocket_ID_t *dataP
 /**
  * @brief Parses the value of Socket Terminated event arguments.
  *
+ * @param[in]  pEventArguments String containing arguments of the AT command
  * @param[out] dataP ID of Socket that was terminated is returned in this argument.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ParseSocketTerminatedEvent(char *pEventArguments, ATSocket_ID_t *dataP)
+bool AdrasteaI_ATSocket_ParseSocketTerminatedEvent(char *pEventArguments, AdrasteaI_ATSocket_ID_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -981,11 +978,12 @@ bool ATSocket_ParseSocketTerminatedEvent(char *pEventArguments, ATSocket_ID_t *d
 /**
  * @brief Parses the value of Socket Read event arguments.
  *
- * @param[out] dataP Socket Read Result si returned in this argument. See ATSocket_Read_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP Socket Read Result si returned in this argument. See AdrasteaI_ATSocket_Read_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSocket_ParseSocketsReadEvent(char *pEventArguments, ATSocket_Read_Result_t *dataP)
+bool AdrasteaI_ATSocket_ParseSocketsReadEvent(char *pEventArguments, AdrasteaI_ATSocket_Read_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -994,7 +992,7 @@ bool ATSocket_ParseSocketsReadEvent(char *pEventArguments, ATSocket_Read_Result_
 
 	char *argumentsP = pEventArguments;
 
-	if (Adrastea_CountArgs(argumentsP) != 2)
+	if (ATCommand_CountArgs(argumentsP) != 2)
 	{
 		return false;
 	}
@@ -1004,7 +1002,7 @@ bool ATSocket_ParseSocketsReadEvent(char *pEventArguments, ATSocket_Read_Result_
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->socketState, ATSocket_State_Strings, ATSocket_State_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->socketState, AdrasteaI_ATSocket_State_Strings, AdrasteaI_ATSocket_State_NumberOfValues, 30,
 	ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;

@@ -28,8 +28,8 @@
  * @brief AT commands for SIM functionality.
  */
 
-#ifndef AT_SIM_H_INCLUDED
-#define AT_SIM_H_INCLUDED
+#ifndef ADRASTEAI_AT_SIM_H_INCLUDED
+#define ADRASTEAI_AT_SIM_H_INCLUDED
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -39,154 +39,154 @@
 extern "C" {
 #endif
 
-typedef char ATSIM_IMSI_t[16];
+typedef char AdrasteaI_ATSIM_IMSI_t[16];
 
 /**
  * @brief Facility Lock
  */
-typedef enum ATSIM_Facility_t
+typedef enum AdrasteaI_ATSIM_Facility_t
 {
-	ATSIM_Facility_Invalid = -1,
-	ATSIM_Facility_SC,
-	ATSIM_Facility_P2,
-	ATSIM_Facility_PN,
-	ATSIM_Facility_PU,
-	ATSIM_Facility_PS,
-	ATSIM_Facility_NumberOfValues
-} ATSIM_Facility_t;
+	AdrasteaI_ATSIM_Facility_Invalid = -1,
+	AdrasteaI_ATSIM_Facility_SC,
+	AdrasteaI_ATSIM_Facility_P2,
+	AdrasteaI_ATSIM_Facility_PN,
+	AdrasteaI_ATSIM_Facility_PU,
+	AdrasteaI_ATSIM_Facility_PS,
+	AdrasteaI_ATSIM_Facility_NumberOfValues
+} AdrasteaI_ATSIM_Facility_t;
 
 /**
  * @brief Facility Lock Mode
  */
-typedef enum ATSIM_Lock_Mode_t
+typedef enum AdrasteaI_ATSIM_Lock_Mode_t
 {
-	ATSIM_Lock_Mode_Invalid = -1,
-	ATSIM_Lock_Mode_Unlock,
-	ATSIM_Lock_Mode_Lock,
-	ATSIM_Lock_Mode_NumberOfValues
-} ATSIM_Lock_Mode_t;
+	AdrasteaI_ATSIM_Lock_Mode_Invalid = -1,
+	AdrasteaI_ATSIM_Lock_Mode_Unlock,
+	AdrasteaI_ATSIM_Lock_Mode_Lock,
+	AdrasteaI_ATSIM_Lock_Mode_NumberOfValues
+} AdrasteaI_ATSIM_Lock_Mode_t;
 
 /**
  * @brief Facility Lock Status
  */
-typedef enum ATSIM_Lock_Status_t
+typedef enum AdrasteaI_ATSIM_Lock_Status_t
 {
-	ATSIM_Lock_Status_Invalid = -1,
-	ATSIM_Lock_Status_Not_Active,
-	ATSIM_Lock_Status_Active,
-	ATSIM_Lock_Status_NumberOfValues
-} ATSIM_Lock_Status_t;
+	AdrasteaI_ATSIM_Lock_Status_Invalid = -1,
+	AdrasteaI_ATSIM_Lock_Status_Not_Active,
+	AdrasteaI_ATSIM_Lock_Status_Active,
+	AdrasteaI_ATSIM_Lock_Status_NumberOfValues
+} AdrasteaI_ATSIM_Lock_Status_t;
 
-typedef char ATSIM_PIN_t[32];
+typedef char AdrasteaI_ATSIM_PIN_t[32];
 
 /**
  * @brief PIN Status
  */
-typedef enum ATSIM_PIN_Status_t
+typedef enum AdrasteaI_ATSIM_PIN_Status_t
 {
-	ATSIM_PIN_Status_Invalid = -1,
-	ATSIM_PIN_Status_Ready,
-	ATSIM_PIN_Status_SIM_PIN,
-	ATSIM_PIN_Status_SIM_PUK,
-	ATSIM_PIN_Status_PH_SIM_PIN,
-	ATSIM_PIN_Status_PH_FSIM_PIN,
-	ATSIM_PIN_Status_PH_FSIM_PUK,
-	ATSIM_PIN_Status_SIM_PIN2,
-	ATSIM_PIN_Status_SIM_PUK2,
-	ATSIM_PIN_Status_PH_NET_PIN,
-	ATSIM_PIN_Status_PH_NET_PUK,
-	ATSIM_PIN_Status_PH_NETSUB_PIN,
-	ATSIM_PIN_Status_PH_NETSUB_PUK,
-	ATSIM_PIN_Status_PH_SP_PIN,
-	ATSIM_PIN_Status_PH_SP_PUK,
-	ATSIM_PIN_Status_PH_CORP_PIN,
-	ATSIM_PIN_Status_PH_CORP_PUK,
-	ATSIM_PIN_Status_NumberOfValues
-} ATSIM_PIN_Status_t;
+	AdrasteaI_ATSIM_PIN_Status_Invalid = -1,
+	AdrasteaI_ATSIM_PIN_Status_Ready,
+	AdrasteaI_ATSIM_PIN_Status_SIM_PIN,
+	AdrasteaI_ATSIM_PIN_Status_SIM_PUK,
+	AdrasteaI_ATSIM_PIN_Status_PH_SIM_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_FSIM_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_FSIM_PUK,
+	AdrasteaI_ATSIM_PIN_Status_SIM_PIN2,
+	AdrasteaI_ATSIM_PIN_Status_SIM_PUK2,
+	AdrasteaI_ATSIM_PIN_Status_PH_NET_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_NET_PUK,
+	AdrasteaI_ATSIM_PIN_Status_PH_NETSUB_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_NETSUB_PUK,
+	AdrasteaI_ATSIM_PIN_Status_PH_SP_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_SP_PUK,
+	AdrasteaI_ATSIM_PIN_Status_PH_CORP_PIN,
+	AdrasteaI_ATSIM_PIN_Status_PH_CORP_PUK,
+	AdrasteaI_ATSIM_PIN_Status_NumberOfValues
+} AdrasteaI_ATSIM_PIN_Status_t;
 
 /**
  * @brief ICCID
  */
-typedef char ATSIM_ICCID_t[24];
+typedef char AdrasteaI_ATSIM_ICCID_t[24];
 
 /**
  * @brief SIM Restricted Access Commands
  */
-typedef enum ATSIM_Restricted_Access_Command_t
+typedef enum AdrasteaI_ATSIM_Restricted_Access_Command_t
 {
-	ATSIM_Restricted_Access_Command_Invalid = -1,
-	ATSIM_Restricted_Access_Command_Read_Binary = 176,
-	ATSIM_Restricted_Access_Command_Read_Record = 178,
-	ATSIM_Restricted_Access_Command_Get_Response = 192,
-	ATSIM_Restricted_Access_Command_Update_Binary = 214,
-	ATSIM_Restricted_Access_Command_Update_Record = 220,
-	ATSIM_Restricted_Access_Command_Status = 242,
-	ATSIM_Restricted_Access_Command_Retrieve_Data = 203,
-	ATSIM_Restricted_Access_Command_Set_Data = 219,
-	ATSIM_Restricted_Access_Command_NumberOfValues
-} ATSIM_Restricted_Access_Command_t;
+	AdrasteaI_ATSIM_Restricted_Access_Command_Invalid = -1,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Read_Binary = 176,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Read_Record = 178,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Get_Response = 192,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Update_Binary = 214,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Update_Record = 220,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Status = 242,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Retrieve_Data = 203,
+	AdrasteaI_ATSIM_Restricted_Access_Command_Set_Data = 219,
+	AdrasteaI_ATSIM_Restricted_Access_Command_NumberOfValues
+} AdrasteaI_ATSIM_Restricted_Access_Command_t;
 
-typedef uint16_t ATSIM_Restricted_Access_File_ID;
+typedef uint16_t AdrasteaI_ATSIM_Restricted_Access_File_ID;
 
-typedef uint8_t ATSIM_Restricted_Access_P1, ATSIM_Restricted_Access_P2, ATSIM_Restricted_Access_P3;
+typedef uint8_t AdrasteaI_ATSIM_Restricted_Access_P1, AdrasteaI_ATSIM_Restricted_Access_P2, AdrasteaI_ATSIM_Restricted_Access_P3;
 
-typedef uint8_t ATSIM_Restricted_Access_SW1, ATSIM_Restricted_Access_SW2;
+typedef uint8_t AdrasteaI_ATSIM_Restricted_Access_SW1, AdrasteaI_ATSIM_Restricted_Access_SW2;
 
 /**
  * @brief SIM Restricted Access Response
  */
-typedef struct ATSIM_Restricted_Access_Response_t
+typedef struct AdrasteaI_ATSIM_Restricted_Access_Response_t
 {
-	ATSIM_Restricted_Access_SW1 sw1;
-	ATSIM_Restricted_Access_SW2 sw2;
+	AdrasteaI_ATSIM_Restricted_Access_SW1 sw1;
+	AdrasteaI_ATSIM_Restricted_Access_SW2 sw2;
 	char *responseRead;
 	uint16_t responseReadMaxBufferSize; //Buffer size need to be specified before passing to function
-} ATSIM_Restricted_Access_Response_t;
+} AdrasteaI_ATSIM_Restricted_Access_Response_t;
 
-typedef char ATSIM_Number_t[64];
+typedef char AdrasteaI_ATSIM_Number_t[64];
 
 /**
  * @brief SIM Number Type
  */
-typedef enum ATSIM_Number_Type_t
+typedef enum AdrasteaI_ATSIM_Number_Type_t
 {
-	ATSIM_Number_Type_Invalid = -1,
-	ATSIM_Number_Type_National_Number = 129,
-	ATSIM_Number_Type_International_Number = 145,
-	ATSIM_Number_Type_NumberOfValues
-} ATSIM_Number_Type_t;
+	AdrasteaI_ATSIM_Number_Type_Invalid = -1,
+	AdrasteaI_ATSIM_Number_Type_National_Number = 129,
+	AdrasteaI_ATSIM_Number_Type_International_Number = 145,
+	AdrasteaI_ATSIM_Number_Type_NumberOfValues
+} AdrasteaI_ATSIM_Number_Type_t;
 
 /**
  * @brief Subscriber Number
  */
-typedef struct ATSIM_Subscriber_Number_t
+typedef struct AdrasteaI_ATSIM_Subscriber_Number_t
 {
-	ATSIM_Number_t number;
-	ATSIM_Number_Type_t numberType;
-} ATSIM_Subscriber_Number_t;
+	AdrasteaI_ATSIM_Number_t number;
+	AdrasteaI_ATSIM_Number_Type_t numberType;
+} AdrasteaI_ATSIM_Subscriber_Number_t;
 
-extern bool ATSIM_RequestInternationalMobileSubscriberIdentity(ATSIM_IMSI_t *imsiP);
+extern bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSIM_IMSI_t *imsiP);
 
-extern bool ATSIM_SetFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Mode_t mode, ATSIM_PIN_t pin);
+extern bool AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Mode_t mode, AdrasteaI_ATSIM_PIN_t pin);
 
-extern bool ATSIM_ReadFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Status_t *statusP);
+extern bool AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Status_t *statusP);
 
-extern bool ATSIM_ReadSubscriberNumber();
+extern bool AdrasteaI_ATSIM_ReadSubscriberNumber();
 
-extern bool ATSIM_ReadPinStatus(ATSIM_PIN_Status_t *statusP);
+extern bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t *statusP);
 
-extern bool ATSIM_EnterPin(ATSIM_PIN_t pin1, ATSIM_PIN_t pin2);
+extern bool AdrasteaI_ATSIM_EnterPin(AdrasteaI_ATSIM_PIN_t pin1, AdrasteaI_ATSIM_PIN_t pin2);
 
-extern bool ATSIM_ChangePassword(ATSIM_Facility_t facility, ATSIM_PIN_t oldpassword, ATSIM_PIN_t newpassword);
+extern bool AdrasteaI_ATSIM_ChangePassword(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_PIN_t oldpassword, AdrasteaI_ATSIM_PIN_t newpassword);
 
-extern bool ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_t cmd, ATSIM_Restricted_Access_File_ID fileID, ATSIM_Restricted_Access_P1 p1, ATSIM_Restricted_Access_P2 p2, ATSIM_Restricted_Access_P3 p3, char *dataWritten, ATSIM_Restricted_Access_Response_t *cmdResponse);
+extern bool AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Command_t cmd, AdrasteaI_ATSIM_Restricted_Access_File_ID fileID, AdrasteaI_ATSIM_Restricted_Access_P1 p1, AdrasteaI_ATSIM_Restricted_Access_P2 p2, AdrasteaI_ATSIM_Restricted_Access_P3 p3, char *dataWritten, AdrasteaI_ATSIM_Restricted_Access_Response_t *cmdResponse);
 
-extern bool ATSIM_RequestIntegratedCircuitCardIdentifier(ATSIM_ICCID_t *iccidP);
+extern bool AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(AdrasteaI_ATSIM_ICCID_t *iccidP);
 
-extern bool ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, ATSIM_Subscriber_Number_t *dataP);
+extern bool AdrasteaI_ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, AdrasteaI_ATSIM_Subscriber_Number_t *dataP);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_SIM_H_INCLUDED */
+#endif /* ADRASTEAI_AT_SIM_H_INCLUDED */

@@ -27,241 +27,95 @@
  * @file
  * @brief AT event definitions.
  */
-
-#include "ATEvent.h"
-
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/AdrasteaI.h>
 #include <global/ATCommands.h>
 
-static const char *ATEvent_Strings[ATEvent_NumberOfValues] = {
-		"invalid",
-		"COPN",
-		"PINGCMD",
-		"DNSRSLV",
-		"CEREG",
-		"CGDCONT",
-		"CGACT",
-		"IGNSSINFO",
-		"NMEA",
-		"SESSIONSTAT",
-		"ALLOWSTAT",
-		"CONCONF",
-		"DISCONF",
-		"SUBCONF",
-		"UNSCONF",
-		"PUBCONF",
-		"PUBRCV",
-		"CONFAIL",
-		"CONCONF",
-		"DISCONF",
-		"SUBCONF",
-		"UNSCONF",
-		"PUBCONF",
-		"PUBRCV",
-		"CONFAIL",
-		"PUTCONF",
-		"POSTCONF",
-		"DELCONF",
-		"GETRCV",
-		"SESTERM",
-		"CMGR",
-		"CMGL",
-		"CMTI",
-		"CMS ERROR",
-		"1",
-		"2",
-		"3",
-		"4",
-		"SOCKETCMD",
-		"CNUM" };
+static ATCommand_Event_t GNSSSubEvents[] = {
+				EVENTENTRY(" \"NMEA\"", AdrasteaI_ATEvent_GNSS_NMEA)
+				EVENTENTRY(" \"SESSIONSTAT\"", AdrasteaI_ATEvent_GNSS_Session_Status_Change)
+				LASTEVENTENTRY(" \"ALLOWSTAT\"", AdrasteaI_ATEvent_GNSS_Allowed_Status_Change)
+		};
 
-static bool ATEvent_ParseEventSubType(const char *eventSubTypeString, ATEvent_t eventMainType, ATEvent_t *pEventSubType);
+static ATCommand_Event_t MQTTSubEvents[] = {
+				EVENTENTRY("\"CONCONF\"", AdrasteaI_ATEvent_MQTT_Connection_Confirmation)
+				EVENTENTRY("\"DISCONF\"", AdrasteaI_ATEvent_MQTT_Disconnection_Confirmation)
+				EVENTENTRY("\"SUBCONF\"", AdrasteaI_ATEvent_MQTT_Subscription_Confirmation)
+				EVENTENTRY("\"UNSCONF\"", AdrasteaI_ATEvent_MQTT_Unsubscription_Confirmation)
+				EVENTENTRY("\"PUBCONF\"", AdrasteaI_ATEvent_MQTT_Publication_Confirmation)
+				EVENTENTRY("\"PUBRCV\"", AdrasteaI_ATEvent_MQTT_Publication_Received)
+				LASTEVENTENTRY("\"CONFAIL\"", AdrasteaI_ATEvent_MQTT_Connection_Failure)
+		};
+
+static ATCommand_Event_t MQTT_AWSIOTSubEvents[] = {
+				EVENTENTRY("\"CONCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Confirmation)
+				EVENTENTRY("\"DISCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Disconnection_Confirmation)
+				EVENTENTRY("\"SUBCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Subscription_Confirmation)
+				EVENTENTRY("\"UNSCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Unsubscription_Confirmation)
+				EVENTENTRY("\"PUBCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Publication_Confirmation)
+				EVENTENTRY("\"PUBRCV\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Publication_Received)
+				LASTEVENTENTRY("\"CONFAIL\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Failure)
+		};
+
+static ATCommand_Event_t HTTPSubEvents[] = {
+				EVENTENTRY("\"PUTCONF\"", AdrasteaI_ATEvent_HTTP_PUT_Confirmation)
+				EVENTENTRY("\"POSTCONF\"", AdrasteaI_ATEvent_HTTP_POST_Confirmation)
+				EVENTENTRY("\"DELCONF\"", AdrasteaI_ATEvent_HTTP_DELETE_Confirmation)
+				EVENTENTRY("\"GETRCV\"", AdrasteaI_ATEvent_HTTP_GET_Receive)
+				LASTEVENTENTRY("\"SESTERM\"", AdrasteaI_ATEvent_HTTP_Session_Termination)
+		};
+
+static ATCommand_Event_t SocketSubEvents[] = {
+				EVENTENTRY("1", AdrasteaI_ATEvent_Socket_Data_Received)
+				EVENTENTRY("2", AdrasteaI_ATEvent_Socket_Deactivated_Idle_Timer)
+				EVENTENTRY("3", AdrasteaI_ATEvent_Socket_Terminated_By_Peer)
+				EVENTENTRY("4", AdrasteaI_ATEvent_Socket_New_Socket_Accepted)
+				LASTEVENTENTRY("SOCKETCMD", AdrasteaI_ATEvent_Socket_Sockets_Read)
+		};
+
+static ATCommand_Event_t moduleMainEvents[] = {
+				EVENTENTRY("+COPN", AdrasteaI_ATEvent_NetService_Operator_Read)
+				EVENTENTRY("%PINGCMD", AdrasteaI_ATEvent_Proprietary_Ping_Result)
+				EVENTENTRY("%DNSRSLV", AdrasteaI_ATEvent_Proprietary_Domain_Name_Resolve)
+				EVENTENTRY("+CEREG", AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status)
+				EVENTENTRY("+CGDCONT", AdrasteaI_ATEvent_PacketDomain_PDP_Context)
+				EVENTENTRY("+CGACT", AdrasteaI_ATEvent_PacketDomain_PDP_Context_State)
+				EVENTENTRY("%IGNSSINFO", AdrasteaI_ATEvent_GNSS_Satellite_Query)
+				EVENTENTRY("+CMGR", AdrasteaI_ATEvent_SMS_Read_Message)
+				EVENTENTRY("+CMGL", AdrasteaI_ATEvent_SMS_List_Messages)
+				EVENTENTRY("+CMTI", AdrasteaI_ATEvent_SMS_Message_Received)
+				EVENTENTRY("+CMS ERROR", AdrasteaI_ATEvent_SMS_Error)
+				EVENTENTRY("%SOCKETCMD", AdrasteaI_ATEvent_Socket_Sockets_Read)
+				EVENTENTRY("+CNUM", AdrasteaI_ATEvent_SIM_Subscriber_Number)
+				EVENTENTRY("%SCMNOTIFYEV", AdrasteaI_ATEvent_Ready)
+				EVENTENTRY("%IGNSSCEP", AdrasteaI_ATEvent_GNSS_DataFileSaved)
+				PARENTEVENTENTRY("%IGNSSEVU", GNSSSubEvents, ATCOMMAND_ARGUMENT_DELIM)
+				PARENTEVENTENTRY("%MQTTEVU", MQTTSubEvents, ATCOMMAND_ARGUMENT_DELIM)
+				PARENTEVENTENTRY("%AWSIOTEVU", MQTT_AWSIOTSubEvents, ATCOMMAND_ARGUMENT_DELIM)
+				PARENTEVENTENTRY("%HTTPEVU", HTTPSubEvents, ATCOMMAND_ARGUMENT_DELIM)
+				LASTPARENTEVENTENTRY("%SOCKETEV", SocketSubEvents, ATCOMMAND_ARGUMENT_DELIM)
+		};
 
 /**
- * @brief Parses the received AT command and returns the corresponding ATEvent_t.
+ * @brief Parses the received AT command and returns the corresponding AdrasteaI_ATEvent_t.
  *
  * @param[in,out] pAtCommand AT command starting with '+' or '%'
- * @param[out] pEvent ATEvent_t representing the event
+ * @param[out] pEvent AdrasteaI_ATEvent_t representing the event
  *
  * @return true if parsed successfully, false otherwise
  */
-bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent)
+bool AdrasteaI_ATEvent_ParseEventType(char **pAtCommand, AdrasteaI_ATEvent_t *pEvent)
 {
-	char cmdName[32], option[64];
-	*pEvent = ATEvent_Invalid;
 	char delimiters[] = {
 			ATCOMMAND_EVENT_DELIM,
 			ATCOMMAND_STRING_TERMINATE };
-	if (ATCommand_GetCmdName(pAtCommand, cmdName, delimiters, sizeof(delimiters)))
+
+	if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*) pEvent))
 	{
-		if (0 == strcmp(cmdName, "+COPN"))
-		{
-			*pEvent = ATEvent_NetService_Operator_Read;
-		}
-		else if (0 == strcmp(cmdName, "%PINGCMD"))
-		{
-			*pEvent = ATEvent_Proprietary_Ping_Result;
-		}
-		else if (0 == strcmp(cmdName, "%DNSRSLV"))
-		{
-			*pEvent = ATEvent_Proprietary_Domain_Name_Resolve;
-		}
-		else if (0 == strcmp(cmdName, "+CEREG"))
-		{
-			*pEvent = ATEvent_PacketDomain_Network_Registration_Status;
-		}
-		else if (0 == strcmp(cmdName, "+CGDCONT"))
-		{
-			*pEvent = ATEvent_PacketDomain_PDP_Context;
-		}
-		else if (0 == strcmp(cmdName, "+CGACT"))
-		{
-			*pEvent = ATEvent_PacketDomain_PDP_Context_State;
-		}
-		else if (0 == strcmp(cmdName, "%IGNSSINFO"))
-		{
-			*pEvent = ATEvent_GNSS_Satalite_Query;
-		}
-		else if (0 == strcmp(cmdName, "%IGNSSEVU"))
-		{
-			*pAtCommand += 1;
-			if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option)))
-			{
-				return false;
-			}
-
-			ATEvent_ParseEventSubType(option, ATEvent_GNSS, pEvent);
-		}
-		else if (0 == strcmp(cmdName, "%MQTTEVU"))
-		{
-			if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option)))
-			{
-				return false;
-			}
-
-			ATEvent_ParseEventSubType(option, ATEvent_MQTT, pEvent);
-		}
-		else if (0 == strcmp(cmdName, "%AWSIOTEVU"))
-		{
-			if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option)))
-			{
-				return false;
-			}
-
-			ATEvent_ParseEventSubType(option, ATEvent_MQTT_AWSIOT, pEvent);
-		}
-		else if (0 == strcmp(cmdName, "%HTTPEVU"))
-		{
-			if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option)))
-			{
-				return false;
-			}
-
-			ATEvent_ParseEventSubType(option, ATEvent_HTTP, pEvent);
-		}
-		else if (0 == strcmp(cmdName, "+CMGR"))
-		{
-			*pEvent = ATEvent_SMS_Read_Message;
-		}
-		else if (0 == strcmp(cmdName, "+CMGL"))
-		{
-			*pEvent = ATEvent_SMS_List_Messages;
-		}
-		else if (0 == strcmp(cmdName, "+CMTI"))
-		{
-			*pEvent = ATEvent_SMS_Message_Received;
-		}
-		else if (0 == strcmp(cmdName, "+CMS ERROR"))
-		{
-			*pEvent = ATEvent_SMS_Error;
-		}
-		else if (0 == strcmp(cmdName, "%SOCKETEV"))
-		{
-			if (!ATCommand_GetNextArgumentString(pAtCommand, option, ATCOMMAND_ARGUMENT_DELIM, sizeof(option)))
-			{
-				return false;
-			}
-
-			ATEvent_ParseEventSubType(option, ATEvent_Socket, pEvent);
-		}
-		else if (0 == strcmp(cmdName, "%SOCKETCMD"))
-		{
-			*pEvent = ATEvent_Socket_Sockets_Read;
-		}
-		else if (0 == strcmp(cmdName, "+CNUM"))
-		{
-			*pEvent = ATEvent_SIM_Subscriber_Number;
-		}
-		else
-		{
-			return false;
-		}
-		return true;
-	}
-	return false;
-}
-
-/**
- * @brief Parses an event sub type string (first argument of received event string) to ATEvent_t.
- *
- * @param[in] eventSubTypeString String containing the event's ID
- * @param[in] eventMainType Main event type category (ATEvent_General, ATEvent_Wlan, ATEvent_Socket,
- *            ATEvent_Netapp, ATEvent_MQTT or ATEvent_FatalError)
- * @param[out] pEventSubType ATEvent_t representing the event
- *
- * @return true if parsed successfully, false otherwise
- */
-static bool ATEvent_ParseEventSubType(const char *eventSubTypeString, ATEvent_t eventMainType, ATEvent_t *pEventSubType)
-{
-	uint8_t typeCount = 0;
-
-	switch (eventMainType)
-	{
-	case ATEvent_GNSS:
-		typeCount = ATEvent_GNSS_NumberOfValues;
-		break;
-	case ATEvent_MQTT:
-		typeCount = ATEvent_MQTT_NumberOfValues;
-		break;
-	case ATEvent_MQTT_AWSIOT:
-		typeCount = ATEvent_MQTT_AWSIOT_NumberOfValues;
-		break;
-	case ATEvent_HTTP:
-		typeCount = ATEvent_HTTP_NumberOfValues;
-		break;
-	case ATEvent_Socket:
-		typeCount = ATEvent_Socket_NumberOfValues;
-		break;
-	default:
-		break;
+		*pEvent = AdrasteaI_ATEvent_Invalid;
+		return false;
 	}
 
-	*pEventSubType = ATEvent_Invalid;
-
-	for (int i = 0; i < typeCount; i++)
-	{
-		ATEvent_t event = eventMainType + (ATEvent_t) i;
-		if (0 == strcasecmp(eventSubTypeString, ATEvent_Strings[event]))
-		{
-			*pEventSubType = event;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * @brief Returns the name of an event.
- *
- * @param[in] event Type of event
- * @param[out] pEventName Event name
- *
- * @return true if successful, false otherwise
- */
-bool ATEvent_GetEventName(ATEvent_t event, char *pEventName)
-{
-	strcpy(pEventName, ATEvent_Strings[event]);
 	return true;
 }
 

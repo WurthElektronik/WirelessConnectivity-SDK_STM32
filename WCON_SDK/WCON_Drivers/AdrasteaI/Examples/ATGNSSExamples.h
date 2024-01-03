@@ -28,8 +28,8 @@
  * @brief Adrastea ATGNSS Example header file.
  */
 
-#ifndef ATGNSSEXAMPLES_H_INCLUDED
-#define ATGNSSEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATGNSSEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATGNSSEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATGNSSExample();
 }
 #endif
 
-#endif // ATGNSSEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATGNSSEXAMPLES_H_INCLUDED

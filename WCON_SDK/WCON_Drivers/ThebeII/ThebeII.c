@@ -27,22 +27,10 @@
  * @file
  * @brief Thebe-II driver source file.
  */
-
-#include "ThebeII.h"
-
+#include <ThebeII/ThebeII.h>
+#include <global/global.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "../global/global.h"
-
-typedef enum ThebeII_Pin_t
-{
-    ThebeII_Pin_Reset,
-    ThebeII_Pin_SleepWakeUp,
-    ThebeII_Pin_Boot,
-    ThebeII_Pin_Mode,
-    ThebeII_Pin_Count
-} ThebeII_Pin_t;
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
@@ -113,7 +101,6 @@ typedef enum ThebeII_Pin_t
 #define THEBEII_CMD_FACTORY_RESET_REQ (THEBEII_CMD_FACTORY_RESET | THEBEII_CMD_TYPE_REQ)
 #define THEBEII_CMD_FACTORY_RESET_CNF (THEBEII_CMD_FACTORY_RESET | THEBEII_CMD_TYPE_CNF)
 
-
 /* AMBER test commands */
 #define THEBEII_CMD_PINGDUT 0x1F
 #define THEBEII_CMD_PINGDUT_REQ (THEBEII_CMD_PINGDUT | THEBEII_CMD_TYPE_REQ)
@@ -124,49 +111,65 @@ typedef enum ThebeII_Pin_t
 #define THEBEII_CFGFLAGS_SNIFFERMODEENABLE 0x0001
 #define THEBEII_RPFLAGS_REPEATERENABLE 0X0001
 
+void ThebeII_HandleRxByte(uint8_t *dataP, size_t size);
+static WE_UART_HandleRxByte_t byteRxCallback = ThebeII_HandleRxByte;
+
 /**
  * @brief Type used to check the response, when a command was sent to the ThebeII.
  */
 typedef enum ThebeII_CMD_Status_t
 {
-    CMD_Status_Success = 0x00,
-    CMD_Status_Failed,
-    CMD_Status_Invalid,
-    CMD_Status_Reset,
+	CMD_Status_Success = 0x00,
+	CMD_Status_Failed,
+	CMD_Status_Invalid,
+	CMD_Status_Reset,
 } ThebeII_CMD_Status_t;
 
+#define LENGTH_CMD_OVERHEAD             (uint16_t)4
+#define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
+#define MAX_CMD_LENGTH                  (uint16_t)(MAX_DATA_BUFFER + LENGTH_CMD_OVERHEAD)
 typedef struct
 {
-    uint8_t Stx;
-    uint8_t Cmd;
-    uint8_t Length;
-    uint8_t Data[MAX_DATA_BUFFER + 1]; /* +1 for the CS */
+	const uint8_t Stx;
+	uint8_t Cmd;
+	uint8_t Length;
+	uint8_t Data[MAX_DATA_BUFFER + 1]; /* +1 for the CS */
 } ThebeII_CMD_Frame_t;
 
 typedef struct
 {
-    uint8_t cmd;                    /* variable to check if correct CMD has been confirmed */
-    ThebeII_CMD_Status_t status;    /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThebeII */
+	uint8_t cmd; /* variable to check if correct CMD has been confirmed */
+	ThebeII_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThebeII */
 } ThebeII_CMD_Confirmation_t;
-
 
 /**************************************
  *          Static variables          *
  **************************************/
 
-static ThebeII_CMD_Frame_t RxPacket;                      /* data buffer for RX */
+static ThebeII_CMD_Frame_t rxPacket; /* data buffer for RX */
+static ThebeII_CMD_Frame_t txPacket = {
+		.Stx = CMD_STX,
+		.Length = 0 }; /* request to be sent to the module */
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
 static ThebeII_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
-static uint8_t channelVolatile = CHANNELINVALID;           /* variable used to check if setting the channel was successful */
-static uint8_t powerVolatile = TXPOWERINVALID;             /* variable used to check if setting the TXPower was successful */
-static ThebeII_AddressMode_t addressmode = AddressMode_0;  /* initial address mode */
-static WE_Pin_t ThebeII_pins[ThebeII_Pin_Count] = {0};
+static uint8_t channelVolatile = CHANNELINVALID; /* variable used to check if setting the channel was successful */
+static uint8_t powerVolatile = TXPOWERINVALID; /* variable used to check if setting the TXPower was successful */
+static ThebeII_AddressMode_t addressmode = ThebeII_AddressMode_0; /* initial address mode */
+/**
+ * @brief Pin configuration struct pointer.
+ */
+static ThebeII_Pins_t *ThebeII_pinsP = NULL;
+
+/**
+ * @brief Uart configuration struct pointer.
+ */
+static WE_UART_t *ThebeII_uartP = NULL;
 static uint8_t checksum = 0;
-static uint8_t RxByteCounter = 0;
-static uint8_t BytesToReceive = 0;
-static uint8_t RxBuffer[sizeof(ThebeII_CMD_Frame_t)]; /* data buffer for RX */
-void(*RxCallback)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t); /* callback function */
+static uint8_t rxByteCounter = 0;
+static uint8_t bytesToReceive = 0;
+static uint8_t rxBuffer[sizeof(ThebeII_CMD_Frame_t)]; /* data buffer for RX */
+static void (*RxCallback)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t); /* callback function */
 
 /**************************************
  *         Static functions           *
@@ -175,269 +178,115 @@ void(*RxCallback)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t); /* callback 
 /**
  * @brief Interpret the valid received UART data packet.
  */
-static void HandleRxPacket(uint8_t*RxBuffer)
+static void HandleRxPacket(uint8_t *rxBuffer)
 {
-    ThebeII_CMD_Confirmation_t cmdConfirmation;
-    cmdConfirmation.cmd = CNFINVALID;
-    cmdConfirmation.status = CMD_Status_Invalid;
+	ThebeII_CMD_Confirmation_t cmdConfirmation;
+	cmdConfirmation.cmd = CNFINVALID;
+	cmdConfirmation.status = CMD_Status_Invalid;
 
-    uint8_t cmd_length = RxBuffer[2];
-    memcpy((uint8_t*)&RxPacket,RxBuffer,cmd_length + 4);
+	uint8_t cmd_length = rxBuffer[2];
+	memcpy((uint8_t*) &rxPacket, rxBuffer, cmd_length + 4);
 
-    switch (RxPacket.Cmd)
-    {
-    case THEBEII_CMD_FACTORY_RESET_CNF:
-    {
-        /* check whether the module returns success */
-        if ((RxPacket.Data[0] == 0x00))
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+	switch (rxPacket.Cmd)
+	{
 
-    case THEBEII_CMD_RESET_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+	case THEBEII_CMD_RESET_IND:
+	case THEBEII_CMD_STANDBY_IND:
+	{
+		cmdConfirmation.status = CMD_Status_Success;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-    case THEBEII_CMD_RESET_IND:
-    {
-        cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = THEBEII_CMD_RESET_IND;
-    }
-    break;
+	case THEBEII_CMD_FACTORY_RESET_CNF:
+	case THEBEII_CMD_RESET_CNF:
+	case THEBEII_CMD_SHUTDOWN_CNF:
+	case THEBEII_CMD_STANDBY_CNF:
+	case THEBEII_CMD_DATA_CNF:
+	case THEBEII_CMD_GET_CNF:
+	case THEBEII_CMD_SET_DESTADDR_CNF:
+	case THEBEII_CMD_SET_DESTNETID_CNF:
+	case THEBEII_CMD_SET_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Data[0] == 0x00) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-    case THEBEII_CMD_STANDBY_IND:
-    {
-        cmdConfirmation.status = CMD_Status_Success;
-        cmdConfirmation.cmd = THEBEII_CMD_STANDBY_IND;
-    }
-    break;
+	case THEBEII_CMD_DATAEX_IND:
+	{
+		/* data received, give it to the RxCallback function */
+		if (RxCallback != NULL)
+		{
+			switch (addressmode)
+			{
+			case ThebeII_AddressMode_0:
+			{
+				RxCallback(&rxPacket.Data[0], rxPacket.Length - 1, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
+			}
+				break;
 
-    case THEBEII_CMD_SHUTDOWN_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+			case ThebeII_AddressMode_1:
+			{
+				RxCallback(&rxPacket.Data[1], rxPacket.Length - 2, THEBEII_BROADCASTADDRESS, rxPacket.Data[0], THEBEII_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
+			}
+				break;
 
-    case THEBEII_CMD_STANDBY_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+			case ThebeII_AddressMode_2:
+			{
+				RxCallback(&rxPacket.Data[2], rxPacket.Length - 3, rxPacket.Data[0], rxPacket.Data[1], THEBEII_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
+			}
+				break;
 
-    case THEBEII_CMD_DATA_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            /* transmission success, ACK received if enabled */
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            /* transmission failed, no ACK received if enabled */
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+			case ThebeII_AddressMode_3:
+			{
+				RxCallback(&rxPacket.Data[3], rxPacket.Length - 4, rxPacket.Data[0], rxPacket.Data[1], rxPacket.Data[2], (int8_t) rxPacket.Data[rxPacket.Length - 1]);
+			}
+				break;
 
-    case THEBEII_CMD_GET_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+			default:
+				/* wrong address mode */
+				break;
+			}
+		}
+	}
+		break;
 
-    case THEBEII_CMD_SET_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
+	case THEBEII_CMD_SET_CHANNEL_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Data[0] == channelVolatile) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-    case THEBEII_CMD_DATAEX_IND:
-    {
-        /* data received, give it to the RxCallback function */
-        if (RxCallback != NULL)
-        {
-            switch (addressmode)
-            {
-            case AddressMode_0:
-            {
-                RxCallback(&RxPacket.Data[0], RxPacket.Length - 1, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-            }
-            break;
+	case THEBEII_CMD_SET_PAPOWER_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Data[0] == powerVolatile) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-            case AddressMode_1:
-            {
-                RxCallback(&RxPacket.Data[1], RxPacket.Length - 2, THEBEII_BROADCASTADDRESS, RxPacket.Data[0], THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-            }
-            break;
+		/* for internal use only */
+	case THEBEII_CMD_PINGDUT_CNF:
+	{
+		cmdConfirmation.status = (rxPacket.Data[4] == 0x0A) ? CMD_Status_Success : CMD_Status_Failed;
+		cmdConfirmation.cmd = rxPacket.Cmd;
+	}
+		break;
 
-            case AddressMode_2:
-            {
-                RxCallback(&RxPacket.Data[2], RxPacket.Length - 3, RxPacket.Data[0], RxPacket.Data[1], THEBEII_BROADCASTADDRESS, (int8_t)RxPacket.Data[RxPacket.Length-1]);
-            }
-            break;
+	default:
+		break;
+	}
 
-            case AddressMode_3:
-            {
-                RxCallback(&RxPacket.Data[3], RxPacket.Length - 4, RxPacket.Data[0], RxPacket.Data[1], RxPacket.Data[2], (int8_t)RxPacket.Data[RxPacket.Length-1]);
-            }
-            break;
-
-            default:
-                /* wrong address mode */
-                break;
-            }
-        }
-    }
-    break;
-
-    case THEBEII_CMD_SET_CHANNEL_CNF:
-    {
-        /* check whether the module set value of channel as requested */
-        if(RxPacket.Data[0] == channelVolatile)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case THEBEII_CMD_SET_DESTADDR_CNF:
-    {
-        /* check whether the module returns success */
-        if (RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case THEBEII_CMD_SET_DESTNETID_CNF:
-    {
-        /* check whether the module returns success */
-        if(RxPacket.Data[0] == 0x00)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    case THEBEII_CMD_SET_PAPOWER_CNF:
-    {
-        /* check whether the module set value of power output as requested */
-        if(RxPacket.Data[0] == powerVolatile)
-        {
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    /* for internal use only */
-    case THEBEII_CMD_PINGDUT_CNF:
-    {
-        /* check the received packets */
-        if(RxPacket.Data[4] == 0x0A)
-        {
-            /* 10 packets received */
-            cmdConfirmation.status = CMD_Status_Success;
-        }
-        else
-        {
-            /* no 10 packets received */
-            cmdConfirmation.status = CMD_Status_Failed;
-        }
-        cmdConfirmation.cmd = RxPacket.Cmd;
-    }
-    break;
-
-    default:
-        break;
-    }
-
-    int i = 0;
-    for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-    {
-        if(cmdConfirmation_array[i].cmd == CNFINVALID)
-        {
-            cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
-            cmdConfirmation_array[i].status = cmdConfirmation.status;
-            break;
-        }
-    }
+	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+	{
+		if (cmdConfirmation_array[i].cmd == CNFINVALID)
+		{
+			cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
+			cmdConfirmation_array[i].status = cmdConfirmation.status;
+			break;
+		}
+	}
 }
 
 /**
@@ -445,121 +294,134 @@ static void HandleRxPacket(uint8_t*RxBuffer)
  */
 static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ThebeII_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
-    int count = 0;
-    int time_step_ms = 5; /* 5ms */
-    int max_count = max_time_ms / time_step_ms;
-    int i = 0;
+	int count = 0;
+	int time_step_ms = 5; /* 5ms */
+	int max_count = max_time_ms / time_step_ms;
 
-    if(reset_confirmstate)
-    {
-        for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-        {
-            cmdConfirmation_array[i].cmd = CNFINVALID;
-        }
-    }
-    while (1)
-    {
-        for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-        {
-            if(expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
-            {
-                return (cmdConfirmation_array[i].status == expectedStatus);
-            }
-        }
+	if (reset_confirmstate)
+	{
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		{
+			cmdConfirmation_array[i].cmd = CNFINVALID;
+		}
+	}
+	while (1)
+	{
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		{
+			if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
+			{
+				return (cmdConfirmation_array[i].status == expectedStatus);
+			}
+		}
 
-        if (count >= max_count)
-        {
-            /* received no correct response within timeout */
-            return false;
-        }
+		if (count >= max_count)
+		{
+			/* received no correct response within timeout */
+			return false;
+		}
 
-        /* wait */
-        count++;
-        WE_Delay(time_step_ms);
-    }
-    return true;
+		/* wait */
+		count++;
+		WE_Delay(time_step_ms);
+	}
+	return true;
 }
 
 /**
  * @brief Function to add the checksum at the end of the data packet
  */
-static bool FillChecksum(uint8_t* array, uint8_t length)
+static void FillChecksum(ThebeII_CMD_Frame_t *cmd)
 {
-    bool ret = false;
+	uint8_t checksum = (uint8_t) cmd->Stx;
+	uint8_t *pArray = (uint8_t*) cmd;
 
-    if ((length >= 4) && (array[0] == CMD_STX))
-    {
-        uint8_t checksum = 0;
-        uint8_t payload_length = array[2];
-        int i = 0;
-        for (i = 0;
-                i < payload_length + 3;
-                i++)
-        {
-            checksum ^= array[i];
-        }
-        array[payload_length + 3] = checksum;
-        ret = true;
-    }
-    return ret;
+	for (uint8_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
+	{
+		checksum ^= pArray[i];
+	}
+
+	cmd->Data[cmd->Length] = checksum;
+}
+
+void ThebeII_HandleRxByte(uint8_t *dataP, size_t size)
+{
+	for (; size > 0; size--, dataP++)
+	{
+		if (rxByteCounter < sizeof(rxBuffer))
+		{
+			rxBuffer[rxByteCounter] = *dataP;
+		}
+
+		switch (rxByteCounter)
+		{
+		case 0:
+			/* wait for start byte of frame */
+			if (rxBuffer[rxByteCounter] == CMD_STX)
+			{
+				bytesToReceive = 0;
+				rxByteCounter = 1;
+			}
+			break;
+
+		case 1:
+			/* CMD */
+			rxByteCounter++;
+			break;
+
+		case 2:
+			/* length field */
+			rxByteCounter++;
+			bytesToReceive = (rxBuffer[rxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+			break;
+
+		default:
+			/* data field */
+			rxByteCounter++;
+			if (rxByteCounter >= bytesToReceive)
+			{
+				/* check CRC */
+				checksum = 0;
+				for (uint8_t i = 0; i < (bytesToReceive - 1); i++)
+				{
+					checksum ^= rxBuffer[i];
+				}
+
+				if (checksum == rxBuffer[bytesToReceive - 1])
+				{
+					/* received frame ok, interpret it now */
+					HandleRxPacket(rxBuffer);
+				}
+
+				rxByteCounter = 0;
+				bytesToReceive = 0;
+			}
+			break;
+		}
+	}
 }
 
 /**************************************
  *         Global functions           *
  **************************************/
-
-void WE_UART_HandleRxByte(uint8_t received_byte)
+/**
+ * @brief Transmitting the data via UART.
+ *
+ * @param[in] data    :  pointer to the data.
+ * @param[in] dataLength : length of the data.
+ *
+ * @return true if transmission succeeded,
+ *         false otherwise
+ */
+bool ThebeII_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
 {
-    RxBuffer[RxByteCounter] = received_byte;
+	if ((data == NULL) || (dataLength == 0))
+	{
+		return false;
+	}
 
-    switch (RxByteCounter)
-    {
-    case 0:
-        /* wait for start byte of frame */
-        if (RxBuffer[RxByteCounter] == CMD_STX)
-        {
-            BytesToReceive = 0;
-            RxByteCounter = 1;
-        }
-        break;
-
-    case 1:
-        /* CMD */
-        RxByteCounter++;
-        break;
-
-    case 2:
-        /* length field */
-        RxByteCounter++;
-        BytesToReceive = (RxBuffer[RxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-        break;
-
-    default:
-        /* data field */
-        RxByteCounter++;
-        if (RxByteCounter == BytesToReceive)
-        {
-            /* check CRC */
-            checksum = 0;
-            int i = 0;
-            for (i = 0; i < (BytesToReceive - 1); i++)
-            {
-                checksum ^= RxBuffer[i];
-            }
-
-            if (checksum == RxBuffer[BytesToReceive - 1])
-            {
-                /* received frame ok, interpret it now */
-                HandleRxPacket(RxBuffer);
-            }
-
-            RxByteCounter = 0;
-            BytesToReceive = 0;
-        }
-        break;
-    }
+	return ThebeII_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
-
 
 /**
  * @brief Initialize the ThebeII for serial interface
@@ -570,61 +432,71 @@ void WE_UART_HandleRxByte(uint8_t received_byte)
  *          The addrmode must match when RF packet transmission or reception is performed.
  *          This parameter can be updated to the correct value (used in ThebeII_Init function) as soon as no RF packet transmission or reception was performed.
  *
- * @param[in] baudrate:       baudrate of the interface
- * @param[in] flow_control:   enable/disable flowcontrol
+ * @param[in] uartP :         definition of the uart connected to the module
+ * @param[in] pinoutP:        definition of the gpios connected to the module
  * @param[in] addrmode:       address mode of the ThebeII
  * @param[in] RXcb:           RX callback function
  *
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_AddressMode_t addrmode, void(*RXcb)(uint8_t*,uint8_t,uint8_t,uint8_t,uint8_t,int8_t))
+bool ThebeII_Init(WE_UART_t *uartP, ThebeII_Pins_t *pinoutP, ThebeII_AddressMode_t addrmode, void (*RXcb)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t))
 {
-    /* set address mode */
-    addressmode = addrmode;
+	/* set address mode */
+	addressmode = addrmode;
 
-    /* set RX callback function */
-    RxCallback = RXcb;
+	/* set RX callback function */
+	RxCallback = RXcb;
 
-    /* initialize the pins */
-    ThebeII_pins[ThebeII_Pin_Reset].port = GPIOA;
-    ThebeII_pins[ThebeII_Pin_Reset].pin = GPIO_PIN_10;
-    ThebeII_pins[ThebeII_Pin_Reset].type = WE_Pin_Type_Output;
-    ThebeII_pins[ThebeII_Pin_SleepWakeUp].port = GPIOA;
-    ThebeII_pins[ThebeII_Pin_SleepWakeUp].pin = GPIO_PIN_9;
-    ThebeII_pins[ThebeII_Pin_SleepWakeUp].type = WE_Pin_Type_Output;
-    ThebeII_pins[ThebeII_Pin_Boot].port = GPIOA;
-    ThebeII_pins[ThebeII_Pin_Boot].pin = GPIO_PIN_7;
-    ThebeII_pins[ThebeII_Pin_Boot].type = WE_Pin_Type_Output;
-    ThebeII_pins[ThebeII_Pin_Mode].port = GPIOA;
-    ThebeII_pins[ThebeII_Pin_Mode].pin = GPIO_PIN_8;
-    ThebeII_pins[ThebeII_Pin_Mode].type = WE_Pin_Type_Output;
-    if (false == WE_InitPins(ThebeII_pins, ThebeII_Pin_Count))
-    {
-        /* error */
-        return false;
-    }
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_Boot], WE_Pin_Level_Low);
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp], WE_Pin_Level_Low);
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_Reset], WE_Pin_Level_High);
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_Mode], WE_Pin_Level_Low);
+	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+	{
+		return false;
+	}
 
-    WE_UART_Init(baudrate, flow_control, WE_Parity_None, false);
-    WE_Delay(10);
+	ThebeII_pinsP = pinoutP;
+	ThebeII_pinsP->ThebeII_Pin_Reset.type = WE_Pin_Type_Output;
+	ThebeII_pinsP->ThebeII_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+	ThebeII_pinsP->ThebeII_Pin_Boot.type = WE_Pin_Type_Output;
+	ThebeII_pinsP->ThebeII_Pin_Mode.type = WE_Pin_Type_Output;
 
-    /* reset module */
-    if(ThebeII_PinReset())
-    {
-        WE_Delay(300);
-    }
-    else
-    {
-        fprintf(stdout, "Pin Reset failed\n");
-        ThebeII_Deinit();
-        return false;
-    }
+	WE_Pin_t pins[sizeof(ThebeII_Pins_t) / sizeof(WE_Pin_t)];
+	uint8_t pin_count = 0;
+	memcpy(&pins[pin_count++], &ThebeII_pinsP->ThebeII_Pin_Reset, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ThebeII_pinsP->ThebeII_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ThebeII_pinsP->ThebeII_Pin_Boot, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ThebeII_pinsP->ThebeII_Pin_Mode, sizeof(WE_Pin_t));
 
-    return true;
+	if (!WE_InitPins(pins, pin_count))
+	{
+		/* error */
+		return false;
+	}
+
+	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(ThebeII_pinsP->ThebeII_Pin_SleepWakeUp, WE_Pin_Level_Low) || !WE_SetPin(ThebeII_pinsP->ThebeII_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ThebeII_pinsP->ThebeII_Pin_Mode, WE_Pin_Level_Low))
+	{
+		return false;
+	}
+
+	ThebeII_uartP = uartP;
+	if (!ThebeII_uartP->uartInit(ThebeII_uartP->baudrate, ThebeII_uartP->flowControl, ThebeII_uartP->parity, &byteRxCallback))
+	{
+		return false;
+	}
+	WE_Delay(10);
+
+	/* reset module */
+	if (ThebeII_PinReset())
+	{
+		WE_Delay(300);
+	}
+	else
+	{
+		printf("Pin Reset failed\n");
+		ThebeII_Deinit();
+		return false;
+	}
+
+	return true;
 }
 /**
  * @brief Deinitialize the ThebeII interface
@@ -634,19 +506,16 @@ bool ThebeII_Init(uint32_t baudrate, WE_FlowControl_t flow_control, ThebeII_Addr
  */
 bool ThebeII_Deinit()
 {
-    /* close the communication interface to the module */
-    WE_UART_DeInit();
+	/* deinit pins */
+	if (!WE_DeinitPin(ThebeII_pinsP->ThebeII_Pin_Reset) || !WE_DeinitPin(ThebeII_pinsP->ThebeII_Pin_SleepWakeUp) || !WE_DeinitPin(ThebeII_pinsP->ThebeII_Pin_Boot) || !WE_DeinitPin(ThebeII_pinsP->ThebeII_Pin_Mode))
+	{
+		return false;
+	}
 
-    /* deinit pins */
-    WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Reset]);
-    WE_DeinitPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp]);
-    WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Boot]);
-    WE_DeinitPin(ThebeII_pins[ThebeII_Pin_Mode]);
+	addressmode = ThebeII_AddressMode_0;
+	RxCallback = NULL;
 
-    addressmode = AddressMode_0;
-    RxCallback = NULL;
-
-    return true;
+	return ThebeII_uartP->uartDeinit();
 }
 
 /**
@@ -657,18 +526,26 @@ bool ThebeII_Deinit()
  */
 bool ThebeII_PinWakeup()
 {
-    int i = 0;
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp], WE_Pin_Level_High);
-    WE_Delay (5);
-    for(i=0; i<CMDCONFIRMATIONARRAY_LENGTH; i++)
-    {
-        cmdConfirmation_array[i].status = CMD_Status_Invalid;
-        cmdConfirmation_array[i].cmd = CNFINVALID;
-    }
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_SleepWakeUp], WE_Pin_Level_Low);
+	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_SleepWakeUp, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
-    /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, false);
+	WE_Delay(5);
+
+	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+	{
+		cmdConfirmation_array[i].status = CMD_Status_Invalid;
+		cmdConfirmation_array[i].cmd = CNFINVALID;
+	}
+
+	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_SleepWakeUp, WE_Pin_Level_Low))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -679,12 +556,20 @@ bool ThebeII_PinWakeup()
  */
 bool ThebeII_PinReset()
 {
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_Reset], WE_Pin_Level_Low);
-    WE_Delay (5);
-    WE_SetPin(ThebeII_pins[ThebeII_Pin_Reset], WE_Pin_Level_High);
+	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_Reset, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 
-    /* wait for cnf */
-    return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, true);
+	WE_Delay(5);
+
+	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_Reset, WE_Pin_Level_High))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
 /**
@@ -695,22 +580,18 @@ bool ThebeII_PinReset()
  */
 bool ThebeII_Reset()
 {
-    bool ret = false;
+	txPacket.Cmd = THEBEII_CMD_RESET_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_RESET_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -723,22 +604,18 @@ bool ThebeII_Reset()
  */
 bool ThebeII_FactoryReset()
 {
-    bool ret = false;
+	txPacket.Cmd = THEBEII_CMD_FACTORY_RESET_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_FACTORY_RESET_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(1500, THEBEII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(1500, THEBEII_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -749,22 +626,18 @@ bool ThebeII_FactoryReset()
  */
 bool ThebeII_Standby()
 {
-    bool ret = false;
+	txPacket.Cmd = THEBEII_CMD_STANDBY_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_STANDBY_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_STANDBY_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_STANDBY_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -775,22 +648,18 @@ bool ThebeII_Standby()
  */
 bool ThebeII_Shutdown()
 {
-    bool ret = false;
+	txPacket.Cmd = THEBEII_CMD_SHUTDOWN_REQ;
+	txPacket.Length = 0x00;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_SHUTDOWN_REQ;
-    CMD_ARRAY[2] = 0x00;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -803,32 +672,73 @@ bool ThebeII_Shutdown()
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t* response, uint8_t* response_length)
+bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t *response, uint8_t *response_length)
 {
-    bool ret = false;
+	if (response == NULL || response_length == NULL)
+	{
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_GET_REQ;
-    CMD_ARRAY[2] = 0x01;
-    CMD_ARRAY[3] = us;
+	txPacket.Cmd = THEBEII_CMD_GET_REQ;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = us;
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        if (Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_GET_CNF, CMD_Status_Success, true))
-        {
-            int length = RxPacket.Length - 1;
-            memcpy(response,&RxPacket.Data[1],length);
-            *response_length = length;
-            ret = true;
-        }
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	if (!Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_GET_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	int length = rxPacket.Length - 1;
+	memcpy(response, &rxPacket.Data[1], length);
+	*response_length = length;
+
+	return true;
+}
+
+/**
+ * @brief Set a special user setting, but checks first if the value is already ok
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] userSetting:  user setting to be updated
+ * @param[in] valueP:       pointer to the new settings value
+ * @param[in] length:       length of the value
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ThebeII_CheckNSet(ThebeII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+{
+	if (valueP == NULL)
+	{
+		return false;
+	}
+
+	uint8_t current_value[length];
+	uint8_t current_length = length;
+
+	if (!ThebeII_Get(userSetting, current_value, &current_length))
+	{
+		return false;
+	}
+
+	if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+	{
+		/* value is already set, no need to set it again */
+		return true;
+	}
+
+	/* value differs, and thus must be set */
+	return ThebeII_Set(userSetting, valueP, length);
 }
 
 /**
@@ -844,28 +754,28 @@ bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t* response, uint8_t* response
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t* value, uint8_t length)
+bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t *value, uint8_t length)
 {
-    bool ret = false;
+	if (value == NULL)
+	{
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[length + 5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_SET_REQ;
-    CMD_ARRAY[2] = (1 + length);
-    CMD_ARRAY[3] = us;
-    memcpy(&CMD_ARRAY[4],value,length);
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = THEBEII_CMD_SET_REQ;
+	txPacket.Length = (1 + length);
+	txPacket.Data[0] = us;
+	memcpy(&txPacket.Data[1], value, length);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	FillChecksum(&txPacket);
+
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CNF, CMD_Status_Success, true);
 }
-
 
 /**
  * @brief Request the 3 byte firmware version
@@ -875,22 +785,26 @@ bool ThebeII_Set(ThebeII_UserSettings_t us, uint8_t* value, uint8_t length)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetFirmwareVersion(uint8_t* fw)
+bool ThebeII_GetFirmwareVersion(uint8_t *fw)
 {
-    uint8_t help[3];
-    uint8_t help_length;
+	if (fw == NULL)
+	{
+		return false;
+	}
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_FWVERSION, help, &help_length))
-    {
-        fw[0] = help[2];
-        fw[1] = help[1];
-        fw[2] = help[0];
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	uint8_t help[3];
+	uint8_t help_length;
+
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_FWVERSION, help, &help_length))
+	{
+		return false;
+	}
+
+	fw[0] = help[2];
+	fw[1] = help[1];
+	fw[2] = help[0];
+
+	return true;
 }
 
 /**
@@ -901,23 +815,27 @@ bool ThebeII_GetFirmwareVersion(uint8_t* fw)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetSerialNumber(uint8_t* sn)
+bool ThebeII_GetSerialNumber(uint8_t *sn)
 {
-    uint8_t help[8];
-    uint8_t help_length;
+	if (sn == NULL)
+	{
+		return false;
+	}
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_FACTORYSETTINGS, help, &help_length))
-    {
-        sn[0] = help[3];
-        sn[1] = help[2];
-        sn[2] = help[1];
-        sn[3] = help[0];
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	uint8_t help[8];
+	uint8_t help_length;
+
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_FACTORYSETTINGS, help, &help_length))
+	{
+		return false;
+	}
+
+	sn[0] = help[3];
+	sn[1] = help[2];
+	sn[2] = help[1];
+	sn[3] = help[0];
+
+	return true;
 }
 
 /**
@@ -928,19 +846,17 @@ bool ThebeII_GetSerialNumber(uint8_t* sn)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetDefaultTXPower(uint8_t* txpower)
+bool ThebeII_GetDefaultTXPower(uint8_t *txpower)
 {
-    uint8_t length;
+	if (txpower == NULL)
+	{
+		return false;
+	}
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, txpower, &length))
-    {
-        return true;
-    }
-    else
-    {
-        *txpower = TXPOWERINVALID;
-        return false;
-    }
+	*txpower = TXPOWERINVALID;
+	uint8_t length;
+
+	return ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, txpower, &length);
 }
 
 /**
@@ -952,22 +868,26 @@ bool ThebeII_GetDefaultTXPower(uint8_t* txpower)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetDefaultDestAddr(uint8_t* destaddr_lsb, uint8_t* destaddr_msb)
+bool ThebeII_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *destaddr_msb)
 {
-    /* helper array */
-    uint8_t help[2];
-    uint8_t length;
+	if (destaddr_lsb == NULL || destaddr_msb == NULL)
+	{
+		return false;
+	}
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, &length))
-    {
-        *destaddr_lsb = help[0];
-        *destaddr_msb = help[1];
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	/* helper array */
+	uint8_t help[2];
+	uint8_t length;
+
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, &length))
+	{
+		return false;
+	}
+
+	*destaddr_lsb = help[0];
+	*destaddr_msb = help[1];
+
+	return true;
 }
 
 /**
@@ -978,18 +898,11 @@ bool ThebeII_GetDefaultDestAddr(uint8_t* destaddr_lsb, uint8_t* destaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetDefaultDestNetID(uint8_t* destnetid)
+bool ThebeII_GetDefaultDestNetID(uint8_t *destnetid)
 {
-    uint8_t length;
+	uint8_t length;
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTNETID, destnetid, &length))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	return ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTNETID, destnetid, &length);
 }
 
 /**
@@ -1001,22 +914,26 @@ bool ThebeII_GetDefaultDestNetID(uint8_t* destnetid)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetSourceAddr(uint8_t* srcaddr_lsb, uint8_t *srcaddr_msb)
+bool ThebeII_GetSourceAddr(uint8_t *srcaddr_lsb, uint8_t *srcaddr_msb)
 {
-    /* helper array */
-    uint8_t help[2];
-    uint8_t length;
+	if (srcaddr_lsb == NULL || srcaddr_msb == NULL)
+	{
+		return false;
+	}
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_SOURCEADDR, help, &length))
-    {
-        *srcaddr_lsb = help[0];
-        *srcaddr_msb = help[1];
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	/* helper array */
+	uint8_t help[2];
+	uint8_t length;
+
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_SOURCEADDR, help, &length))
+	{
+		return false;
+	}
+
+	*srcaddr_lsb = help[0];
+	*srcaddr_msb = help[1];
+
+	return true;
 }
 
 /**
@@ -1027,18 +944,11 @@ bool ThebeII_GetSourceAddr(uint8_t* srcaddr_lsb, uint8_t *srcaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetSourceNetID(uint8_t* srcnetid)
+bool ThebeII_GetSourceNetID(uint8_t *srcnetid)
 {
-    uint8_t length;
+	uint8_t length;
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_SOURCENETID, srcnetid, &length))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	return ThebeII_Get(ThebeII_CMD_SETGET_OPTION_SOURCENETID, srcnetid, &length);
 }
 
 /**
@@ -1049,18 +959,11 @@ bool ThebeII_GetSourceNetID(uint8_t* srcnetid)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetDefaultRFChannel(uint8_t* channel)
+bool ThebeII_GetDefaultRFChannel(uint8_t *channel)
 {
-    uint8_t length;
+	uint8_t length;
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, channel, &length))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	return ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, channel, &length);
 }
 
 /**
@@ -1071,18 +974,11 @@ bool ThebeII_GetDefaultRFChannel(uint8_t* channel)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_GetDefaultRFProfile(uint8_t* profile)
+bool ThebeII_GetDefaultRFProfile(uint8_t *profile)
 {
-    uint8_t length;
+	uint8_t length;
 
-    if(ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFPROFILE, profile, &length))
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+	return ThebeII_Get(ThebeII_CMD_SETGET_OPTION_DEFAULTRFPROFILE, profile, &length);
 }
 
 /**
@@ -1099,14 +995,14 @@ bool ThebeII_GetDefaultRFProfile(uint8_t* profile)
  */
 bool ThebeII_SetDefaultTXPower(uint8_t txpower)
 {
-    /* check for invalid power */
-    if((txpower == 12) || (txpower == 18) || (txpower == 21) || (txpower == 23) || (txpower == 24) || (txpower == 25) || (txpower == 26))
-    {
-        return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, &txpower, 1);
-    }
+	/* check for invalid power */
+	if ((txpower != 12) && (txpower != 18) && (txpower != 21) && (txpower != 23) && (txpower != 24) && (txpower != 25) && (txpower != 26))
+	{
+		/*invalid power*/
+		return false;
+	}
 
-    /*invalid power*/
-    return false;
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, &txpower, 1);
 }
 
 /**
@@ -1124,16 +1020,11 @@ bool ThebeII_SetDefaultTXPower(uint8_t txpower)
  */
 bool ThebeII_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
-    if((destaddr_lsb < 0)||(destaddr_lsb > 255))
-    {
-        return false;
-    }
-
-    /* fill array */
-    uint8_t help[2];
-    help[0] = destaddr_lsb;
-    help[1] = destaddr_msb;
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, 2);
+	/* fill array */
+	uint8_t help[2];
+	help[0] = destaddr_lsb;
+	help[1] = destaddr_msb;
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, 2);
 }
 
 /**
@@ -1150,13 +1041,7 @@ bool ThebeII_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
  */
 bool ThebeII_SetDefaultDestNetID(uint8_t destnetid)
 {
-    /* check for valid destnetid */
-    if((destnetid < 0)||(destnetid > 255))
-    {
-        /* invalid destnetid */
-        return false;
-    }
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTNETID, &destnetid, 1);
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTDESTNETID, &destnetid, 1);
 }
 
 /**
@@ -1173,15 +1058,11 @@ bool ThebeII_SetDefaultDestNetID(uint8_t destnetid)
  */
 bool ThebeII_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
 {
-    if((srcaddr_lsb < 0)||(srcaddr_lsb > 255))
-    {
-        return false;
-    }
-    /* fill array */
-    uint8_t help[2];
-    help[0] = srcaddr_lsb;
-    help[1] = srcaddr_msb;
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_SOURCEADDR, help, 2);
+	/* fill array */
+	uint8_t help[2];
+	help[0] = srcaddr_lsb;
+	help[1] = srcaddr_msb;
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_SOURCEADDR, help, 2);
 }
 
 /**
@@ -1197,13 +1078,7 @@ bool ThebeII_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
  */
 bool ThebeII_SetSourceNetID(uint8_t srcnetid)
 {
-    /* check for invalid srcnetid */
-    if((srcnetid < 0)||(srcnetid > 254))
-    {
-        /* invalid destnetid */
-        return false;
-    }
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_SOURCENETID, &srcnetid, 1);
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_SOURCENETID, &srcnetid, 1);
 }
 
 /**
@@ -1220,13 +1095,13 @@ bool ThebeII_SetSourceNetID(uint8_t srcnetid)
  */
 bool ThebeII_SetDefaultRFChannel(uint8_t channel)
 {
-    /* check for valid channel */
-    if((channel < THEBEII_MIN_RFCHANNEL)||(channel > THEBEII_MAX_RFCHANNEL))
-    {
-        /* invalid channel */
-        return false;
-    }
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, &channel, 1);
+	/* check for valid channel */
+	if ((channel < THEBEII_MIN_RFCHANNEL) || (channel > THEBEII_MAX_RFCHANNEL))
+	{
+		/* invalid channel */
+		return false;
+	}
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, &channel, 1);
 }
 
 /**
@@ -1242,7 +1117,7 @@ bool ThebeII_SetDefaultRFChannel(uint8_t channel)
  */
 bool ThebeII_SetDefaultRFProfile(uint8_t profile)
 {
-    return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1);
+	return ThebeII_Set(ThebeII_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1);
 }
 
 /**
@@ -1256,45 +1131,41 @@ bool ThebeII_SetDefaultRFProfile(uint8_t profile)
  */
 bool ThebeII_EnableSnifferMode()
 {
-    bool ret = false;
+	uint16_t rpFlags;
+	uint16_t cfgFlags;
+	uint8_t length;
 
-    uint16_t rpFlags;
-    uint16_t cfgFlags;
-    uint8_t length;
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*) &cfgFlags, &length))
+	{
+		return false;
+	}
 
-    ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length);
-    if(ret == true)
-    {
-        /* set sniffer mode if not set already */
-        if(THEBEII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & THEBEII_CFGFLAGS_SNIFFERMODEENABLE))
-        {
-            cfgFlags |= THEBEII_CFGFLAGS_SNIFFERMODEENABLE;
-            ret = ThebeII_Set(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2);
-        }
-        else
-        {
-            ret = true;
-        }
+	/* set sniffer mode if not set already */
+	if (THEBEII_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & THEBEII_CFGFLAGS_SNIFFERMODEENABLE))
+	{
+		cfgFlags |= THEBEII_CFGFLAGS_SNIFFERMODEENABLE;
+		if (!ThebeII_Set(ThebeII_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*) &cfgFlags, 2))
+		{
+			return false;
+		}
+	}
 
-        if(ret == true)
-        {
-            /* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
-            ret = ThebeII_Get(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length);
-            if(ret == true)
-            {
-                if(THEBEII_RPFLAGS_REPEATERENABLE == (rpFlags & THEBEII_RPFLAGS_REPEATERENABLE))
-                {
-                    rpFlags &= ~THEBEII_RPFLAGS_REPEATERENABLE;
-                    ret &= ThebeII_Set(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2);
-                }
-                else
-                {
-                    ret = true;
-                }
-            }
-        }
-    }
-    return ret;
+	/* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
+	if (!ThebeII_Get(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*) &rpFlags, &length))
+	{
+		return false;
+	}
+
+	if (THEBEII_RPFLAGS_REPEATERENABLE == (rpFlags & THEBEII_RPFLAGS_REPEATERENABLE))
+	{
+		rpFlags &= ~THEBEII_RPFLAGS_REPEATERENABLE;
+		if (!ThebeII_Set(ThebeII_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*) &rpFlags, 2))
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /**
@@ -1307,29 +1178,31 @@ bool ThebeII_EnableSnifferMode()
  */
 bool ThebeII_SetVolatile_TXPower(uint8_t power)
 {
-    bool ret = false;
+	/* check for invalid power */
+	if ((power != 12) && (power != 18) && (power != 21) && (power != 23) && (power != 24) && (power != 25) && (power != 26))
+	{
+		return false;
+	}
 
-    /* check for invalid power */
-       if((power == 12) || (power == 18) || (power == 21) || (power == 23) || (power == 24) || (power == 25) || (power == 26))
-    {
-        /* fill CMD_ARRAY packet */
-        uint8_t CMD_ARRAY[5];
-        CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = THEBEII_CMD_SET_PAPOWER_REQ;
-        CMD_ARRAY[2] = 0x01;
-        CMD_ARRAY[3] = power;
-        if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-        {
-            powerVolatile = power;
-            /* now send CMD_ARRAY */
-            WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	txPacket.Cmd = THEBEII_CMD_SET_PAPOWER_REQ;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = power;
 
-            /* wait for cnf */
-            ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
-            powerVolatile = TXPOWERINVALID;
-        }
-    }
-    return ret;
+	FillChecksum(&txPacket);
+
+	powerVolatile = power;
+
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	bool ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
+
+	powerVolatile = TXPOWERINVALID;
+
+	return ret;
 }
 
 /**
@@ -1342,32 +1215,32 @@ bool ThebeII_SetVolatile_TXPower(uint8_t power)
  */
 bool ThebeII_SetVolatile_Channel(uint8_t channel)
 {
-    bool ret = false;
+	/* check for valid channel */
+	if ((channel < THEBEII_MIN_RFCHANNEL) || (channel > THEBEII_MAX_RFCHANNEL))
+	{
+		/* invalid channel */
+		return false;
+	}
 
-    /* check for valid channel */
-    if((channel < THEBEII_MIN_RFCHANNEL)||(channel > THEBEII_MAX_RFCHANNEL))
-    {
-        /* invalid channel */
-        return false;
-    }
+	txPacket.Cmd = THEBEII_CMD_SET_CHANNEL_REQ;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = channel;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_SET_CHANNEL_REQ;
-    CMD_ARRAY[2] = 0x01;
-    CMD_ARRAY[3] = channel;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        channelVolatile = channel;
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
-        channelVolatile = CHANNELINVALID;
-    }
-    return ret;
+	channelVolatile = channel;
+
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	bool ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
+
+	channelVolatile = CHANNELINVALID;
+
+	return ret;
 }
 
 /**
@@ -1380,30 +1253,20 @@ bool ThebeII_SetVolatile_Channel(uint8_t channel)
  */
 bool ThebeII_SetVolatile_DestNetID(uint8_t destnetid)
 {
-    bool ret = false;
 
-    /* check for valid destnetid */
-    if((destnetid < 0)||(destnetid > 255))
-    {
-        /* invalid destnetid */
-        return false;
-    }
+	txPacket.Cmd = THEBEII_CMD_SET_DESTNETID_REQ;
+	txPacket.Length = 0x01;
+	txPacket.Data[0] = destnetid;
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[5];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_SET_DESTNETID_REQ;
-    CMD_ARRAY[2] = 0x01;
-    CMD_ARRAY[3] = destnetid;
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1417,57 +1280,39 @@ bool ThebeII_SetVolatile_DestNetID(uint8_t destnetid)
  */
 bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
-    bool ret = false;
 
-    if(destaddr_lsb < 0 || destaddr_lsb > 255)
-    {
-        return false;
-    }
+	switch (addressmode)
+	{
+	case ThebeII_AddressMode_0:
+	case ThebeII_AddressMode_1:
+	case ThebeII_AddressMode_2:
+	{
+		txPacket.Cmd = THEBEII_CMD_SET_DESTADDR_REQ;
+		txPacket.Length = 0x01;
+		txPacket.Data[0] = destaddr_lsb;
+	}
+		break;
+	case ThebeII_AddressMode_3:
+	{
+		txPacket.Cmd = THEBEII_CMD_SET_DESTADDR_REQ;
+		txPacket.Length = 0x02;
+		txPacket.Data[0] = destaddr_lsb;
+		txPacket.Data[1] = destaddr_msb;
+	}
+		break;
+	default:
+		return false;
+	}
 
-    if(destaddr_msb < 0 || destaddr_msb > 255)
-    {
-        return false;
-    }
+	FillChecksum(&txPacket);
 
-    uint8_t CMD_ARRAY[6];
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    switch (addressmode)
-    {
-    case AddressMode_0:
-    case AddressMode_1:
-    case AddressMode_2:
-    {
-        CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = THEBEII_CMD_SET_DESTADDR_REQ;
-        CMD_ARRAY[2] = 0x01;
-        CMD_ARRAY[3] = destaddr_lsb;
-        ret = FillChecksum(CMD_ARRAY,5);
-    }
-    break;
-    case AddressMode_3:
-    {
-        CMD_ARRAY[0] = CMD_STX;
-        CMD_ARRAY[1] = THEBEII_CMD_SET_DESTADDR_REQ;
-        CMD_ARRAY[2] = 0x02;
-        CMD_ARRAY[3] = destaddr_lsb;
-        CMD_ARRAY[4] = destaddr_msb;
-        ret = FillChecksum(CMD_ARRAY,6);
-    }
-    break;
-    default:
-        return false;
-    }
-
-    if(ret == true)
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
-
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1479,32 +1324,32 @@ bool ThebeII_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_Transmit(uint8_t* payload, uint8_t length)
+bool ThebeII_Transmit(uint8_t *payload, uint8_t length)
 {
-    bool ret = false;
+	if ((payload == NULL) || (length == 0))
+	{
+		return false;
+	}
 
-    if(length > MAX_PAYLOAD_LENGTH)
-    {
-        fprintf(stdout, "Data exceeds maximal payload length\n");
-        return false;
-    }
+	if (length > MAX_PAYLOAD_LENGTH)
+	{
+		printf("Data exceeds maximal payload length\n");
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[length + 4];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_DATA_REQ;
-    CMD_ARRAY[2] = length;
-    memcpy(&CMD_ARRAY[3],payload,length);
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
+	txPacket.Cmd = THEBEII_CMD_DATA_REQ;
+	txPacket.Length = length;
+	memcpy(&txPacket.Data[0], payload, length);
 
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1520,77 +1365,76 @@ bool ThebeII_Transmit(uint8_t* payload, uint8_t length)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThebeII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb)
+bool ThebeII_Transmit_Extended(uint8_t *payload, uint8_t length, uint8_t channel, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb)
 {
-    bool ret = false;
+	if ((payload == NULL) || (length == 0))
+	{
+		return false;
+	}
 
-    if(length > MAX_PAYLOAD_LENGTH)
-    {
-        fprintf(stdout, "Data exceeds maximal payload length\n");
-        return false;
-    }
+	if (length > MAX_PAYLOAD_LENGTH)
+	{
+		printf("Data exceeds maximal payload length\n");
+		return false;
+	}
 
-    /* fill CMD_ARRAY packet */
-    uint8_t CMD_ARRAY[length + addressmode + 4 + 1];
-    CMD_ARRAY[0] = CMD_STX;
-    CMD_ARRAY[1] = THEBEII_CMD_DATAEX_REQ;
+	txPacket.Cmd = THEBEII_CMD_DATAEX_REQ;
 
-    switch (addressmode)
-    {
-    case AddressMode_0:
-    {
-        CMD_ARRAY[2] = (length + 1);
-        CMD_ARRAY[3] = channel;
-        memcpy(&CMD_ARRAY[4],payload,length);
-    }
-    break;
+	switch (addressmode)
+	{
+	case ThebeII_AddressMode_0:
+	{
+		txPacket.Length = (length + 1);
+		txPacket.Data[0] = channel;
+		memcpy(&txPacket.Data[1], payload, length);
+	}
+		break;
 
-    case AddressMode_1:
-    {
-        CMD_ARRAY[2] = (length + 2);
-        CMD_ARRAY[3] = channel;
-        CMD_ARRAY[4] = dest_address_lsb;
-        memcpy(&CMD_ARRAY[5],payload,length);
-    }
-    break;
+	case ThebeII_AddressMode_1:
+	{
+		txPacket.Length = (length + 2);
+		txPacket.Data[0] = channel;
+		txPacket.Data[1] = dest_address_lsb;
+		memcpy(&txPacket.Data[2], payload, length);
+	}
+		break;
 
-    case AddressMode_2:
-    {
-        CMD_ARRAY[2] = (length + 3);
-        CMD_ARRAY[3] = channel;
-        CMD_ARRAY[4] = dest_network_id;
-        CMD_ARRAY[5] = dest_address_lsb;
-        memcpy(&CMD_ARRAY[6],payload,length);
-    }
-    break;
+	case ThebeII_AddressMode_2:
+	{
+		txPacket.Length = (length + 3);
+		txPacket.Data[0] = channel;
+		txPacket.Data[1] = dest_network_id;
+		txPacket.Data[2] = dest_address_lsb;
+		memcpy(&txPacket.Data[3], payload, length);
+	}
+		break;
 
-    case AddressMode_3:
-    {
-        CMD_ARRAY[2] = (length + 4);
-        CMD_ARRAY[3] = channel;
-        CMD_ARRAY[4] = dest_network_id;
-        CMD_ARRAY[5] = dest_address_lsb;
-        CMD_ARRAY[6] = dest_address_msb;
-        memcpy(&CMD_ARRAY[7],payload,length);
-    }
-    break;
+	case ThebeII_AddressMode_3:
+	{
+		txPacket.Length = (length + 4);
+		txPacket.Data[0] = channel;
+		txPacket.Data[1] = dest_network_id;
+		txPacket.Data[2] = dest_address_lsb;
+		txPacket.Data[3] = dest_address_msb;
+		memcpy(&txPacket.Data[4], payload, length);
+	}
+		break;
 
-    default:
-        /* wrong address mode */
-        return false;
-    }
+	default:
+		/* wrong address mode */
+		return false;
+	}
 
-    if(FillChecksum(CMD_ARRAY,sizeof(CMD_ARRAY)))
-    {
-        /* now send CMD_ARRAY */
-        WE_UART_Transmit(CMD_ARRAY,sizeof(CMD_ARRAY));
+	FillChecksum(&txPacket);
 
-        /* wait for cnf */
-        ret = Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
-    }
-    return ret;
+	if (!ThebeII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_DATA_CNF, CMD_Status_Success, true);
 }
-
 
 /**
  * @brief Use the ping test command
@@ -1599,17 +1443,32 @@ bool ThebeII_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel
  *
  * @return true if request succeeded,
  *         false otherwise
-*/
+ */
 bool ThebeII_Ping()
 {
-    /* rf-profil 5, ch134, +14dbm, 10 packets */
-    uint8_t ping_command[] = {0x02,0x1F,0x08,0x20,0x05,0x86,0x0E,0x0A,0xFF,0xFF,0xFF,0x4D};
+	/* rf-profil 5, ch134, +14dbm, 10 packets */
+	uint8_t ping_command[] = {
+			0x02,
+			0x1F,
+			0x08,
+			0x20,
+			0x05,
+			0x86,
+			0x0E,
+			0x0A,
+			0xFF,
+			0xFF,
+			0xFF,
+			0x4D };
 
-    /* now send the data */
-    WE_UART_Transmit(ping_command,sizeof(ping_command));
+	/* now send the data */
+	if (!ThebeII_Transparent_Transmit(ping_command, sizeof(ping_command)))
+	{
+		return false;
+	}
 
-    /* wait for cnf */
-    return Wait4CNF(10000 /*10s*/, THEBEII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
+	/* wait for cnf */
+	return Wait4CNF(10000 /*10s*/, THEBEII_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1621,57 +1480,57 @@ bool ThebeII_Ping()
  *
  * @return true if request succeeded,
  *         false otherwise
-*/
-bool ThebeII_Configure(ThebeII_Configuration_t* config, uint8_t config_length, bool factory_reset)
+ */
+bool ThebeII_Configure(ThebeII_Configuration_t *config, uint8_t config_length, bool factory_reset)
 {
-    int i = 0;
-    uint8_t help_length;
-    uint8_t help[THEBEII_MAX_USERSETTING_LENGTH];
+	if ((config == NULL) || (config_length == 0))
+	{
+		return false;
+	}
 
-    if(factory_reset)
-    {
-        /* perform a factory reset */
-        if(false == ThebeII_FactoryReset())
-        {
-            /* error */
-            return false;
-        }
-    }
-    WE_Delay(500);
+	uint8_t help_length;
+	uint8_t help[THEBEII_MAX_USERSETTING_LENGTH];
 
-    /* now check all settings and update them if necessary */
-    for(i=0; i<config_length; i++)
-    {
-        /* read current value */
-        if(false == ThebeII_Get(config[i].usersetting, help, &help_length))
-        {
-            /* error */
-            return false;
-        }
-        WE_Delay(200);
+	if (factory_reset)
+	{
+		/* perform a factory reset */
+		if (!ThebeII_FactoryReset())
+		{
+			/* error */
+			return false;
+		}
+	}
+	WE_Delay(500);
 
-        /* check the value read out */
-        if(help_length != config[i].value_length)
-        {
-            /* error, length does not match */
-            return false;
-        }
-        if(memcmp(help,config[i].value,config[i].value_length) != 0)
-        {
-            /* read value is not up to date, thus write the new value */
-            if(false == ThebeII_Set(config[i].usersetting, config[i].value, config[i].value_length))
-            {
-                /* error */
-                return false;
-            }
-        }
-        WE_Delay(200);
-    }
+	/* now check all settings and update them if necessary */
+	for (uint8_t i = 0; i < config_length; i++)
+	{
+		/* read current value */
+		if (!ThebeII_Get(config[i].usersetting, help, &help_length))
+		{
+			/* error */
+			return false;
+		}
+		WE_Delay(200);
 
-    /* reset to take effect of the updated parameters */
-    if(false == ThebeII_PinReset())
-    {
-        return false;
-    }
-    return true;
+		/* check the value read out */
+		if (help_length != config[i].value_length)
+		{
+			/* error, length does not match */
+			return false;
+		}
+		if (memcmp(help, config[i].value, config[i].value_length) != 0)
+		{
+			/* read value is not up to date, thus write the new value */
+			if (!ThebeII_Set(config[i].usersetting, config[i].value, config[i].value_length))
+			{
+				/* error */
+				return false;
+			}
+		}
+		WE_Delay(200);
+	}
+
+	/* reset to take effect of the updated parameters */
+	return ThebeII_PinReset();
 }

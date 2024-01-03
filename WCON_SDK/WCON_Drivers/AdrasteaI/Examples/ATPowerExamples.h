@@ -28,8 +28,8 @@
  * @brief Adrastea ATPower Example header file.
  */
 
-#ifndef ATPOWEREXAMPLES_H_INCLUDED
-#define ATPOWEREXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATPOWEREXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATPOWEREXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATPowerExample();
 }
 #endif
 
-#endif // ATPOWEREXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATPOWEREXAMPLES_H_INCLUDED

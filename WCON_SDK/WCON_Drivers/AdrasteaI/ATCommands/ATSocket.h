@@ -28,13 +28,13 @@
  * @brief AT commands for Socket functionality.
  */
 
-#ifndef AT_SOCKET_H_INCLUDED
-#define AT_SOCKET_H_INCLUDED
+#ifndef ADRASTEAI_AT_SOCKET_H_INCLUDED
+#define ADRASTEAI_AT_SOCKET_H_INCLUDED
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ATCommon.h"
+#include <AdrasteaI/ATCommands/ATCommon.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,177 +43,177 @@ extern "C" {
 /**
  * @brief Socket Events
  */
-typedef enum ATSocket_Event_t
+typedef enum AdrasteaI_ATSocket_Event_t
 {
-	ATSocket_Event_Invalid = -1,
-	ATSocket_Event_All,
-	ATSocket_Event_Data_Received,
-	ATSocket_Event_Deactivated_Idle_Timer,
-	ATSocket_Event_Terminated_By_Peer,
-	ATSocket_Event_New_Socket_Accepted,
-	ATSocket_Event_NumberOfValues
-} ATSocket_Event_t;
+	AdrasteaI_ATSocket_Event_Invalid = -1,
+	AdrasteaI_ATSocket_Event_All,
+	AdrasteaI_ATSocket_Event_Data_Received,
+	AdrasteaI_ATSocket_Event_Deactivated_Idle_Timer,
+	AdrasteaI_ATSocket_Event_Terminated_By_Peer,
+	AdrasteaI_ATSocket_Event_New_Socket_Accepted,
+	AdrasteaI_ATSocket_Event_NumberOfValues
+} AdrasteaI_ATSocket_Event_t;
 
-typedef uint8_t ATSocket_ID_t;
+typedef uint8_t AdrasteaI_ATSocket_ID_t;
 
-#define ATSocket_ID_Invalid 0
+#define AdrasteaI_ATSocket_ID_Invalid 0
 
 /**
  * @brief Socket States
  */
-typedef enum ATSocket_State_t
+typedef enum AdrasteaI_ATSocket_State_t
 {
-	ATSocket_State_Invalid = -1,
-	ATSocket_State_Deactivated,
-	ATSocket_State_Activated,
-	ATSocket_State_Listening,
-	ATSocket_State_NumberOfValues
-} ATSocket_State_t;
+	AdrasteaI_ATSocket_State_Invalid = -1,
+	AdrasteaI_ATSocket_State_Deactivated,
+	AdrasteaI_ATSocket_State_Activated,
+	AdrasteaI_ATSocket_State_Listening,
+	AdrasteaI_ATSocket_State_NumberOfValues
+} AdrasteaI_ATSocket_State_t;
 
 /**
  * @brief Socket Read Result
  */
-typedef struct ATSocket_Read_Result_t
+typedef struct AdrasteaI_ATSocket_Read_Result_t
 {
-	ATSocket_ID_t socketID;
-	ATSocket_State_t socketState;
-} ATSocket_Read_Result_t;
+	AdrasteaI_ATSocket_ID_t socketID;
+	AdrasteaI_ATSocket_State_t socketState;
+} AdrasteaI_ATSocket_Read_Result_t;
 
-typedef uint8_t ATSocket_Error_Code_t;
+typedef uint8_t AdrasteaI_ATSocket_Error_Code_t;
 
 /**
  * @brief Socket Types
  */
-typedef enum ATSocket_Type_t
+typedef enum AdrasteaI_ATSocket_Type_t
 {
-	ATSocket_Type_Invalid = -1,
-	ATSocket_Type_TCP,
-	ATSocket_Type_UDP,
-	ATSocket_Type_NumberOfValues
-} ATSocket_Type_t;
+	AdrasteaI_ATSocket_Type_Invalid = -1,
+	AdrasteaI_ATSocket_Type_TCP,
+	AdrasteaI_ATSocket_Type_UDP,
+	AdrasteaI_ATSocket_Type_NumberOfValues
+} AdrasteaI_ATSocket_Type_t;
 
 /**
  * @brief Socket Direction
  */
-typedef enum ATSocket_Direction_t
+typedef enum AdrasteaI_ATSocket_Direction_t
 {
-	ATSocket_Direction_Invalid = -1,
-	ATSocket_Direction_Not_Set,
-	ATSocket_Direction_Dialer,
-	ATSocket_Direction_Listener,
-	ATSocket_Direction_NumberOfValues
-} ATSocket_Direction_t;
+	AdrasteaI_ATSocket_Direction_Invalid = -1,
+	AdrasteaI_ATSocket_Direction_Not_Set,
+	AdrasteaI_ATSocket_Direction_Dialer,
+	AdrasteaI_ATSocket_Direction_Listener,
+	AdrasteaI_ATSocket_Direction_NumberOfValues
+} AdrasteaI_ATSocket_Direction_t;
 
-typedef uint16_t ATSocket_Timeout_t;
+typedef uint16_t AdrasteaI_ATSocket_Timeout_t;
 
-#define ATSocket_Timeout_Invalid 0
+#define AdrasteaI_ATSocket_Timeout_Invalid 0
 
 /**
  * @brief Socket Info
  */
-typedef struct ATSocket_Info_t
+typedef struct AdrasteaI_ATSocket_Info_t
 {
-	ATSocket_State_t socketState;
-	ATSocket_Type_t socketType;
-	ATCommon_IP_Addr_t sourceIPAddress;
-	ATCommon_IP_Addr_t destinationIPAddress;
-	ATCommon_Port_Number_t sourcePortNumber;
-	ATCommon_Port_Number_t destinationPortNumber;
-	ATSocket_Direction_t tcpSocketDirection;
-	ATSocket_Timeout_t socketTimeout;
-} ATSocket_Info_t;
+	AdrasteaI_ATSocket_State_t socketState;
+	AdrasteaI_ATSocket_Type_t socketType;
+	AdrasteaI_ATCommon_IP_Addr_t sourceIPAddress;
+	AdrasteaI_ATCommon_IP_Addr_t destinationIPAddress;
+	AdrasteaI_ATCommon_Port_Number_t sourcePortNumber;
+	AdrasteaI_ATCommon_Port_Number_t destinationPortNumber;
+	AdrasteaI_ATSocket_Direction_t tcpSocketDirection;
+	AdrasteaI_ATSocket_Timeout_t socketTimeout;
+} AdrasteaI_ATSocket_Info_t;
 
 /**
  * @brief Socket Behaviour
  */
-typedef enum ATSocket_Behaviour_t
+typedef enum AdrasteaI_ATSocket_Behaviour_t
 {
-	ATSocket_Behaviour_Invalid = -1,
-	ATSocket_Behaviour_Open_Connection,
-	ATSocket_Behaviour_Listen,
-	ATSocket_Behaviour_ListenMultiple,
-	ATSocket_Behaviour_NumberOfValues
-} ATSocket_Behaviour_t;
+	AdrasteaI_ATSocket_Behaviour_Invalid = -1,
+	AdrasteaI_ATSocket_Behaviour_Open_Connection,
+	AdrasteaI_ATSocket_Behaviour_Listen,
+	AdrasteaI_ATSocket_Behaviour_ListenMultiple,
+	AdrasteaI_ATSocket_Behaviour_NumberOfValues
+} AdrasteaI_ATSocket_Behaviour_t;
 
-typedef uint16_t ATSocket_Data_Length_t;
+typedef uint16_t AdrasteaI_ATSocket_Data_Length_t;
 
-#define ATSocket_Data_Length_Automatic 0
+#define AdrasteaI_ATSocket_Data_Length_Automatic 0
 
 /**
  * @brief Socket Data Read
  */
-typedef struct ATSocket_Data_Read_t
+typedef struct AdrasteaI_ATSocket_Data_Read_t
 {
-	ATSocket_ID_t socketID;
-	ATSocket_Data_Length_t dataLength;
+	AdrasteaI_ATSocket_ID_t socketID;
+	AdrasteaI_ATSocket_Data_Length_t dataLength;
 	char *data;
-	ATSocket_Data_Length_t dataLeftLength;
-	ATCommon_IP_Addr_t sourceIPAddress;
-	ATCommon_Port_Number_t sourcePortNumber;
-} ATSocket_Data_Read_t;
+	AdrasteaI_ATSocket_Data_Length_t dataLeftLength;
+	AdrasteaI_ATCommon_IP_Addr_t sourceIPAddress;
+	AdrasteaI_ATCommon_Port_Number_t sourcePortNumber;
+} AdrasteaI_ATSocket_Data_Read_t;
 
 /**
  * @brief Socket IP Address Format
  */
-typedef enum ATSocket_IP_Addr_Format_t
+typedef enum AdrasteaI_ATSocket_IP_Addr_Format_t
 {
-	ATSocket_IP_Addr_Format_Invalid = -1,
-	ATSocket_IP_Addr_Format_IPv4v6,
-	ATSocket_IP_Addr_Format_IPv4,
-	ATSocket_IP_Addr_Format_IPv6,
-	ATSocket_IP_Addr_Format_NumberOfValues
-} ATSocket_IP_Addr_Format_t;
+	AdrasteaI_ATSocket_IP_Addr_Format_Invalid = -1,
+	AdrasteaI_ATSocket_IP_Addr_Format_IPv4v6,
+	AdrasteaI_ATSocket_IP_Addr_Format_IPv4,
+	AdrasteaI_ATSocket_IP_Addr_Format_IPv6,
+	AdrasteaI_ATSocket_IP_Addr_Format_NumberOfValues
+} AdrasteaI_ATSocket_IP_Addr_Format_t;
 
-typedef struct ATSocket_SSL_Info_t
+typedef struct AdrasteaI_ATSocket_SSL_Info_t
 {
-	ATCommon_SSL_Auth_Mode_t SSLMode;
-	ATCommon_SSL_Profile_ID_t profileID;
-} ATSocket_SSL_Info_t;
+	AdrasteaI_ATCommon_SSL_Auth_Mode_t SSLMode;
+	AdrasteaI_ATCommon_SSL_Profile_ID_t profileID;
+} AdrasteaI_ATSocket_SSL_Info_t;
 
-typedef uint16_t ATSocket_Aggregation_Time_t;
+typedef uint16_t AdrasteaI_ATSocket_Aggregation_Time_t;
 
-typedef uint16_t ATSocket_Aggregation_Buffer_Size_t;
+typedef uint16_t AdrasteaI_ATSocket_Aggregation_Buffer_Size_t;
 
-typedef uint16_t ATSocket_TCP_Idle_Time_t;
+typedef uint16_t AdrasteaI_ATSocket_TCP_Idle_Time_t;
 
-extern bool ATSocket_ReadCreatedSocketsStates();
+extern bool AdrasteaI_ATSocket_ReadCreatedSocketsStates();
 
-extern bool ATSocket_AllocateSocket(ATCommon_Session_ID_t sessionID, ATSocket_Type_t socketType, ATSocket_Behaviour_t socketBehaviour, ATCommon_IP_Addr_t destinationIPAddress, ATCommon_Port_Number_t destinationPortNumber, ATCommon_Port_Number_t sourcePortNumber, ATSocket_Data_Length_t packetSize, ATSocket_Timeout_t socketTimeout, ATSocket_IP_Addr_Format_t addressFormat, ATSocket_ID_t *socketIDP);
+extern bool AdrasteaI_ATSocket_AllocateSocket(AdrasteaI_ATCommon_Session_ID_t sessionID, AdrasteaI_ATSocket_Type_t socketType, AdrasteaI_ATSocket_Behaviour_t socketBehaviour, AdrasteaI_ATCommon_IP_Addr_t destinationIPAddress, AdrasteaI_ATCommon_Port_Number_t destinationPortNumber, AdrasteaI_ATCommon_Port_Number_t sourcePortNumber, AdrasteaI_ATSocket_Data_Length_t packetSize, AdrasteaI_ATSocket_Timeout_t socketTimeout, AdrasteaI_ATSocket_IP_Addr_Format_t addressFormat, AdrasteaI_ATSocket_ID_t *socketIDP);
 
-extern bool ATSocket_ActivateSocket(ATSocket_ID_t socketID, ATCommon_Session_ID_t SSLSessionID);
+extern bool AdrasteaI_ATSocket_ActivateSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_Session_ID_t SSLSessionID);
 
-extern bool ATSocket_ReadSocketInfo(ATSocket_ID_t socketID, ATSocket_Info_t *infoP);
+extern bool AdrasteaI_ATSocket_ReadSocketInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Info_t *infoP);
 
-extern bool ATSocket_DeactivateSocket(ATSocket_ID_t socketID);
+extern bool AdrasteaI_ATSocket_DeactivateSocket(AdrasteaI_ATSocket_ID_t socketID);
 
-extern bool ATSocket_SetSocketOptions(ATSocket_ID_t socketID, ATSocket_Aggregation_Time_t aggregationTime, ATSocket_Aggregation_Buffer_Size_t aggregationBufferSize, ATSocket_TCP_Idle_Time_t idleTime);
+extern bool AdrasteaI_ATSocket_SetSocketOptions(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Aggregation_Time_t aggregationTime, AdrasteaI_ATSocket_Aggregation_Buffer_Size_t aggregationBufferSize, AdrasteaI_ATSocket_TCP_Idle_Time_t idleTime);
 
-extern bool ATSocket_DeleteSocket(ATSocket_ID_t socketID);
+extern bool AdrasteaI_ATSocket_DeleteSocket(AdrasteaI_ATSocket_ID_t socketID);
 
-extern bool ATSocket_ReadSocketLastError(ATSocket_ID_t socketID, ATSocket_Error_Code_t *errorCodeP);
+extern bool AdrasteaI_ATSocket_ReadSocketLastError(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Error_Code_t *errorCodeP);
 
-extern bool ATSocket_AddSSLtoSocket(ATSocket_ID_t socketID, ATCommon_SSL_Auth_Mode_t authMode, ATCommon_SSL_Profile_ID_t profileID);
+extern bool AdrasteaI_ATSocket_AddSSLtoSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_SSL_Auth_Mode_t authMode, AdrasteaI_ATCommon_SSL_Profile_ID_t profileID);
 
-extern bool ATSocket_ReadSocketSSLInfo(ATSocket_ID_t socketID, ATSocket_SSL_Info_t *infoP);
+extern bool AdrasteaI_ATSocket_ReadSocketSSLInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_SSL_Info_t *infoP);
 
-extern bool ATSocket_KeepSocketSSLSession(ATSocket_ID_t socketID);
+extern bool AdrasteaI_ATSocket_KeepSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID);
 
-extern bool ATSocket_DeleteSocketSSLSession(ATSocket_ID_t socketID);
+extern bool AdrasteaI_ATSocket_DeleteSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID);
 
-extern bool ATSocket_ReceiveFromSocket(ATSocket_ID_t socketID, ATSocket_Data_Read_t *dataReadP, uint16_t maxBufferLength);
+extern bool AdrasteaI_ATSocket_ReceiveFromSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Data_Read_t *dataReadP, uint16_t maxBufferLength);
 
-extern bool ATSocket_SendToSocket(ATSocket_ID_t socketID, char *data, ATSocket_Data_Length_t dataLength);
+extern bool AdrasteaI_ATSocket_SendToSocket(AdrasteaI_ATSocket_ID_t socketID, char *data, AdrasteaI_ATSocket_Data_Length_t dataLength);
 
-extern bool ATSocket_SetSocketUnsolicitedNotificationEvents(ATSocket_Event_t event, ATCommon_Event_State_t state);
+extern bool AdrasteaI_ATSocket_SetSocketUnsolicitedNotificationEvents(AdrasteaI_ATSocket_Event_t event, AdrasteaI_ATCommon_Event_State_t state);
 
-extern bool ATSocket_ParseDataReceivedEvent(char *pEventArguments, ATSocket_ID_t *dataP);
+extern bool AdrasteaI_ATSocket_ParseDataReceivedEvent(char *pEventArguments, AdrasteaI_ATSocket_ID_t *dataP);
 
-extern bool ATSocket_ParseSocketTerminatedEvent(char *pEventArguments, ATSocket_ID_t *dataP);
+extern bool AdrasteaI_ATSocket_ParseSocketTerminatedEvent(char *pEventArguments, AdrasteaI_ATSocket_ID_t *dataP);
 
-extern bool ATSocket_ParseSocketsReadEvent(char *pEventArguments, ATSocket_Read_Result_t *dataP);
+extern bool AdrasteaI_ATSocket_ParseSocketsReadEvent(char *pEventArguments, AdrasteaI_ATSocket_Read_Result_t *dataP);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_SOCKET_H_INCLUDED */
+#endif /* ADRASTEAI_AT_SOCKET_H_INCLUDED */

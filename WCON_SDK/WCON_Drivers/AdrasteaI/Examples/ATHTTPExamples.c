@@ -22,104 +22,92 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATHTTPExamples.h>
+#include <AdrasteaI/ATCommands/ATHTTP.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATHTTPExamples.h"
-#include "../ATCommands/ATHTTP.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATHTTP_EventCallback(char *eventText);
 
-void Adrastea_ATHTTP_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
-static ATHTTP_Event_Result_t requestState = {
+static AdrasteaI_ATHTTP_Event_Result_t requestState = {
 		.state = -1 };
+
+/**
+ * @brief This example connects to the cellular network and access the content of a web site
+ *
+ */
 void ATHTTPExample()
 {
+	printf("*** Start of Adrastea-I ATHTTP example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATHTTP_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATHTTP_EventCallback))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATHTTP example ***\r\n");
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
 
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATHTTP_SetHTTPUnsolicitedNotificationEvents(AdrasteaI_ATHTTP_Event_All, 1);
+	AdrasteaI_ExamplesPrint("Set HTTP Unsolicited Notification Events", ret);
 
-	ret = ATHTTP_SetHTTPUnsolicitedNotificationEvents(ATHTTP_Event_All, 1);
+	ret = AdrasteaI_ATHTTP_ConfigureNodes(1, "http://captive.apple.com/", NULL, NULL);
+	AdrasteaI_ExamplesPrint("Configure Nodes", ret);
 
-	AdrasteaExamplesPrint("Set HTTP Unsolicited Notification Events", ret);
+	ret = AdrasteaI_ATHTTP_ConfigureFormat(1, AdrasteaI_ATHTTP_Header_Presence_Disable, AdrasteaI_ATHTTP_Header_Presence_Disable);
+	AdrasteaI_ExamplesPrint("Configure Format", ret);
 
-	ret = ATHTTP_ConfigureNodes(1, "http://captive.apple.com/", NULL, NULL);
+	ret = AdrasteaI_ATHTTP_ConfigureTimeout(1, 10000);
+	AdrasteaI_ExamplesPrint("Configure Timeout", ret);
 
-	AdrasteaExamplesPrint("Configure Nodes", ret);
+	ret = AdrasteaI_ATHTTP_GET(1, "http://captive.apple.com/", AdrasteaI_ATHTTP_Header_Presence_Disable, NULL, 0);
+	AdrasteaI_ExamplesPrint("Get", ret);
 
-	ret = ATHTTP_ConfigureFormat(1, ATHTTP_Header_Presence_Disable, ATHTTP_Header_Presence_Disable);
-
-	AdrasteaExamplesPrint("Configure Format", ret);
-
-	ret = ATHTTP_ConfigureTimeout(1, 10000);
-
-	AdrasteaExamplesPrint("Configure Timeout", ret);
-
-	WE_Delay(2000);
-
-	ret = ATHTTP_GET(1, "http://captive.apple.com/", ATHTTP_Header_Presence_Disable, NULL, 0);
-
-	AdrasteaExamplesPrint("Get", ret);
-
-	while (requestState.state != ATHTTP_Event_State_Success)
+	while (requestState.state != AdrasteaI_ATHTTP_Event_State_Success)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
-
-	ATHTTP_Response_t response;
-
+	AdrasteaI_ATHTTP_Response_t response;
 	char responseBody[128];
-
 	response.responseBody = responseBody;
-
-	ret = ATHTTP_ReadResponse(1, ATHTTP_Data_Length_Max, &response);
-
-	AdrasteaExamplesPrint("Read Response", ret);
-
+	ret = AdrasteaI_ATHTTP_ReadResponse(1, sizeof(responseBody), &response);
+	AdrasteaI_ExamplesPrint("Read Response", ret);
 	if (ret)
 	{
 		printf("Data Length: %d, Received Length: %d, Payload: %s\r\n", response.dataLength, response.receivedLength, response.responseBody);
 	}
 }
 
-void Adrastea_ATHTTP_EventCallback(char *eventText)
+void AdrasteaI_ATHTTP_EventCallback(char *eventText)
 {
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
 	switch (event)
 	{
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
-	case ATEvent_HTTP_GET_Receive:
+	case AdrasteaI_ATEvent_HTTP_GET_Receive:
 	{
-		ATHTTP_ParseGETEvent(eventText, &requestState);
+		AdrasteaI_ATHTTP_ParseGETEvent(eventText, &requestState);
 		break;
 	}
 	default:

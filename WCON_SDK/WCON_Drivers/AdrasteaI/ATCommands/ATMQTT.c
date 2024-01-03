@@ -27,13 +27,12 @@
  * @file
  * @brief AT commands for MQTT functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATMQTT.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATMQTT.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATMQTT_Event_Strings[ATMQTT_Event_NumberOfValues] = {
+static const char *AdrasteaI_ATMQTT_Event_Strings[AdrasteaI_ATMQTT_Event_NumberOfValues] = {
 		"CONCONF",
 		"DISCONF",
 		"SUBCONF",
@@ -46,7 +45,7 @@ static const char *ATMQTT_Event_Strings[ATMQTT_Event_NumberOfValues] = {
 /**
  * @brief Configure Nodes (using the AT%MQTTCFG command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] clientID Unique client ID to connect to broker.
  *
@@ -58,9 +57,9 @@ static const char *ATMQTT_Event_Strings[ATMQTT_Event_NumberOfValues] = {
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ConfigureNodes(ATMQTT_Conn_ID_t connID, ATMQTT_Client_ID_t clientID, ATCommon_IP_Addr_t addr, ATCommon_Auth_Username_t username, ATCommon_Auth_Password_t password)
+bool AdrasteaI_ATMQTT_ConfigureNodes(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_Client_ID_t clientID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATCommon_Auth_Username_t username, AdrasteaI_ATCommon_Auth_Password_t password)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -83,7 +82,6 @@ bool ATMQTT_ConfigureNodes(ATMQTT_Conn_ID_t connID, ATMQTT_Client_ID_t clientID,
 
 	if (username != NULL && password != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -94,23 +92,23 @@ bool ATMQTT_ConfigureNodes(ATMQTT_Conn_ID_t connID, ATMQTT_Client_ID_t clientID,
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -121,7 +119,7 @@ bool ATMQTT_ConfigureNodes(ATMQTT_Conn_ID_t connID, ATMQTT_Client_ID_t clientID,
 /**
  * @brief Configure TLS (using the AT%MQTTCFG command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] authMode Authentication mode of TLS.
  *
@@ -129,7 +127,7 @@ bool ATMQTT_ConfigureNodes(ATMQTT_Conn_ID_t connID, ATMQTT_Client_ID_t clientID,
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ConfigureTLS(ATMQTT_Conn_ID_t connID, ATCommon_TLS_Auth_Mode_t authMode, ATCommon_TLS_Profile_ID_t profileID)
+bool AdrasteaI_ATMQTT_ConfigureTLS(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATCommon_TLS_Auth_Mode_t authMode, AdrasteaI_ATCommon_TLS_Profile_ID_t profileID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -155,12 +153,12 @@ bool ATMQTT_ConfigureTLS(ATMQTT_Conn_ID_t connID, ATCommon_TLS_Auth_Mode_t authM
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -171,19 +169,19 @@ bool ATMQTT_ConfigureTLS(ATMQTT_Conn_ID_t connID, ATCommon_TLS_Auth_Mode_t authM
 /**
  * @brief Configure IP (using the AT%MQTTCFG command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
- * @param[in] sessionID Session ID (optional pass ATMQTT_IP_Session_ID_Invalid to skip).
+ * @param[in] sessionID Session ID (optional pass AdrasteaI_ATMQTT_IP_Session_ID_Invalid to skip).
  *
- * @param[in] ipFormat IP Address format (optional pass ATMQTT_IP_Addr_Format_Invalid to skip).
+ * @param[in] ipFormat IP Address format (optional pass AdrasteaI_ATMQTT_IP_Addr_Format_Invalid to skip).
  *
- * @param[in] port Destination Port (optional pass ATCommon_Port_Number_Invalid to skip).
+ * @param[in] port Destination Port (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionID, ATMQTT_IP_Addr_Format_t ipFormat, ATCommon_Port_Number_t port)
+bool AdrasteaI_ATMQTT_ConfigureIP(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_IP_Session_ID_t sessionID, AdrasteaI_ATMQTT_IP_Addr_Format_t ipFormat, AdrasteaI_ATCommon_Port_Number_t port)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -194,13 +192,13 @@ bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionI
 		return false;
 	}
 
-	if (sessionID != ATMQTT_IP_Session_ID_Invalid)
+	if (sessionID != AdrasteaI_ATMQTT_IP_Session_ID_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, sessionID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -208,16 +206,16 @@ bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionI
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (ipFormat != ATMQTT_IP_Addr_Format_Invalid)
+	if (ipFormat != AdrasteaI_ATMQTT_IP_Addr_Format_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, ipFormat, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -225,31 +223,31 @@ bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionI
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (port != ATCommon_Port_Number_Invalid)
+	if (port != AdrasteaI_ATCommon_Port_Number_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, port, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -260,7 +258,7 @@ bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionI
 /**
  * @brief Configure Will Message (using the AT%MQTTCFG command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] presence Configure if will message is enabled.
  *
@@ -274,7 +272,7 @@ bool ATMQTT_ConfigureIP(ATMQTT_Conn_ID_t connID, ATMQTT_IP_Session_ID_t sessionI
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ConfigureWillMessage(ATMQTT_Conn_ID_t connID, ATMQTT_WILL_Presence_t presence, ATMQTT_QoS_t qos, ATMQTT_Retain_t retain, ATMQTT_Topic_Name_t topic, char *message)
+bool AdrasteaI_ATMQTT_ConfigureWillMessage(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_WILL_Presence_t presence, AdrasteaI_ATMQTT_QoS_t qos, AdrasteaI_ATMQTT_Retain_t retain, AdrasteaI_ATMQTT_Topic_Name_t topic, char *message)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -315,12 +313,12 @@ bool ATMQTT_ConfigureWillMessage(ATMQTT_Conn_ID_t connID, ATMQTT_WILL_Presence_t
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -331,7 +329,7 @@ bool ATMQTT_ConfigureWillMessage(ATMQTT_Conn_ID_t connID, ATMQTT_WILL_Presence_t
 /**
  * @brief Configure Protocol (using the AT%MQTTCFG command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] keepAlive Keep Alive time in seconds.
  *
@@ -339,7 +337,7 @@ bool ATMQTT_ConfigureWillMessage(ATMQTT_Conn_ID_t connID, ATMQTT_WILL_Presence_t
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ConfigureProtocol(ATMQTT_Conn_ID_t connID, ATMQTT_Keep_Alive_t keepAlive, ATMQTT_Clean_Session_t cleanSession)
+bool AdrasteaI_ATMQTT_ConfigureProtocol(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_Keep_Alive_t keepAlive, AdrasteaI_ATMQTT_Clean_Session_t cleanSession)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -370,12 +368,12 @@ bool ATMQTT_ConfigureProtocol(ATMQTT_Conn_ID_t connID, ATMQTT_Keep_Alive_t keepA
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -386,19 +384,19 @@ bool ATMQTT_ConfigureProtocol(ATMQTT_Conn_ID_t connID, ATMQTT_Keep_Alive_t keepA
 /**
  * @brief Set MQTT Notification Events (using the AT%MQTTEV command).
  *
- * @param[in] event MQTT event type. See ATMQTT_Event_t.
+ * @param[in] event MQTT event type. See AdrasteaI_ATMQTT_Event_t.
  *
  * @param[in] state Event State
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_SetMQTTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommon_Event_State_t state)
+bool AdrasteaI_ATMQTT_SetMQTTUnsolicitedNotificationEvents(AdrasteaI_ATMQTT_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%MQTTEV=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATMQTT_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATMQTT_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -413,12 +411,12 @@ bool ATMQTT_SetMQTTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommon_
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -429,11 +427,12 @@ bool ATMQTT_SetMQTTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommon_
 /**
  * @brief Parses the value of Connection Confirmation event arguments.
  *
- * @param[out] dataP the connection result is returned in this argument. See ATMQTT_Connection_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the connection result is returned in this argument. See AdrasteaI_ATMQTT_Connection_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseConnectionConfirmationEvent(char *pEventArguments, ATMQTT_Connection_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseConnectionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Connection_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -447,11 +446,10 @@ bool ATMQTT_ParseConnectionConfirmationEvent(char *pEventArguments, ATMQTT_Conne
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->resultCode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -461,7 +459,6 @@ bool ATMQTT_ParseConnectionConfirmationEvent(char *pEventArguments, ATMQTT_Conne
 	}
 	case 2:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->resultCode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -484,23 +481,25 @@ bool ATMQTT_ParseConnectionConfirmationEvent(char *pEventArguments, ATMQTT_Conne
 /**
  * @brief Parses the value of Disconnection Confirmation event arguments.
  *
- * @param[out] dataP the disconnection result is returned in this argument. See ATMQTT_Connection_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the disconnection result is returned in this argument. See AdrasteaI_ATMQTT_Connection_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseDisconnectionConfirmationEvent(char *pEventArguments, ATMQTT_Connection_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseDisconnectionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Connection_Result_t *dataP)
 {
-	return ATMQTT_ParseConnectionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseConnectionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Subscription Confirmation event arguments.
  *
- * @param[out] dataP the subscription result is returned in this argument. See ATMQTT_Subscription_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the subscription result is returned in this argument. See AdrasteaI_ATMQTT_Subscription_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseSubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_Subscription_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseSubscriptionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Subscription_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -519,11 +518,10 @@ bool ATMQTT_ParseSubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_Sub
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->resultCode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -533,7 +531,6 @@ bool ATMQTT_ParseSubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_Sub
 	}
 	case 2:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->resultCode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -556,35 +553,38 @@ bool ATMQTT_ParseSubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_Sub
 /**
  * @brief Parses the value of Unsubscription Confirmation event arguments.
  *
- * @param[out] dataP the unsubscription result is returned in this argument. See ATMQTT_Subscription_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the unsubscription result is returned in this argument. See AdrasteaI_ATMQTT_Subscription_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseUnsubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_Subscription_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseUnsubscriptionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Subscription_Result_t *dataP)
 {
-	return ATMQTT_ParseSubscriptionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseSubscriptionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Publication Confirmation event arguments.
  *
- * @param[out] dataP the publication result is returned in this argument. See ATMQTT_Publication_Confirmation_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the publication result is returned in this argument. See AdrasteaI_ATMQTT_Publication_Confirmation_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParsePublicationConfirmationEvent(char *pEventArguments, ATMQTT_Publication_Confirmation_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParsePublicationConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Publication_Confirmation_Result_t *dataP)
 {
-	return ATMQTT_ParseSubscriptionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseSubscriptionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Publication Received event arguments.
  *
- * @param[out] dataP the received publication is returned in this argument. See ATMQTT_Publication_Confirmation_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the received publication is returned in this argument. See AdrasteaI_ATMQTT_Publication_Confirmation_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParsePublicationReceivedEvent(char *pEventArguments, ATMQTT_Publication_Received_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParsePublicationReceivedEvent(char *pEventArguments, AdrasteaI_ATMQTT_Publication_Received_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -603,7 +603,7 @@ bool ATMQTT_ParsePublicationReceivedEvent(char *pEventArguments, ATMQTT_Publicat
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->topicName, ATCOMMAND_ARGUMENT_DELIM, sizeof(ATMQTT_Topic_Name_t)))
+	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->topicName, ATCOMMAND_ARGUMENT_DELIM, sizeof(AdrasteaI_ATMQTT_Topic_Name_t)))
 	{
 		return false;
 	}
@@ -624,11 +624,11 @@ bool ATMQTT_ParsePublicationReceivedEvent(char *pEventArguments, ATMQTT_Publicat
 /**
  * @brief Connect to Broker (using the AT%MQTTCMD command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_Connect(ATMQTT_Conn_ID_t connID)
+bool AdrasteaI_ATMQTT_Connect(AdrasteaI_ATMQTT_Conn_ID_t connID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -644,12 +644,12 @@ bool ATMQTT_Connect(ATMQTT_Conn_ID_t connID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -660,11 +660,11 @@ bool ATMQTT_Connect(ATMQTT_Conn_ID_t connID)
 /**
  * @brief Disconnect from Broker (using the AT%MQTTCMD command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_Disconnect(ATMQTT_Conn_ID_t connID)
+bool AdrasteaI_ATMQTT_Disconnect(AdrasteaI_ATMQTT_Conn_ID_t connID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -680,12 +680,12 @@ bool ATMQTT_Disconnect(ATMQTT_Conn_ID_t connID)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -696,7 +696,7 @@ bool ATMQTT_Disconnect(ATMQTT_Conn_ID_t connID)
 /**
  * @brief Subscribe to Topic (using the AT%MQTTCMD command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] qos Quality of Service.
  *
@@ -704,7 +704,7 @@ bool ATMQTT_Disconnect(ATMQTT_Conn_ID_t connID)
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_Subscribe(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t QoS, ATMQTT_Topic_Name_t topicName)
+bool AdrasteaI_ATMQTT_Subscribe(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_QoS_t QoS, AdrasteaI_ATMQTT_Topic_Name_t topicName)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -730,12 +730,12 @@ bool ATMQTT_Subscribe(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t QoS, ATMQTT_Topic_Na
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -746,13 +746,13 @@ bool ATMQTT_Subscribe(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t QoS, ATMQTT_Topic_Na
 /**
  * @brief Unsubscribe from Topic (using the AT%MQTTCMD command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] topicName MQTT Topic Name.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_Unsubscribe(ATMQTT_Conn_ID_t connID, ATMQTT_Topic_Name_t topicName)
+bool AdrasteaI_ATMQTT_Unsubscribe(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_Topic_Name_t topicName)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -773,12 +773,12 @@ bool ATMQTT_Unsubscribe(ATMQTT_Conn_ID_t connID, ATMQTT_Topic_Name_t topicName)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -789,7 +789,7 @@ bool ATMQTT_Unsubscribe(ATMQTT_Conn_ID_t connID, ATMQTT_Topic_Name_t topicName)
 /**
  * @brief Publish to Topic (using the AT%MQTTCMD command).
  *
- * @param[in] connID MQTT Connection. See ATMQTT_Conn_ID_t.
+ * @param[in] connID MQTT Connection. See AdrasteaI_ATMQTT_Conn_ID_t.
  *
  * @param[in] qos Quality of Service.
  *
@@ -803,7 +803,7 @@ bool ATMQTT_Unsubscribe(ATMQTT_Conn_ID_t connID, ATMQTT_Topic_Name_t topicName)
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_Publish(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t qos, ATMQTT_Retain_t retain, ATMQTT_Topic_Name_t topicName, char *payload, ATMQTT_Payload_Size_t payloadSize)
+bool AdrasteaI_ATMQTT_Publish(AdrasteaI_ATMQTT_Conn_ID_t connID, AdrasteaI_ATMQTT_QoS_t qos, AdrasteaI_ATMQTT_Retain_t retain, AdrasteaI_ATMQTT_Topic_Name_t topicName, char *payload, AdrasteaI_ATMQTT_Payload_Size_t payloadSize)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -844,12 +844,12 @@ bool ATMQTT_Publish(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t qos, ATMQTT_Retain_t r
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -868,7 +868,7 @@ bool ATMQTT_Publish(ATMQTT_Conn_ID_t connID, ATMQTT_QoS_t qos, ATMQTT_Retain_t r
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTConfigureConnection(ATCommon_IP_Addr_t url, ATCommon_TLS_Profile_ID_t profileID, ATMQTT_Client_ID_t clientID)
+bool AdrasteaI_ATMQTT_AWSIOTConfigureConnection(AdrasteaI_ATCommon_IP_Addr_t url, AdrasteaI_ATCommon_TLS_Profile_ID_t profileID, AdrasteaI_ATMQTT_Client_ID_t clientID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -894,12 +894,12 @@ bool ATMQTT_AWSIOTConfigureConnection(ATCommon_IP_Addr_t url, ATCommon_TLS_Profi
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -910,27 +910,27 @@ bool ATMQTT_AWSIOTConfigureConnection(ATCommon_IP_Addr_t url, ATCommon_TLS_Profi
 /**
  * @brief Configure AWS IP (using the AT%AWSIOTCFG command).
  * *
- * @param[in] sessionID Session ID (optional pass ATMQTT_IP_Session_ID_Invalid to skip).
+ * @param[in] sessionID Session ID (optional pass AdrasteaI_ATMQTT_IP_Session_ID_Invalid to skip).
  *
- * @param[in] ipFormat ip address format (optional pass ATMQTT_IP_Addr_Format_Invalid to skip).
+ * @param[in] ipFormat ip address format (optional pass AdrasteaI_ATMQTT_IP_Addr_Format_Invalid to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTConfigureIP(ATMQTT_IP_Session_ID_t sessionID, ATMQTT_IP_Addr_Format_t ipFormat)
+bool AdrasteaI_ATMQTT_AWSIOTConfigureIP(AdrasteaI_ATMQTT_IP_Session_ID_t sessionID, AdrasteaI_ATMQTT_IP_Addr_Format_t ipFormat)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%AWSIOTCFG=\"IP\",");
 
-	if (sessionID != ATMQTT_IP_Session_ID_Invalid)
+	if (sessionID != AdrasteaI_ATMQTT_IP_Session_ID_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, sessionID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -938,31 +938,31 @@ bool ATMQTT_AWSIOTConfigureIP(ATMQTT_IP_Session_ID_t sessionID, ATMQTT_IP_Addr_F
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (ipFormat != ATMQTT_IP_Addr_Format_Invalid)
+	if (ipFormat != AdrasteaI_ATMQTT_IP_Addr_Format_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, ipFormat, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -979,7 +979,7 @@ bool ATMQTT_AWSIOTConfigureIP(ATMQTT_IP_Session_ID_t sessionID, ATMQTT_IP_Addr_F
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTConfigureProtocol(ATMQTT_Keep_Alive_t keepAlive, ATMQTT_AWSIOT_QoS_t qos)
+bool AdrasteaI_ATMQTT_AWSIOTConfigureProtocol(AdrasteaI_ATMQTT_Keep_Alive_t keepAlive, AdrasteaI_ATMQTT_AWSIOT_QoS_t qos)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -1000,12 +1000,12 @@ bool ATMQTT_AWSIOTConfigureProtocol(ATMQTT_Keep_Alive_t keepAlive, ATMQTT_AWSIOT
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1016,19 +1016,19 @@ bool ATMQTT_AWSIOTConfigureProtocol(ATMQTT_Keep_Alive_t keepAlive, ATMQTT_AWSIOT
 /**
  * @brief Set AWS IoT Notification Events (using the AT%AWSIOTEV command).
  *
- * @param[in] event MQTT event type. See ATMQTT_Event_t.
+ * @param[in] event MQTT event type. See AdrasteaI_ATMQTT_Event_t.
  *
  * @param[in] state Event State
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_SetAWSIOTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommon_Event_State_t state)
+bool AdrasteaI_ATMQTT_SetAWSIOTUnsolicitedNotificationEvents(AdrasteaI_ATMQTT_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%AWSIOTEV=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATMQTT_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATMQTT_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -1043,12 +1043,12 @@ bool ATMQTT_SetAWSIOTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommo
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1059,11 +1059,12 @@ bool ATMQTT_SetAWSIOTUnsolicitedNotificationEvents(ATMQTT_Event_t event, ATCommo
 /**
  * @brief Parses the value of Connection Confirmation event arguments.
  *
- * @param[out] dataP the event result code is returned in this argument. See ATMQTT_Event_Result_Code_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the event result code is returned in this argument. See AdrasteaI_ATMQTT_Event_Result_Code_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTConnectionConfirmationEvent(char *pEventArguments, ATMQTT_Event_Result_Code_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTConnectionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Event_Result_Code_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -1083,23 +1084,25 @@ bool ATMQTT_ParseAWSIOTConnectionConfirmationEvent(char *pEventArguments, ATMQTT
 /**
  * @brief Parses the value of Disconnection Confirmation event arguments.
  *
- * @param[out] dataP the event result code is returned in this argument. See ATMQTT_Event_Result_Code_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the event result code is returned in this argument. See AdrasteaI_ATMQTT_Event_Result_Code_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTDisconnectionConfirmationEvent(char *pEventArguments, ATMQTT_Event_Result_Code_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTDisconnectionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_Event_Result_Code_t *dataP)
 {
-	return ATMQTT_ParseAWSIOTConnectionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseAWSIOTConnectionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Subscription Confirmation event arguments.
  *
- * @param[out] dataP the subscription result is returned in this argument. See ATMQTT_AWSIOT_Subscription_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the subscription result is returned in this argument. See AdrasteaI_ATMQTT_AWSIOT_Subscription_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_AWSIOT_Subscription_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_AWSIOT_Subscription_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -1124,35 +1127,38 @@ bool ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(char *pEventArguments, ATMQ
 /**
  * @brief Parses the value of Unsubscription Confirmation event arguments.
  *
- * @param[out] dataP the unsubscription result is returned in this argument. See ATMQTT_AWSIOT_Subscription_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the unsubscription result is returned in this argument. See AdrasteaI_ATMQTT_AWSIOT_Subscription_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTUnsubscriptionConfirmationEvent(char *pEventArguments, ATMQTT_AWSIOT_Subscription_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTUnsubscriptionConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_AWSIOT_Subscription_Result_t *dataP)
 {
-	return ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Publication Confirmation event arguments.
  *
- * @param[out] dataP the publication confirmation result is returned in this argument. See ATMQTT_AWSIOT_Publication_Confirmation_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the publication confirmation result is returned in this argument. See AdrasteaI_ATMQTT_AWSIOT_Publication_Confirmation_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTPublicationConfirmationEvent(char *pEventArguments, ATMQTT_AWSIOT_Publication_Confirmation_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTPublicationConfirmationEvent(char *pEventArguments, AdrasteaI_ATMQTT_AWSIOT_Publication_Confirmation_Result_t *dataP)
 {
-	return ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(pEventArguments, dataP);
+	return AdrasteaI_ATMQTT_ParseAWSIOTSubscriptionConfirmationEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of Publication Received event arguments.
  *
- * @param[out] dataP the publication received result is returned in this argument. See ATMQTT_AWSIOT_Publication_Received_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the publication received result is returned in this argument. See AdrasteaI_ATMQTT_AWSIOT_Publication_Received_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_ParseAWSIOTPublicationReceivedEvent(char *pEventArguments, ATMQTT_AWSIOT_Publication_Received_Result_t *dataP)
+bool AdrasteaI_ATMQTT_ParseAWSIOTPublicationReceivedEvent(char *pEventArguments, AdrasteaI_ATMQTT_AWSIOT_Publication_Received_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -1161,7 +1167,7 @@ bool ATMQTT_ParseAWSIOTPublicationReceivedEvent(char *pEventArguments, ATMQTT_AW
 
 	char *argumentsP = pEventArguments;
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->topicName, ATCOMMAND_ARGUMENT_DELIM, sizeof(ATMQTT_Topic_Name_t)))
+	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->topicName, ATCOMMAND_ARGUMENT_DELIM, sizeof(AdrasteaI_ATMQTT_Topic_Name_t)))
 	{
 		return false;
 	}
@@ -1179,15 +1185,14 @@ bool ATMQTT_ParseAWSIOTPublicationReceivedEvent(char *pEventArguments, ATMQTT_AW
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTConnect()
+bool AdrasteaI_ATMQTT_AWSIOTConnect()
 {
-
-	if (!Adrastea_SendRequest("AT%AWSIOTCMD=\"CONNECT\""))
+	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"CONNECT\""))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1200,14 +1205,14 @@ bool ATMQTT_AWSIOTConnect()
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTDisconnect()
+bool AdrasteaI_ATMQTT_AWSIOTDisconnect()
 {
-	if (!Adrastea_SendRequest("AT%AWSIOTCMD=\"DISCONNECT\""))
+	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"DISCONNECT\""))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1218,11 +1223,11 @@ bool ATMQTT_AWSIOTDisconnect()
 /**
  * @brief Subscribe to Topic (using the AT%AWSIOTCMD command).
  *
- * @param[in] topicName MQTT Topic name. See ATMQTT_Topic_Name_t.
+ * @param[in] topicName MQTT Topic name. See AdrasteaI_ATMQTT_Topic_Name_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTSubscribe(ATMQTT_Topic_Name_t topicName)
+bool AdrasteaI_ATMQTT_AWSIOTSubscribe(AdrasteaI_ATMQTT_Topic_Name_t topicName)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -1238,12 +1243,12 @@ bool ATMQTT_AWSIOTSubscribe(ATMQTT_Topic_Name_t topicName)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1254,11 +1259,11 @@ bool ATMQTT_AWSIOTSubscribe(ATMQTT_Topic_Name_t topicName)
 /**
  * @brief Unsubscribe from Topic (using the AT%AWSIOTCMD command).
  *
- * @param[in] topicName MQTT Topic name. See ATMQTT_Topic_Name_t.
+ * @param[in] topicName MQTT Topic name. See AdrasteaI_ATMQTT_Topic_Name_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTUnsubscribe(ATMQTT_Topic_Name_t topicName)
+bool AdrasteaI_ATMQTT_AWSIOTUnsubscribe(AdrasteaI_ATMQTT_Topic_Name_t topicName)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -1274,12 +1279,12 @@ bool ATMQTT_AWSIOTUnsubscribe(ATMQTT_Topic_Name_t topicName)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -1290,13 +1295,13 @@ bool ATMQTT_AWSIOTUnsubscribe(ATMQTT_Topic_Name_t topicName)
 /**
  * @brief Publish to Topic (using the AT%AWSIOTCMD command).
  *
- * @param[in] topicName MQTT Topic name. See ATMQTT_Topic_Name_t.
+ * @param[in] topicName MQTT Topic name. See AdrasteaI_ATMQTT_Topic_Name_t.
  *
- * @param[in] payload Payload to be published. See ATMQTT_Payload_t.
+ * @param[in] payload Payload to be published. See AdrasteaI_ATMQTT_Payload_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATMQTT_AWSIOTPublish(ATMQTT_Topic_Name_t topicName, char *payload)
+bool AdrasteaI_ATMQTT_AWSIOTPublish(AdrasteaI_ATMQTT_Topic_Name_t topicName, char *payload)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -1312,12 +1317,12 @@ bool ATMQTT_AWSIOTPublish(ATMQTT_Topic_Name_t topicName, char *payload)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_MQTT), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_MQTT), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}

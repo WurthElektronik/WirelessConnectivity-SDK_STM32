@@ -28,13 +28,13 @@
  * @brief AT commands for Proprietary functionality.
  */
 
-#ifndef AT_PROPRIETARY_H_INCLUDED
-#define AT_PROPRIETARY_H_INCLUDED
+#ifndef ADRASTEAI_AT_PROPRIETARY_H_INCLUDED
+#define ADRASTEAI_AT_PROPRIETARY_H_INCLUDED
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "ATCommon.h"
+#include <AdrasteaI/ATCommands/ATCommon.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,217 +43,217 @@ extern "C" {
 /**
  * @brief Network Attachment State
  */
-typedef enum ATProprietary_Network_Attachment_State_t
+typedef enum AdrasteaI_ATProprietary_Network_Attachment_State_t
 {
-	ATProprietary_Network_State_Invalid = -1,
-	ATProprietary_Network_State_Detach,
-	ATProprietary_Network_State_Attach,
-	ATProprietary_Network_State_NumberOfValues
-} ATProprietary_Network_Attachment_State_t;
+	AdrasteaI_ATProprietary_Network_State_Invalid = -1,
+	AdrasteaI_ATProprietary_Network_State_Detach,
+	AdrasteaI_ATProprietary_Network_State_Attach,
+	AdrasteaI_ATProprietary_Network_State_NumberOfValues
+} AdrasteaI_ATProprietary_Network_Attachment_State_t;
 
-typedef uint8_t ATProprietary_PIN_Attempts_t, ATProprietary_PUK_Attempts_t, ATProprietary_PIN2_Attempts_t, ATProprietary_PUK2_Attempts_t;
+typedef uint8_t AdrasteaI_ATProprietary_PIN_Attempts_t, AdrasteaI_ATProprietary_PUK_Attempts_t, AdrasteaI_ATProprietary_PIN2_Attempts_t, AdrasteaI_ATProprietary_PUK2_Attempts_t;
 
 /**
  * @brief PIN PUK Attempts
  */
-typedef struct ATProprietary_PIN_PUK_Attempts_t
+typedef struct AdrasteaI_ATProprietary_PIN_PUK_Attempts_t
 {
-	ATProprietary_PIN_Attempts_t pinAttempts;
-	ATProprietary_PUK_Attempts_t pukAttempts;
-	ATProprietary_PIN2_Attempts_t pin2Attempts;
-	ATProprietary_PUK2_Attempts_t puk2Attempts;
-} ATProprietary_PIN_PUK_Attempts_t;
+	AdrasteaI_ATProprietary_PIN_Attempts_t pinAttempts;
+	AdrasteaI_ATProprietary_PUK_Attempts_t pukAttempts;
+	AdrasteaI_ATProprietary_PIN2_Attempts_t pin2Attempts;
+	AdrasteaI_ATProprietary_PUK2_Attempts_t puk2Attempts;
+} AdrasteaI_ATProprietary_PIN_PUK_Attempts_t;
 
 /**
  * @brief RAT
  */
-typedef enum ATProprietary_RAT_t
+typedef enum AdrasteaI_ATProprietary_RAT_t
 {
-	ATProprietary_RAT_Invalid = -1,
-	ATProprietary_RAT_DEFAULT,
-	ATProprietary_RAT_CATM,
-	ATProprietary_RAT_NB_IOT,
-	ATProprietary_RAT_NumberOfValues
-} ATProprietary_RAT_t;
+	AdrasteaI_ATProprietary_RAT_Invalid = -1,
+	AdrasteaI_ATProprietary_RAT_DEFAULT,
+	AdrasteaI_ATProprietary_RAT_CATM,
+	AdrasteaI_ATProprietary_RAT_NB_IOT,
+	AdrasteaI_ATProprietary_RAT_NumberOfValues
+} AdrasteaI_ATProprietary_RAT_t;
 
 /**
  * @brief RAT Storage
  */
-typedef enum ATProprietary_RAT_Storage_t
+typedef enum AdrasteaI_ATProprietary_RAT_Storage_t
 {
-	ATProprietary_RAT_Storage_Invalid = -1,
-	ATProprietary_RAT_Storage_Non_Persistant,
-	ATProprietary_RAT_Storage_Persistant,
-	ATProprietary_RAT_Storage_NumberOfValues
-} ATProprietary_RAT_Storage_t;
+	AdrasteaI_ATProprietary_RAT_Storage_Invalid = -1,
+	AdrasteaI_ATProprietary_RAT_Storage_Non_Persistant,
+	AdrasteaI_ATProprietary_RAT_Storage_Persistant,
+	AdrasteaI_ATProprietary_RAT_Storage_NumberOfValues
+} AdrasteaI_ATProprietary_RAT_Storage_t;
 
 /**
  * @brief RAT Source
  */
-typedef enum ATProprietary_RAT_Source_t
+typedef enum AdrasteaI_ATProprietary_RAT_Source_t
 {
-	ATProprietary_RAT_Source_Invalid = -1,
-	ATProprietary_RAT_Source_None,
-	ATProprietary_RAT_Source_Host,
-	ATProprietary_RAT_Source_NumberOfValues
-} ATProprietary_RAT_Source_t;
+	AdrasteaI_ATProprietary_RAT_Source_Invalid = -1,
+	AdrasteaI_ATProprietary_RAT_Source_None,
+	AdrasteaI_ATProprietary_RAT_Source_Host,
+	AdrasteaI_ATProprietary_RAT_Source_NumberOfValues
+} AdrasteaI_ATProprietary_RAT_Source_t;
 
 /**
  * @brief RAT Mode
  */
-typedef enum ATProprietary_RAT_Mode_t
+typedef enum AdrasteaI_ATProprietary_RAT_Mode_t
 {
-	ATProprietary_RAT_Mode_Invalid = -1,
-	ATProprietary_RAT_Mode_Single,
-	ATProprietary_RAT_Mode_Multiple,
-	ATProprietary_RAT_Mode_NumberOfValues
-} ATProprietary_RAT_Mode_t;
+	AdrasteaI_ATProprietary_RAT_Mode_Invalid = -1,
+	AdrasteaI_ATProprietary_RAT_Mode_Single,
+	AdrasteaI_ATProprietary_RAT_Mode_Multiple,
+	AdrasteaI_ATProprietary_RAT_Mode_NumberOfValues
+} AdrasteaI_ATProprietary_RAT_Mode_t;
 
 /**
  * @brief RAT Status
  */
-typedef struct ATProprietary_RAT_Status_t
+typedef struct AdrasteaI_ATProprietary_RAT_Status_t
 {
-	ATProprietary_RAT_t rat;
-	ATProprietary_RAT_Mode_t mode;
-	ATProprietary_RAT_Source_t source;
-} ATProprietary_RAT_Status_t;
+	AdrasteaI_ATProprietary_RAT_t rat;
+	AdrasteaI_ATProprietary_RAT_Mode_t mode;
+	AdrasteaI_ATProprietary_RAT_Source_t source;
+} AdrasteaI_ATProprietary_RAT_Status_t;
 
-typedef uint8_t ATProprietary_Boot_Delay_t;
+typedef uint8_t AdrasteaI_ATProprietary_Boot_Delay_t;
 
-typedef int16_t ATProprietary_Ping_Packet_Count_t, ATProprietary_Ping_Packet_Size_t, ATProprietary_Ping_Timeout_t;
+typedef int16_t AdrasteaI_ATProprietary_Ping_Packet_Count_t, AdrasteaI_ATProprietary_Ping_Packet_Size_t, AdrasteaI_ATProprietary_Ping_Timeout_t;
 
-#define ATProprietary_Ping_Packet_Count_Invalid -1
+#define AdrasteaI_ATProprietary_Ping_Packet_Count_Invalid -1
 
-#define ATProprietary_Ping_Packet_Size_Invalid -1
+#define AdrasteaI_ATProprietary_Ping_Packet_Size_Invalid -1
 
-#define ATProprietary_Ping_Timeout_Invalid -1
+#define AdrasteaI_ATProprietary_Ping_Timeout_Invalid -1
 
-typedef uint8_t ATProprietary_Ping_ID_t;
+typedef uint8_t AdrasteaI_ATProprietary_Ping_ID_t;
 
-typedef uint16_t ATProprietary_Ping_TTL_t, ATProprietary_Ping_RTT_t;
+typedef uint16_t AdrasteaI_ATProprietary_Ping_TTL_t, AdrasteaI_ATProprietary_Ping_RTT_t;
 
 /**
  * @brief Ping Result
  */
-typedef struct ATProprietary_Ping_Result_t
+typedef struct AdrasteaI_ATProprietary_Ping_Result_t
 {
-	ATProprietary_Ping_ID_t id;
-	ATCommon_IP_Addr_t addr;
-	ATProprietary_Ping_TTL_t ttl;
-	ATProprietary_Ping_RTT_t rtt;
-} ATProprietary_Ping_Result_t;
+	AdrasteaI_ATProprietary_Ping_ID_t id;
+	AdrasteaI_ATCommon_IP_Addr_t addr;
+	AdrasteaI_ATProprietary_Ping_TTL_t ttl;
+	AdrasteaI_ATProprietary_Ping_RTT_t rtt;
+} AdrasteaI_ATProprietary_Ping_Result_t;
 
-typedef char ATProprietary_Domain_Name_t[128];
+typedef char AdrasteaI_ATProprietary_Domain_Name_t[128];
 
 /**
  * @brief Proprietary IP Address format
  */
-typedef enum ATProprietary_IP_Addr_Format_t
+typedef enum AdrasteaI_ATProprietary_IP_Addr_Format_t
 {
-	ATProprietary_IP_Addr_Format_Invalid = -1,
-	ATProprietary_IP_Addr_Format_IPv4,
-	ATProprietary_IP_Addr_Format_IPv6,
-	ATProprietary_IP_Addr_Format_IPv4v6,
-	ATProprietary_IP_Addr_Format_NumberOfValues
-} ATProprietary_IP_Addr_Format_t;
+	AdrasteaI_ATProprietary_IP_Addr_Format_Invalid = -1,
+	AdrasteaI_ATProprietary_IP_Addr_Format_IPv4,
+	AdrasteaI_ATProprietary_IP_Addr_Format_IPv6,
+	AdrasteaI_ATProprietary_IP_Addr_Format_IPv4v6,
+	AdrasteaI_ATProprietary_IP_Addr_Format_NumberOfValues
+} AdrasteaI_ATProprietary_IP_Addr_Format_t;
 
 /**
  * @brief Domain Name Result
  */
-typedef struct ATProprietary_Domain_Name_Resolve_Result_t
+typedef struct AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t
 {
-	ATProprietary_IP_Addr_Format_t format;
-	ATCommon_IP_Addr_t addr;
-} ATProprietary_Domain_Name_Resolve_Result_t;
+	AdrasteaI_ATProprietary_IP_Addr_Format_t format;
+	AdrasteaI_ATCommon_IP_Addr_t addr;
+} AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t;
 
-typedef char ATProprietary_File_Name_t[64];
+typedef char AdrasteaI_ATProprietary_File_Name_t[64];
 
 /**
  * @brief Credential Format
  */
-typedef enum ATProprietary_Credential_Format_t
+typedef enum AdrasteaI_ATProprietary_Credential_Format_t
 {
-	ATProprietary_Credential_Format_Invalid = -1,
-	ATProprietary_Credential_Format_Certificate,
-	ATProprietary_Credential_Format_Private_Key,
-	ATProprietary_Credential_Format_PSK_ID,
-	ATProprietary_Credential_Format_PSK_Key,
-	ATProprietary_Credential_Format_NumberOfValues
-} ATProprietary_Credential_Format_t;
+	AdrasteaI_ATProprietary_Credential_Format_Invalid = -1,
+	AdrasteaI_ATProprietary_Credential_Format_Certificate,
+	AdrasteaI_ATProprietary_Credential_Format_Private_Key,
+	AdrasteaI_ATProprietary_Credential_Format_PSK_ID,
+	AdrasteaI_ATProprietary_Credential_Format_PSK_Key,
+	AdrasteaI_ATProprietary_Credential_Format_NumberOfValues
+} AdrasteaI_ATProprietary_Credential_Format_t;
 
-typedef uint8_t ATProprietary_File_Name_Count_t;
+typedef uint8_t AdrasteaI_ATProprietary_File_Name_Count_t;
 
 /**
  * @brief File Names List
  */
-typedef struct ATProprietary_File_Names_List_t
+typedef struct AdrasteaI_ATProprietary_File_Names_List_t
 {
-	ATProprietary_File_Name_Count_t count;
-	ATProprietary_File_Name_t *filenames;
-} ATProprietary_File_Names_List_t;
+	AdrasteaI_ATProprietary_File_Name_Count_t count;
+	AdrasteaI_ATProprietary_File_Name_t *filenames;
+} AdrasteaI_ATProprietary_File_Names_List_t;
 
-typedef char ATProprietary_File_Path_t[128];
+typedef char AdrasteaI_ATProprietary_File_Path_t[128];
 
 /**
  * @brief TLS Profile ID list
  */
-typedef struct ATProprietary_TLS_Profile_ID_List_t
+typedef struct AdrasteaI_ATProprietary_TLS_Profile_ID_List_t
 {
-	ATCommon_TLS_Profile_ID_Count_t count;
-	ATCommon_TLS_Profile_ID_t *profileIDs;
-} ATProprietary_TLS_Profile_ID_List_t;
+	AdrasteaI_ATCommon_TLS_Profile_ID_Count_t count;
+	AdrasteaI_ATCommon_TLS_Profile_ID_t *profileIDs;
+} AdrasteaI_ATProprietary_TLS_Profile_ID_List_t;
 
 /**
  * @brief PDN Parameters
  */
-typedef struct ATProprietary_PDN_Parameters_t
+typedef struct AdrasteaI_ATProprietary_PDN_Parameters_t
 {
-	ATCommon_Session_ID_t sessionID;
-	ATCommon_APN_Name_t apnName;
-	ATProprietary_IP_Addr_Format_t ipFormat;
-} ATProprietary_PDN_Parameters_t;
+	AdrasteaI_ATCommon_Session_ID_t sessionID;
+	AdrasteaI_ATCommon_APN_Name_t apnName;
+	AdrasteaI_ATProprietary_IP_Addr_Format_t ipFormat;
+} AdrasteaI_ATProprietary_PDN_Parameters_t;
 
-extern bool ATProprietary_ReadNetworkAttachmentState(ATProprietary_Network_Attachment_State_t *stateP);
+extern bool AdrasteaI_ATProprietary_ReadNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t *stateP);
 
-extern bool ATProprietary_SetNetworkAttachmentState(ATProprietary_Network_Attachment_State_t state);
+extern bool AdrasteaI_ATProprietary_SetNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t state);
 
-extern bool ATProprietary_ReadRemainingPINPUKAttempts(ATProprietary_PIN_PUK_Attempts_t *attemptsP);
+extern bool AdrasteaI_ATProprietary_ReadRemainingPINPUKAttempts(AdrasteaI_ATProprietary_PIN_PUK_Attempts_t *attemptsP);
 
-extern bool ATProprietary_SwitchToRATWithoutFullReboot(ATProprietary_RAT_t rat, ATProprietary_RAT_Storage_t storage, ATProprietary_RAT_Source_t source);
+extern bool AdrasteaI_ATProprietary_SwitchToRATWithoutFullReboot(AdrasteaI_ATProprietary_RAT_t rat, AdrasteaI_ATProprietary_RAT_Storage_t storage, AdrasteaI_ATProprietary_RAT_Source_t source);
 
-extern bool ATProprietary_ReadRATStatus(ATProprietary_RAT_Status_t *ratstatusP);
+extern bool AdrasteaI_ATProprietary_ReadRATStatus(AdrasteaI_ATProprietary_RAT_Status_t *ratstatusP);
 
-extern bool ATProprietary_SetBootDelay(ATProprietary_Boot_Delay_t delay);
+extern bool AdrasteaI_ATProprietary_SetBootDelay(AdrasteaI_ATProprietary_Boot_Delay_t delay);
 
-extern bool ATProprietary_ResolveDomainName(ATCommon_Session_ID_t sessionid, ATProprietary_Domain_Name_t domain, ATProprietary_IP_Addr_Format_t format);
+extern bool AdrasteaI_ATProprietary_ResolveDomainName(AdrasteaI_ATCommon_Session_ID_t sessionid, AdrasteaI_ATProprietary_Domain_Name_t domain, AdrasteaI_ATProprietary_IP_Addr_Format_t format);
 
-extern bool ATProprietary_ParseResolveDomainNameEvent(char *pEventArguments, ATProprietary_Domain_Name_Resolve_Result_t *dataP);
+extern bool AdrasteaI_ATProprietary_ParseResolveDomainNameEvent(char *pEventArguments, AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t *dataP);
 
-extern bool ATProprietary_Ping(ATProprietary_IP_Addr_Format_t format, ATCommon_IP_Addr_t destaddr, ATProprietary_Ping_Packet_Count_t packetcount, ATProprietary_Ping_Packet_Size_t packetsize, ATProprietary_Ping_Timeout_t timeout);
+extern bool AdrasteaI_ATProprietary_Ping(AdrasteaI_ATProprietary_IP_Addr_Format_t format, AdrasteaI_ATCommon_IP_Addr_t destaddr, AdrasteaI_ATProprietary_Ping_Packet_Count_t packetcount, AdrasteaI_ATProprietary_Ping_Packet_Size_t packetsize, AdrasteaI_ATProprietary_Ping_Timeout_t timeout);
 
-extern bool ATProprietary_ParsePingResultEvent(char *pEventArguments, ATProprietary_Ping_Result_t *dataP);
+extern bool AdrasteaI_ATProprietary_ParsePingResultEvent(char *pEventArguments, AdrasteaI_ATProprietary_Ping_Result_t *dataP);
 
-extern bool ATProprietary_ReadCredential(ATProprietary_File_Name_t filename, char *dataP, uint16_t dataMaxBufferSize);
+extern bool AdrasteaI_ATProprietary_ReadCredential(AdrasteaI_ATProprietary_File_Name_t filename, char *dataP, uint16_t dataMaxBufferSize);
 
-extern bool ATProprietary_WriteCredential(ATProprietary_File_Name_t filename, ATProprietary_Credential_Format_t format, char *data);
+extern bool AdrasteaI_ATProprietary_WriteCredential(AdrasteaI_ATProprietary_File_Name_t filename, AdrasteaI_ATProprietary_Credential_Format_t format, char *data);
 
-extern bool ATProprietary_ListCredentials(ATProprietary_File_Names_List_t *filenamesList);
+extern bool AdrasteaI_ATProprietary_ListCredentials(AdrasteaI_ATProprietary_File_Names_List_t *filenamesList);
 
-extern bool ATProprietary_DeleteCredential(ATProprietary_File_Name_t filename);
+extern bool AdrasteaI_ATProprietary_DeleteCredential(AdrasteaI_ATProprietary_File_Name_t filename);
 
-extern bool ATProprietary_ListTLSProfiles(ATProprietary_TLS_Profile_ID_List_t *profileIDsList);
+extern bool AdrasteaI_ATProprietary_ListTLSProfiles(AdrasteaI_ATProprietary_TLS_Profile_ID_List_t *profileIDsList);
 
-extern bool ATProprietary_AddTLSProfile(ATCommon_TLS_Profile_ID_t profileID, ATProprietary_File_Name_t CA, ATProprietary_File_Path_t CAPath, ATProprietary_File_Name_t deviceCert, ATProprietary_File_Name_t deviceKey, ATProprietary_File_Name_t pskID, ATProprietary_File_Name_t pskKey);
+extern bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID, AdrasteaI_ATProprietary_File_Name_t CA, AdrasteaI_ATProprietary_File_Path_t CAPath, AdrasteaI_ATProprietary_File_Name_t deviceCert, AdrasteaI_ATProprietary_File_Name_t deviceKey, AdrasteaI_ATProprietary_File_Name_t pskID, AdrasteaI_ATProprietary_File_Name_t pskKey);
 
-extern bool ATProprietary_DeleteTLSProfile(ATCommon_TLS_Profile_ID_t profileID);
+extern bool AdrasteaI_ATProprietary_DeleteTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID);
 
-extern bool ATProprietary_SetPDNParameters(ATProprietary_PDN_Parameters_t parameters);
+extern bool AdrasteaI_ATProprietary_SetPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t parameters);
 
-extern bool ATProprietary_ReadPDNParameters(ATProprietary_PDN_Parameters_t *parameters);
+extern bool AdrasteaI_ATProprietary_ReadPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t *parameters);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* AT_PROPRIETARY_H_INCLUDED */
+#endif /* ADRASTEAI_AT_PROPRIETARY_H_INCLUDED */

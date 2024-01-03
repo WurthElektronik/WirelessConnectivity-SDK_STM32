@@ -27,26 +27,25 @@
  * @file
  * @brief AT commands for Net Service functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATNetService.h"
-#include "Math.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATNetService.h>
+#include <Math.h>
+#include <AdrasteaI/AdrasteaI.h>
 
 /**
  * @brief Read Operators from memory (using the AT+COPN command).
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadOperators()
+bool AdrasteaI_ATNetService_ReadOperators()
 {
-	if (!Adrastea_SendRequest("AT+COPN\r\n"))
+	if (!AdrasteaI_SendRequest("AT+COPN\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -57,11 +56,12 @@ bool ATNetService_ReadOperators()
 /**
  * @brief Parses the value of Operator Read event arguments.
  *
- * @param[out] dataP the operator is returned in this argument. See ATNetService_Operator_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the operator is returned in this argument. See AdrasteaI_ATNetService_Operator_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ParseOperatorReadEvent(char *pEventArguments, ATNetService_Operator_t *dataP)
+bool AdrasteaI_ATNetService_ParseOperatorReadEvent(char *pEventArguments, AdrasteaI_ATNetService_Operator_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -90,11 +90,11 @@ bool ATNetService_ParseOperatorReadEvent(char *pEventArguments, ATNetService_Ope
 /**
  * @brief Set Public Land Mobile Network read format (using the AT+COPS command).
  *
- * @param[in] format PLMN format. See ATNetService_PLMN_Format_t.
+ * @param[in] format PLMN format. See AdrasteaI_ATNetService_PLMN_Format_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_SetPLMNReadFormat(ATNetService_PLMN_Format_t format)
+bool AdrasteaI_ATNetService_SetPLMNReadFormat(AdrasteaI_ATNetService_PLMN_Format_t format)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -110,12 +110,12 @@ bool ATNetService_SetPLMNReadFormat(ATNetService_PLMN_Format_t format)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -126,27 +126,26 @@ bool ATNetService_SetPLMNReadFormat(ATNetService_PLMN_Format_t format)
 /**
  * @brief Set Public Land Mobile Network (using the AT+COPS command).
  *
- * @param[in] plmn either choose a specific plmn or automatic. See ATNetService_PLMN_t.
+ * @param[in] plmn either choose a specific plmn or automatic. See AdrasteaI_ATNetService_PLMN_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
+bool AdrasteaI_ATNetService_SetPLMN(AdrasteaI_ATNetService_PLMN_t plmn)
 {
 	switch (plmn.selectionMode)
 	{
-	case ATNetService_PLMN_Selection_Mode_Automatic:
+	case AdrasteaI_ATNetService_PLMN_Selection_Mode_Automatic:
 	{
-
-		if (!Adrastea_SendRequest("AT+COPS=0\r\n"))
+		if (!AdrasteaI_SendRequest("AT+COPS=0\r\n"))
 		{
 			return false;
 		}
 
 		break;
 	}
-	case ATNetService_PLMN_Selection_Mode_Manual:
+	case AdrasteaI_ATNetService_PLMN_Selection_Mode_Manual:
 	{
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 		char *pRequestCommand = AT_commandBuffer;
 
@@ -159,10 +158,9 @@ bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
 
 		switch (plmn.format)
 		{
-		case ATNetService_PLMN_Format_Short_AlphaNumeric:
-		case ATNetService_PLMN_Format_Long_AlphaNumeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Short_AlphaNumeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Long_AlphaNumeric:
 		{
-
 			if (!ATCommand_AppendArgumentString(pRequestCommand, plmn.operator.operatorString, ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
@@ -170,9 +168,8 @@ bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
 
 			break;
 		}
-		case ATNetService_PLMN_Format_Numeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Numeric:
 		{
-
 			if (!ATCommand_AppendArgumentIntQuotationMarks(pRequestCommand, plmn.operator.operatorNumeric, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
@@ -185,35 +182,33 @@ bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
 			break;
 		}
 
-		if (plmn.accessTechnology != ATCommon_AcT_Invalid)
+		if (plmn.accessTechnology != AdrasteaI_ATCommon_AcT_Invalid)
 		{
-
 			if (!ATCommand_AppendArgumentInt(pRequestCommand, plmn.accessTechnology, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount = 0;
+			AdrasteaI_optionalParamsDelimCount = 0;
 
 		}
 
-		pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+		pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
 
-		if (!Adrastea_SendRequest(pRequestCommand))
+		if (!AdrasteaI_SendRequest(pRequestCommand))
 		{
 			return false;
 		}
 
 		break;
 	}
-	case ATNetService_PLMN_Selection_Mode_Deregister:
+	case AdrasteaI_ATNetService_PLMN_Selection_Mode_Deregister:
 	{
-
-		if (!Adrastea_SendRequest("AT+COPS=2\r\n"))
+		if (!AdrasteaI_SendRequest("AT+COPS=2\r\n"))
 		{
 			return false;
 		}
@@ -225,7 +220,7 @@ bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
 		break;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -236,25 +231,25 @@ bool ATNetService_SetPLMN(ATNetService_PLMN_t plmn)
 /**
  * @brief Read currently selected plmn (using the AT+COPS command).
  *
- * @param[in] plmnP Currently selected plmn is returned in this argument. See ATNetService_PLMN_t.
+ * @param[in] plmnP Currently selected plmn is returned in this argument. See AdrasteaI_ATNetService_PLMN_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
+bool AdrasteaI_ATNetService_ReadPLMN(AdrasteaI_ATNetService_PLMN_t *plmnP)
 {
 	if (plmnP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+COPS?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+COPS?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -263,10 +258,10 @@ bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
 
 	plmnP->operator.operatorNumeric = -1;
 	plmnP->operator.operatorString[0] = '\0';
-	plmnP->format = ATNetService_PLMN_Format_Invalid;
-	plmnP->accessTechnology = ATCommon_AcT_Invalid;
+	plmnP->format = AdrasteaI_ATNetService_PLMN_Format_Invalid;
+	plmnP->accessTechnology = AdrasteaI_ATCommon_AcT_Invalid;
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
@@ -278,7 +273,6 @@ bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
 	}
 	case 4:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &plmnP->selectionMode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -291,10 +285,9 @@ bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
 
 		switch (plmnP->format)
 		{
-		case ATNetService_PLMN_Format_Short_AlphaNumeric:
-		case ATNetService_PLMN_Format_Long_AlphaNumeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Short_AlphaNumeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Long_AlphaNumeric:
 		{
-
 			if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, plmnP->operator.operatorString, ATCOMMAND_ARGUMENT_DELIM, sizeof(plmnP->operator.operatorString)))
 			{
 				return false;
@@ -302,9 +295,8 @@ bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
 
 			break;
 		}
-		case ATNetService_PLMN_Format_Numeric:
+		case AdrasteaI_ATNetService_PLMN_Format_Numeric:
 		{
-
 			if (!ATCommand_GetNextArgumentIntWithoutQuotationMarks(&pResponseCommand, &plmnP->operator.operatorNumeric, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 ), ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
@@ -335,25 +327,25 @@ bool ATNetService_ReadPLMN(ATNetService_PLMN_t *plmnP)
 /**
  * @brief Read Signal Quality (using the AT+CSQ command).
  *
- * @param[out] sq Signal Quality is returned in this argument. See ATNetService_Signal_Quality_t.
+ * @param[out] sq Signal Quality is returned in this argument. See AdrasteaI_ATNetService_Signal_Quality_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadSignalQuality(ATNetService_Signal_Quality_t *sq)
+bool AdrasteaI_ATNetService_ReadSignalQuality(AdrasteaI_ATNetService_Signal_Quality_t *sq)
 {
 	if (sq == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CSQ\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CSQ\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -376,25 +368,25 @@ bool ATNetService_ReadSignalQuality(ATNetService_Signal_Quality_t *sq)
 /**
  * @brief Read Extended Signal Quality (using the AT+CESQ command).
  *
- * @param[out] esq Extended Signal Quality is returned in this argument. See ATNetService_Extended_Signal_Quality_t.
+ * @param[out] esq Extended Signal Quality is returned in this argument. See AdrasteaI_ATNetService_Extended_Signal_Quality_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadExtendedSignalQuality(ATNetService_Extended_Signal_Quality_t *esq)
+bool AdrasteaI_ATNetService_ReadExtendedSignalQuality(AdrasteaI_ATNetService_Extended_Signal_Quality_t *esq)
 {
 	if (esq == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CESQ\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CESQ\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -437,25 +429,25 @@ bool ATNetService_ReadExtendedSignalQuality(ATNetService_Extended_Signal_Quality
 /**
  * @brief Read Power Saving Mode (using the AT+CPSMS command).
  *
- * @param[out] psmP Power Saving Mode state and timers are returned in this argument. See ATNetService_Power_Saving_Mode_t.
+ * @param[out] psmP Power Saving Mode state and timers are returned in this argument. See AdrasteaI_ATNetService_Power_Saving_Mode_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadPowerSavingMode(ATNetService_Power_Saving_Mode_t *psmP)
+bool AdrasteaI_ATNetService_ReadPowerSavingMode(AdrasteaI_ATNetService_Power_Saving_Mode_t *psmP)
 {
 	if (psmP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CPSMS?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CPSMS?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -495,11 +487,11 @@ bool ATNetService_ReadPowerSavingMode(ATNetService_Power_Saving_Mode_t *psmP)
 /**
  * @brief Set Power Saving Mode (using the AT+CPSMS command).
  *
- * @param[in] psm Power Saving Mode state and timers. See ATNetService_Power_Saving_Mode_t.
+ * @param[in] psm Power Saving Mode state and timers. See AdrasteaI_ATNetService_Power_Saving_Mode_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_SetPowerSavingMode(ATNetService_Power_Saving_Mode_t psm)
+bool AdrasteaI_ATNetService_SetPowerSavingMode(AdrasteaI_ATNetService_Power_Saving_Mode_t psm)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -507,20 +499,18 @@ bool ATNetService_SetPowerSavingMode(ATNetService_Power_Saving_Mode_t psm)
 
 	switch (psm.state)
 	{
-	case ATNetService_Power_Saving_Mode_State_Disable:
+	case AdrasteaI_ATNetService_Power_Saving_Mode_State_Disable:
 	{
-
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, ATNetService_Power_Saving_Mode_State_Disable, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
+		if (!ATCommand_AppendArgumentInt(pRequestCommand, AdrasteaI_ATNetService_Power_Saving_Mode_State_Disable, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
 
 		break;
 	}
-	case ATNetService_Power_Saving_Mode_State_Enable:
+	case AdrasteaI_ATNetService_Power_Saving_Mode_State_Enable:
 	{
-
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, ATNetService_Power_Saving_Mode_State_Enable, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
+		if (!ATCommand_AppendArgumentInt(pRequestCommand, AdrasteaI_ATNetService_Power_Saving_Mode_State_Enable, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
@@ -558,12 +548,12 @@ bool ATNetService_SetPowerSavingMode(ATNetService_Power_Saving_Mode_t psm)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -574,13 +564,13 @@ bool ATNetService_SetPowerSavingMode(ATNetService_Power_Saving_Mode_t psm)
 /**
  * @brief Set eDRX Settings (using the AT+CEDRXS command).
  *
- * @param[in] mode eDRX State. See ATNetService_eDRX_Mode_t.
+ * @param[in] mode eDRX State. See AdrasteaI_ATNetService_eDRX_Mode_t.
  *
- * @param[in] eDRX Configuration. See ATNetService_eDRX_t.
+ * @param[in] eDRX Configuration. See AdrasteaI_ATNetService_eDRX_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetService_eDRX_t edrx)
+bool AdrasteaI_ATNetService_SeteDRXDynamicParameters(AdrasteaI_ATNetService_eDRX_Mode_t mode, AdrasteaI_ATNetService_eDRX_t edrx)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -588,10 +578,9 @@ bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetS
 
 	switch (mode)
 	{
-	case ATNetService_eDRX_Mode_Disable:
-	case ATNetService_eDRX_Mode_Disable_Reset:
+	case AdrasteaI_ATNetService_eDRX_Mode_Disable:
+	case AdrasteaI_ATNetService_eDRX_Mode_Disable_Reset:
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, mode, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -600,23 +589,22 @@ bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetS
 		break;
 	}
 
-	case ATNetService_eDRX_Mode_Enable:
+	case AdrasteaI_ATNetService_eDRX_Mode_Enable:
 	{
-
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, mode, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
 
-		if (edrx.AcT > ATNetService_eDRX_AcT_NotUsingeDRX)
+		if (edrx.AcT > AdrasteaI_ATNetService_eDRX_AcT_NotUsingeDRX)
 		{
 			if (!ATCommand_AppendArgumentInt(pRequestCommand, edrx.AcT, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount = 1;
+			AdrasteaI_optionalParamsDelimCount = 1;
 		}
 		else
 		{
@@ -624,19 +612,19 @@ bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetS
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount++;
+			AdrasteaI_optionalParamsDelimCount++;
 		}
 
-		if (edrx.requestedValue != ATNetService_eDRX_Value_Invalid)
+		if (edrx.requestedValue != AdrasteaI_ATNetService_eDRX_Value_Invalid)
 		{
 			if (!ATCommand_AppendArgumentBitsQuotationMarks(pRequestCommand, edrx.requestedValue, (ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
 			{
 				return false;
 			}
-			Adrastea_optionalParamsDelimCount = 0;
+			AdrasteaI_optionalParamsDelimCount = 0;
 		}
 
-		pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+		pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 		break;
 
@@ -652,12 +640,12 @@ bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetS
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -668,40 +656,39 @@ bool ATNetService_SeteDRXDynamicParameters(ATNetService_eDRX_Mode_t mode, ATNetS
 /**
  * @brief Set eDRX Settings (using the AT+CEDRXRDP command).
  *
- * @param[out] edrxP eDRX Configuration is returned in this argument. See ATNetService_eDRX_t.
+ * @param[out] edrxP eDRX Configuration is returned in this argument. See AdrasteaI_ATNetService_eDRX_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadeDRXDynamicParameters(ATNetService_eDRX_t *edrxP)
+bool AdrasteaI_ATNetService_ReadeDRXDynamicParameters(AdrasteaI_ATNetService_eDRX_t *edrxP)
 {
 	if (edrxP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CEDRXRDP\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CEDRXRDP\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	edrxP->requestedValue = ATNetService_eDRX_Value_Invalid;
-	edrxP->networkProvidedValue = ATNetService_eDRX_Value_Invalid;
+	edrxP->requestedValue = AdrasteaI_ATNetService_eDRX_Value_Invalid;
+	edrxP->networkProvidedValue = AdrasteaI_ATNetService_eDRX_Value_Invalid;
 	edrxP->pagingTime = 0;
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &edrxP->AcT, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -711,7 +698,6 @@ bool ATNetService_ReadeDRXDynamicParameters(ATNetService_eDRX_t *edrxP)
 	}
 	case 4:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &edrxP->AcT, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -743,32 +729,32 @@ bool ATNetService_ReadeDRXDynamicParameters(ATNetService_eDRX_t *edrxP)
 /**
  * @brief Read Coverage Enhancement Status (using the AT+CRCES command).
  *
- * @param[out] cesP Coverage Enhancement Status is returned in this argument. See ATNetService_CES_t.
+ * @param[out] cesP Coverage Enhancement Status is returned in this argument. See AdrasteaI_ATNetService_CES_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATNetService_ReadCoverageEnhancementStatus(ATNetService_CES_t *cesP)
+bool AdrasteaI_ATNetService_ReadCoverageEnhancementStatus(AdrasteaI_ATNetService_CES_t *cesP)
 {
 	if (cesP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CRCES\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CRCES\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_NetService), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_NetService), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{

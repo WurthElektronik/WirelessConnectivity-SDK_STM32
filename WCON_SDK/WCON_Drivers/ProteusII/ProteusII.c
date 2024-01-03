@@ -28,26 +28,14 @@
  * @brief Proteus-II driver source file.
  */
 
-#include "ProteusII.h"
-
-#include "stdio.h"
-#include "string.h"
-
-#include "../global/global.h"
-
-typedef enum ProteusII_Pin_t
-{
-	ProteusII_Pin_Reset,
-	ProteusII_Pin_SleepWakeUp,
-	ProteusII_Pin_Boot,
-	ProteusII_Pin_Mode,
-	ProteusII_Pin_Busy,
-	ProteusII_Pin_StatusLed2,
-	ProteusII_Pin_Count
-} ProteusII_Pin_t;
+#include <ProteusII/ProteusII.h>
+#include <global/global.h>
+#include <string.h>
+#include <stdio.h>
 
 #define CMD_WAIT_TIME 500
 #define CNFINVALID 255
+#define BTMAC_LENGTH 6
 
 #define LENGTH_CMD_OVERHEAD             (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
@@ -55,7 +43,7 @@ typedef enum ProteusII_Pin_t
 
 typedef struct
 {
-	uint8_t Stx;
+	const uint8_t Stx;
 	uint8_t Cmd;
 	uint16_t Length;
 	uint8_t Data[PROTEUSII_MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
@@ -211,10 +199,18 @@ static ProteusII_CMD_Confirmation_t cmdConfirmationArray[CMDCONFIRMATIONARRAY_LE
 static ProteusII_OperationMode_t operationMode = ProteusII_OperationMode_CommandMode;
 static ProteusII_GetDevices_t *ProteusII_getDevicesP = NULL;
 static ProteusII_DriverState_t bleState;
-static WE_Pin_t ProteusII_pins[ProteusII_Pin_Count] = {
-		0 };
+/**
+ * @brief Pin configuration struct pointer.
+ */
+static ProteusII_Pins_t *ProteusII_pinsP = NULL;
+
+/**
+ * @brief Uart configuration struct pointer.
+ */
+static WE_UART_t *ProteusII_uartP = NULL;
+
 static ProteusII_CallbackConfig_t callbacks;
-static ProteusII_ByteRxCallback byteRxCallback = NULL;
+static WE_UART_HandleRxByte_t byteRxCallback = NULL;
 static uint8_t checksum = 0;
 static uint16_t rxByteCounter = 0;
 static uint16_t bytesToReceive = 0;
@@ -235,14 +231,14 @@ static void ClearReceiveBuffers()
 	}
 }
 
-static void HandleRxPacket(uint8_t *pRxBuffer)
+static void HandleRxPacket(uint8_t *prxBuffer)
 {
 	ProteusII_CMD_Confirmation_t cmdConfirmation;
 	cmdConfirmation.cmd = CNFINVALID;
 	cmdConfirmation.status = CMD_Status_Invalid;
 
-	uint16_t cmdLength = ((ProteusII_CMD_Frame_t*) pRxBuffer)->Length;
-	memcpy(&rxPacket, pRxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
+	uint16_t cmdLength = ((ProteusII_CMD_Frame_t*) prxBuffer)->Length;
+	memcpy(&rxPacket, prxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
 
 	switch (rxPacket.Cmd)
 	{
@@ -291,8 +287,8 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	case PROTEUSII_CMD_DELETE_BONDS_CNF:
 	case PROTEUSII_CMD_TXCOMPLETE_RSP:
 	case PROTEUSII_CMD_NUMERIC_COMP_CNF:
-    case PROTEUSII_CMD_DTMSTART_CNF:
-    case PROTEUSII_CMD_DTM_CNF:
+	case PROTEUSII_CMD_DTMSTART_CNF:
+	case PROTEUSII_CMD_DTM_CNF:
 	{
 		cmdConfirmation.cmd = rxPacket.Cmd;
 		cmdConfirmation.status = rxPacket.Data[0];
@@ -302,8 +298,28 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	case PROTEUSII_CMD_GETSTATE_CNF:
 	{
 		cmdConfirmation.cmd = rxPacket.Cmd;
-		/* GETSTATE_CNF has no status field*/
+		/* GETSTATE_CNF has no status field */
 		cmdConfirmation.status = CMD_Status_NoStatus;
+
+		switch (rxPacket.Data[1])
+		{
+		case ProteusII_BLE_Action_Idle:
+		{
+			bleState = ProteusII_DriverState_BLE_Idle;
+		}
+			break;
+		case ProteusII_BLE_Action_Connected:
+		case ProteusII_BLE_Action_None:
+		case ProteusII_BLE_Action_Scanning:
+		case ProteusII_BLE_Action_Sleep:
+		case ProteusII_BLE_Action_DTM:
+		default:
+		{
+			/* do not use this information */
+		}
+			break;
+		}
+
 		break;
 	}
 
@@ -327,15 +343,15 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 		}
 		if (callbacks.connectCb != NULL)
 		{
-			uint8_t btMac[6];
+			uint8_t btMac[BTMAC_LENGTH];
 			if (rxPacket.Length >= 7)
 			{
-				memcpy(btMac, &rxPacket.Data[1], 6);
+				memcpy(btMac, &rxPacket.Data[1], sizeof(btMac));
 			}
 			else
 			{
 				/* Packet doesn't contain BTMAC (e.g. connection failed) */
-				memset(btMac, 0, 6);
+				memset(btMac, 0, sizeof(btMac));
 			}
 			callbacks.connectCb(success, btMac);
 		}
@@ -344,7 +360,7 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 
 	case PROTEUSII_CMD_DISCONNECT_IND:
 	{
-		bleState = ProteusII_DriverState_BLE_Invalid;
+		bleState = ProteusII_DriverState_BLE_Idle;
 		if (callbacks.disconnectCb != NULL)
 		{
 			ProteusII_DisconnectReason_t reason = ProteusII_DisconnectReason_Unknown;
@@ -441,18 +457,17 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	{
 		if (callbacks.phyUpdateCb != NULL)
 		{
-			bool success = (rxPacket.Data[0] == CMD_Status_Success);
-			uint8_t btMac[6];
+			uint8_t btMac[BTMAC_LENGTH];
 			if (rxPacket.Length >= 9)
 			{
-				memcpy(btMac, &rxPacket.Data[3], 6);
+				memcpy(btMac, &rxPacket.Data[3], sizeof(btMac));
 			}
 			else
 			{
 				/* Packet doesn't contain BTMAC (e.g. Phy update failed) */
-				memset(btMac, 0, 6);
+				memset(btMac, 0, sizeof(btMac));
 			}
-			callbacks.phyUpdateCb(success, btMac, (ProteusII_Phy_t) rxPacket.Data[1], (ProteusII_Phy_t) rxPacket.Data[2]);
+			callbacks.phyUpdateCb((rxPacket.Data[0] == CMD_Status_Success), btMac, (ProteusII_Phy_t) rxPacket.Data[1], (ProteusII_Phy_t) rxPacket.Data[2]);
 		}
 		break;
 	}
@@ -493,60 +508,66 @@ static void HandleRxPacket(uint8_t *pRxBuffer)
 	}
 }
 
-void ProteusII_HandleRxByte(uint8_t receivedByte)
+static void ProteusII_HandleRxByte(uint8_t *dataP, size_t size)
 {
-	rxBuffer[rxByteCounter] = receivedByte;
-
-	switch (rxByteCounter)
+	for (; size > 0; size--, dataP++)
 	{
-	case 0:
-		/* wait for start byte of frame */
-		if (rxBuffer[rxByteCounter] == CMD_STX)
+		if (rxByteCounter < sizeof(rxBuffer))
 		{
-			bytesToReceive = 0;
-			rxByteCounter = 1;
+			rxBuffer[rxByteCounter] = *dataP;
 		}
-		break;
 
-	case 1:
-		/* CMD */
-		rxByteCounter++;
-		break;
-
-	case 2:
-		/* length field lsb */
-		rxByteCounter++;
-		bytesToReceive = (uint16_t) (rxBuffer[rxByteCounter - 1]);
-		break;
-
-	case 3:
-		/* length field msb */
-		rxByteCounter++;
-		bytesToReceive += (((uint16_t) rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD ); /* len_msb + len_lsb + crc + sfd + cmd */
-		break;
-
-	default:
-		/* data field */
-		rxByteCounter++;
-		if (rxByteCounter == bytesToReceive)
+		switch (rxByteCounter)
 		{
-			/* check CRC */
-			checksum = 0;
-			for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
+		case 0:
+			/* wait for start byte of frame */
+			if (rxBuffer[rxByteCounter] == CMD_STX)
 			{
-				checksum ^= rxBuffer[i];
+				bytesToReceive = 0;
+				rxByteCounter = 1;
 			}
+			break;
 
-			if (checksum == rxBuffer[bytesToReceive - 1])
+		case 1:
+			/* CMD */
+			rxByteCounter++;
+			break;
+
+		case 2:
+			/* length field lsb */
+			rxByteCounter++;
+			bytesToReceive = (uint16_t) (rxBuffer[rxByteCounter - 1]);
+			break;
+
+		case 3:
+			/* length field msb */
+			rxByteCounter++;
+			bytesToReceive += (((uint16_t) rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD ); /* len_msb + len_lsb + crc + sfd + cmd */
+			break;
+
+		default:
+			/* data field */
+			rxByteCounter++;
+			if (rxByteCounter >= bytesToReceive)
 			{
-				/* received frame ok, interpret it now */
-				HandleRxPacket(rxBuffer);
-			}
+				/* check CRC */
+				checksum = 0;
+				for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
+				{
+					checksum ^= rxBuffer[i];
+				}
 
-			rxByteCounter = 0;
-			bytesToReceive = 0;
+				if (checksum == rxBuffer[bytesToReceive - 1])
+				{
+					/* received frame ok, interpret it now */
+					HandleRxPacket(rxBuffer);
+				}
+
+				rxByteCounter = 0;
+				bytesToReceive = 0;
+			}
+			break;
 		}
-		break;
 	}
 }
 
@@ -559,18 +580,17 @@ static bool Wait4CNF(int maxTimeMs, uint8_t expectedCmdConfirmation, ProteusII_C
 	int count = 0;
 	int timeStepMs = 5; /* 5ms */
 	int maxCount = maxTimeMs / timeStepMs;
-	int i = 0;
 
 	if (resetConfirmState)
 	{
-		for (i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 		{
 			cmdConfirmationArray[i].cmd = CNFINVALID;
 		}
 	}
 	while (1)
 	{
-		for (i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 		{
 			if (expectedCmdConfirmation == cmdConfirmationArray[i].cmd)
 			{
@@ -596,28 +616,35 @@ static bool Wait4CNF(int maxTimeMs, uint8_t expectedCmdConfirmation, ProteusII_C
  */
 static bool FillChecksum(ProteusII_CMD_Frame_t *cmd)
 {
-	if ((cmd->Length >= 0) && (cmd->Stx == CMD_STX))
+	uint8_t checksum = (uint8_t) cmd->Stx;
+	uint8_t *pArray = (uint8_t*) cmd;
+	for (uint16_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
 	{
-		uint8_t checksum = (uint8_t) 0;
-		uint8_t *pArray = (uint8_t*) cmd;
-		uint16_t i = 0;
-		for (i = 0; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
-		{
-			checksum ^= pArray[i];
-		}
-		cmd->Data[cmd->Length] = checksum;
-		return true;
+		checksum ^= pArray[i];
 	}
-	return false;
+	cmd->Data[cmd->Length] = checksum;
+	return true;
 }
 
 /**************************************
  *         Global functions           *
  **************************************/
-
-void WE_UART_HandleRxByte(uint8_t receivedByte)
+/**
+ * @brief Transmitting the data via UART.
+ *
+ * @param[in] data    :  pointer to the data.
+ * @param[in] dataLength : length of the data.
+ *
+ * @return true if transmission succeeded,
+ *         false otherwise
+ */
+bool ProteusII_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
 {
-	byteRxCallback(receivedByte);
+	if ((data == NULL) || (dataLength == 0))
+	{
+		return false;
+	}
+	return ProteusII_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
 
 /**
@@ -627,52 +654,60 @@ void WE_UART_HandleRxByte(uint8_t receivedByte)
  *          The baudrate parameter must match to perform a successful FTDI communication.
  *          Updating this parameter during runtime may lead to communication errors.
  *
- * @param[in] baudrate:         baudrate of the interface
- * @param[in] flowControl:      enable/disable flowcontrol
+ * @param[in] uartP :         definition of the uart connected to the module
+ * @param[in] pinoutP:        definition of the gpios connected to the module
  * @param[in] opMode:           operation mode
  * @param[in] callbackConfig:   Callback configuration
  *
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool ProteusII_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusII_OperationMode_t opMode, ProteusII_CallbackConfig_t callbackConfig)
+bool ProteusII_Init(WE_UART_t *uartP, ProteusII_Pins_t *pinoutP, ProteusII_OperationMode_t opMode, ProteusII_CallbackConfig_t callbackConfig)
 {
 	operationMode = opMode;
 
-	/* initialize the pins */
-	ProteusII_pins[ProteusII_Pin_Reset].port = GPIOA;
-	ProteusII_pins[ProteusII_Pin_Reset].pin = GPIO_PIN_10;
-	ProteusII_pins[ProteusII_Pin_Reset].type = WE_Pin_Type_Output;
-	ProteusII_pins[ProteusII_Pin_SleepWakeUp].port = GPIOA;
-	ProteusII_pins[ProteusII_Pin_SleepWakeUp].pin = GPIO_PIN_9;
-	ProteusII_pins[ProteusII_Pin_SleepWakeUp].type = WE_Pin_Type_Output;
-	ProteusII_pins[ProteusII_Pin_Boot].port = GPIOA;
-	ProteusII_pins[ProteusII_Pin_Boot].pin = GPIO_PIN_7;
-	ProteusII_pins[ProteusII_Pin_Boot].type = WE_Pin_Type_Output;
-	ProteusII_pins[ProteusII_Pin_Mode].port = GPIOA;
-	ProteusII_pins[ProteusII_Pin_Mode].pin = GPIO_PIN_8;
-	ProteusII_pins[ProteusII_Pin_Mode].type = WE_Pin_Type_Output;
-	ProteusII_pins[ProteusII_Pin_Busy].port = GPIOB;
-	ProteusII_pins[ProteusII_Pin_Busy].pin = GPIO_PIN_8;
-	ProteusII_pins[ProteusII_Pin_Busy].type = WE_Pin_Type_Input;
-	ProteusII_pins[ProteusII_Pin_StatusLed2].port = GPIOB;
-	ProteusII_pins[ProteusII_Pin_StatusLed2].pin = GPIO_PIN_9;
-	ProteusII_pins[ProteusII_Pin_StatusLed2].type = WE_Pin_Type_Input;
-	if (false == WE_InitPins(ProteusII_pins, ProteusII_Pin_Count))
+	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+	{
+		return false;
+	}
+
+	ProteusII_pinsP = pinoutP;
+	ProteusII_pinsP->ProteusII_Pin_Reset.type = WE_Pin_Type_Output;
+	ProteusII_pinsP->ProteusII_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+	ProteusII_pinsP->ProteusII_Pin_Boot.type = WE_Pin_Type_Output;
+	ProteusII_pinsP->ProteusII_Pin_Mode.type = WE_Pin_Type_Output;
+	ProteusII_pinsP->ProteusII_Pin_Busy.type = WE_Pin_Type_Input;
+	ProteusII_pinsP->ProteusII_Pin_StatusLed2.type = WE_Pin_Type_Input;
+
+	WE_Pin_t pins[sizeof(ProteusII_Pins_t) / sizeof(WE_Pin_t)];
+	uint8_t pin_count = 0;
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Reset, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Boot, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Mode, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Busy, sizeof(WE_Pin_t));
+	memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_StatusLed2, sizeof(WE_Pin_t));
+
+	if (!WE_InitPins(pins, pin_count))
 	{
 		/* error */
 		return false;
 	}
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_Boot], WE_Pin_Level_High);
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp], WE_Pin_Level_High);
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_Reset], WE_Pin_Level_High);
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_Mode], (operationMode == ProteusII_OperationMode_PeripheralOnlyMode) ? WE_Pin_Level_High : WE_Pin_Level_Low);
+
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Boot, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Mode, (operationMode == ProteusII_OperationMode_PeripheralOnlyMode) ? WE_Pin_Level_High : WE_Pin_Level_Low))
+	{
+		return false;
+	}
 
 	/* set callback functions */
 	callbacks = callbackConfig;
 	byteRxCallback = ProteusII_HandleRxByte;
 
-	WE_UART_Init(baudrate, flowControl, WE_Parity_None, true);
+	ProteusII_uartP = uartP;
+	if (false == ProteusII_uartP->uartInit(ProteusII_uartP->baudrate, ProteusII_uartP->flowControl, ProteusII_uartP->parity, &byteRxCallback))
+	{
+		return false;
+	}
 	WE_Delay(10);
 
 	/* reset module */
@@ -682,20 +717,13 @@ bool ProteusII_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusII_O
 	}
 	else
 	{
-		fprintf(stdout, "Pin reset failed\n");
+		printf("Pin reset failed\n");
 		ProteusII_Deinit();
 		return false;
 	}
 
-	bleState = ProteusII_DriverState_BLE_Invalid;
+	bleState = ProteusII_DriverState_BLE_Idle;
 	ProteusII_getDevicesP = NULL;
-
-	uint8_t driverVersion[3];
-	if (WE_GetDriverVersion(driverVersion))
-	{
-		fprintf(stdout, "ProteusII driver version %d.%d.%d\n", driverVersion[0], driverVersion[1], driverVersion[2]);
-	}
-	WE_Delay(100);
 
 	return true;
 }
@@ -708,14 +736,11 @@ bool ProteusII_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusII_O
  */
 bool ProteusII_Deinit()
 {
-	/* close the communication interface to the module */
-	WE_UART_DeInit();
-
 	/* deinit pins */
-	WE_DeinitPin(ProteusII_pins[ProteusII_Pin_Reset]);
-	WE_DeinitPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp]);
-	WE_DeinitPin(ProteusII_pins[ProteusII_Pin_Boot]);
-	WE_DeinitPin(ProteusII_pins[ProteusII_Pin_Mode]);
+	if (!WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Reset) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Boot) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Mode))
+	{
+		return false;
+	}
 
 	/* reset callbacks */
 	memset(&callbacks, 0, sizeof(callbacks));
@@ -723,7 +748,7 @@ bool ProteusII_Deinit()
 	/* make sure any bytes remaining in receive buffer are discarded */
 	ClearReceiveBuffers();
 
-	return true;
+	return ProteusII_uartP->uartDeinit();
 }
 
 /**
@@ -738,14 +763,20 @@ bool ProteusII_Deinit()
  */
 bool ProteusII_PinWakeup()
 {
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp], WE_Pin_Level_Low);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 	WE_Delay(5);
 	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 	{
 		cmdConfirmationArray[i].status = CMD_Status_Invalid;
 		cmdConfirmationArray[i].cmd = CNFINVALID;
 	}
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp], WE_Pin_Level_High);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
 	/* wait for cnf */
 	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
@@ -764,14 +795,20 @@ bool ProteusII_PinWakeup()
  */
 bool ProteusII_PinUartEnable()
 {
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp], WE_Pin_Level_Low);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 	WE_Delay(15);
 	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
 	{
 		cmdConfirmationArray[i].status = CMD_Status_Invalid;
 		cmdConfirmationArray[i].cmd = CNFINVALID;
 	}
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_SleepWakeUp], WE_Pin_Level_High);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
 	/* wait for UART enable indication */
 	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_UART_ENABLE_IND, CMD_Status_Success, false);
@@ -786,11 +823,17 @@ bool ProteusII_PinUartEnable()
 bool ProteusII_PinReset()
 {
 	/* set to output mode */
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_Reset], WE_Pin_Level_Low);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Reset, WE_Pin_Level_Low))
+	{
+		return false;
+	}
 	WE_Delay(5);
 	/* make sure any bytes remaining in receive buffer are discarded */
 	ClearReceiveBuffers();
-	WE_SetPin(ProteusII_pins[ProteusII_Pin_Reset], WE_Pin_Level_High);
+	if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Reset, WE_Pin_Level_High))
+	{
+		return false;
+	}
 
 	if (operationMode == ProteusII_OperationMode_PeripheralOnlyMode)
 	{
@@ -813,14 +856,14 @@ bool ProteusII_Reset()
 	txPacket.Cmd = PROTEUSII_CMD_RESET_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
 /**
@@ -834,14 +877,14 @@ bool ProteusII_Disconnect()
 	txPacket.Cmd = PROTEUSII_CMD_DISCONNECT_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* Confirmation is sent before performing the disconnect. After disconnect, the module sends a disconnect indication */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* Confirmation is sent before performing the disconnect. After disconnect, the module sends a disconnect indication */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -855,14 +898,14 @@ bool ProteusII_Sleep()
 	txPacket.Cmd = PROTEUSII_CMD_SLEEP_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SLEEP_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SLEEP_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -879,14 +922,14 @@ bool ProteusII_UartDisable()
 	txPacket.Cmd = PROTEUSII_CMD_UART_DISABLE_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_UART_DISABLE_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_UART_DISABLE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -900,20 +943,22 @@ bool ProteusII_UartDisable()
  */
 bool ProteusII_Transmit(uint8_t *payloadP, uint16_t length)
 {
-	if ((length <= PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH ) && (ProteusII_DriverState_BLE_ChannelOpen == ProteusII_GetDriverState()))
+	if ((payloadP == NULL) || (length == 0) || (length > PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH ) || (ProteusII_DriverState_BLE_ChannelOpen != ProteusII_GetDriverState()))
 	{
-		txPacket.Cmd = PROTEUSII_CMD_DATA_REQ;
-		txPacket.Length = length;
-
-		memcpy(&txPacket.Data[0], payloadP, length);
-
-		if (FillChecksum(&txPacket))
-		{
-			WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-			return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
-		}
+		return false;
 	}
-	return false;
+
+	txPacket.Cmd = PROTEUSII_CMD_DATA_REQ;
+	txPacket.Length = length;
+
+	memcpy(&txPacket.Data[0], payloadP, length);
+
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
 }
 
 /**
@@ -927,20 +972,22 @@ bool ProteusII_Transmit(uint8_t *payloadP, uint16_t length)
  */
 bool ProteusII_SetBeacon(uint8_t *beaconDataP, uint16_t length)
 {
-	if (length <= PROTEUSII_MAX_BEACON_LENGTH)
+	if ((beaconDataP == NULL) || (length > PROTEUSII_MAX_BEACON_LENGTH ) || (ProteusII_DriverState_BLE_Idle != ProteusII_GetDriverState()))
 	{
-		txPacket.Cmd = PROTEUSII_CMD_SETBEACON_REQ;
-		txPacket.Length = length;
-
-		memcpy(&txPacket.Data[0], beaconDataP, length);
-
-		if (FillChecksum(&txPacket))
-		{
-			WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-			return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SETBEACON_CNF, CMD_Status_Success, true);
-		}
+		return false;
 	}
-	return false;
+
+	txPacket.Cmd = PROTEUSII_CMD_SETBEACON_REQ;
+	txPacket.Length = length;
+
+	memcpy(&txPacket.Data[0], beaconDataP, length);
+
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SETBEACON_CNF, CMD_Status_Success, true);
 }
 
 /*
@@ -954,14 +1001,57 @@ bool ProteusII_FactoryReset()
 	txPacket.Cmd = PROTEUSII_CMD_FACTORYRESET_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for reset after factory reset */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+		return false;
 	}
-	return false;
+
+	/* wait for reset after factory reset */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
+}
+
+/**
+ * @brief Set a special user setting, but checks first if the value is already ok
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] userSetting:  user setting to be updated
+ * @param[in] valueP:       pointer to the new settings value
+ * @param[in] length:       length of the value
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool ProteusII_CheckNSet(ProteusII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+{
+	if ((valueP == NULL) || (length == 0))
+	{
+		return false;
+	}
+
+	uint8_t current_value[length];
+	uint16_t current_length = length;
+
+	if (true == ProteusII_Get(userSetting, current_value, &current_length))
+	{
+		if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+		{
+			/* value is already set, no need to set it again */
+			return true;
+		}
+		else
+		{
+			/* value differs, and thus must be set */
+			return ProteusII_Set(userSetting, valueP, length);
+		}
+	}
+	else
+	{
+		/* failed reading current value */
+		return false;
+	}
 }
 
 /**
@@ -979,19 +1069,24 @@ bool ProteusII_FactoryReset()
  */
 bool ProteusII_Set(ProteusII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
 {
+	if ((valueP == NULL) || (length == 0))
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSII_CMD_SET_REQ;
 	txPacket.Length = 1 + length;
 	txPacket.Data[0] = userSetting;
 	memcpy(&txPacket.Data[1], valueP, length);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SET_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1145,7 +1240,7 @@ bool ProteusII_SetScanTiming(ProteusII_ScanTiming_t scanTiming)
  */
 bool ProteusII_SetScanFactor(uint8_t scanFactor)
 {
-	if (scanFactor > 10)
+	if ((scanFactor > 10) || (scanFactor < 1))
 	{
 		return false;
 	}
@@ -1207,8 +1302,6 @@ bool ProteusII_SetSecFlagsPeripheralOnly(ProteusII_SecFlags_t secFlags)
  * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
  * @param[in] baudrate: UART baudrate
- * @param[in] parity: parity bit
- * @param[in] flowControlEnable: enable/disable flow control
  *
  * @return true if request succeeded,
  *         false otherwise
@@ -1284,22 +1377,28 @@ bool ProteusII_SetSppBaseUuid(uint8_t *uuidP)
  */
 bool ProteusII_Get(ProteusII_UserSettings_t userSetting, uint8_t *responseP, uint16_t *responseLengthP)
 {
+	if ((responseP == NULL) || (responseLengthP == NULL))
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSII_CMD_GET_REQ;
 	txPacket.Length = 1;
 	txPacket.Data[0] = userSetting;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GET_CNF, CMD_Status_Success, true))
-		{
-			uint16_t length = rxPacket.Length;
-			memcpy(responseP, &rxPacket.Data[1], length - 1); /* First Data byte is status, following bytes response*/
-			*responseLengthP = length - 1;
-			return true;
-		}
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GET_CNF, CMD_Status_Success, true))
+	{
+		uint16_t length = rxPacket.Length;
+		memcpy(responseP, &rxPacket.Data[1], length - 1); /* First Data byte is status, following bytes response*/
+		*responseLengthP = length - 1;
+		return true;
 	}
 	return false;
 }
@@ -1328,6 +1427,11 @@ bool ProteusII_GetFWVersion(uint8_t *versionP)
  */
 bool ProteusII_GetDeviceInfo(ProteusII_DeviceInfo_t *deviceInfoP)
 {
+	if (deviceInfoP == NULL)
+	{
+		return false;
+	}
+
 	uint8_t help[12];
 	uint16_t length;
 	if (!ProteusII_Get(ProteusII_USERSETTING_FS_DEVICE_INFO, help, &length))
@@ -1411,14 +1515,21 @@ bool ProteusII_GetBTMAC(uint8_t *btMacP)
  */
 bool ProteusII_GetAdvertisingTimeout(uint16_t *advTimeoutP)
 {
+	if (advTimeoutP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
 
-	ret = ProteusII_Get(ProteusII_USERSETTING_RF_ADVERTISING_TIMEOUT, help, &length);
-	memcpy((uint8_t*) advTimeoutP, help, 2);
+	if (ProteusII_Get(ProteusII_USERSETTING_RF_ADVERTISING_TIMEOUT, help, &length))
+	{
+		memcpy((uint8_t*) advTimeoutP, help, 2);
+		return true;
+	}
 
-	return ret;
+	return false;
 }
 
 /**
@@ -1431,14 +1542,19 @@ bool ProteusII_GetAdvertisingTimeout(uint16_t *advTimeoutP)
  */
 bool ProteusII_GetAdvertisingFlags(ProteusII_AdvertisingFlags_t *advFlagsP)
 {
+	if (advFlagsP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
 	uint8_t flags;
-	bool ret = ProteusII_Get(ProteusII_USERSETTING_RF_ADVERTISING_FLAGS, &flags, &length);
-	if (ret)
+	if (ProteusII_Get(ProteusII_USERSETTING_RF_ADVERTISING_FLAGS, &flags, &length))
 	{
 		*advFlagsP = flags;
+		return true;
 	}
-	return ret;
+	return false;
 }
 
 /**
@@ -1465,14 +1581,19 @@ bool ProteusII_GetScanFlags(uint8_t *scanFlagsP)
  */
 bool ProteusII_GetBeaconFlags(ProteusII_BeaconFlags_t *beaconFlagsP)
 {
+	if (beaconFlagsP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
 	uint8_t flags;
-	bool ret = ProteusII_Get(ProteusII_USERSETTING_RF_BEACON_FLAGS, &flags, &length);
-	if (ret)
+	if (ProteusII_Get(ProteusII_USERSETTING_RF_BEACON_FLAGS, &flags, &length))
 	{
 		*beaconFlagsP = flags;
+		return true;
 	}
-	return ret;
+	return false;
 }
 
 /**
@@ -1563,17 +1684,19 @@ bool ProteusII_GetSecFlagsPeripheralOnly(ProteusII_SecFlags_t *secFlagsP)
  * @brief Request the UART baudrate index
  *
  * @param[out] baudrateP: pointer to the UART baudrate index
- * @param[out] parityP: pointer to the UART parity
- * @param[out] flowControlEnableP: pointer to the UART flow control parameter
  *
  * @return true if request succeeded
  *         false otherwise
  */
 bool ProteusII_GetBaudrateIndex(ProteusII_BaudRate_t *baudrateP)
 {
+	if (baudrateP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
 	uint8_t uartIndex;
-
 	if (ProteusII_Get(ProteusII_USERSETTING_UART_BAUDRATEINDEX, (uint8_t*) &uartIndex, &length))
 	{
 		*baudrateP = (ProteusII_BaudRate_t) uartIndex;
@@ -1607,14 +1730,20 @@ bool ProteusII_GetStaticPasskey(uint8_t *staticPasskeyP)
  */
 bool ProteusII_GetAppearance(uint16_t *appearanceP)
 {
+	if (appearanceP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
+	if (ProteusII_Get(ProteusII_USERSETTING_RF_APPEARANCE, help, &length))
+	{
+		memcpy((uint8_t*) appearanceP, help, 2);
+		return true;
+	}
 
-	ret = ProteusII_Get(ProteusII_USERSETTING_RF_APPEARANCE, help, &length);
-	memcpy((uint8_t*) appearanceP, help, 2);
-
-	return ret;
+	return false;
 }
 
 /**
@@ -1641,14 +1770,20 @@ bool ProteusII_GetSppBaseUuid(uint8_t *uuidP)
  */
 bool ProteusII_GetCFGFlags(uint16_t *cfgFlagsP)
 {
+	if (cfgFlagsP == NULL)
+	{
+		return false;
+	}
+
 	uint16_t length;
-	bool ret = false;
 	uint8_t help[2];
+	if (ProteusII_Get(ProteusII_USERSETTING_RF_CFGFLAGS, help, &length))
+	{
+		memcpy((uint8_t*) cfgFlagsP, help, 2);
+		return true;
+	}
 
-	ret = ProteusII_Get(ProteusII_USERSETTING_RF_CFGFLAGS, help, &length);
-	memcpy((uint8_t*) cfgFlagsP, help, 2);
-
-	return ret;
+	return false;
 }
 
 /**
@@ -1661,31 +1796,37 @@ bool ProteusII_GetCFGFlags(uint16_t *cfgFlagsP)
  */
 bool ProteusII_GetState(ProteusII_ModuleState_t *moduleStateP)
 {
+	if (moduleStateP == NULL)
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSII_CMD_GETSTATE_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	{
+		uint16_t length = rxPacket.Length;
+		moduleStateP->role = rxPacket.Data[0];
+		moduleStateP->action = rxPacket.Data[1];
+
+		if (moduleStateP->action == ProteusII_BLE_Action_Connected && length >= 8)
 		{
-			uint16_t length = rxPacket.Length;
-			moduleStateP->role = rxPacket.Data[0];
-			moduleStateP->action = rxPacket.Data[1];
-
-			if (moduleStateP->action == ProteusII_BLE_Action_Connected && length >= 8)
-			{
-				memcpy(moduleStateP->connectedDeviceBtMac, &rxPacket.Data[2], 6);
-			}
-			else
-			{
-				memset(moduleStateP->connectedDeviceBtMac, 0, 6);
-			}
-
-			return true;
+			memcpy(moduleStateP->connectedDeviceBtMac, &rxPacket.Data[2], 6);
 		}
+		else
+		{
+			memset(moduleStateP->connectedDeviceBtMac, 0, 6);
+		}
+
+		return true;
 	}
 
 	return false;
@@ -1712,14 +1853,14 @@ bool ProteusII_ScanStart()
 	txPacket.Cmd = PROTEUSII_CMD_SCANSTART_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTART_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTART_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1733,14 +1874,14 @@ bool ProteusII_ScanStop()
 	txPacket.Cmd = PROTEUSII_CMD_SCANSTOP_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTOP_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTOP_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1753,8 +1894,6 @@ bool ProteusII_ScanStop()
  */
 bool ProteusII_GetDevices(ProteusII_GetDevices_t *devicesP)
 {
-	bool ret = false;
-
 	ProteusII_getDevicesP = devicesP;
 	if (ProteusII_getDevicesP != NULL)
 	{
@@ -1764,14 +1903,15 @@ bool ProteusII_GetDevices(ProteusII_GetDevices_t *devicesP)
 	txPacket.Cmd = PROTEUSII_CMD_GETDEVICES_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETDEVICES_CNF, CMD_Status_Success, true);
+		ProteusII_getDevicesP = NULL;
+		return false;
 	}
 
+	/* wait for cnf */
+	bool ret = Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETDEVICES_CNF, CMD_Status_Success, true);
 	ProteusII_getDevicesP = NULL;
 	return ret;
 }
@@ -1786,18 +1926,23 @@ bool ProteusII_GetDevices(ProteusII_GetDevices_t *devicesP)
  */
 bool ProteusII_Connect(uint8_t *btMacP)
 {
+	if (btMacP == NULL)
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSII_CMD_CONNECT_REQ;
 	txPacket.Length = 6;
 	memcpy(&txPacket.Data[0], btMacP, 6);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(3000, PROTEUSII_CMD_CONNECT_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(3000, PROTEUSII_CMD_CONNECT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1810,18 +1955,23 @@ bool ProteusII_Connect(uint8_t *btMacP)
  */
 bool ProteusII_Passkey(uint8_t *passkey)
 {
+	if (passkey == NULL)
+	{
+		return false;
+	}
+
 	txPacket.Cmd = PROTEUSII_CMD_PASSKEY_REQ;
 	txPacket.Length = 6;
 	memcpy(&txPacket.Data[0], passkey, 6);
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_PASSKEY_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_PASSKEY_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1838,14 +1988,14 @@ bool ProteusII_NumericCompareConfirm(bool keyIsOk)
 	txPacket.Length = 1;
 	txPacket.Data[0] = keyIsOk ? 0x00 : 0x01;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_NUMERIC_COMP_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_NUMERIC_COMP_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1864,13 +2014,14 @@ bool ProteusII_PhyUpdate(ProteusII_Phy_t phy)
 		txPacket.Length = 1;
 		txPacket.Data[0] = (uint8_t) phy;
 
-		if (FillChecksum(&txPacket))
+		FillChecksum(&txPacket);
+		if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 		{
-			WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-			/* wait for cnf */
-			return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_PHYUPDATE_CNF, CMD_Status_Success, true);
+			return false;
 		}
+
+		/* wait for cnf */
+		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_PHYUPDATE_CNF, CMD_Status_Success, true);
 	}
 	return false;
 }
@@ -1882,7 +2033,7 @@ bool ProteusII_PhyUpdate(ProteusII_Phy_t phy)
  */
 bool ProteusII_GetStatusLed2PinLevel()
 {
-	return WE_Pin_Level_High == WE_GetPinLevel(ProteusII_pins[ProteusII_Pin_StatusLed2]);
+	return WE_Pin_Level_High == WE_GetPinLevel(ProteusII_pinsP->ProteusII_Pin_StatusLed2);
 }
 
 /**
@@ -1891,7 +2042,7 @@ bool ProteusII_GetStatusLed2PinLevel()
  */
 bool ProteusII_IsPeripheralOnlyModeBusy()
 {
-	return WE_Pin_Level_High == WE_GetPinLevel(ProteusII_pins[ProteusII_Pin_Busy]);
+	return WE_Pin_Level_High == WE_GetPinLevel(ProteusII_pinsP->ProteusII_Pin_Busy);
 }
 
 /**
@@ -1901,7 +2052,7 @@ bool ProteusII_IsPeripheralOnlyModeBusy()
  *
  * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
  */
-void ProteusII_SetByteRxCallback(ProteusII_ByteRxCallback callback)
+void ProteusII_SetByteRxCallback(WE_UART_HandleRxByte_t callback)
 {
 	byteRxCallback = (callback == NULL) ? ProteusII_HandleRxByte : callback;
 }
@@ -1920,15 +2071,19 @@ void ProteusII_SetByteRxCallback(ProteusII_ByteRxCallback callback)
  */
 bool ProteusII_GetBonds(ProteusII_BondDatabase_t *bondDatabaseP)
 {
-	txPacket.Cmd = PROTEUSII_CMD_GET_BONDS_REQ;
-	txPacket.Length = 0;
-
-	if (!FillChecksum(&txPacket))
+	if (bondDatabaseP == NULL)
 	{
 		return false;
 	}
 
-	WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+	txPacket.Cmd = PROTEUSII_CMD_GET_BONDS_REQ;
+	txPacket.Length = 0;
+
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+	{
+		return false;
+	}
 
 	/* wait for cnf */
 	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GET_BONDS_CNF, CMD_Status_Success, true))
@@ -1963,14 +2118,14 @@ bool ProteusII_DeleteBonds()
 	txPacket.Cmd = PROTEUSII_CMD_DELETE_BONDS_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1988,14 +2143,14 @@ bool ProteusII_DeleteBond(uint8_t bondId)
 	txPacket.Data[0] = bondId;
 	txPacket.Data[1] = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2009,22 +2164,22 @@ bool ProteusII_DTMEnable()
 	txPacket.Cmd = PROTEUSII_CMD_DTMSTART_REQ;
 	txPacket.Length = 0;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
+		return false;
+	}
 
-		/* wait for cnf */
-		if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	/* wait for cnf */
+	if (Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true))
+	{
+		if ((rxPacket.Data[0] == (uint8_t) ProteusII_BLE_Role_DTM) && (rxPacket.Data[1] == (uint8_t) ProteusII_BLE_Action_DTM))
 		{
-			if((rxPacket.Data[0] == (uint8_t)ProteusII_BLE_Role_DTM) && (rxPacket.Data[1] == (uint8_t)ProteusII_BLE_Action_DTM))
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 	return false;
 }
-
 
 /**
  * @brief Run a direct test mode (DTM) command
@@ -2046,14 +2201,14 @@ bool ProteusII_DTMRun(ProteusII_DTMCommand_t command, uint8_t channel_vendoropti
 	txPacket.Data[2] = length_vendorcmd;
 	txPacket.Data[3] = payload;
 
-	if (FillChecksum(&txPacket))
+	FillChecksum(&txPacket);
+	if (!ProteusII_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
 	{
-		WE_UART_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD);
-
-		/* wait for cnf */
-		return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DTM_CNF, CMD_Status_Success, true);
+		return false;
 	}
-	return false;
+
+	/* wait for cnf */
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DTM_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -2068,7 +2223,7 @@ bool ProteusII_DTMRun(ProteusII_DTMCommand_t command, uint8_t channel_vendoropti
  */
 bool ProteusII_DTMStartTX(uint8_t channel, uint8_t length, ProteusII_DTMTXPattern_t pattern)
 {
-	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, channel, length, (uint8_t)pattern);
+	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, channel, length, (uint8_t) pattern);
 }
 
 /**
@@ -2105,7 +2260,7 @@ bool ProteusII_DTMStop()
  */
 bool ProteusII_DTMSetPhy(ProteusII_Phy_t phy)
 {
-	return ProteusII_DTMRun(ProteusII_DTMCommand_Setup, 0x02, (uint8_t)phy, 0x00);
+	return ProteusII_DTMRun(ProteusII_DTMCommand_Setup, 0x02, (uint8_t) phy, 0x00);
 }
 
 /**
@@ -2118,8 +2273,6 @@ bool ProteusII_DTMSetPhy(ProteusII_Phy_t phy)
  */
 bool ProteusII_DTMSetTXPower(ProteusII_TXPower_t power)
 {
-	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, (uint8_t)power, 0x02, 0x03);
+	return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, (uint8_t) power, 0x02, 0x03);
 }
-
-
 

@@ -28,8 +28,8 @@
  * @brief Adrastea ATNetService Example header file.
  */
 
-#ifndef ATNETSERVICEEXAMPLES_H_INCLUDED
-#define ATNETSERVICEEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATNETSERVICEEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATNETSERVICEEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATNetServiceExample();
 }
 #endif
 
-#endif // ATNETSERVICEEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATNETSERVICEEXAMPLES_H_INCLUDED

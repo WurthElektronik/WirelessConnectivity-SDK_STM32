@@ -22,114 +22,112 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/Examples/ATMQTTExamples.h>
+#include <AdrasteaI/ATCommands/ATMQTT.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "ATMQTTExamples.h"
-#include "../ATCommands/ATMQTT.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATMQTT_EventCallback(char *eventText);
 
-void Adrastea_ATMQTT_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
-static ATMQTT_Connection_Result_t conResult = {
+static AdrasteaI_ATMQTT_Connection_Result_t conResult = {
 		.resultCode = -1 };
-static ATMQTT_Subscription_Result_t subResult = {
+static AdrasteaI_ATMQTT_Subscription_Result_t subResult = {
 		.resultCode = -1 };
 
+/**
+ * @brief This example connects to the cellular network and accesses mosquitto.org via MQTT
+ *
+ */
 void ATMQTTExample()
 {
+	printf("*** Start of Adrastea-I ATMQTT example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATMQTT_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATMQTT_EventCallback))
+	{
+		printf("Initialization error\r\n");
+		return;
+	}
+
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	{
+		WE_Delay(10);
+	}
+
+	ret = AdrasteaI_ATMQTT_SetMQTTUnsolicitedNotificationEvents(AdrasteaI_ATMQTT_Event_All, 1);
+	AdrasteaI_ExamplesPrint("MQTT Unsolicited Notification Events", ret);
+
+	ret = AdrasteaI_ATMQTT_ConfigureNodes(1, "adrastea_module_23", "test.mosquitto.org", NULL, NULL);
+	AdrasteaI_ExamplesPrint("Configure Nodes", ret);
+
+	ret = AdrasteaI_ATMQTT_ConfigureProtocol(1, 1200, 1);
+	AdrasteaI_ExamplesPrint("Configure Protocol", ret);
+
+	ret = AdrasteaI_ATMQTT_Connect(1);
+	AdrasteaI_ExamplesPrint("Connect", ret);
+
+	while (conResult.resultCode != AdrasteaI_ATMQTT_Event_Result_Code_Success)
+	{
+		WE_Delay(10);
+	}
+
+	ret = AdrasteaI_ATMQTT_Publish(1, 0, 0, "adrtopic", "241", 3);
+	AdrasteaI_ExamplesPrint("Publish", ret);
+
+	ret = AdrasteaI_ATMQTT_Subscribe(1, AdrasteaI_ATMQTT_QoS_Exactly_Once, "adrtopic");
+	AdrasteaI_ExamplesPrint("Subscribe", ret);
+
+	while (subResult.resultCode != AdrasteaI_ATMQTT_Event_Result_Code_Success)
+	{
+		WE_Delay(10);
+	}
+	WE_Delay(5000);
+}
+
+void AdrasteaI_ATMQTT_EventCallback(char *eventText)
+{
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
 	{
 		return;
 	}
 
-	printf("*** Start of Adrastea ATMQTT example ***\r\n");
-
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
-	{
-	}
-
-	WE_Delay(1000);
-
-	ret = ATMQTT_SetMQTTUnsolicitedNotificationEvents(ATMQTT_Event_All, 1);
-
-	AdrasteaExamplesPrint("MQTT Unsolicited Notification Events", ret);
-
-	ret = ATMQTT_ConfigureNodes(1, "adrastea_module_23", "test.mosquitto.org", NULL, NULL);
-
-	AdrasteaExamplesPrint("Configure Nodes", ret);
-
-	ret = ATMQTT_ConfigureProtocol(1, 1200, 1);
-
-	AdrasteaExamplesPrint("Configure Protocol", ret);
-
-	ret = ATMQTT_Connect(1);
-
-	AdrasteaExamplesPrint("Connect", ret);
-
-	while (conResult.resultCode != ATMQTT_Event_Result_Code_Success)
-	{
-	}
-
-	ret = ATMQTT_Publish(1, 0, 0, "adrtopic", "241", 3);
-
-	AdrasteaExamplesPrint("Publish", ret);
-
-	ret = ATMQTT_Subscribe(1, ATMQTT_QoS_Exactly_Once, "adrtopic");
-
-	AdrasteaExamplesPrint("Subscribe", ret);
-
-	while (subResult.resultCode != ATMQTT_Event_Result_Code_Success)
-	{
-	}
-}
-
-void Adrastea_ATMQTT_EventCallback(char *eventText)
-{
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
-
 	switch (event)
 	{
-	case ATEvent_MQTT_Connection_Confirmation:
+	case AdrasteaI_ATEvent_MQTT_Connection_Confirmation:
 	{
-		ATMQTT_ParseConnectionConfirmationEvent(eventText, &conResult);
+		AdrasteaI_ATMQTT_ParseConnectionConfirmationEvent(eventText, &conResult);
 		break;
 	}
-	case ATEvent_MQTT_Subscription_Confirmation:
+	case AdrasteaI_ATEvent_MQTT_Subscription_Confirmation:
 	{
-		ATMQTT_ParseSubscriptionConfirmationEvent(eventText, &subResult);
+		AdrasteaI_ATMQTT_ParseSubscriptionConfirmationEvent(eventText, &subResult);
 		break;
 	}
-	case ATEvent_MQTT_Publication_Received:
+	case AdrasteaI_ATEvent_MQTT_Publication_Received:
 	{
-		ATMQTT_Publication_Received_Result_t result;
+		AdrasteaI_ATMQTT_Publication_Received_Result_t result;
 		char payload[128];
 		result.payload = payload;
-		result.payloadMaxBufferSize = 128;
-		if (!ATMQTT_ParsePublicationReceivedEvent(eventText, &result))
+		result.payloadMaxBufferSize = sizeof(payload);
+		if (!AdrasteaI_ATMQTT_ParsePublicationReceivedEvent(eventText, &result))
 		{
 			return;
 		}
 		printf("Connection ID: %d, Message ID: %d, Topic Name: %s, Payload Size: %d, Payload: %s\r\n", result.connID, result.msgID, result.topicName, result.payloadSize, result.payload);
 		break;
 	}
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
 	default:

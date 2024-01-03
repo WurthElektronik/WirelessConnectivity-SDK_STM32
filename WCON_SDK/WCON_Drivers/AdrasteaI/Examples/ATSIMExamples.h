@@ -28,8 +28,8 @@
  * @brief Adrastea ATSIM Example header file.
  */
 
-#ifndef ATSIMEXAMPLES_H_INCLUDED
-#define ATSIMEXAMPLES_H_INCLUDED
+#ifndef ADRASTEAI_ATSIMEXAMPLES_H_INCLUDED
+#define ADRASTEAI_ATSIMEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,4 +41,4 @@ extern void ATSIMExample();
 }
 #endif
 
-#endif // ATSIMEXAMPLES_H_INCLUDED
+#endif // ADRASTEAI_ATSIMEXAMPLES_H_INCLUDED

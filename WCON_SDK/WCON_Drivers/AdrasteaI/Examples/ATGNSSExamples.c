@@ -22,124 +22,112 @@
  *
  ***************************************************************************************************
  */
+#include <stdio.h>
+#include <AdrasteaI/ATCommands/ATGNSS.h>
+#include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/Examples/AdrasteaI_Examples.h>
 
-#include "stdio.h"
-#include "../ATCommands/ATGNSS.h"
-#include "../ATCommands/ATDevice.h"
-#include "../ATCommands/ATPacketDomain.h"
-#include <AdrasteaI/Adrastea.h>
-#include "../ATCommands/ATEvent.h"
-#include "AdrasteaExamples.h"
+void AdrasteaI_ATGNSS_EventCallback(char *eventText);
 
-void Adrastea_ATGNSS_EventCallback(char *eventText);
-
-static ATPacketDomain_Network_Registration_Status_t status = {
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
 		.state = 0 };
 
-static ATGNSS_Satellite_Count_t satelliteQueryCount = 0, satelliteQueryEventCount = 0;
+static AdrasteaI_ATGNSS_Satellite_Count_t satelliteQueryCount = 0, satelliteQueryEventCount = 0;
 
+/**
+ * @brief This example configures the GNSS part of the Adrastea-I and tries to get a fix (current positional data)
+ *
+ */
 void ATGNSSExample()
 {
+	printf("*** Start of Adrastea-I ATGNSS example ***\r\n");
 
-	if (!Adrastea_Init(115200, WE_FlowControl_NoFlowControl, WE_Parity_None, &Adrastea_ATGNSS_EventCallback, NULL))
+	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATGNSS_EventCallback))
 	{
+		printf("Initialization error\r\n");
 		return;
 	}
 
-	printf("*** Start of Adrastea ATGNSS example ***\r\n");
+	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
 
-	WE_Delay(1000);
-
-	bool ret = false;
-
-	ret = ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-
-	AdrasteaExamplesPrint("Set Network Registration Result Code", ret);
-
-	while (status.state != ATPacketDomain_Network_Registration_State_Registered_Roaming)
+	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
 	{
+		WE_Delay(10);
 	}
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATGNSS_DownloadCEPFile(AdrasteaI_ATGNSS_CEP_Number_of_Days_1Day);
+	AdrasteaI_ExamplesPrint("Download CEP File", ret);
 
-	ret = ATGNSS_DownloadCEPFile(ATGNSS_CEP_Number_of_Days_1Day);
-
-	AdrasteaExamplesPrint("Download CEP File", ret);
-
-	ATGNSS_CEP_Status_t cepStatus;
-
-	ret = ATGNSS_QueryCEPFileStatus(&cepStatus);
-
-	AdrasteaExamplesPrint("Query CEP Status", ret);
-
+	AdrasteaI_ATGNSS_CEP_Status_t cepStatus;
+	ret = AdrasteaI_ATGNSS_QueryCEPFileStatus(&cepStatus);
+	AdrasteaI_ExamplesPrint("Query CEP Status", ret);
 	if (ret)
 	{
 		printf("Validity: %d, Remaining Days: %d, Hours: %d, Minutes:%d\r\n", cepStatus.validity, cepStatus.remDays, cepStatus.remHours, cepStatus.remMinutes);
 	}
 
-	WE_Delay(1000);
+	ret = AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_Min, AdrasteaI_ATDevice_Phone_Functionality_Reset_Do_Not_Reset);
+	AdrasteaI_ExamplesPrint("Set Phone Functionality", ret);
 
-	ret = ATDevice_SetPhoneFunctionality(ATDevice_Phone_Functionality_Min, ATDevice_Phone_Functionality_Reset_Do_Not_Reset);
+	ret = AdrasteaI_ATGNSS_StartGNSS(AdrasteaI_ATGNSS_Start_Mode_Cold);
+	AdrasteaI_ExamplesPrint("Start GNSS", ret);
 
-	AdrasteaExamplesPrint("Set Phone Functionality", ret);
-
-	ret = ATGNSS_StartGNSS(ATGNSS_Start_Mode_Cold);
-
-	AdrasteaExamplesPrint("Start GNSS", ret);
-
-	ATGNSS_Satellite_Systems_t satSystems = {
+	AdrasteaI_ATGNSS_Satellite_Systems_t satSystems = {
 			.systems = {
-					.GPS = ATGNSS_Runtime_Mode_State_Set,
-					.GLONASS = ATGNSS_Runtime_Mode_State_Set } };
+					.GPS = AdrasteaI_ATGNSS_Runtime_Mode_State_Set,
+					.GLONASS = AdrasteaI_ATGNSS_Runtime_Mode_State_Set } };
+	ret = AdrasteaI_ATGNSS_SetSatelliteSystems(satSystems);
+	AdrasteaI_ExamplesPrint("Set Satellite Systems", ret);
 
-	ret = ATGNSS_SetSatelliteSystems(satSystems);
-
-	AdrasteaExamplesPrint("Set Satellite Systems", ret);
-
-	ATGNSS_Fix_t fix;
+	AdrasteaI_ATGNSS_Fix_t fix;
 
 	while (1)
 	{
-		WE_Delay(5000);
+		WE_Delay(30000);
 		satelliteQueryCount = 0;
 		satelliteQueryEventCount = 0;
-		ret = ATGNSS_QueryGNSSSatellites(&satelliteQueryCount);
-
-		AdrasteaExamplesPrint("Query GNSS Satellites", ret);
-
+		ret = AdrasteaI_ATGNSS_QueryGNSSSatellites(&satelliteQueryCount);
+		AdrasteaI_ExamplesPrint("Query GNSS Satellites", ret);
 		printf("Satellites Count: %d\r\n", satelliteQueryCount);
 
 		while (satelliteQueryCount != satelliteQueryEventCount)
 		{
+			WE_Delay(1000);
 		}
 
-		ret = ATGNSS_QueryGNSSFix(ATGNSS_Fix_Relavancy_Current, &fix);
+		ret = AdrasteaI_ATGNSS_QueryGNSSFix(AdrasteaI_ATGNSS_Fix_Relavancy_Current, &fix);
+		AdrasteaI_ExamplesPrint("Query GNSS Fix", ret);
 
-		AdrasteaExamplesPrint("Query GNSS Fix", ret);
-
-		if (ret && fix.fixType != ATGNSS_Fix_Type_No_Fix)
+		if (ret && fix.fixType != AdrasteaI_ATGNSS_Fix_Type_No_Fix)
 		{
 			printf("Fix Latitude: %f, Longitude: %f, Altitude: %f\r\n", fix.latitude, fix.longitude, fix.altitude);
 		}
 	}
 }
 
-void Adrastea_ATGNSS_EventCallback(char *eventText)
+void AdrasteaI_ATGNSS_EventCallback(char *eventText)
 {
-	ATEvent_t event;
-	ATEvent_ParseEventType(&eventText, &event);
+	AdrasteaI_ATEvent_t event;
+	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+	{
+		return;
+	}
 
 	switch (event)
 	{
-	case ATEvent_PacketDomain_Network_Registration_Status:
+	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
 	{
-		ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
 		break;
 	}
-	case ATEvent_GNSS_Satalite_Query:
+	case AdrasteaI_ATEvent_GNSS_Satellite_Query:
 	{
-		ATGNSS_Satellite_t satellite;
-		if (!ATGNSS_ParseSatelliteQueryEvent(eventText, &satellite))
+		AdrasteaI_ATGNSS_Satellite_t satellite;
+		if (!AdrasteaI_ATGNSS_ParseSatelliteQueryEvent(eventText, &satellite))
 		{
 			return;
 		}

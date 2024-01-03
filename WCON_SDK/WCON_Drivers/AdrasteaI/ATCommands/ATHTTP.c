@@ -27,13 +27,12 @@
  * @file
  * @brief AT commands for HTTP functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATHTTP.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATHTTP.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATHTTP_Event_Strings[ATHTTP_Event_NumberOfValues] = {
+static const char *AdrasteaI_ATHTTP_Event_Strings[AdrasteaI_ATHTTP_Event_NumberOfValues] = {
 		"PUTCONF",
 		"POSTCONF",
 		"DELCONF",
@@ -44,7 +43,7 @@ static const char *ATHTTP_Event_Strings[ATHTTP_Event_NumberOfValues] = {
 /**
  * @brief Configure Nodes (using the AT%HTTPCFG command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] addr Ip address or URL for this profile.
  *
@@ -54,9 +53,9 @@ static const char *ATHTTP_Event_Strings[ATHTTP_Event_NumberOfValues] = {
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ConfigureNodes(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATCommon_Auth_Username_t username, ATCommon_Auth_Password_t password)
+bool AdrasteaI_ATHTTP_ConfigureNodes(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATCommon_Auth_Username_t username, AdrasteaI_ATCommon_Auth_Password_t password)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -74,7 +73,6 @@ bool ATHTTP_ConfigureNodes(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t add
 
 	if (username != NULL && password != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -85,23 +83,23 @@ bool ATHTTP_ConfigureNodes(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t add
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -112,7 +110,7 @@ bool ATHTTP_ConfigureNodes(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t add
 /**
  * @brief Configure TLS (using the AT%HTTPCFG command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] authMode Authentication mode of TLS.
  *
@@ -120,7 +118,7 @@ bool ATHTTP_ConfigureNodes(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t add
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ConfigureTLS(ATHTTP_Profile_ID_t profileID, ATCommon_TLS_Auth_Mode_t authMode, ATCommon_TLS_Profile_ID_t tlsProfileID)
+bool AdrasteaI_ATHTTP_ConfigureTLS(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_TLS_Auth_Mode_t authMode, AdrasteaI_ATCommon_TLS_Profile_ID_t tlsProfileID)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -146,12 +144,12 @@ bool ATHTTP_ConfigureTLS(ATHTTP_Profile_ID_t profileID, ATCommon_TLS_Auth_Mode_t
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -162,21 +160,21 @@ bool ATHTTP_ConfigureTLS(ATHTTP_Profile_ID_t profileID, ATCommon_TLS_Auth_Mode_t
 /**
  * @brief Configure IP (using the AT%HTTPCFG command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
- * @param[in] sessionID Session ID (optional pass ATHTTP_IP_Session_ID_Invalid to skip).
+ * @param[in] sessionID Session ID (optional pass AdrasteaI_ATHTTP_IP_Session_ID_Invalid to skip).
  *
- * @param[in] ipFormat IP Address format (optional pass ATHTTP_IP_Addr_Format_Invalid to skip).
+ * @param[in] ipFormat IP Address format (optional pass AdrasteaI_ATHTTP_IP_Addr_Format_Invalid to skip).
  *
- * @param[in] destPort Destination Port (optional pass ATCommon_Port_Number_Invalid to skip).
+ * @param[in] destPort Destination Port (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
  *
- * @param[in] sourcePort Source Port (optional pass ATCommon_Port_Number_Invalid to skip).
+ * @param[in] sourcePort Source Port (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t sessionID, ATHTTP_IP_Addr_Format_t ipFormat, ATCommon_Port_Number_t destPort, ATCommon_Port_Number_t sourcePort)
+bool AdrasteaI_ATHTTP_ConfigureIP(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_IP_Session_ID_t sessionID, AdrasteaI_ATHTTP_IP_Addr_Format_t ipFormat, AdrasteaI_ATCommon_Port_Number_t destPort, AdrasteaI_ATCommon_Port_Number_t sourcePort)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -187,13 +185,13 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
 		return false;
 	}
 
-	if (sessionID != ATHTTP_IP_Session_ID_Invalid)
+	if (sessionID != AdrasteaI_ATHTTP_IP_Session_ID_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, sessionID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -201,16 +199,16 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (ipFormat != ATHTTP_IP_Addr_Format_Invalid)
+	if (ipFormat != AdrasteaI_ATHTTP_IP_Addr_Format_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, ipFormat, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -218,16 +216,16 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (destPort != ATCommon_Port_Number_Invalid)
+	if (destPort != AdrasteaI_ATCommon_Port_Number_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, destPort, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -235,31 +233,31 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (sourcePort != ATCommon_Port_Number_Invalid)
+	if (sourcePort != AdrasteaI_ATCommon_Port_Number_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, sourcePort, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -270,7 +268,7 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
 /**
  * @brief Configure Format (using the AT%HTTPCFG command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] responseHeader Configure if headers should be present in the response.
  *
@@ -278,7 +276,7 @@ bool ATHTTP_ConfigureIP(ATHTTP_Profile_ID_t profileID, ATHTTP_IP_Session_ID_t se
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ConfigureFormat(ATHTTP_Profile_ID_t profileID, ATHTTP_Header_Presence_t responseHeader, ATHTTP_Header_Presence_t requestHeader)
+bool AdrasteaI_ATHTTP_ConfigureFormat(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, AdrasteaI_ATHTTP_Header_Presence_t requestHeader)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -309,12 +307,12 @@ bool ATHTTP_ConfigureFormat(ATHTTP_Profile_ID_t profileID, ATHTTP_Header_Presenc
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -325,13 +323,13 @@ bool ATHTTP_ConfigureFormat(ATHTTP_Profile_ID_t profileID, ATHTTP_Header_Presenc
 /**
  * @brief Configure Timeout (using the AT%HTTPCFG command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] timeout Configure Server response timeout in seconds.
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ConfigureTimeout(ATHTTP_Profile_ID_t profileID, ATHTTP_Timeout_t timeout)
+bool AdrasteaI_ATHTTP_ConfigureTimeout(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Timeout_t timeout)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -352,12 +350,12 @@ bool ATHTTP_ConfigureTimeout(ATHTTP_Profile_ID_t profileID, ATHTTP_Timeout_t tim
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -368,19 +366,19 @@ bool ATHTTP_ConfigureTimeout(ATHTTP_Profile_ID_t profileID, ATHTTP_Timeout_t tim
 /**
  * @brief Set HTTP Notification Events (using the AT%HTTPEV command).
  *
- * @param[in] event HTTP event type. See ATHTTP_Event_t.
+ * @param[in] event HTTP event type. See AdrasteaI_ATHTTP_Event_t.
  *
  * @param[in] state Event State
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_SetHTTPUnsolicitedNotificationEvents(ATHTTP_Event_t event, ATCommon_Event_State_t state)
+bool AdrasteaI_ATHTTP_SetHTTPUnsolicitedNotificationEvents(AdrasteaI_ATHTTP_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT%HTTPEV=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATHTTP_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATHTTP_Event_Strings[event], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -395,12 +393,12 @@ bool ATHTTP_SetHTTPUnsolicitedNotificationEvents(ATHTTP_Event_t event, ATCommon_
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -408,9 +406,9 @@ bool ATHTTP_SetHTTPUnsolicitedNotificationEvents(ATHTTP_Event_t event, ATCommon_
 	return true;
 }
 
-bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTTP_Header_Presence_t responseHeader, char *headers[], ATHTTP_Header_Count_t headersCount)
+static bool GETDELETE_Common(char *pRequestCommand, AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	if (!ATCommand_AppendArgumentInt(pRequestCommand, profileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 	{
@@ -427,13 +425,13 @@ bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCo
 		return false;
 	}
 
-	if (responseHeader != ATHTTP_Header_Presence_Invalid)
+	if (responseHeader != AdrasteaI_ATHTTP_Header_Presence_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, responseHeader, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -441,7 +439,7 @@ bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCo
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
 	if (headers != NULL && headersCount != 0)
@@ -459,22 +457,22 @@ bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCo
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -485,7 +483,7 @@ bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCo
 /**
  * @brief Configure GET request (using the AT%HTTPCMD command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] addr Ip address or URL for this request.
  *
@@ -497,7 +495,7 @@ bool GETDELETE_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCo
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_GET(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTTP_Header_Presence_t responseHeader, char *headers[], ATHTTP_Header_Count_t headersCount)
+bool AdrasteaI_ATHTTP_GET(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -509,7 +507,7 @@ bool ATHTTP_GET(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTTP_H
 /**
  * @brief Configure DELETE request (using the AT%HTTPCMD command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] addr Ip address or URL for this request.
  *
@@ -521,7 +519,7 @@ bool ATHTTP_GET(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTTP_H
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_DELETE(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTTP_Header_Presence_t responseHeader, char *headers[], ATHTTP_Header_Count_t headersCount)
+bool AdrasteaI_ATHTTP_DELETE(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -530,9 +528,9 @@ bool ATHTTP_DELETE(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, ATHTT
 	return GETDELETE_Common(pRequestCommand, profileID, addr, responseHeader, headers, headersCount);
 }
 
-bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *body, ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], ATHTTP_Header_Count_t headersCount)
+static bool POSTPUT_Common(char *pRequestCommand, AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, char *body, AdrasteaI_ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char crchar[] = {
 			'\r',
@@ -559,7 +557,7 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 1;
+		AdrasteaI_optionalParamsDelimCount = 1;
 	}
 	else
 	{
@@ -567,20 +565,20 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount++;
+		AdrasteaI_optionalParamsDelimCount++;
 	}
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
-	Adrastea_optionalParamsDelimCount++;
+	AdrasteaI_optionalParamsDelimCount++;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
-	Adrastea_optionalParamsDelimCount++;
+	AdrasteaI_optionalParamsDelimCount++;
 
 	if (headers != NULL && headersCount != 0)
 	{
@@ -597,10 +595,10 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, crchar, ATCOMMAND_STRING_TERMINATE))
 	{
@@ -612,12 +610,12 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -628,7 +626,7 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
 /**
  * @brief Configure POST request (using the AT%HTTPSEND command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] addr Ip address or URL for this request.
  *
@@ -644,7 +642,7 @@ bool POSTPUT_Common(char *pRequestCommand, ATHTTP_Profile_ID_t profileID, ATComm
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_POST(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *body, ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], ATHTTP_Header_Count_t headersCount)
+bool AdrasteaI_ATHTTP_POST(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, char *body, AdrasteaI_ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -656,7 +654,7 @@ bool ATHTTP_POST(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *b
 /**
  * @brief Configure PUT request (using the AT%HTTPSEND command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] addr Ip address or URL for this request.
  *
@@ -672,7 +670,7 @@ bool ATHTTP_POST(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *b
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_PUT(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *body, ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], ATHTTP_Header_Count_t headersCount)
+bool AdrasteaI_ATHTTP_PUT(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, char *body, AdrasteaI_ATHTTP_Body_Size_t bodySize, char *contentType, char *headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -684,11 +682,12 @@ bool ATHTTP_PUT(ATHTTP_Profile_ID_t profileID, ATCommon_IP_Addr_t addr, char *bo
 /**
  * @brief Parses the value of GET event arguments.
  *
- * @param[out] dataP the result of the HTTP event is returned in this argument. See ATHTTP_Event_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ParseGETEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
+bool AdrasteaI_ATHTTP_ParseGETEvent(char *pEventArguments, AdrasteaI_ATHTTP_Event_Result_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -702,7 +701,7 @@ bool ATHTTP_ParseGETEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 1:
 	{
@@ -726,7 +725,7 @@ bool ATHTTP_ParseGETEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
 /**
  * @brief Read the response (using the AT%HTTPREAD command).
  *
- * @param[in] profileID HTTP Profile. See ATHTTP_Profile_ID_t.
+ * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
  *
  * @param[in] maxLength max length of bytes to be read.
  *
@@ -734,7 +733,7 @@ bool ATHTTP_ParseGETEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ReadResponse(ATHTTP_Profile_ID_t profileID, ATHTTP_Data_Length_t maxLength, ATHTTP_Response_t *response)
+bool AdrasteaI_ATHTTP_ReadResponse(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Data_Length_t maxLength, AdrasteaI_ATHTTP_Response_t *response)
 {
 	if (response == NULL)
 	{
@@ -760,7 +759,7 @@ bool ATHTTP_ReadResponse(ATHTTP_Profile_ID_t profileID, ATHTTP_Data_Length_t max
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
@@ -769,7 +768,7 @@ bool ATHTTP_ReadResponse(ATHTTP_Profile_ID_t profileID, ATHTTP_Data_Length_t max
 
 	memset(pResponseCommand, 0, sizeof(AT_commandBuffer));
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_HTTP), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_HTTP), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -790,7 +789,6 @@ bool ATHTTP_ReadResponse(ATHTTP_Profile_ID_t profileID, ATHTTP_Data_Length_t max
 
 	while (1)
 	{
-
 		if (!ATCommand_GetNextArgumentString(&pResponseCommand, &response->responseBody[responseByteCount], ATCOMMAND_STRING_TERMINATE, maxLength))
 		{
 			return false;
@@ -816,35 +814,38 @@ bool ATHTTP_ReadResponse(ATHTTP_Profile_ID_t profileID, ATHTTP_Data_Length_t max
 /**
  * @brief Parses the value of DELETE event arguments.
  *
- * @param[out] dataP the result of the HTTP event is returned in this argument. See ATHTTP_Event_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ParseDELETEEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
+bool AdrasteaI_ATHTTP_ParseDELETEEvent(char *pEventArguments, AdrasteaI_ATHTTP_Event_Result_t *dataP)
 {
-	return ATHTTP_ParseGETEvent(pEventArguments, dataP);
+	return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of POST event arguments.
  *
- * @param[out] dataP the result of the HTTP event is returned in this argument. See ATHTTP_Event_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ParsePOSTEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
+bool AdrasteaI_ATHTTP_ParsePOSTEvent(char *pEventArguments, AdrasteaI_ATHTTP_Event_Result_t *dataP)
 {
-	return ATHTTP_ParseGETEvent(pEventArguments, dataP);
+	return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP);
 }
 
 /**
  * @brief Parses the value of PUT event arguments.
  *
- * @param[out] dataP the result of the HTTP event is returned in this argument. See ATHTTP_Event_Result_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATHTTP_ParsePUTEvent(char *pEventArguments, ATHTTP_Event_Result_t *dataP)
+bool AdrasteaI_ATHTTP_ParsePUTEvent(char *pEventArguments, AdrasteaI_ATHTTP_Event_Result_t *dataP)
 {
-	return ATHTTP_ParseGETEvent(pEventArguments, dataP);
+	return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP);
 }

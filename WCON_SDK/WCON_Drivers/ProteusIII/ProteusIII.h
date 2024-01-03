@@ -30,7 +30,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "../global/global.h"
+#include <global/global_types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,7 +53,7 @@ extern "C" {
 #define PROTEUSIII_BOOT_DURATION (uint16_t)75
 
 /* Channel is considered to be connected if status pin (LED_2) is on for this duration */
-#define PROTEUSIII_STATUS_LED_CONNECTED_TIMEOUT (uint16_t)5
+#define PROTEUSIII_STATUS_LED_CONNECTED_TIMEOUT_MS (uint16_t)5
 
 /* Default UART baudrate of Proteus-III module */
 #define PROTEUSIII_DEFAULT_BAUDRATE (uint32_t)115200
@@ -77,6 +77,16 @@ typedef struct ProteusIII_Device_t
 	uint8_t deviceNameLength;
 	uint8_t deviceName[32];
 } ProteusIII_Device_t;
+
+typedef struct ProteusIII_Pins_t
+{
+	WE_Pin_t ProteusIII_Pin_Reset;
+	WE_Pin_t ProteusIII_Pin_SleepWakeUp;
+	WE_Pin_t ProteusIII_Pin_Boot;
+	WE_Pin_t ProteusIII_Pin_Mode;
+	WE_Pin_t ProteusIII_Pin_Busy;
+	WE_Pin_t ProteusIII_Pin_StatusLed2;
+} ProteusIII_Pins_t;
 
 /* Max. number of devices that may be queried using ProteusIII_GetDevices() */
 #define PROTEUSIII_MAX_NUMBER_OF_DEVICES (uint8_t)10
@@ -157,7 +167,7 @@ typedef struct ProteusIII_GPIOControlBlock_t
 
 typedef enum ProteusIII_DriverState_t
 {
-	ProteusIII_DriverState_BLE_Invalid = (uint8_t) 0x00,
+	ProteusIII_DriverState_BLE_Idle = (uint8_t) 0x00,
 	ProteusIII_DriverState_BLE_Connected = (uint8_t) 0x01,
 	ProteusIII_DriverState_BLE_ChannelOpen = (uint8_t) 0x02
 } ProteusIII_DriverState_t;
@@ -207,6 +217,8 @@ typedef enum ProteusIII_UserSettings_t
 	ProteusIII_USERSETTING_RF_DEVICE_NAME = (uint8_t) 0x02,
 	ProteusIII_USERSETTING_FS_MAC = (uint8_t) 0x03,
 	ProteusIII_USERSETTING_FS_BTMAC = (uint8_t) 0x04,
+	ProteusIII_USERSETTING_UART_TRANSP_ETX = (uint8_t) 0x05,
+	ProteusIII_USERSETTING_UART_TRANSP_ETX_CFG = (uint8_t) 0x06,
 	ProteusIII_USERSETTING_RF_ADVERTISING_TIMEOUT = (uint8_t) 0x07,
 	ProteusIII_USERSETTING_RF_CONNECTION_TIMING = (uint8_t) 0x08,
 	ProteusIII_USERSETTING_RF_SCAN_TIMING = (uint8_t) 0x09,
@@ -232,7 +244,10 @@ typedef enum ProteusIII_UserSettings_t
 	ProteusIII_USERSETTING_RF_SPPServiceUUID = (uint8_t) 0x20,
 	ProteusIII_USERSETTING_RF_SPPRXUUID = (uint8_t) 0x21,
 	ProteusIII_USERSETTING_RF_SPPTXUUID = (uint8_t) 0x22,
-	ProteusIII_USERSETTING_RF_SECFLAGSPERONLY = (uint8_t) 0x2C
+	ProteusIII_USERSETTING_OPTION_COMPANYID = (uint8_t) 0x23,
+	ProteusIII_USERSETTING_UART_TRANSPARENT_TIMEOUT = (uint8_t) 0x24,
+	ProteusIII_USERSETTING_UART_TRANSPARENT_MAXPAYLOAD = (uint8_t) 0x25,
+	ProteusIII_USERSETTING_RF_SECFLAGSPERONLY = (uint8_t) 0x2C,
 } ProteusIII_UserSettings_t;
 
 /**
@@ -448,27 +463,25 @@ typedef enum ProteusIII_DTMTXPattern_t
 	ProteusIII_DTMTXPattern_0x55 = 0x02,
 } ProteusIII_DTMTXPattern_t;
 
-
 /* Callback definition */
 
-typedef void (*ProteusIII_RxCallback)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
+typedef void (*ProteusIII_RxCallback_t)(uint8_t *payload, uint16_t payloadLength, uint8_t *btMac, int8_t rssi);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusIII_ConnectCallback)(bool success, uint8_t *btMac);
-typedef void (*ProteusIII_SecurityCallback)(uint8_t *btMac, ProteusIII_SecurityState_t securityState);
-typedef void (*ProteusIII_PasskeyCallback)(uint8_t *btMac);
-typedef void (*ProteusIII_DisplayPasskeyCallback)(ProteusIII_DisplayPasskeyAction_t action, uint8_t *btMac, uint8_t *passkey);
-typedef void (*ProteusIII_DisconnectCallback)(ProteusIII_DisconnectReason_t reason);
-typedef void (*ProteusIII_ChannelOpenCallback)(uint8_t *btMac, uint16_t maxPayload);
+typedef void (*ProteusIII_ConnectCallback_t)(bool success, uint8_t *btMac);
+typedef void (*ProteusIII_SecurityCallback_t)(uint8_t *btMac, ProteusIII_SecurityState_t securityState);
+typedef void (*ProteusIII_PasskeyCallback_t)(uint8_t *btMac);
+typedef void (*ProteusIII_DisplayPasskeyCallback_t)(ProteusIII_DisplayPasskeyAction_t action, uint8_t *btMac, uint8_t *passkey);
+typedef void (*ProteusIII_DisconnectCallback_t)(ProteusIII_DisconnectReason_t reason);
+typedef void (*ProteusIII_ChannelOpenCallback_t)(uint8_t *btMac, uint16_t maxPayload);
 /* Note that btMac is not provided if success == false (is set to all zeros) */
-typedef void (*ProteusIII_PhyUpdateCallback)(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
-typedef void (*ProteusIII_SleepCallback)();
-typedef void (*ProteusIII_RssiCallback)(uint8_t *btMac, int8_t rssi, int8_t txPower);
+typedef void (*ProteusIII_PhyUpdateCallback_t)(bool success, uint8_t *btMac, uint8_t phyRx, uint8_t phyTx);
+typedef void (*ProteusIII_SleepCallback_t)();
+typedef void (*ProteusIII_RssiCallback_t)(uint8_t *btMac, int8_t rssi, int8_t txPower);
 /* Note that the gpioId parameter is of type uint8_t instead of ProteusIII_GPIO_t, as the
  * remote device may support other GPIOs than this device. */
-typedef void (*ProteusIII_GpioWriteCallback)(bool remote, uint8_t gpioId, uint8_t value);
-typedef void (*ProteusIII_GpioRemoteConfigCallback)(ProteusIII_GPIOConfigBlock_t *gpioConfig);
-typedef void (*ProteusIII_ErrorCallback)(uint8_t errorCode);
-typedef void (*ProteusIII_ByteRxCallback)(uint8_t receivedByte);
+typedef void (*ProteusIII_GpioWriteCallback_t)(bool remote, uint8_t gpioId, uint8_t value);
+typedef void (*ProteusIII_GpioRemoteConfigCallback_t)(ProteusIII_GPIOConfigBlock_t *gpioConfig);
+typedef void (*ProteusIII_ErrorCallback_t)(uint8_t errorCode);
 
 /**
  * @brief Callback configuration structure. Used as argument for ProteusIII_Init().
@@ -479,23 +492,23 @@ typedef void (*ProteusIII_ByteRxCallback)(uint8_t receivedByte);
  */
 typedef struct ProteusIII_CallbackConfig_t
 {
-	ProteusIII_RxCallback rxCb; /**< Callback for CMD_DATA_IND */
-	ProteusIII_RxCallback beaconRxCb; /**< Callback for CMD_BEACON_IND and CMD_BEACON_RSP */
-	ProteusIII_ConnectCallback connectCb; /**< Callback for CMD_CONNECT_IND */
-	ProteusIII_SecurityCallback securityCb; /**< Callback for CMD_SECURITY_IND */
-	ProteusIII_PasskeyCallback passkeyCb; /**< Callback for CMD_PASSKEY_IND */
-	ProteusIII_DisplayPasskeyCallback displayPasskeyCb; /**< Callback for CMD_DISPLAY_PASSKEY_IND */
-	ProteusIII_DisconnectCallback disconnectCb; /**< Callback for CMD_DISCONNECT_IND */
-	ProteusIII_ChannelOpenCallback channelOpenCb; /**< Callback for CMD_CHANNELOPEN_RSP */
-	ProteusIII_PhyUpdateCallback phyUpdateCb; /**< Callback for CMD_PHYUPDATE_IND */
-	ProteusIII_SleepCallback sleepCb; /**< Callback for CMD_SLEEP_IND */
-	ProteusIII_RssiCallback rssiCb; /**< Callback for CMD_RSSI_IND */
-	ProteusIII_GpioWriteCallback gpioWriteCb; /**< Callback for CMD_GPIO_LOCAL_WRITE_IND and CMD_GPIO_REMOTE_WRITE_IND */
-	ProteusIII_GpioRemoteConfigCallback gpioRemoteConfigCb; /**< Callback for CMD_GPIO_REMOTE_WRITECONFIG_IND */
-	ProteusIII_ErrorCallback errorCb; /**< Callback for CMD_ERROR_IND */
+	ProteusIII_RxCallback_t rxCb; /**< Callback for CMD_DATA_IND */
+	ProteusIII_RxCallback_t beaconRxCb; /**< Callback for CMD_BEACON_IND and CMD_BEACON_RSP */
+	ProteusIII_ConnectCallback_t connectCb; /**< Callback for CMD_CONNECT_IND */
+	ProteusIII_SecurityCallback_t securityCb; /**< Callback for CMD_SECURITY_IND */
+	ProteusIII_PasskeyCallback_t passkeyCb; /**< Callback for CMD_PASSKEY_IND */
+	ProteusIII_DisplayPasskeyCallback_t displayPasskeyCb; /**< Callback for CMD_DISPLAY_PASSKEY_IND */
+	ProteusIII_DisconnectCallback_t disconnectCb; /**< Callback for CMD_DISCONNECT_IND */
+	ProteusIII_ChannelOpenCallback_t channelOpenCb; /**< Callback for CMD_CHANNELOPEN_RSP */
+	ProteusIII_PhyUpdateCallback_t phyUpdateCb; /**< Callback for CMD_PHYUPDATE_IND */
+	ProteusIII_SleepCallback_t sleepCb; /**< Callback for CMD_SLEEP_IND */
+	ProteusIII_RssiCallback_t rssiCb; /**< Callback for CMD_RSSI_IND */
+	ProteusIII_GpioWriteCallback_t gpioWriteCb; /**< Callback for CMD_GPIO_LOCAL_WRITE_IND and CMD_GPIO_REMOTE_WRITE_IND */
+	ProteusIII_GpioRemoteConfigCallback_t gpioRemoteConfigCb; /**< Callback for CMD_GPIO_REMOTE_WRITECONFIG_IND */
+	ProteusIII_ErrorCallback_t errorCb; /**< Callback for CMD_ERROR_IND */
 } ProteusIII_CallbackConfig_t;
 
-extern bool ProteusIII_Init(uint32_t baudrate, WE_FlowControl_t flowControl, ProteusIII_OperationMode_t opMode, ProteusIII_CallbackConfig_t callbackConfig);
+extern bool ProteusIII_Init(WE_UART_t *uartP, ProteusIII_Pins_t *pinoutP, ProteusIII_OperationMode_t opMode, ProteusIII_CallbackConfig_t callbackConfig);
 extern bool ProteusIII_Deinit(void);
 
 extern bool ProteusIII_GetState(ProteusIII_ModuleState_t *moduleStateP);
@@ -517,6 +530,7 @@ extern bool ProteusIII_ScanStop();
 extern bool ProteusIII_GetDevices(ProteusIII_GetDevices_t *devicesP);
 
 extern bool ProteusIII_Transmit(uint8_t *payloadP, uint16_t length);
+extern bool ProteusIII_Transparent_Transmit(const uint8_t *data, uint16_t dataLength);
 
 extern bool ProteusIII_SetBeacon(uint8_t *beaconDataP, uint16_t length);
 
@@ -529,7 +543,7 @@ extern ProteusIII_DriverState_t ProteusIII_GetDriverState();
 
 extern bool ProteusIII_GetStatusLed2PinLevel();
 extern bool ProteusIII_IsPeripheralOnlyModeBusy();
-extern void ProteusIII_SetByteRxCallback(ProteusIII_ByteRxCallback callback);
+extern void ProteusIII_SetByteRxCallback(WE_UART_HandleRxByte_t callback);
 
 /* functions to control the GPIO feature */
 extern bool ProteusIII_GPIOLocalWriteConfig(ProteusIII_GPIOConfigBlock_t *configP, uint16_t numberOfConfigs);
@@ -553,12 +567,14 @@ extern bool ProteusIII_AllowUnbondedConnections();
  */
 extern bool ProteusIII_FactoryReset();
 extern bool ProteusIII_Set(ProteusIII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length);
+extern bool ProteusIII_CheckNSet(ProteusIII_UserSettings_t userSetting, uint8_t *valueP, uint8_t length);
 extern bool ProteusIII_SetDeviceName(uint8_t *deviceNameP, uint8_t nameLength);
 extern bool ProteusIII_SetAdvertisingTimeout(uint16_t advTimeout);
 extern bool ProteusIII_SetAdvertisingFlags(ProteusIII_AdvertisingFlags_t advFlags);
 extern bool ProteusIII_SetScanFlags(uint8_t scanFlags);
 extern bool ProteusIII_SetBeaconFlags(ProteusIII_BeaconFlags_t beaconFlags);
 extern bool ProteusIII_SetCFGFlags(uint16_t cfgflags);
+extern bool ProteusIII_SetBTMAC(uint8_t *btMacP);
 extern bool ProteusIII_SetConnectionTiming(ProteusIII_ConnectionTiming_t connectionTiming);
 extern bool ProteusIII_SetScanTiming(ProteusIII_ScanTiming_t scanTiming);
 extern bool ProteusIII_SetScanFactor(uint8_t scanFactor);

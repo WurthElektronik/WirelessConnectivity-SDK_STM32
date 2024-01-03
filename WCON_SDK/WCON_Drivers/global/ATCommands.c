@@ -34,13 +34,9 @@
 
 char AT_commandBuffer[AT_MAX_COMMAND_BUFFER_SIZE];
 
-
-static const char *ATCommand_BooleanValueStrings[ATCommand_BooleanValue_NumberOfValues] =
-{
-    "false",
-    "true"
-};
-
+static const char *ATCommand_BooleanValueStrings[ATCommand_BooleanValue_NumberOfValues] = {
+		"false",
+		"true" };
 
 /**
  * @brief Converts an integer to string.
@@ -53,33 +49,33 @@ static const char *ATCommand_BooleanValueStrings[ATCommand_BooleanValue_NumberOf
  */
 bool ATCommand_IntToString(char *outString, uint32_t number, uint16_t intFlags)
 {
-    if ((0 == (intFlags & ATCOMMAND_INTFLAGS_SIGN)) || (0 == (intFlags & ATCOMMAND_INTFLAGS_NOTATION)))
-    {
-        return false;
-    }
+	if ((0 == (intFlags & ATCOMMAND_INTFLAGS_SIGN )) || (0 == (intFlags & ATCOMMAND_INTFLAGS_NOTATION )))
+	{
+		return false;
+	}
 
-    if (ATCOMMAND_INTFLAGS_NOTATION_HEX == (intFlags & ATCOMMAND_INTFLAGS_NOTATION))
-    {
-        /* HEX */
-        sprintf(outString, "0x%lx", number);
-    }
-    else
-    {
-        /* DEC */
+	if (ATCOMMAND_INTFLAGS_NOTATION_HEX == (intFlags & ATCOMMAND_INTFLAGS_NOTATION ))
+	{
+		/* HEX */
+		sprintf(outString, "0x%lx", number);
+	}
+	else
+	{
+		/* DEC */
 
-        if (ATCOMMAND_INTFLAGS_UNSIGNED == (intFlags & ATCOMMAND_INTFLAGS_SIGN))
-        {
-            /* UNSIGNED */
-            sprintf(outString, "%lu", number);
-        }
-        else
-        {
-            /* SIGNED */
-            sprintf(outString, "%ld", *(int32_t*) &number);
-        }
-    }
+		if (ATCOMMAND_INTFLAGS_UNSIGNED == (intFlags & ATCOMMAND_INTFLAGS_SIGN ))
+		{
+			/* UNSIGNED */
+			sprintf(outString, "%lu", number);
+		}
+		else
+		{
+			/* SIGNED */
+			sprintf(outString, "%ld", *(int32_t*) &number);
+		}
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -93,74 +89,75 @@ bool ATCommand_IntToString(char *outString, uint32_t number, uint16_t intFlags)
  */
 bool ATCommand_StringToInt(void *number, const char *inString, uint16_t intFlags)
 {
-    if ((NULL == inString) || (NULL == number))
-    {
-        return false;
-    }
+	if ((NULL == inString) || (NULL == number))
+	{
+		return false;
+	}
 
-    bool hex = (0 == strncmp(inString, "0x", 2)) || ((intFlags & ATCOMMAND_INTFLAGS_NOTATION_HEX) != 0);
-    bool signedDataType = (intFlags & ATCOMMAND_INTFLAGS_SIGNED) != 0;
+	bool hex = (0 == strncmp(inString, "0x", 2)) || ((intFlags & ATCOMMAND_INTFLAGS_NOTATION_HEX ) != 0);
+	bool signedDataType = (intFlags & ATCOMMAND_INTFLAGS_SIGNED ) != 0;
 
-    if (signedDataType)
-    {
-        char *endptr;
+	if (signedDataType)
+	{
+		char *endptr;
 
-        long long longNr = strtoll(inString, &endptr, (hex == true) ? 16 : 10);
+		long long longNr = strtoll(inString, &endptr, (hex == true) ? 16 : 10);
 
-        if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+		if (endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE)
+		{
 			/* endptr did not move to end, thus conversion failed */
-            return false;
-        }
+			return false;
+		}
 
-        if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
-        {
-            *((int8_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE16) != 0)
-        {
-            *((int16_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE32) != 0)
-        {
-            *((int32_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64) != 0)
-        {
-            *((int64_t*) number) = longNr;
-        }
-    }
-    else
-    {
-        char *endptr;
+		if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8 ) != 0)
+		{
+			*((int8_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE16 ) != 0)
+		{
+			*((int16_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE32 ) != 0)
+		{
+			*((int32_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64 ) != 0)
+		{
+			*((int64_t*) number) = longNr;
+		}
+	}
+	else
+	{
+		char *endptr;
 
-        unsigned long long longNr = strtoull(inString, &endptr, (hex == true) ? 16 : 10);
+		unsigned long long longNr = strtoull(inString, &endptr, (hex == true) ? 16 : 10);
 
-        if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+		if (endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE)
+		{
 			/* endptr did not move to end, thus conversion failed */
-            return false;
-        }
+			return false;
+		}
 
-        if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
-        {
-            *((uint8_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE16) != 0)
-        {
-            *((uint16_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE32) != 0)
-        {
-            *((uint32_t*) number) = longNr;
-        }
-        else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64) != 0)
-        {
-            *((uint64_t*) number) = longNr;
-        }
-    }
+		if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8 ) != 0)
+		{
+			*((uint8_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE16 ) != 0)
+		{
+			*((uint16_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE32 ) != 0)
+		{
+			*((uint32_t*) number) = longNr;
+		}
+		else if ((intFlags & ATCOMMAND_INTFLAGS_SIZE64 ) != 0)
+		{
+			*((uint64_t*) number) = longNr;
+		}
+	}
 
-    return true;
+	return true;
 }
-
 
 /**
  * @brief Appends a byte array argument to the end of an AT command.
@@ -172,26 +169,23 @@ bool ATCommand_StringToInt(void *number, const char *inString, uint16_t intFlags
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_AppendArgumentBytes(char *pOutString,
-                                 const char *pInArgument,
-                                 uint16_t numBytes,
-                                 char delimiter)
+bool ATCommand_AppendArgumentBytes(char *pOutString, const char *pInArgument, uint16_t numBytes, char delimiter)
 {
-    if (NULL == pOutString)
-    {
-        return false;
-    }
+	if (NULL == pOutString)
+	{
+		return false;
+	}
 
-    size_t strLength = strlen(pOutString);
-    if (NULL != pInArgument)
-    {
-        memcpy(&pOutString[strLength], pInArgument, numBytes);
-        strLength += numBytes;
-    }
+	size_t strLength = strlen(pOutString);
+	if (NULL != pInArgument)
+	{
+		memcpy(&pOutString[strLength], pInArgument, numBytes);
+		strLength += numBytes;
+	}
 
-    pOutString[strLength] = delimiter;
+	pOutString[strLength] = delimiter;
 
-    return true;
+	return true;
 }
 
 /**
@@ -208,25 +202,25 @@ bool ATCommand_AppendArgumentBytes(char *pOutString,
  */
 bool ATCommand_AppendArgumentString(char *pOutString, const char *pInArgument, char delimiter)
 {
-    if (NULL == pOutString)
-    {
-        return false;
-    }
+	if (NULL == pOutString)
+	{
+		return false;
+	}
 
-    size_t outStrLength = strlen(pOutString);
-    if (NULL != pInArgument)
-    {
-        size_t inStrLength = strlen(pInArgument);
-        strcpy(&pOutString[outStrLength], pInArgument);
-        outStrLength += inStrLength;
-    }
-    pOutString[outStrLength] = delimiter;
-    if (delimiter != '\0')
-    {
-        pOutString[outStrLength + 1] = '\0';
-    }
+	size_t outStrLength = strlen(pOutString);
+	if (NULL != pInArgument)
+	{
+		size_t inStrLength = strlen(pInArgument);
+		strcpy(&pOutString[outStrLength], pInArgument);
+		outStrLength += inStrLength;
+	}
+	pOutString[outStrLength] = delimiter;
+	if (delimiter != '\0')
+	{
+		pOutString[outStrLength + 1] = '\0';
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -279,34 +273,29 @@ bool ATCommand_AppendArgumentStringQuotationMarks(char *pOutString, const char *
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_AppendArgumentBitmask(char *pOutString,
-                                   const char *stringList[],
-                                   uint8_t numStrings,
-                                   uint32_t bitmask,
-                                   char delimiter,
-                                   uint16_t maxStringLength)
+bool ATCommand_AppendArgumentBitmask(char *pOutString, const char *stringList[], uint8_t numStrings, uint32_t bitmask, char delimiter, uint16_t maxStringLength)
 {
-    size_t outStrLength = strlen(pOutString) + 1;
-    bool empty = true;
-    for (int i = 0; i < numStrings; i++)
-    {
-        if (0 != (bitmask & (1 << i)))
-        {
-            outStrLength += strlen(stringList[i]) + 1;
-            if (outStrLength > maxStringLength)
-            {
-                return false;
-            }
-            if (!ATCommand_AppendArgumentString(pOutString, stringList[i], ATCOMMAND_BITMASK_DELIM))
-            {
-                return false;
-            }
-            empty = false;
-        }
-    }
-    pOutString[outStrLength - (empty ? 1 : 2)] = delimiter;
-    pOutString[outStrLength - (empty ? 0 : 1)] = '\0';
-    return true;
+	size_t outStrLength = strlen(pOutString) + 1;
+	bool empty = true;
+	for (uint8_t i = 0; i < numStrings; i++)
+	{
+		if (0 != (bitmask & (1 << i)))
+		{
+			outStrLength += strlen(stringList[i]) + 1;
+			if (outStrLength > maxStringLength)
+			{
+				return false;
+			}
+			if (!ATCommand_AppendArgumentString(pOutString, stringList[i], ATCOMMAND_BITMASK_DELIM))
+			{
+				return false;
+			}
+			empty = false;
+		}
+	}
+	pOutString[outStrLength - (empty ? 1 : 2)] = delimiter;
+	pOutString[outStrLength - (empty ? 0 : 1)] = '\0';
+	return true;
 }
 
 /**
@@ -320,7 +309,7 @@ bool ATCommand_AppendArgumentBitmask(char *pOutString,
  */
 bool ATCommand_AppendArgumentBoolean(char *pOutString, bool inBool, char delimiter)
 {
-    return ATCommand_AppendArgumentString(pOutString, ATCommand_BooleanValueStrings[(inBool == true) ? 1 : 0], delimiter);
+	return ATCommand_AppendArgumentString(pOutString, ATCommand_BooleanValueStrings[(inBool == true) ? 1 : 0], delimiter);
 }
 
 /**
@@ -333,49 +322,47 @@ bool ATCommand_AppendArgumentBoolean(char *pOutString, bool inBool, char delimit
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentString(char **pInArguments,
-                                   char *pOutArgument,
-                                   char delimiter,
-                                   uint16_t maxLength)
+bool ATCommand_GetNextArgumentString(char **pInArguments, char *pOutArgument, char delimiter, uint16_t maxLength)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    size_t argumentLength = 0;
-    size_t inputStringLength = strlen(*pInArguments);
-    size_t quotationCharCount = 0;
+	size_t argumentLength = 0;
+	size_t inputStringLength = strlen(*pInArguments);
+	size_t quotationCharCount = 0;
 
-    while (true)
-    {
-        if (argumentLength > maxLength - 1)
-        {
-            return false;
-        }
-        else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
-        {
-            /* If argument list is not empty, copy string to output arguments */
-            memcpy(pOutArgument, *pInArguments, argumentLength);
+	while (true)
+	{
+		if (argumentLength > maxLength - 1)
+		{
+			return false;
+		}
+		else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
+		{
+			/* If argument list is not empty, copy string to output arguments */
+			memcpy(pOutArgument, *pInArguments, argumentLength);
 
-            pOutArgument[argumentLength] = '\0';
+			pOutArgument[argumentLength] = '\0';
 
-            if (argumentLength > 0 || **pInArguments != '\0')
-            {
-                *pInArguments = &((*pInArguments)[argumentLength+1]);
-            }
+			if (argumentLength > 0 || **pInArguments != '\0')
+			{
+				*pInArguments = &((*pInArguments)[argumentLength + 1]);
+			}
 
-            return true;
-        }
-        else if (((*pInArguments)[argumentLength] == '"')){
-        	quotationCharCount++;
-        }
-        else if (argumentLength > inputStringLength)
-        {
-            return false;
-        }
-        argumentLength++;
-    }
+			return true;
+		}
+		else if (((*pInArguments)[argumentLength] == '"'))
+		{
+			quotationCharCount++;
+		}
+		else if (argumentLength > inputStringLength)
+		{
+			return false;
+		}
+		argumentLength++;
+	}
 }
 
 /**
@@ -388,57 +375,54 @@ bool ATCommand_GetNextArgumentString(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments,
-                                   char *pOutArgument,
-                                   char delimiter,
-                                   uint16_t maxLength)
+bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments, char *pOutArgument, char delimiter, uint16_t maxLength)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    size_t argumentLength = 0;
-    size_t inputStringLength = strlen(*pInArguments);
-    size_t quotationCharCount = 0;
+	size_t argumentLength = 0;
+	size_t inputStringLength = strlen(*pInArguments);
+	size_t quotationCharCount = 0;
 
-    while (true)
-    {
-        if (argumentLength > maxLength + 1)
-        {
-            return false;
-        }
-        else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
-        {
-        	if(((*pInArguments)[0] == '"') &&
-        		((*pInArguments)[argumentLength-1] == '"') &&
-        		(argumentLength >= 2))
-        	{
-                memcpy(pOutArgument, *pInArguments+1, argumentLength-2);
-                pOutArgument[argumentLength-2] = '\0';
+	while (true)
+	{
+		if (argumentLength > maxLength + 1)
+		{
+			return false;
+		}
+		else if (((*pInArguments)[argumentLength] == delimiter) && (quotationCharCount % 2 == 0))
+		{
+			if (((*pInArguments)[0] == '"') && ((*pInArguments)[argumentLength - 1] == '"') && (argumentLength >= 2))
+			{
+				memcpy(pOutArgument, *pInArguments + 1, argumentLength - 2);
+				pOutArgument[argumentLength - 2] = '\0';
 
-                if (argumentLength > 0 || **pInArguments != '\0')
-                {
-                    *pInArguments = &((*pInArguments)[argumentLength+1]);
-                }
+				if (argumentLength > 0 || **pInArguments != '\0')
+				{
+					*pInArguments = &((*pInArguments)[argumentLength + 1]);
+				}
 
-                return true;
-			}else{
+				return true;
+			}
+			else
+			{
 				return false;
 			}
 
-        }
-        else if (((*pInArguments)[argumentLength] == '"')){
-        	quotationCharCount++;
-        }
-        else if (argumentLength > inputStringLength)
-        {
-            return false;
-        }
-        argumentLength++;
-    }
+		}
+		else if (((*pInArguments)[argumentLength] == '"'))
+		{
+			quotationCharCount++;
+		}
+		else if (argumentLength > inputStringLength)
+		{
+			return false;
+		}
+		argumentLength++;
+	}
 }
-
 
 /**
  * @brief Appends an integer argument to the end of an AT command
@@ -452,19 +436,19 @@ bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments,
  */
 bool ATCommand_AppendArgumentInt(char *pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter)
 {
-    if (NULL == pOutString)
-    {
-        return false;
-    }
+	if (NULL == pOutString)
+	{
+		return false;
+	}
 
-    char tempString[12];
+	char tempString[12];
 
-    if (ATCommand_IntToString(tempString, pInValue, intFlags))
-    {
-        return ATCommand_AppendArgumentString(pOutString, tempString, delimiter);
-    }
+	if (ATCommand_IntToString(tempString, pInValue, intFlags))
+	{
+		return ATCommand_AppendArgumentString(pOutString, tempString, delimiter);
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -479,19 +463,19 @@ bool ATCommand_AppendArgumentInt(char *pOutString, uint32_t pInValue, uint16_t i
  */
 bool ATCommand_AppendArgumentIntQuotationMarks(char *pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter)
 {
-    if (NULL == pOutString)
-    {
-        return false;
-    }
+	if (NULL == pOutString)
+	{
+		return false;
+	}
 
-    char tempString[12];
+	char tempString[12];
 
-    if (ATCommand_IntToString(tempString, pInValue, intFlags))
-    {
-        return ATCommand_AppendArgumentStringQuotationMarks(pOutString, tempString, delimiter);
-    }
+	if (ATCommand_IntToString(tempString, pInValue, intFlags))
+	{
+		return ATCommand_AppendArgumentStringQuotationMarks(pOutString, tempString, delimiter);
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -506,30 +490,18 @@ bool ATCommand_AppendArgumentIntQuotationMarks(char *pOutString, uint32_t pInVal
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentEnum(char **pInArguments,
-                                 uint8_t *pOutArgument,
-                                 const char *stringList[],
-                                 uint8_t numStrings,
-                                 uint16_t maxStringLength,
-                                 char delimiter)
+bool ATCommand_GetNextArgumentEnum(char **pInArguments, uint8_t *pOutArgument, const char *stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter)
 {
-    char tempString[maxStringLength];
+	char tempString[maxStringLength];
 
-    if (!ATCommand_GetNextArgumentString(pInArguments,
-                                       tempString,
-                                       delimiter,
-                                       sizeof(tempString)))
-    {
-        return false;
-    }
+	if (!ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString)))
+	{
+		return false;
+	}
 
-    bool ok;
-    *pOutArgument = ATCommand_FindString(stringList,
-                                       numStrings,
-                                       tempString,
-                                       0,
-                                       &ok);
-    return ok;
+	bool ok;
+	*pOutArgument = ATCommand_FindString(stringList, numStrings, tempString, 0, &ok);
+	return ok;
 }
 
 /**
@@ -571,31 +543,23 @@ bool ATCommand_GetNextArgumentByteArray(char **pInArguments, uint16_t length, ui
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentBitmask(char **pInArguments,
-                                    const char *stringList[],
-                                    uint8_t numStrings,
-                                    uint16_t maxStringLength,
-                                    uint32_t *bitmask,
-                                    char delimiter)
+bool ATCommand_GetNextArgumentBitmask(char **pInArguments, const char *stringList[], uint8_t numStrings, uint16_t maxStringLength, uint32_t *bitmask, char delimiter)
 {
+	bool ret = false;
+	char tempString[maxStringLength];
 
-    bool ret = false;
-    char tempString[maxStringLength];
+	*bitmask = 0;
 
-    *bitmask = 0;
-
-    while (**pInArguments != '\0' &&
-            ((ret = ATCommand_GetNextArgumentString(pInArguments, tempString, ATCOMMAND_BITMASK_DELIM, sizeof(tempString))) ||
-             (ret = ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString)))))
-    {
-        bool ok;
-        uint8_t flag = ATCommand_FindString(stringList, numStrings, tempString, 0, &ok);
-        if (ok)
-        {
-            *bitmask |= (1 << flag);
-        }
-    }
-    return true;
+	while (**pInArguments != '\0' && ((ret = ATCommand_GetNextArgumentString(pInArguments, tempString, ATCOMMAND_BITMASK_DELIM, sizeof(tempString))) || (ret = ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString)))))
+	{
+		bool ok;
+		uint8_t flag = ATCommand_FindString(stringList, numStrings, tempString, 0, &ok);
+		if (ok)
+		{
+			*bitmask |= (1 << flag);
+		}
+	}
+	return true;
 }
 
 /**
@@ -609,18 +573,13 @@ bool ATCommand_GetNextArgumentBitmask(char **pInArguments,
  */
 bool ATCommand_GetNextArgumentBoolean(char **pInArguments, bool *outBool, char delimiter)
 {
-    uint8_t enumValue;
-    bool ok = ATCommand_GetNextArgumentEnum(pInArguments,
-                                          &enumValue,
-                                          ATCommand_BooleanValueStrings,
-                                          ATCommand_BooleanValue_NumberOfValues,
-                                          6,
-                                          delimiter);
-    if (ok)
-    {
-        *outBool = (enumValue == 1) ? true : false;
-    }
-    return ok;
+	uint8_t enumValue;
+	bool ok = ATCommand_GetNextArgumentEnum(pInArguments, &enumValue, ATCommand_BooleanValueStrings, ATCommand_BooleanValue_NumberOfValues, 6, delimiter);
+	if (ok)
+	{
+		*outBool = (enumValue == 1) ? true : false;
+	}
+	return ok;
 }
 
 /**
@@ -633,28 +592,26 @@ bool ATCommand_GetNextArgumentBoolean(char **pInArguments, bool *outBool, char d
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentInt(char **pInArguments,
-                                void *pOutArgument,
-                                uint16_t intFlags,
-                                char delimiter)
+bool ATCommand_GetNextArgumentInt(char **pInArguments, void *pOutArgument, uint16_t intFlags, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToInt(pOutArgument, tempString, intFlags)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToInt(pOutArgument, tempString, intFlags))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -667,28 +624,26 @@ bool ATCommand_GetNextArgumentInt(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char **pInArguments,
-                                void *pOutArgument,
-                                uint16_t intFlags,
-                                char delimiter)
+bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char **pInArguments, void *pOutArgument, uint16_t intFlags, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToInt(pOutArgument, tempString, intFlags)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToInt(pOutArgument, tempString, intFlags))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -696,15 +651,13 @@ bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char **pInArguments,
  *
  * @param[in,out] pInAtCmd AT command to get command name from
  * @param[in] pCmdName Command name as string
+ * @param[in] CmdNameLen Length of the provided butter
  * @param[in] delimiters Delimiters which occurs after command name
  * @param[in] number_of_delimiters Number of delimiters
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetCmdName(char **pInAtCmd,
-						char *pCmdName,
-						char *delimiters,
-						uint8_t number_of_delimiters)
+bool ATCommand_GetCmdName(char **pInAtCmd, char *pCmdName, size_t CmdNameLen, char *delimiters, uint8_t number_of_delimiters)
 {
 	if ((NULL == pInAtCmd) || (NULL == pCmdName))
 	{
@@ -715,7 +668,11 @@ bool ATCommand_GetCmdName(char **pInAtCmd,
 
 	while (true)
 	{
-		for(uint8_t i = 0; i < number_of_delimiters; i++)
+		if (argumentLength >= CmdNameLen)
+		{
+			return false;
+		}
+		for (uint8_t i = 0; i < number_of_delimiters; i++)
 		{
 			if ((*pInAtCmd)[argumentLength] == delimiters[i])
 			{
@@ -758,29 +715,26 @@ bool ATCommand_GetCmdName(char **pInAtCmd,
  *
  * @return Index of the first occurrence of str in stringList or defaultValue, if string is not found
  */
-uint8_t ATCommand_FindString(const char *stringList[],
-                           uint8_t numStrings,
-                           const char *str,
-                           uint8_t defaultValue,
-                           bool *ok)
+uint8_t ATCommand_FindString(const char *stringList[], uint8_t numStrings, const char *str, uint8_t defaultValue,
+bool *ok)
 {
-    for (uint8_t i = 0; i < numStrings; i++)
-    {
-        if (0 == strcasecmp(stringList[i], str))
-        {
-            if (ok)
-            {
-                *ok = true;
-            }
-            return i;
-        }
-    }
+	for (uint8_t i = 0; i < numStrings; i++)
+	{
+		if (0 == strcasecmp(stringList[i], str))
+		{
+			if (ok)
+			{
+				*ok = true;
+			}
+			return i;
+		}
+	}
 
-    if (ok)
-    {
-        *ok = false;
-    }
-    return defaultValue;
+	if (ok)
+	{
+		*ok = false;
+	}
+	return defaultValue;
 }
 
 /**
@@ -791,36 +745,34 @@ uint8_t ATCommand_FindString(const char *stringList[],
  * The string will be embedded into quotation marks
  *
  * @param[out] pOutString AT command after appending argument
- * @param[in] pInArgument Argument to be added
+ * @param[in] pInValue Argument to be added
  * @param[in] intFlags Integer formatting flags
  * @param[in] delimiter Delimiter to append after argument
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_AppendArgumentBitsQuotationMarks(char *pOutString,
-										  uint32_t pInValue,
-										  uint16_t intFlags,
-                                          char delimiter)
+bool ATCommand_AppendArgumentBitsQuotationMarks(char *pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter)
 {
-    if (NULL == pOutString)
-    {
-        return false;
-    }
+	if (NULL == pOutString)
+	{
+		return false;
+	}
 
-    char tempString[12];
+	char tempString[12];
 
-    if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
-    {
-    	for(int i=7;i>=0;i--){
-    		tempString[i] = pInValue & (1 << (7-i)) ? '1' : '0';
-    	}
+	if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8 ) != 0)
+	{
+		for (int i = 7; i >= 0; i--)
+		{
+			tempString[i] = pInValue & (1 << (7 - i)) ? '1' : '0';
+		}
 
-    	tempString[8] = ATCOMMAND_STRING_TERMINATE;
-    }
-    else
-    {
-    	return false;
-    }
+		tempString[8] = ATCOMMAND_STRING_TERMINATE;
+	}
+	else
+	{
+		return false;
+	}
 
 	return ATCommand_AppendArgumentStringQuotationMarks(pOutString, tempString, delimiter);
 
@@ -836,35 +788,33 @@ bool ATCommand_AppendArgumentBitsQuotationMarks(char *pOutString,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char **pInArguments,
-                                       	   	   	   void *pOutArgument,
-												   uint16_t intFlags,
-												   char delimiter)
+bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char **pInArguments, void *pOutArgument, uint16_t intFlags, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    long longNr = 0;
+	long longNr = 0;
 
-    if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8) != 0)
-    {
-    	for(int i=7;i>=0;i--){
-    		longNr |= ((tempString[i] - '0') << (7-i));
-    	}
-        *((uint8_t*) pOutArgument) = longNr;
-    }
-    else
-    {
-    	return false;
-    }
+	if ((intFlags & ATCOMMAND_INTFLAGS_SIZE8 ) != 0)
+	{
+		for (int i = 7; i >= 0; i--)
+		{
+			longNr |= ((tempString[i] - '0') << (7 - i));
+		}
+		*((uint8_t*) pOutArgument) = longNr;
+	}
+	else
+	{
+		return false;
+	}
 
-    return true;
+	return true;
 
 }
 
@@ -880,30 +830,18 @@ bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char **pInArguments,
-                                 uint8_t *pOutArgument,
-                                 const char *stringList[],
-                                 uint8_t numStrings,
-                                 uint16_t maxStringLength,
-                                 char delimiter)
+bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char **pInArguments, uint8_t *pOutArgument, const char *stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter)
 {
-    char tempString[maxStringLength];
+	char tempString[maxStringLength];
 
-    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments,
-                                       tempString,
-                                       delimiter,
-                                       sizeof(tempString)))
-    {
-        return false;
-    }
+	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString)))
+	{
+		return false;
+	}
 
-    bool ok;
-    *pOutArgument = ATCommand_FindString(stringList,
-                                       numStrings,
-                                       tempString,
-                                       0,
-                                       &ok);
-    return ok;
+	bool ok;
+	*pOutArgument = ATCommand_FindString(stringList, numStrings, tempString, 0, &ok);
+	return ok;
 }
 
 /**
@@ -916,23 +854,24 @@ bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char **pInArguments,
  */
 bool ATCommand_StringToDouble(void *number, const char *inString)
 {
-    if ((NULL == inString) || (NULL == number))
-    {
-        return false;
-    }
+	if ((NULL == inString) || (NULL == number))
+	{
+		return false;
+	}
 
 	char *endptr;
 
 	double doubleNr = strtod(inString, &endptr);
 
-	if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+	if (endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE)
+	{
 		/* endptr did not move to end, thus conversion failed */
 		return false;
 	}
 
 	*((double*) number) = doubleNr;
 
-    return true;
+	return true;
 }
 
 /**
@@ -945,23 +884,24 @@ bool ATCommand_StringToDouble(void *number, const char *inString)
  */
 bool ATCommand_StringToFloat(void *number, const char *inString)
 {
-    if ((NULL == inString) || (NULL == number))
-    {
-        return false;
-    }
+	if ((NULL == inString) || (NULL == number))
+	{
+		return false;
+	}
 
 	char *endptr;
 
 	float floatNr = strtof(inString, &endptr);
 
-	if(endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE){
+	if (endptr == inString || *endptr != ATCOMMAND_STRING_TERMINATE)
+	{
 		/* endptr did not move to end, thus conversion failed */
 		return false;
 	}
 
 	*((float*) number) = floatNr;
 
-    return true;
+	return true;
 }
 
 /**
@@ -973,27 +913,26 @@ bool ATCommand_StringToFloat(void *number, const char *inString)
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentDouble(char **pInArguments,
-                                void *pOutArgument,
-                                char delimiter)
+bool ATCommand_GetNextArgumentDouble(char **pInArguments, void *pOutArgument, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToDouble(pOutArgument, tempString)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToDouble(pOutArgument, tempString))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -1005,27 +944,26 @@ bool ATCommand_GetNextArgumentDouble(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentFloat(char **pInArguments,
-                                void *pOutArgument,
-                                char delimiter)
+bool ATCommand_GetNextArgumentFloat(char **pInArguments, void *pOutArgument, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentString(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToFloat(pOutArgument, tempString)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToFloat(pOutArgument, tempString))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -1037,27 +975,26 @@ bool ATCommand_GetNextArgumentFloat(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char **pInArguments,
-                                void *pOutArgument,
-                                char delimiter)
+bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char **pInArguments, void *pOutArgument, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToDouble(pOutArgument, tempString)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToDouble(pOutArgument, tempString))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
 /**
@@ -1069,25 +1006,110 @@ bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char **pInArguments,
  *
  * @return true if successful, false otherwise
  */
-bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char **pInArguments,
-                                void *pOutArgument,
-                                char delimiter)
+bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char **pInArguments, void *pOutArgument, char delimiter)
 {
-    if ((NULL == pInArguments) || (NULL == pOutArgument))
-    {
-        return false;
-    }
+	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	{
+		return false;
+	}
 
-    char tempString[40];
+	char tempString[40];
 
-    char *tempstartlocation = *pInArguments;
+	char *tempstartlocation = *pInArguments;
 
-    ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
+	ATCommand_GetNextArgumentStringWithoutQuotationMarks(pInArguments, tempString, delimiter, sizeof(tempString));
 
-    if(!ATCommand_StringToFloat(pOutArgument, tempString)){
-        *pInArguments = tempstartlocation;
-        return false;
-    }
+	if (!ATCommand_StringToFloat(pOutArgument, tempString))
+	{
+		*pInArguments = tempstartlocation;
+		return false;
+	}
 
-    return true;
+	return true;
+}
+
+/**
+ * @brief Count the number of arguments in argument string.
+ *
+ * @param[in] stringP String to check
+ *
+ * @return number of arguments in argument string
+ */
+int ATCommand_CountArgs(char *stringP)
+{
+	if (stringP == NULL)
+	{
+		return -1;
+	}
+
+	int length = strlen(stringP);
+
+	if (length == 0)
+	{
+		return 0;
+	}
+
+	int quotationmarks = 0;
+	int argscount = 1;
+
+	for (int i = 0; i < length; i++)
+	{
+		if (stringP[i] == '"')
+		{
+			quotationmarks++;
+		}
+		else if (quotationmarks % 2 == 0 && stringP[i] == ATCOMMAND_ARGUMENT_DELIM)
+		{
+			argscount++;
+		}
+	}
+
+	return argscount;
+}
+
+bool ATCommand_ParseEventType(char **pAtCommand, ATCommand_Event_t *pmoduleEvents, char *delimiters, uint8_t number_of_delimiters, uint16_t *pEvent)
+{
+	const ATCommand_Event_t *eventP = &pmoduleEvents[0];
+
+	char cmdName[32];
+
+	if (!ATCommand_GetCmdName(pAtCommand, cmdName, sizeof(cmdName), delimiters, number_of_delimiters))
+	{
+		return false;
+	}
+
+	while (eventP != NULL)
+	{
+		if ((eventP->eventName == NULL) || (strcmp(eventP->eventName, cmdName) == 0))
+		{
+			if (eventP->subEventsP != NULL)
+			{
+				if (!ATCommand_GetNextArgumentString(pAtCommand, cmdName, eventP->subDelimiter, sizeof(cmdName)))
+				{
+					return false;
+				}
+				eventP = eventP->subEventsP;
+			}
+			else
+			{
+				*pEvent = eventP->eventID;
+				return true;
+			}
+		}
+		else
+		{
+			if (eventP->last)
+			{
+				/* no next entry */
+				return false;
+			}
+			else
+			{
+				/* go to next entry */
+				eventP += 1;
+			}
+		}
+	}
+
+	return false;
 }

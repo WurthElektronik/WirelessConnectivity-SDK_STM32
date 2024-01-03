@@ -27,13 +27,12 @@
  * @file
  * @brief AT commands for Packet Domain functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATPacketDomain.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATPacketDomain.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATPacketDomain_PDP_Type_Strings[ATPacketDomain_PDP_Type_NumberOfValues] = {
+static const char *AdrasteaI_ATPacketDomain_PDP_Type_Strings[AdrasteaI_ATPacketDomain_PDP_Type_NumberOfValues] = {
 		"IP",
 		"IPV6",
 		"IPV4V6",
@@ -42,11 +41,11 @@ static const char *ATPacketDomain_PDP_Type_Strings[ATPacketDomain_PDP_Type_Numbe
 /**
  * @brief Set Network Registration Result Code (using the AT+CEREG command).
  *
- * @param[in] resultcode result code. See ATPacketDomain_Network_Registration_Result_Code_t.
+ * @param[in] resultcode result code. See AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Registration_Result_Code_t resultcode)
+bool AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_t resultcode)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -62,12 +61,12 @@ bool ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Regi
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -78,25 +77,25 @@ bool ATPacketDomain_SetNetworkRegistrationResultCode(ATPacketDomain_Network_Regi
 /**
  * @brief Read Network Registration Status (using the AT+CEREG command).
  *
- * @param[out] statusP Registration Status is returned in this argument. See ATPacketDomain_Network_Registration_Status_t.
+ * @param[out] statusP Registration Status is returned in this argument. See AdrasteaI_ATPacketDomain_Network_Registration_Status_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registration_Status_t *statusP)
+bool AdrasteaI_ATPacketDomain_ReadNetworkRegistrationStatus(AdrasteaI_ATPacketDomain_Network_Registration_Status_t *statusP)
 {
 	if (statusP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CEREG?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CEREG?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -107,7 +106,7 @@ bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registr
 
 	statusP->ECI[0] = '\0';
 
-	statusP->AcT = ATCommon_AcT_Invalid;
+	statusP->AcT = AdrasteaI_ATCommon_AcT_Invalid;
 
 	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &statusP->resultCode, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 	{
@@ -116,10 +115,9 @@ bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registr
 
 	switch (statusP->resultCode)
 	{
-	case ATPacketDomain_Network_Registration_Result_Code_Disable:
-	case ATPacketDomain_Network_Registration_Result_Code_Enable:
+	case AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Disable:
+	case AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &statusP->state, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
@@ -127,9 +125,8 @@ bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registr
 
 		break;
 	}
-	case ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info:
+	case AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &statusP->state, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -163,11 +160,12 @@ bool ATPacketDomain_ReadNetworkRegistrationStatus(ATPacketDomain_Network_Registr
 /**
  * @brief Parses the value of Network Registration Status event arguments.
  *
- * @param[out] statusP Registration Status is returned in this argument. See ATPacketDomain_Network_Registration_Status_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] statusP Registration Status is returned in this argument. See AdrasteaI_ATPacketDomain_Network_Registration_Status_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, ATPacketDomain_Network_Registration_Status_t *dataP)
+bool AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_Network_Registration_Status_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -178,15 +176,15 @@ bool ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, A
 
 	argumentsP += 1;
 
-	dataP->resultCode = ATPacketDomain_Network_Registration_Result_Code_Invalid;
+	dataP->resultCode = AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Invalid;
 
 	dataP->TAC[0] = '\0';
 
 	dataP->ECI[0] = '\0';
 
-	dataP->AcT = ATCommon_AcT_Invalid;
+	dataP->AcT = AdrasteaI_ATCommon_AcT_Invalid;
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 1:
 	{
@@ -199,7 +197,6 @@ bool ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, A
 	}
 	case 4:
 	{
-
 		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->state, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_ARGUMENT_DELIM))
 		{
 			return false;
@@ -232,13 +229,13 @@ bool ATPacketDomain_ParseNetworkRegistrationStatusEvent(char *pEventArguments, A
 /**
  * @brief Set Packet Domain Event Reporting (using the AT+CGEREP command).
  *
- * @param[in] reporting Event reporting. See ATPacketDomain_Event_Reporting_t.
+ * @param[in] reporting Event reporting. See AdrasteaI_ATPacketDomain_Event_Reporting_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_SetPacketDomainEventReporting(ATPacketDomain_Event_Reporting_t reporting)
+bool AdrasteaI_ATPacketDomain_SetPacketDomainEventReporting(AdrasteaI_ATPacketDomain_Event_Reporting_t reporting)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -249,30 +246,29 @@ bool ATPacketDomain_SetPacketDomainEventReporting(ATPacketDomain_Event_Reporting
 		return false;
 	}
 
-	if (reporting.mode != ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_if_Full_Discard && reporting.buffer != ATPacketDomain_Event_Reporting_Buffer_Invalid)
+	if (reporting.mode != AdrasteaI_ATPacketDomain_Event_Reporting_Mode_Buffer_Unsolicited_Result_Codes_if_Full_Discard && reporting.buffer != AdrasteaI_ATPacketDomain_Event_Reporting_Buffer_Invalid)
 	{
-
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, reporting.buffer, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -283,25 +279,25 @@ bool ATPacketDomain_SetPacketDomainEventReporting(ATPacketDomain_Event_Reporting
 /**
  * @brief Read Packet Domain Event Reporting (using the AT+CGEREP command).
  *
- * @param[out] reportingP Event Reporting is returned in this argument. See ATPacketDomain_Event_Reporting_t.
+ * @param[out] reportingP Event Reporting is returned in this argument. See AdrasteaI_ATPacketDomain_Event_Reporting_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ReadPacketDomainEventReporting(ATPacketDomain_Event_Reporting_t *reportingP)
+bool AdrasteaI_ATPacketDomain_ReadPacketDomainEventReporting(AdrasteaI_ATPacketDomain_Event_Reporting_t *reportingP)
 {
 	if (reportingP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGEREP?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGEREP?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -322,13 +318,13 @@ bool ATPacketDomain_ReadPacketDomainEventReporting(ATPacketDomain_Event_Reportin
 /**
  * @brief Define PDP Context (using the AT+CGDCONT command).
  *
- * @param[in] context PDP context. See ATPacketDomain_PDP_Context_t.
+ * @param[in] context PDP context. See AdrasteaI_ATPacketDomain_PDP_Context_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_DefinePDPContext(ATPacketDomain_PDP_Context_t context)
+bool AdrasteaI_ATPacketDomain_DefinePDPContext(AdrasteaI_ATPacketDomain_PDP_Context_t context)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -339,7 +335,7 @@ bool ATPacketDomain_DefinePDPContext(ATPacketDomain_PDP_Context_t context)
 		return false;
 	}
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATPacketDomain_PDP_Type_Strings[context.pdpType], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATPacketDomain_PDP_Type_Strings[context.pdpType], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -350,22 +346,22 @@ bool ATPacketDomain_DefinePDPContext(ATPacketDomain_PDP_Context_t context)
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -378,14 +374,14 @@ bool ATPacketDomain_DefinePDPContext(ATPacketDomain_PDP_Context_t context)
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ReadPDPContexts()
+bool AdrasteaI_ATPacketDomain_ReadPDPContexts()
 {
-	if (!Adrastea_SendRequest("AT+CGDCONT?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGDCONT?\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -396,11 +392,12 @@ bool ATPacketDomain_ReadPDPContexts()
 /**
  * @brief Parses the value of PDP Context event arguments.
  *
- * @param[out] dataP PDP Context is returned in this argument. See ATPacketDomain_PDP_Context_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP PDP Context is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, ATPacketDomain_PDP_Context_t *dataP)
+bool AdrasteaI_ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_PDP_Context_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -414,13 +411,13 @@ bool ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, ATPacketDomain_P
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->pdpType, ATPacketDomain_PDP_Type_Strings, ATPacketDomain_PDP_Type_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->pdpType, AdrasteaI_ATPacketDomain_PDP_Type_Strings, AdrasteaI_ATPacketDomain_PDP_Type_NumberOfValues, 30,
 	ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->apnName, ATCOMMAND_ARGUMENT_DELIM, sizeof(ATCommon_APN_Name_t)))
+	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->apnName, ATCOMMAND_ARGUMENT_DELIM, sizeof(AdrasteaI_ATCommon_APN_Name_t)))
 	{
 		return false;
 	}
@@ -431,11 +428,11 @@ bool ATPacketDomain_ParsePDPContextEvent(char *pEventArguments, ATPacketDomain_P
 /**
  * @brief Set PDP Context State (using the AT+CGACT command).
  *
- * @param[in] cidstate PDP Context CID State. See ATPacketDomain_PDP_Context_CID_State_t.
+ * @param[in] cidstate PDP Context CID State. See AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_SetPDPContextState(ATPacketDomain_PDP_Context_CID_State_t cidstate)
+bool AdrasteaI_ATPacketDomain_SetPDPContextState(AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t cidstate)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -456,12 +453,12 @@ bool ATPacketDomain_SetPDPContextState(ATPacketDomain_PDP_Context_CID_State_t ci
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -474,14 +471,14 @@ bool ATPacketDomain_SetPDPContextState(ATPacketDomain_PDP_Context_CID_State_t ci
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ReadPDPContextsState()
+bool AdrasteaI_ATPacketDomain_ReadPDPContextsState()
 {
-	if (!Adrastea_SendRequest("AT+CGACT?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGACT?\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_PacketDomain), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_PacketDomain), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -492,11 +489,12 @@ bool ATPacketDomain_ReadPDPContextsState()
 /**
  * @brief Parses the value of PDP Context State event arguments.
  *
- * @param[out] dataP PDP Context State is returned in this argument. See ATPacketDomain_PDP_Context_CID_State_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP PDP Context State is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATPacketDomain_ParsePDPContextStateEvent(char *pEventArguments, ATPacketDomain_PDP_Context_CID_State_t *dataP)
+bool AdrasteaI_ATPacketDomain_ParsePDPContextStateEvent(char *pEventArguments, AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{

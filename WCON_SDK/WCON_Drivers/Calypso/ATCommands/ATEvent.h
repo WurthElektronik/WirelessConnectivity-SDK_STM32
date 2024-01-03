@@ -28,27 +28,13 @@
  * @brief AT event definitions.
  */
 
-#ifndef AT_EVENTS_H_INCLUDED
-#define AT_EVENTS_H_INCLUDED
-
+#ifndef CALYPSO_AT_EVENTS_H_INCLUDED
+#define CALYPSO_AT_EVENTS_H_INCLUDED
 #include <global/ATCommands.h>
 #include <Calypso/Calypso.h>
+#include <Calypso/ATCommands/ATSocket.h>
+#include <Calypso/ATCommands/ATMQTT.h>
 #include <stdint.h>
-
-#include "ATSocket.h"
-#include "ATMQTT.h"
-
-#define ATEvent_General_NumberOfValues      2
-#define ATEvent_WLAN_NumberOfValues         13
-#define ATEvent_Socket_NumberOfValues       6
-#define ATEvent_Netapp_NumberOfValues       8
-#define ATEvent_MQTT_NumberOfValues         3
-#define ATEvent_FatalError_NumberOfValues   5
-
-/**
- * @brief Size of receive buffer in ATEvent_SocketRcvd_t struct.
- */
-#define ATEVENT_RCVDEVENTBUFFERSIZE         CALYPSO_RECEIVE_BUFFER_SIZE
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,186 +43,210 @@ extern "C" {
 /**
  * @brief AT event IDs.
  */
-typedef enum ATEvent_t
+typedef enum Calypso_ATEvent_t
 {
-    ATEvent_Invalid,
+	Calypso_ATEvent_Invalid = (uint16_t) 0,
 
-    ATEvent_Startup,
-    ATEvent_WakeUp,
+	Calypso_ATEvent_Startup,
+	Calypso_ATEvent_WakeUp,
 
-    ATEvent_Ping,
+	Calypso_ATEvent_Ping,
 
-    ATEvent_General,                                        /**< Offset for general events */
-    ATEvent_GeneralResetRequest = ATEvent_General,
-    ATEvent_GeneralError,
+	Calypso_ATEvent_GeneralResetRequest,
+	Calypso_ATEvent_GeneralError,
 
-    ATEvent_Wlan,                                           /**< Offset for WLAN events */
-    ATEvent_WlanConnect = ATEvent_Wlan,
-    ATEvent_WlanDisconnect,
-    ATEvent_WlanStaAdded,
-    ATEvent_WlanStaRemoved,
-    ATEvent_WlanP2PConnect,
-    ATEvent_WlanP2PDisconnect,
-    ATEvent_WlanP2PClientAdded,
-    ATEvent_WlanP2PClientRemoved,
-    ATEvent_WlanP2PDevFound,
-    ATEvent_WlanP2PRequest,
-    ATEvent_WlanP2PConnectFail,
-    ATEvent_WlanProvisioningStatus,
-    ATEvent_WlanProvisioningProfileAdded,
+	Calypso_ATEvent_WlanConnect,
+	Calypso_ATEvent_WlanDisconnect,
+	Calypso_ATEvent_WlanStaAdded,
+	Calypso_ATEvent_WlanStaRemoved,
+	Calypso_ATEvent_WlanP2PConnect,
+	Calypso_ATEvent_WlanP2PDisconnect,
+	Calypso_ATEvent_WlanP2PClientAdded,
+	Calypso_ATEvent_WlanP2PClientRemoved,
+	Calypso_ATEvent_WlanP2PDevFound,
+	Calypso_ATEvent_WlanP2PRequest,
+	Calypso_ATEvent_WlanP2PConnectFail,
+	Calypso_ATEvent_WlanProvisioningStatus,
+	Calypso_ATEvent_WlanProvisioningProfileAdded,
 
-    ATEvent_Socket,                                         /**< Offset for socket events */
-    ATEvent_SocketTxFailed = ATEvent_Socket,
-    ATEvent_SocketAsyncEvent,
-    ATEvent_SocketTCPConnect,
-    ATEvent_SocketTCPAccept,
-    ATEvent_SocketRcvd,
-    ATEvent_SocketRcvdFrom,
+	Calypso_ATEvent_SocketTxFailed,
+	Calypso_ATEvent_SocketAsyncEvent,
+	Calypso_ATEvent_SocketTCPConnect,
+	Calypso_ATEvent_SocketTCPAccept,
+	Calypso_ATEvent_SocketSelect,
+	Calypso_ATEvent_SocketRcvd,
+	Calypso_ATEvent_SocketRcvdFrom,
 
-    ATEvent_Netapp,                                         /**< Offset for network application events */
-    ATEvent_NetappIP4Acquired = ATEvent_Netapp,
-    ATEvent_NetappIP6Acquired,
-    ATEvent_NetappIPCollision,
-    ATEvent_NetappDHCPv4_leased,
-    ATEvent_NetappDHCPv4_released,
-    ATEvent_NetappIPv4Lost,
-    ATEvent_NetappDHCPIPv4AcquireTimeout,
-    ATEvent_NetappIPv6Lost,
+	Calypso_ATEvent_NetappIP4Acquired,
+	Calypso_ATEvent_NetappIP6Acquired,
+	Calypso_ATEvent_NetappIPCollision,
+	Calypso_ATEvent_NetappDHCPv4_leased,
+	Calypso_ATEvent_NetappDHCPv4_released,
+	Calypso_ATEvent_NetappIPv4Lost,
+	Calypso_ATEvent_NetappDHCPIPv4AcquireTimeout,
+	Calypso_ATEvent_NetappIPv6Lost,
 
-    ATEvent_MQTT,                                           /**< Offset for MQTT events */
-    ATEvent_MQTTOperation = ATEvent_MQTT,
-    ATEvent_MQTTRecv,
-    ATEvent_MQTTDisconnect,
+	Calypso_ATEvent_MQTTOperation,
+	Calypso_ATEvent_MQTTRecv,
+	Calypso_ATEvent_MQTTDisconnect,
 
-    ATEvent_FileListEntry,
+	Calypso_ATEvent_MQTTConnack,
+	Calypso_ATEvent_MQTTPuback,
+	Calypso_ATEvent_MQTTSuback,
+	Calypso_ATEvent_MQTTUnsuback,
 
-    ATEvent_HTTPGet,
+	Calypso_ATEvent_FileListEntry,
 
-    ATEvent_Custom,
-    ATEvent_CustomGPIO = ATEvent_Custom,
-    ATEvent_CustomHTTPPost,
+	Calypso_ATEvent_HTTPGet,
 
-    ATEvent_FatalError,                                     /**< Offset for fatal error events */
-    ATEvent_FatalErrorDeviceAbort = ATEvent_FatalError,
-    ATEvent_FatalErrorDriverAbort,
-    ATEvent_FatalErrorSyncLost,
-    ATEvent_FatalErrorNoCmdAck,
-    ATEvent_FatalErrorCmdTimeout,
+	Calypso_ATEvent_CustomGPIO,
+	Calypso_ATEvent_CustomHTTPPost,
 
-    ATEvent_NumberOfValues
-} ATEvent_t;
+	Calypso_ATEvent_FatalErrorDeviceAbort,
+	Calypso_ATEvent_FatalErrorDriverAbort,
+	Calypso_ATEvent_FatalErrorSyncLost,
+	Calypso_ATEvent_FatalErrorNoCmdAck,
+	Calypso_ATEvent_FatalErrorCmdTimeout,
+
+	Calypso_ATEvent_NumberOfValues,
+	Calypso_ATEvent_Max = UINT16_MAX
+} Calypso_ATEvent_t;
 
 /**
  * @brief Custom event IDs (first argument of "+eventcustom" event).
  */
-typedef enum ATEvent_CustomEventID_t
+typedef enum Calypso_ATEvent_CustomEventID_t
 {
-    ATEvent_CustomEventID_GPIO,
-    ATEvent_CustomEventID_HTTPPost,
-    ATEvent_CustomEventID_NumberOfValues
-} ATEvent_CustomEventID_t;
+	Calypso_ATEvent_CustomEventID_GPIO,
+	Calypso_ATEvent_CustomEventID_HTTPPost,
+	Calypso_ATEvent_CustomEventID_NumberOfValues
+} Calypso_ATEvent_CustomEventID_t;
 
 /**
- * @brief Parameters of startup event (ATEvent_Startup).
+ * @brief Parameters of startup event (Calypso_ATEvent_Startup).
  */
-typedef struct ATEvent_Startup_t
+typedef struct Calypso_ATEvent_Startup_t
 {
-    char articleNr[16];
-    char chipID[12];
-    char MACAddress[18];
-    uint8_t firmwareVersion[3];
-} ATEvent_Startup_t;
+	char articleNr[16];
+	char chipID[12];
+	char MACAddress[18];
+	uint8_t firmwareVersion[3];
+} Calypso_ATEvent_Startup_t;
 
 /**
- * @brief Parameters of ping event (ATEvent_Ping).
+ * @brief Parameters of ping event (Calypso_ATEvent_Ping).
  */
-typedef struct ATEvent_Ping_t
+typedef struct Calypso_ATEvent_Ping_t
 {
-    uint16_t packetsSent;
-    uint16_t packetsReceived;
-    uint16_t roundTripTimeMs;
-} ATEvent_Ping_t;
+	uint16_t packetsSent;
+	uint16_t packetsReceived;
+	uint16_t roundTripTimeMs;
+} Calypso_ATEvent_Ping_t;
 
 /**
- * @brief Parameters of TCP connect event (ATEvent_SocketTCPConnect).
+ * @brief Parameters of Socket tx failed event (Calypso_ATEvent_SocketTXFailed_t).
  */
-typedef struct ATEvent_SocketTCPConnect_t
+typedef struct Calypso_ATEvent_SocketTXFailed_t
 {
-    uint16_t serverPort;
-    char serverAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
-} ATEvent_SocketTCPConnect_t;
+	uint8_t socketID;
+	int16_t errorCode;
+} Calypso_ATEvent_SocketTXFailed_t;
 
 /**
- * @brief Parameters of TCP accept event (ATEvent_SocketTCPAccept).
+ * @brief Parameters of TCP connect event (Calypso_ATEvent_SocketTCPConnect).
  */
-typedef struct ATEvent_SocketTCPAccept_t
+typedef struct Calypso_ATEvent_SocketTCPConnect_t
 {
-    uint8_t socketID;
-    ATSocket_Family_t family;
-    uint16_t clientPort;
-    char clientAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
-} ATEvent_SocketTCPAccept_t;
+	uint16_t serverPort;
+	char serverAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
+} Calypso_ATEvent_SocketTCPConnect_t;
 
 /**
- * @brief Parameters of TCP data received event (ATEvent_SocketRcvd).
+ * @brief Parameters of TCP accept event (Calypso_ATEvent_SocketTCPAccept).
  */
-typedef struct ATEvent_SocketRcvd_t
+typedef struct Calypso_ATEvent_SocketTCPAccept_t
 {
-    uint8_t socketID;
-    uint8_t format;
-    uint16_t length;
-    char data[ATEVENT_RCVDEVENTBUFFERSIZE];
-} ATEvent_SocketRcvd_t;
+	uint8_t socketID;
+	Calypso_ATSocket_Family_t family;
+	uint16_t clientPort;
+	char clientAddress[CALYPSO_MAX_IP_ADDRESS_LENGTH];
+} Calypso_ATEvent_SocketTCPAccept_t;
 
+/**
+ * @brief Parameters of TCP data received event (Calypso_ATEvent_SocketRcvd).
+ */
+typedef struct Calypso_ATEvent_SocketRcvd_t
+{
+	uint8_t socketID;
+	uint8_t format;
+	uint16_t length;
+	char data[CALYPSO_RECEIVE_BUFFER_SIZE];
+} Calypso_ATEvent_SocketRcvd_t;
 
 /**
  * @brief Parameters of MQTT data received event (+eventmqtt:recv).
  */
-typedef struct ATEvent_MQTTRcvd_t
+typedef struct Calypso_ATEvent_MQTTRcvd_t
 {
-    char topic[CALYPSO_MAX_HOST_NAME_LENGTH];
-    ATMQTT_QoS_t qos;
-    uint8_t retain;
-    uint8_t duplicate;
-    Calypso_DataFormat_t dataFormat;
-    uint16_t dataLength;
-    char data[ATEVENT_RCVDEVENTBUFFERSIZE];
-} ATEvent_MQTTRcvd_t;
+	char topic[CALYPSO_MAX_HOST_NAME_LENGTH];
+	Calypso_ATMQTT_QoS_t qos;
+	uint8_t retain;
+	uint8_t duplicate;
+	Calypso_DataFormat_t dataFormat;
+	uint16_t dataLength;
+	char data[CALYPSO_RECEIVE_BUFFER_SIZE];
+} Calypso_ATEvent_MQTTRcvd_t;
 
 /**
- * @brief Parameters of IPv4 acquired event (ATEvent_NetappIP4Acquired).
+ * @brief Parameters of IPv4 acquired event (Calypso_ATEvent_NetappIP4Acquired).
  */
-typedef struct ATEvent_NetappIP4Acquired_t
+typedef struct Calypso_ATEvent_NetappIP4Acquired_t
 {
-    char address[16];
-    char gateway[16];
-    char DNS[16];
-} ATEvent_NetappIP4Acquired_t;
+	char address[16];
+	char gateway[16];
+	char DNS[16];
+} Calypso_ATEvent_NetappIP4Acquired_t;
 
-extern bool ATEvent_ParseEventType(char **pAtCommand, ATEvent_t *pEvent);
+/**
+ * @brief Connack return codes.
+ */
+typedef enum MQTTConnack_Return_Code_t
+{
+	MQTTConnack_Return_Code_Accepted = 0x0,
+	MQTTConnack_Return_Code_Identifier_Rejected = 0x1,
+	MQTTConnack_Return_Code_Server_Unavailable = 0x2,
+	MQTTConnack_Return_Code_Bad_Username_Password = 0x3,
+	MQTTConnack_Return_Code_Not_Authorised = 0x4,
+} MQTTConnack_Return_Code_t;
 
-extern bool ATEvent_GetEventName(ATEvent_t event, char* pEventName);
+/**
+ * @brief Parameters of MQTT connect event (Calypso_ATEvent_MQTTConnack).
+ */
+typedef struct Calypso_ATEvent_MQTTConnack_t
+{
+	uint8_t ackFlags;
+	MQTTConnack_Return_Code_t returnCode;
+} Calypso_ATEvent_MQTTConnack_t;
 
-extern bool ATEvent_ParseStartUpEvent(char **pEventArguments, ATEvent_Startup_t *Calypso_Examples_startupEvent);
-extern bool ATEvent_ParsePingEvent(char **pEventArguments, ATEvent_Ping_t *pingEvent);
-extern bool ATEvent_ParseSocketTCPConnectEvent(char **pEventArguments, ATEvent_SocketTCPConnect_t* connectEvent);
-extern bool ATEvent_ParseSocketTCPAcceptEvent(char **pEventArguments, ATEvent_SocketTCPAccept_t* acceptEvent);
-extern bool ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
-                                         bool decodeBase64,
-                                         ATEvent_SocketRcvd_t* rcvdEvent);
-extern bool ATEvent_ParseNetappIP4AcquiredEvent(char **pEventArguments, ATEvent_NetappIP4Acquired_t* ipv4Event);
-extern bool ATEvent_ParseHttpGetEvent(char **pEventArguments, char *id, uint16_t maxIdLength);
-extern bool ATEvent_ParseFileListEntryEvent(char **pEventArguments, ATFile_FileListEntry_t* fileListEntry);
-extern bool ATEvent_ParseCustomGPIOEvent(char **pEventArguments, uint8_t *gpioId);
-extern bool ATEvent_ParseCustomHTTPPostEvent(char **pEventArguments,
-                                             char *id,
-                                             char *value,
-                                             uint16_t maxIdLength,
-                                             uint16_t maxValueLength);
-bool ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, ATEvent_MQTTRcvd_t* rcvdEvent);
+extern bool Calypso_ATEvent_ParseEventType(char **pAtCommand, Calypso_ATEvent_t *pEvent);
+
+extern bool Calypso_ATEvent_ParseStartUpEvent(char **pEventArguments, Calypso_ATEvent_Startup_t *Calypso_Examples_startupEvent);
+extern bool Calypso_ATEvent_ParsePingEvent(char **pEventArguments, Calypso_ATEvent_Ping_t *pingEvent);
+extern bool Calypso_ATEvent_ParseSocketTCPConnectEvent(char **pEventArguments, Calypso_ATEvent_SocketTCPConnect_t *connectEvent);
+extern bool Calypso_ATEvent_ParseSocketTCPAcceptEvent(char **pEventArguments, Calypso_ATEvent_SocketTCPAccept_t *acceptEvent);
+extern bool Calypso_ATEvent_ParseSocketTXFailedEvent(char **pEventArguments, Calypso_ATEvent_SocketTXFailed_t *txFailedtEvent);
+extern bool Calypso_ATEvent_ParseSocketRcvdEvent(char **pEventArguments,
+bool decodeBase64, Calypso_ATEvent_SocketRcvd_t *rcvdEvent);
+extern bool Calypso_ATEvent_ParseNetappIP4AcquiredEvent(char **pEventArguments, Calypso_ATEvent_NetappIP4Acquired_t *ipv4Event);
+extern bool Calypso_ATEvent_ParseHttpGetEvent(char **pEventArguments, char *id, uint16_t maxIdLength);
+extern bool Calypso_ATEvent_ParseFileListEntryEvent(char **pEventArguments, Calypso_ATFile_FileListEntry_t *fileListEntry);
+extern bool Calypso_ATEvent_ParseCustomGPIOEvent(char **pEventArguments, uint8_t *gpioId);
+extern bool Calypso_ATEvent_ParseCustomHTTPPostEvent(char **pEventArguments, char *id, char *value, uint16_t maxIdLength, uint16_t maxValueLength);
+bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, Calypso_ATEvent_MQTTRcvd_t *rcvdEvent);
+bool Calypso_ATEvent_ParseMQTTConnackEvent(char **pEventArguments, Calypso_ATEvent_MQTTConnack_t *connackEvent);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // AT_EVENTS_H_INCLUDED
+#endif // CALYPSO_AT_EVENTS_H_INCLUDED

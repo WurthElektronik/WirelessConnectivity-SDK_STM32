@@ -27,14 +27,13 @@
  * @file
  * @brief AT commands for basic device functionality.
  */
-
 #include <stdio.h>
+#include <global/global.h>
 #include <global/ATCommands.h>
-#include "ATDevice.h"
+#include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-#include "../Adrastea.h"
-
-static const char *ATDevice_Character_Set_Strings[ATDevice_Character_Set_NumberOfValues] = {
+static const char *AdrasteaI_ATDevice_Character_Set_Strings[AdrasteaI_ATDevice_Character_Set_NumberOfValues] = {
 		"UCS2",
 		"8859-1",
 		"IRA",
@@ -46,14 +45,14 @@ static const char *ATDevice_Character_Set_Strings[ATDevice_Character_Set_NumberO
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_Test()
+bool AdrasteaI_ATDevice_Test()
 {
-	if (!Adrastea_SendRequest("AT\r\n"))
+	if (!AdrasteaI_SendRequest("AT\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -68,21 +67,21 @@ bool ATDevice_Test()
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestManufacturerIdentity(ATDevice_Manufacturer_Identity_t *manufacturerIdentityP)
+bool AdrasteaI_ATDevice_RequestManufacturerIdentity(AdrasteaI_ATDevice_Manufacturer_Identity_t *manufacturerIdentityP)
 {
 	if (manufacturerIdentityP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGMI\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGMI\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -102,21 +101,21 @@ bool ATDevice_RequestManufacturerIdentity(ATDevice_Manufacturer_Identity_t *manu
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestModelIdentity(ATDevice_Model_Identity_t *modelIdentityP)
+bool AdrasteaI_ATDevice_RequestModelIdentity(AdrasteaI_ATDevice_Model_Identity_t *modelIdentityP)
 {
 	if (modelIdentityP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGMM\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGMM\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -136,21 +135,21 @@ bool ATDevice_RequestModelIdentity(ATDevice_Model_Identity_t *modelIdentityP)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestRevisionIdentity(ATDevice_Revision_Identity_t *revisionIdentityP)
+bool AdrasteaI_ATDevice_RequestRevisionIdentity(AdrasteaI_ATDevice_Revision_Identity_t *revisionIdentityP)
 {
 	if (revisionIdentityP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGMR\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGMR\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -180,21 +179,21 @@ bool ATDevice_RequestRevisionIdentity(ATDevice_Revision_Identity_t *revisionIden
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestIMEI(ATDevice_IMEI_t *imeiP)
+bool AdrasteaI_ATDevice_RequestIMEI(AdrasteaI_ATDevice_IMEI_t *imeiP)
 {
 	if (imeiP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGSN=1\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGSN=1\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -214,21 +213,21 @@ bool ATDevice_RequestIMEI(ATDevice_IMEI_t *imeiP)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestIMEISV(ATDevice_IMEISV_t *imeisvP)
+bool AdrasteaI_ATDevice_RequestIMEISV(AdrasteaI_ATDevice_IMEISV_t *imeisvP)
 {
 	if (imeisvP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGSN=2\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGSN=2\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -248,21 +247,21 @@ bool ATDevice_RequestIMEISV(ATDevice_IMEISV_t *imeisvP)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestSVN(ATDevice_SVN_t *svnP)
+bool AdrasteaI_ATDevice_RequestSVN(AdrasteaI_ATDevice_SVN_t *svnP)
 {
 	if (svnP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CGSN=3\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CGSN=3\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -282,21 +281,21 @@ bool ATDevice_RequestSVN(ATDevice_SVN_t *svnP)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_RequestSerialNumber(ATDevice_Serial_Number_t *serialNumberP)
+bool AdrasteaI_ATDevice_RequestSerialNumber(AdrasteaI_ATDevice_Serial_Number_t *serialNumberP)
 {
 	if (serialNumberP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+GSN\r\n"))
+	if (!AdrasteaI_SendRequest("AT+GSN\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -316,28 +315,28 @@ bool ATDevice_RequestSerialNumber(ATDevice_Serial_Number_t *serialNumberP)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_GetTECharacterSet(ATDevice_Character_Set_t *charsetP)
+bool AdrasteaI_ATDevice_GetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t *charsetP)
 {
 	if (charsetP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CSCS?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CSCS?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) charsetP, ATDevice_Character_Set_Strings, ATDevice_Character_Set_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) charsetP, AdrasteaI_ATDevice_Character_Set_Strings, AdrasteaI_ATDevice_Character_Set_NumberOfValues, 30,
 	ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
@@ -349,17 +348,17 @@ bool ATDevice_GetTECharacterSet(ATDevice_Character_Set_t *charsetP)
 /**
  * @brief Set TE Character Set (using the AT+CSCS command).
  *
- * @param[in] charset TE Character Set. See ATDevice_Character_Set_t.
+ * @param[in] charset TE Character Set. See AdrasteaI_ATDevice_Character_Set_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_SetTECharacterSet(ATDevice_Character_Set_t charset)
+bool AdrasteaI_ATDevice_SetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t charset)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT+CSCS=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATDevice_Character_Set_Strings[charset], ATCOMMAND_STRING_TERMINATE))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATDevice_Character_Set_Strings[charset], ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
@@ -369,12 +368,12 @@ bool ATDevice_SetTECharacterSet(ATDevice_Character_Set_t charset)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -391,21 +390,21 @@ bool ATDevice_SetTECharacterSet(ATDevice_Character_Set_t charset)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_GetCapabilitiesList(char *capListP, uint8_t maxBufferSize)
+bool AdrasteaI_ATDevice_GetCapabilitiesList(char *capListP, uint8_t maxBufferSize)
 {
 	if (capListP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+GCAP\r\n"))
+	if (!AdrasteaI_SendRequest("AT+GCAP\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -427,21 +426,21 @@ bool ATDevice_GetCapabilitiesList(char *capListP, uint8_t maxBufferSize)
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_GetPhoneFunctionality(ATDevice_Phone_Functionality_t *phoneFunP)
+bool AdrasteaI_ATDevice_GetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_t *phoneFunP)
 {
 	if (phoneFunP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CFUN?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CFUN?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -459,15 +458,15 @@ bool ATDevice_GetPhoneFunctionality(ATDevice_Phone_Functionality_t *phoneFunP)
 /**
  * @brief Set Phone Functionality (using the AT+CFUN command).
  *
- * @param[in] phoneFun Phone Functionality. See ATDevice_Phone_Functionality_t.
+ * @param[in] phoneFun Phone Functionality. See AdrasteaI_ATDevice_Phone_Functionality_t.
  *
- * @param[in] resetType Reset type when changing phone functionality (optional pass ATDevice_Phone_Functionality_Reset_Invalid to skip). See ATDevice_Phone_Functionality_Reset_t.
+ * @param[in] resetType Reset type when changing phone functionality (optional pass AdrasteaI_ATDevice_Phone_Functionality_Reset_Invalid to skip). See AdrasteaI_ATDevice_Phone_Functionality_Reset_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_SetPhoneFunctionality(ATDevice_Phone_Functionality_t phoneFun, ATDevice_Phone_Functionality_Reset_t resetType)
+bool AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_t phoneFun, AdrasteaI_ATDevice_Phone_Functionality_Reset_t resetType)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -478,28 +477,28 @@ bool ATDevice_SetPhoneFunctionality(ATDevice_Phone_Functionality_t phoneFun, ATD
 		return false;
 	}
 
-	if (resetType != ATDevice_Phone_Functionality_Reset_Invalid)
+	if (resetType != AdrasteaI_ATDevice_Phone_Functionality_Reset_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, resetType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -512,14 +511,14 @@ bool ATDevice_SetPhoneFunctionality(ATDevice_Phone_Functionality_t phoneFun, ATD
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_Reset()
+bool AdrasteaI_ATDevice_Reset()
 {
-	if (!Adrastea_SendRequest("ATZ\r\n"))
+	if (!AdrasteaI_SendRequest("ATZ\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -532,16 +531,25 @@ bool ATDevice_Reset()
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_FactoryReset()
+bool AdrasteaI_ATDevice_FactoryReset()
 {
-	if (!Adrastea_SendRequest("AT&F0\r\n"))
+	if (!AdrasteaI_SendRequest("AT&F0\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
+	}
+
+	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
+	{
+		WE_Delay(10);
+	}
+	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
+	{
+		WE_Delay(10);
 	}
 
 	return true;
@@ -550,11 +558,11 @@ bool ATDevice_FactoryReset()
 /**
  * @brief Set Result Code Format (using the ATV command).
  *
- * @param[in] format Result Code Format. See ATDevice_Result_Code_Format_t.
+ * @param[in] format Result Code Format. See AdrasteaI_ATDevice_Result_Code_Format_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATDevice_SetResultCodeFormat(ATDevice_Result_Code_Format_t format)
+bool AdrasteaI_ATDevice_SetResultCodeFormat(AdrasteaI_ATDevice_Result_Code_Format_t format)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -570,12 +578,12 @@ bool ATDevice_SetResultCodeFormat(ATDevice_Result_Code_Format_t format)
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Device), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Device), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}

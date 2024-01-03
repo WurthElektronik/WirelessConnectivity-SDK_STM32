@@ -27,14 +27,13 @@
  * @file
  * @brief MCU commands for Power functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATPower.h"
-#include "ATDevice.h"
-#include "../Adrastea.h"
+#include <AdrasteaI/ATCommands/ATPower.h>
+#include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-static const char *ATPower_Mode_Strings[ATPower_Mode_NumberOfValues] = {
+static const char *AdrasteaI_ATPower_Mode_Strings[AdrasteaI_ATPower_Mode_NumberOfValues] = {
 		"stop",
 		"standby",
 		"shutdown", };
@@ -42,61 +41,61 @@ static const char *ATPower_Mode_Strings[ATPower_Mode_NumberOfValues] = {
 /**
  * @brief Set MCU Power Mode (using the pwrMode command).
  *
- * @param[in] mode Power Mode. See ATPower_Mode_t.
+ * @param[in] mode Power Mode. See AdrasteaI_ATPower_Mode_t.
  *
  * @param[in] duration Duration for sleep mode.
  *
  * @return true if successful, false otherwise
  */
-bool ATPower_SetPowerMode(ATPower_Mode_t mode, ATPower_Mode_Duration_t duration)
+bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration)
 {
-	Adrastea_Transmit("\x04", 1);
+	AdrasteaI_Transparent_Transmit("\x04", 1);
 
-	while (Adrastea_CheckATMode() == true)
+	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
 	{
 	}
 
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "pwrMode ");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATPower_Mode_Strings[mode], ' '))
+	if (!ATCommand_AppendArgumentString(pRequestCommand, AdrasteaI_ATPower_Mode_Strings[mode], ' '))
 	{
 		return false;
 	}
 
-	if (duration != ATPower_Mode_Duration_Invalid)
+	if (duration != AdrasteaI_ATPower_Mode_Duration_Invalid)
 	{
 		if (!ATCommand_AppendArgumentInt(pRequestCommand, duration, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
 
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Power), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
 
-	Adrastea_Transmit("map\r\n", 5);
+	AdrasteaI_Transparent_Transmit("map\r\n", 5);
 
-	while (Adrastea_CheckATMode() == false)
+	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
 	{
 	}
 
@@ -110,20 +109,20 @@ bool ATPower_SetPowerMode(ATPower_Mode_t mode, ATPower_Mode_Duration_t duration)
  *
  * @return true if successful, false otherwise
  */
-bool ATPower_EnableSleep()
+bool AdrasteaI_ATPower_EnableSleep()
 {
-	Adrastea_Transmit("\x04", 1);
+	AdrasteaI_Transparent_Transmit("\x04", 1);
 
-	while (Adrastea_CheckATMode() == true)
+	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
 	{
 	}
 
-	if (!Adrastea_SendRequest("sleepSet enable\r\n"))
+	if (!AdrasteaI_SendRequest("sleepSet enable\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_Power), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}

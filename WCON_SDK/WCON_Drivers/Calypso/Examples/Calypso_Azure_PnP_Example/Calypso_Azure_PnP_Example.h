@@ -100,7 +100,6 @@ pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl\r\n\
 MrY=\r\n\
 -----END CERTIFICATE-----"
 
-
 /*Device certificate chain*/
 #define DEVICE_CERT "-----BEGIN CERTIFICATE-----\r\n\
 -----END CERTIFICATE-----\r\n\
@@ -131,7 +130,6 @@ MrY=\r\n\
 #define DIRECT_METHOD_TOPIC "$iothub/methods/POST/#"
 #define DEVICE_TWIN_MESSAGE_PATCH "$iothub/twin/PATCH/properties/reported/?$rid="
 #define DEVICE_TWIN_GET_TOPIC "$iothub/twin/GET/?$rid="
-
 
 extern void Calypso_Azure_PnP_Example(void);
 

@@ -27,21 +27,19 @@
  * @file
  * @brief AT commands for SIM functionality.
  */
-
 #include <stdio.h>
 #include <global/ATCommands.h>
-#include "ATSIM.h"
+#include <AdrasteaI/ATCommands/ATSIM.h>
+#include <AdrasteaI/AdrasteaI.h>
 
-#include "../Adrastea.h"
-
-static const char *ATSIM_Facility_Strings[ATSIM_Facility_NumberOfValues] = {
+static const char *AdrasteaI_ATSIM_Facility_Strings[AdrasteaI_ATSIM_Facility_NumberOfValues] = {
 		"SC",
 		"P2",
 		"PN",
 		"PU",
 		"PS", };
 
-static const char *ATSIM_PIN_Status_Strings[ATSIM_PIN_Status_NumberOfValues] = {
+static const char *AdrasteaI_ATSIM_PIN_Status_Strings[AdrasteaI_ATSIM_PIN_Status_NumberOfValues] = {
 		"READY",
 		"SIM PIN",
 		"SIM PUK",
@@ -66,21 +64,21 @@ static const char *ATSIM_PIN_Status_Strings[ATSIM_PIN_Status_NumberOfValues] = {
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_RequestInternationalMobileSubscriberIdentity(ATSIM_IMSI_t *imsiP)
+bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSIM_IMSI_t *imsiP)
 {
 	if (imsiP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CIMI\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CIMI\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -96,28 +94,28 @@ bool ATSIM_RequestInternationalMobileSubscriberIdentity(ATSIM_IMSI_t *imsiP)
 /**
  * @brief Set Facility Lock (using the AT+CLCK command).
  *
- * @param[in] facility Facility Lock. See ATSIM_Facility_t.
+ * @param[in] facility Facility Lock. See AdrasteaI_ATSIM_Facility_t.
  *
- * @param[in] mode Lock Mode. See ATSIM_Lock_Mode_t.
+ * @param[in] mode Lock Mode. See AdrasteaI_ATSIM_Lock_Mode_t.
  *
  * @param[in] pin PIN (optional pass NULL to skip).
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_SetFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Mode_t mode, ATSIM_PIN_t pin)
+bool AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Mode_t mode, AdrasteaI_ATSIM_PIN_t pin)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT+CLCK=");
 
-	if (facility == ATSIM_Facility_P2)
+	if (facility == AdrasteaI_ATSIM_Facility_P2)
 	{
 		return false;
 	}
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -129,27 +127,26 @@ bool ATSIM_SetFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Mode_t mode, AT
 
 	if (pin != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -166,7 +163,7 @@ bool ATSIM_SetFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Mode_t mode, AT
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_ReadFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Status_t *statusP)
+bool AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Status_t *statusP)
 {
 	if (statusP == NULL)
 	{
@@ -177,12 +174,12 @@ bool ATSIM_ReadFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Status_t *stat
 
 	strcpy(pRequestCommand, "AT+CLCK=");
 
-	if (facility == ATSIM_Facility_P2)
+	if (facility == AdrasteaI_ATSIM_Facility_P2)
 	{
 		return false;
 	}
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -197,14 +194,14 @@ bool ATSIM_ReadFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Status_t *stat
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -225,14 +222,14 @@ bool ATSIM_ReadFacilityLock(ATSIM_Facility_t facility, ATSIM_Lock_Status_t *stat
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_ReadSubscriberNumber()
+bool AdrasteaI_ATSIM_ReadSubscriberNumber()
 {
-	if (!Adrastea_SendRequest("AT+CNUM\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CNUM\r\n"))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -247,28 +244,28 @@ bool ATSIM_ReadSubscriberNumber()
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_ReadPinStatus(ATSIM_PIN_Status_t *statusP)
+bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t *statusP)
 {
 	if (statusP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT+CPIN?\r\n"))
+	if (!AdrasteaI_SendRequest("AT+CPIN?\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
 
 	pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*) statusP, ATSIM_PIN_Status_Strings, ATSIM_PIN_Status_NumberOfValues, 30,
+	if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*) statusP, AdrasteaI_ATSIM_PIN_Status_Strings, AdrasteaI_ATSIM_PIN_Status_NumberOfValues, 30,
 	ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
@@ -286,9 +283,9 @@ bool ATSIM_ReadPinStatus(ATSIM_PIN_Status_t *statusP)
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_EnterPin(ATSIM_PIN_t pin1, ATSIM_PIN_t pin2)
+bool AdrasteaI_ATSIM_EnterPin(AdrasteaI_ATSIM_PIN_t pin1, AdrasteaI_ATSIM_PIN_t pin2)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -301,27 +298,26 @@ bool ATSIM_EnterPin(ATSIM_PIN_t pin1, ATSIM_PIN_t pin2)
 
 	if (pin2 != NULL)
 	{
-
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin2, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -332,7 +328,7 @@ bool ATSIM_EnterPin(ATSIM_PIN_t pin1, ATSIM_PIN_t pin2)
 /**
  * @brief Change Password (using the AT+CPWD command).
  *
- * @param[in] facility Facility Lock. See ATSIM_Facility_t.
+ * @param[in] facility Facility Lock. See AdrasteaI_ATSIM_Facility_t.
  *
  * @param[in] oldpassword Old Password.
  *
@@ -340,13 +336,13 @@ bool ATSIM_EnterPin(ATSIM_PIN_t pin1, ATSIM_PIN_t pin2)
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_ChangePassword(ATSIM_Facility_t facility, ATSIM_PIN_t oldpassword, ATSIM_PIN_t newpassword)
+bool AdrasteaI_ATSIM_ChangePassword(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_PIN_t oldpassword, AdrasteaI_ATSIM_PIN_t newpassword)
 {
 	char *pRequestCommand = AT_commandBuffer;
 
 	strcpy(pRequestCommand, "AT+CPWD=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
 	{
 		return false;
 	}
@@ -366,12 +362,12 @@ bool ATSIM_ChangePassword(ATSIM_Facility_t facility, ATSIM_PIN_t oldpassword, AT
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, NULL))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
 	{
 		return false;
 	}
@@ -382,7 +378,7 @@ bool ATSIM_ChangePassword(ATSIM_Facility_t facility, ATSIM_PIN_t oldpassword, AT
 /**
  * @brief Execute Restricted SIM Access commands (using the AT+CRSM command).
  *
- * @param[in] cmd Restricted SIM Access Command. See ATSIM_Restricted_Access_Command_t.
+ * @param[in] cmd Restricted SIM Access Command. See AdrasteaI_ATSIM_Restricted_Access_Command_t.
  *
  * @param[in] fileID Restricted Access File ID.
  *
@@ -398,9 +394,9 @@ bool ATSIM_ChangePassword(ATSIM_Facility_t facility, ATSIM_PIN_t oldpassword, AT
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_t cmd, ATSIM_Restricted_Access_File_ID fileID, ATSIM_Restricted_Access_P1 p1, ATSIM_Restricted_Access_P2 p2, ATSIM_Restricted_Access_P3 p3, char *dataWritten, ATSIM_Restricted_Access_Response_t *cmdResponse)
+bool AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Command_t cmd, AdrasteaI_ATSIM_Restricted_Access_File_ID fileID, AdrasteaI_ATSIM_Restricted_Access_P1 p1, AdrasteaI_ATSIM_Restricted_Access_P2 p2, AdrasteaI_ATSIM_Restricted_Access_P3 p3, char *dataWritten, AdrasteaI_ATSIM_Restricted_Access_Response_t *cmdResponse)
 {
-	Adrastea_optionalParamsDelimCount = 1;
+	AdrasteaI_optionalParamsDelimCount = 1;
 
 	char *pRequestCommand = AT_commandBuffer;
 
@@ -437,24 +433,24 @@ bool ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_t cmd, ATSIM_Rest
 		{
 			return false;
 		}
-		Adrastea_optionalParamsDelimCount = 0;
+		AdrasteaI_optionalParamsDelimCount = 0;
 	}
 
-	pRequestCommand[strlen(pRequestCommand) - Adrastea_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
 	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest(pRequestCommand))
+	if (!AdrasteaI_SendRequest(pRequestCommand))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -466,7 +462,7 @@ bool ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_t cmd, ATSIM_Rest
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(pResponseCommand))
+	switch (ATCommand_CountArgs(pResponseCommand))
 	{
 	case 1:
 	{
@@ -502,21 +498,21 @@ bool ATSIM_RestrictedSIMAccess(ATSIM_Restricted_Access_Command_t cmd, ATSIM_Rest
  *
  * @return true if successful, false otherwise
  */
-bool ATSIM_RequestIntegratedCircuitCardIdentifier(ATSIM_ICCID_t *iccidP)
+bool AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(AdrasteaI_ATSIM_ICCID_t *iccidP)
 {
 	if (iccidP == NULL)
 	{
 		return false;
 	}
 
-	if (!Adrastea_SendRequest("AT%CCID\r\n"))
+	if (!AdrasteaI_SendRequest("AT%CCID\r\n"))
 	{
 		return false;
 	}
 
 	char *pResponseCommand = AT_commandBuffer;
 
-	if (!Adrastea_WaitForConfirm(Adrastea_GetTimeout(Adrastea_Timeout_SIM), Adrastea_CNFStatus_Success, pResponseCommand))
+	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
 	{
 		return false;
 	}
@@ -534,11 +530,12 @@ bool ATSIM_RequestIntegratedCircuitCardIdentifier(ATSIM_ICCID_t *iccidP)
 /**
  * @brief Parses the value of Subscriber Number event arguments.
  *
- * @param[out] dataP Subscriber Number is returned in this argument. See ATSIM_Subscriber_Number_t.
+ * @param[in]  pEventArguments String containing arguments of the AT command
+ * @param[out] dataP Subscriber Number is returned in this argument. See AdrasteaI_ATSIM_Subscriber_Number_t.
  *
  * @return true if successful, false otherwise
  */
-bool ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, ATSIM_Subscriber_Number_t *dataP)
+bool AdrasteaI_ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, AdrasteaI_ATSIM_Subscriber_Number_t *dataP)
 {
 	if (dataP == NULL || pEventArguments == NULL)
 	{
@@ -561,7 +558,7 @@ bool ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, ATSIM_Subscriber_Nu
 		return false;
 	}
 
-	switch (Adrastea_CountArgs(argumentsP))
+	switch (ATCommand_CountArgs(argumentsP))
 	{
 	case 1:
 	{

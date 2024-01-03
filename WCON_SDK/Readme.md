@@ -56,6 +56,27 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
+## Daphnis pinout
+```
+ _____________________           ______________________
+|        STM32        |         |       Daphnis        |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|        Wake_up (PA5)|-------->|Wake_up               |
+|                     |         |                      |
+|           Boot (PA7)|-------->|Boot                  |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|LPUART1 RX            |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|LPUART1 TX            |
+|                     |         |                      |
+|   STATUS_IND_0 (PB8)|<--------|LED_0                 |
+|                     |         |                      |
+|   STATUS_IND_1 (PB9)|<--------|LED_1                 |
+|_____________________|         |______________________|
+```
+
 ## Metis pinout
 ```
  _____________________           ______________________
@@ -86,7 +107,7 @@ Note that some connections are optional and may not be required depending on the
 |                     |         |                      |
 |           Mode (PA8)|-------->|Mode                  |
 |                     |         |                      |
-|           BUSY (PB8)|<--------|BUSY                  |
+|           Busy (PB8)|<--------|Busy                  |
 |                     |         |                      |
 | STATUS (LED 2) (PB9)|<--------|LED_2                 |
 |                     |         |                      |
@@ -113,7 +134,7 @@ Note that some connections are optional and may not be required depending on the
 |                     |         |                      |
 |           Mode (PA8)|-------->|Mode                  |
 |                     |         |                      |
-|           BUSY (PB8)|<--------|BUSY                  |
+|           Busy (PB8)|<--------|Busy                  |
 |                     |         |                      |
 | STATUS (LED 2) (PB9)|<--------|LED_2                 |
 |                     |         |                      |
@@ -136,7 +157,7 @@ Note that some connections are optional and may not be required depending on the
 |                       |         |                      |
 |             Mode (PA8)|-------->|Mode                  |
 |                       |         |                      |
-| BUSY/UART_ENABLE (PB8)|<------->|BUSY/UART_ENABLE      |
+| Busy/UART_Enable (PB8)|<------->|Busy/UART_Enable      |
 |                       |         |                      |
 |   STATUS (LED 1) (PB9)|<--------|LED_1                 |
 |                       |         |                      |
@@ -148,6 +169,25 @@ Note that some connections are optional and may not be required depending on the
 |                       |         |                      |
 |       UART1 CTS (PA11)|<--------|UART RTS              |
 |_______________________|         |______________________|
+```
+
+## Stephano-I pinout
+```
+ _____________________           ______________________
+|        STM32        |         |     Stephano-I       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|        Wake_up (PA5)|-------->|GPIO10                |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
 ```
 
 ## Tarvos-III pinout
@@ -242,6 +282,27 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
+## Thyone-e pinout
+```
+ _____________________           ______________________
+|        STM32        |         |       Thyone-e       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|           Mode (PA8)|-------->|Mode                  |
+|                     |         |                      |
+|           Busy (PA9)|<--------|Busy                  |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
+```
+
 ## Thyone-I pinout
 ```
  _____________________           ______________________
@@ -250,6 +311,8 @@ Note that some connections are optional and may not be required depending on the
 |         Reset (PA10)|-------->|Reset                 |
 |                     |         |                      |
 |        Wake_up (PA9)|-------->|Wake_up               |
+|                     |         |                      |
+|           Busy (PA6)|<--------|Busy                  |
 |                     |         |                      |
 |           Boot (PA7)|-------->|Boot                  |
 |                     |         |                      |

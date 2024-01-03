@@ -31,13 +31,16 @@
 #ifndef GLOBAL_TYPES_H_INCLUDED
 #define GLOBAL_TYPES_H_INCLUDED
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 /**
  * @brief Used to configure a pin as input or output.
  */
 typedef enum WE_Pin_Type_t
 {
-    WE_Pin_Type_Input   = (uint8_t) 0,    /**< Input pin */
-    WE_Pin_Type_Output  = (uint8_t) 1     /**< Output pin */
+	WE_Pin_Type_Input = (uint8_t) 0, /**< Input pin */
+	WE_Pin_Type_Output = (uint8_t) 1 /**< Output pin */
 } WE_Pin_Type_t;
 
 /**
@@ -45,9 +48,9 @@ typedef enum WE_Pin_Type_t
  */
 typedef struct WE_Pin_t
 {
-    GPIO_TypeDef *port;
-    uint32_t pin;
-    WE_Pin_Type_t type;
+	void *port;
+	uint32_t pin;
+	WE_Pin_Type_t type;
 } WE_Pin_t;
 
 /**
@@ -55,9 +58,9 @@ typedef struct WE_Pin_t
  */
 typedef enum WE_Pin_PullType_t
 {
-    WE_Pin_PullType_No   = (uint8_t) 0,             /**< No pull up / pull down */
-    WE_Pin_PullType_Up   = (uint8_t) 1,             /**< Pull up */
-    WE_Pin_PullType_Down = (uint8_t) 2              /**< Pull down */
+	WE_Pin_PullType_No = (uint8_t) 0, /**< No pull up / pull down */
+	WE_Pin_PullType_Up = (uint8_t) 1, /**< Pull up */
+	WE_Pin_PullType_Down = (uint8_t) 2 /**< Pull down */
 } WE_Pin_PullType_t;
 
 /**
@@ -65,8 +68,8 @@ typedef enum WE_Pin_PullType_t
  */
 typedef enum WE_Pin_Level_t
 {
-    WE_Pin_Level_Low  = (uint8_t) 0,                /**< Pin level LOW */
-    WE_Pin_Level_High = (uint8_t) 1                 /**< Pin level HIGH */
+	WE_Pin_Level_Low = (uint8_t) 0, /**< Pin level LOW */
+	WE_Pin_Level_High = (uint8_t) 1 /**< Pin level HIGH */
 } WE_Pin_Level_t;
 
 /**
@@ -74,10 +77,10 @@ typedef enum WE_Pin_Level_t
  */
 typedef enum WE_FlowControl_t
 {
-    WE_FlowControl_NoFlowControl    = (uint8_t) 0,  /**< Flow control disabled */
-    WE_FlowControl_RTSOnly          = (uint8_t) 1,  /**< Flow control using RTS only */
-    WE_FlowControl_CTSOnly          = (uint8_t) 2,  /**< Flow control using CTS only */
-    WE_FlowControl_RTSAndCTS        = (uint8_t) 3,  /**< Flow control using RTS and CTS */
+	WE_FlowControl_NoFlowControl = (uint8_t) 0, /**< Flow control disabled */
+	WE_FlowControl_RTSOnly = (uint8_t) 1, /**< Flow control using RTS only */
+	WE_FlowControl_CTSOnly = (uint8_t) 2, /**< Flow control using CTS only */
+	WE_FlowControl_RTSAndCTS = (uint8_t) 3, /**< Flow control using RTS and CTS */
 } WE_FlowControl_t;
 
 /**
@@ -85,9 +88,48 @@ typedef enum WE_FlowControl_t
  */
 typedef enum WE_Parity_t
 {
-    WE_Parity_None,        /**< No parity */
-    WE_Parity_Odd,         /**< Odd parity */
-    WE_Parity_Even         /**< Even parity */
+	WE_Parity_None, /**< No parity */
+	WE_Parity_Odd, /**< Odd parity */
+	WE_Parity_Even /**< Even parity */
 } WE_Parity_t;
+
+/**
+ * @brief Handle one or several bytes received via UART.
+ *
+ * @param[in] receivedByte The received byte
+ */
+typedef void (*WE_UART_HandleRxByte_t)(uint8_t*, size_t);
+
+/**
+ * @brief UART Init.
+ * Arguments: baudrate, flow control, parity, pointer to the handle rx byte function
+ */
+typedef bool (*WE_UART_Init_t)(uint32_t, WE_FlowControl_t, WE_Parity_t, WE_UART_HandleRxByte_t*);
+
+/**
+ * @brief UART Deinit.
+ */
+typedef bool (*WE_UART_DeInit_t)();
+
+/**
+ * @brief Transmit data via UART.
+ *
+ * @param[in] data Pointer to data buffer (data to be sent)
+ * @param[in] length Number of bytes to be sent
+ */
+typedef bool (*WE_UART_Transmit_t)(const uint8_t*, uint16_t);
+
+/**
+ * @brief Used to store pointers to uart functions.
+ */
+typedef struct WE_UART_t
+{
+	WE_UART_Init_t uartInit;
+	WE_UART_DeInit_t uartDeinit;
+	WE_UART_Transmit_t uartTransmit;
+	uint32_t baudrate;
+	WE_FlowControl_t flowControl;
+	WE_Parity_t parity;
+} WE_UART_t;
 
 #endif /* GLOBAL_TYPES_H_INCLUDED */
