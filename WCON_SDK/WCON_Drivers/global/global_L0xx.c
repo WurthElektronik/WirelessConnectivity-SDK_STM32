@@ -537,6 +537,9 @@ void USART1_IRQHandler()
     	WE_UART1_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART1_Internal.uart);
     	(*WE_UART1_Internal.rxByteHandlerP)(&WE_UART1_Internal.receivedByte, 1);
     }
+	if (LL_USART_IsActiveFlag_ORE(WE_UART1_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART1_Internal.uart);
+    }
 #endif
 }
 
@@ -557,6 +560,9 @@ void USART4_5_IRQHandler()
 		WE_UART4_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART4_Internal.uart);
 		(*WE_UART4_Internal.rxByteHandlerP)(&WE_UART4_Internal.receivedByte, 1);
 	}
+	if (LL_USART_IsActiveFlag_ORE(WE_UART4_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART4_Internal.uart);
+    }
 }
 
 #if defined(WE_UART_DMA)

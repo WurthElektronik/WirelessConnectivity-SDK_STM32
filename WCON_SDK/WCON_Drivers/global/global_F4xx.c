@@ -438,6 +438,9 @@ void USART1_IRQHandler()
     	WE_UART1_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART1_Internal.uart);
     	(*WE_UART1_Internal.rxByteHandlerP)(&WE_UART1_Internal.receivedByte, 1);
     }
+	if (LL_USART_IsActiveFlag_ORE(WE_UART1_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART1_Internal.uart);
+    }
 #endif
 }
 
@@ -802,6 +805,9 @@ void USART6_IRQHandler()
         /* RXNE flag will be cleared by reading of DR register */
     	WE_UART6_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART6_Internal.uart);
     	(*WE_UART6_Internal.rxByteHandlerP)(&WE_UART6_Internal.receivedByte, 1);
+    }
+	if (LL_USART_IsActiveFlag_ORE(WE_UART6_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART6_Internal.uart);
     }
 #endif
 }
