@@ -309,13 +309,19 @@ bool decodeBase64, Calypso_ATEvent_SocketRcvd_t *rcvdEvent)
 
 	if (decodeBase64)
 	{
-		uint32_t decodedSize = Calypso_GetBase64DecBufSize((uint8_t*) *pEventArguments, rcvdEvent->length);
+		uint32_t decodedSize;
+
+		if (!Base64_GetDecBufSize((uint8_t*) *pEventArguments, rcvdEvent->length, &decodedSize))
+		{
+			return false;
+		}
+
 		if (decodedSize - 1 > sizeof(rcvdEvent->data))
 		{
 			return false;
 		}
 
-		if (!Calypso_DecodeBase64((uint8_t*) *pEventArguments, rcvdEvent->length, (uint8_t*) rcvdEvent->data, &decodedSize))
+		if (!Base64_Decode((uint8_t*) *pEventArguments, rcvdEvent->length, (uint8_t*) rcvdEvent->data, &decodedSize))
 		{
 			return false;
 		}
@@ -376,9 +382,12 @@ bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, Calypso_AT
 		if (rcvdEvent->dataFormat == Calypso_DataFormat_Base64)
 		{
 			/*Decode the base64 encoded data*/
-			uint32_t elen = 0;
+			uint32_t elen = CALYPSO_LINE_MAX_SIZE;
 			char out[CALYPSO_LINE_MAX_SIZE];
-			Calypso_DecodeBase64((uint8_t*) rcvdEvent->data, rcvdEvent->dataLength, (uint8_t*) out, &elen);
+			if (!Base64_Decode((uint8_t*) rcvdEvent->data, rcvdEvent->dataLength, (uint8_t*) out, &elen))
+			{
+				return false;
+			}
 			strcpy(rcvdEvent->data, out);
 			rcvdEvent->dataLength = elen;
 		}

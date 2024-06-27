@@ -332,10 +332,16 @@ bool encodeAsBase64, uint16_t length, const char *data, uint32_t *status)
 	if (encodeAsBase64)
 	{
 		/* Encode as Base64 */
-		uint32_t lengthEncoded = Calypso_GetBase64EncBufSize(length);
+		uint32_t lengthEncoded;
+		if (!Base64_GetEncBufSize(length, &lengthEncoded))
+		{
+			return false;
+		}
 		char base64Buffer[lengthEncoded];
-		Calypso_EncodeBase64((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded);
-
+		if (!Base64_Encode((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded))
+		{
+			return false;
+		}
 		/* Recursively call Calypso_ATHTTP_SendRequest() with the encoded binary data (excluding '\0') */
 		return Calypso_ATHTTP_SendRequest(clientHandle, method, uri, flags, format,
 		false, lengthEncoded - 1, base64Buffer, status);
@@ -502,7 +508,12 @@ bool decodeBase64, uint16_t length, Calypso_ATHTTP_ResponseBody_t *responseBody)
 	{
 		if (decodeBase64)
 		{
-			uint32_t decodedSize = Calypso_GetBase64DecBufSize((uint8_t*) pRespondCommand, responseBody->length);
+			uint32_t decodedSize;
+
+			if (!Base64_GetDecBufSize((uint8_t*) pRespondCommand, responseBody->length, &decodedSize))
+			{
+				return false;
+			}
 
 			if (decodedSize - 1 > length)
 			{
@@ -512,7 +523,7 @@ bool decodeBase64, uint16_t length, Calypso_ATHTTP_ResponseBody_t *responseBody)
 			uint32_t encodedSize = responseBody->length;
 			responseBody->length = decodedSize - 1;
 
-			return Calypso_DecodeBase64((uint8_t*) pRespondCommand, encodedSize, (uint8_t*) responseBody->body, &decodedSize);
+			return Base64_Decode((uint8_t*) pRespondCommand, encodedSize, (uint8_t*) responseBody->body, &decodedSize);
 		}
 		else
 		{
@@ -555,10 +566,16 @@ bool encodeAsBase64, uint16_t length, const char *data)
 	if (encodeAsBase64)
 	{
 		/* Encode as Base64 */
-		uint32_t lengthEncoded = Calypso_GetBase64EncBufSize(length);
+		uint32_t lengthEncoded;
+		if (!Base64_GetEncBufSize(length, &lengthEncoded))
+		{
+			return false;
+		}
 		char base64Buffer[lengthEncoded];
-		Calypso_EncodeBase64((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded);
-
+		if (!Base64_Encode((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded))
+		{
+			return false;
+		}
 		/* Recursively call Calypso_ATHTTP_SendRequest() with the encoded binary data (excluding '\0') */
 		return Calypso_ATHTTP_SetHeader(clientHandle, field, persistency, format,
 		false, lengthEncoded - 1, base64Buffer);
@@ -691,7 +708,12 @@ bool decodeBase64, uint16_t length, Calypso_ATHTTP_HeaderData_t *header)
 	{
 		if (decodeBase64)
 		{
-			uint32_t decodedSize = Calypso_GetBase64DecBufSize((uint8_t*) pRespondCommand, header->length);
+			uint32_t decodedSize;
+
+			if (!Base64_GetDecBufSize((uint8_t*) pRespondCommand, header->length, &decodedSize))
+			{
+				return false;
+			}
 
 			if (decodedSize - 1 > length)
 			{
@@ -701,7 +723,7 @@ bool decodeBase64, uint16_t length, Calypso_ATHTTP_HeaderData_t *header)
 			uint32_t encodedSize = header->length;
 			header->length = decodedSize - 1;
 
-			return Calypso_DecodeBase64((uint8_t*) pRespondCommand, encodedSize, (uint8_t*) header->data, &decodedSize);
+			return Base64_Decode((uint8_t*) pRespondCommand, encodedSize, (uint8_t*) header->data, &decodedSize);
 		}
 		else
 		{
@@ -738,10 +760,16 @@ bool encodeAsBase64, uint16_t length, const char *data)
 	if (encodeAsBase64)
 	{
 		/* Encode as Base64 */
-		uint32_t lengthEncoded = Calypso_GetBase64EncBufSize(length);
+		uint32_t lengthEncoded;
+		if (!Base64_GetEncBufSize(length, &lengthEncoded))
+		{
+			return false;
+		}
 		char base64Buffer[lengthEncoded];
-		Calypso_EncodeBase64((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded);
-
+		if (!Base64_Encode((uint8_t*) data, length, (uint8_t*) base64Buffer, &lengthEncoded))
+		{
+			return false;
+		}
 		/* Recursively call Calypso_ATHTTP_SendCustomResponse() with the encoded binary data (excluding '\0') */
 		return Calypso_ATHTTP_SendCustomResponse(format,
 		false, lengthEncoded - 1, base64Buffer);

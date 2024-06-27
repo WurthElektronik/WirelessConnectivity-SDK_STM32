@@ -357,14 +357,13 @@ uint32_t WE_GetTick()
 	return HAL_GetTick();
 }
 
-#ifndef WE_MICROSECOND_TICK
 /**
  * @brief Delays the microcontoller for the specified time.
  *
  * @param[in] sleepForMs: time in microseconds.
  *         
  */
-void WE_DelayMicroseconds(uint32_t sleepForUsec)
+__weak void WE_DelayMicroseconds(uint32_t sleepForUsec)
 {
 	/* Microsecond tick is disabled: round to ms */
 	WE_Delay(((sleepForUsec + 500) / 1000));
@@ -376,12 +375,11 @@ void WE_DelayMicroseconds(uint32_t sleepForUsec)
  * @return returns elapsed in microseconds
  *         
  */
-uint32_t WE_GetTickMicroseconds()
+__weak uint32_t WE_GetTickMicroseconds()
 {
 	/* Microsecond tick is disabled: return ms tick * 1000 */
 	return WE_GetTick() * 1000;
 }
-#endif /* WE_MICROSECOND_TICK */
 
 /**
  * @brief Gets the Driver version

@@ -611,9 +611,9 @@ bool Calypso_Azure_PnP_MQTT_Publish(uint8_t mqttIndex, char *topic, uint8_t reta
 
 	if (encode)
 	{
-		uint32_t elen = 0;
+		uint32_t elen = CALYPSO_LINE_MAX_SIZE;
 		char out[CALYPSO_LINE_MAX_SIZE];
-		Calypso_EncodeBase64((uint8_t*) data, length, (uint8_t*) out, &elen);
+		Base64_Encode((uint8_t*) data, length, (uint8_t*) out, &elen);
 		ret = Calypso_ATMQTT_Publish(mqttIndex, topic, Calypso_ATMQTT_QoS_QoS1, 1, elen - 1, out);
 	}
 	else

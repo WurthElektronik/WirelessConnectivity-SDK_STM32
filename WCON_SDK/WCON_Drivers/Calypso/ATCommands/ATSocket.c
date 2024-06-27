@@ -434,10 +434,16 @@ bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
 			}
 
 			/* Encode as Base64 */
-			uint32_t lengthEncoded = Calypso_GetBase64EncBufSize(chunkSize);
+			uint32_t lengthEncoded;
+			if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
+			{
+				return false;
+			}
 			char base64Buffer[lengthEncoded];
-			Calypso_EncodeBase64((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded);
-
+			if (!Base64_Encode((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded))
+			{
+				return false;
+			}
 			/* Recursively call Calypso_ATSocket_Send() with the encoded binary data (excluding '\0') */
 			uint16_t chunkBytesWritten = 0;
 			bool ok = Calypso_ATSocket_SendTo(socketID, remoteSocket, format,

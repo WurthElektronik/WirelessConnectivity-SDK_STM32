@@ -1645,9 +1645,18 @@ bool StephanoI_ATBluetoothLE_ParseWrite(char *EventArgumentsP, StephanoI_ATBluet
 		return false;
 	}
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->desc), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+	if (argumentsP[0] == ',')
 	{
-		return false;
+		/* entry is empty */
+		t->desc = 0;
+		argumentsP++;
+	}
+	else
+	{
+		if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->desc), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
 	}
 
 	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
@@ -1834,7 +1843,7 @@ bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverCharacteristics(char *EventA
 {
 	char *argumentsP = EventArgumentsP;
 
-	if (!ATCommand_GetNextArgumentString(&argumentsP, t->characteristics_type, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->characteristics_type)))
+	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, t->characteristics_type, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->characteristics_type)))
 	{
 		return false;
 	}
@@ -1850,14 +1859,24 @@ bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverCharacteristics(char *EventA
 
 	if (0 == strcmp(t->characteristics_type, "char"))
 	{
-		if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->char_prop), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+		if (!ATCommand_GetNextArgumentString(&argumentsP, t->char_uuid, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->char_uuid)))
+		{
+			return false;
+		}
+
+		if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->char_prop), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX, ATCOMMAND_STRING_TERMINATE))
 		{
 			return false;
 		}
 	}
 	else if (0 == strcmp(t->characteristics_type, "desc"))
 	{
-		if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->desc_index), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+		if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->desc_index), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+		{
+			return false;
+		}
+
+		if (!ATCommand_GetNextArgumentString(&argumentsP, t->desc_uuid, ATCOMMAND_STRING_TERMINATE, sizeof(t->desc_uuid)))
 		{
 			return false;
 		}

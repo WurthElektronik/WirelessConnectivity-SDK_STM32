@@ -254,6 +254,8 @@ typedef struct StephanoI_ATBluetoothLE_Peripheral_DiscoverCharacteristics_t
 	uint8_t char_index;
 	uint8_t char_prop;
 	uint8_t desc_index;
+	char char_uuid[BLE_UUID_STRINGLEN];
+	char desc_uuid[BLE_UUID_STRINGLEN];
 } StephanoI_ATBluetoothLE_Peripheral_DiscoverCharacteristics_t;
 
 /**

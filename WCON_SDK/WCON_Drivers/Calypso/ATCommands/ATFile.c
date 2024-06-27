@@ -269,9 +269,17 @@ bool encodeAsBase64, uint16_t bytesToWrite, const char *data, uint16_t *bytesWri
 			}
 
 			/* Encode as Base64 */
-			uint32_t lengthEncoded = Calypso_GetBase64EncBufSize(chunkSize);
+			uint32_t lengthEncoded;
+			if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
+			{
+				return false;
+			}
+
 			char base64Buffer[lengthEncoded];
-			Calypso_EncodeBase64((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded);
+			if (!Base64_Encode((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded))
+			{
+				return false;
+			}
 
 			/* Recursively call Calypso_ATFile_Write() with the encoded binary data */
 			uint16_t chunkBytesWritten = 0;
@@ -749,14 +757,19 @@ bool decodeBase64, uint16_t *bytesRead, char *data)
 	{
 		if (decodeBase64)
 		{
-			uint32_t decodedSize = Calypso_GetBase64DecBufSize((uint8_t*) *pAtCommand, *bytesRead);
+			uint32_t decodedSize;
+
+			if (!Base64_GetDecBufSize((uint8_t*) *pAtCommand, *bytesRead, &decodedSize))
+			{
+				return false;
+			}
 
 			if (decodedSize - 1 > bytesToRead)
 			{
 				return false;
 			}
 
-			if (!Calypso_DecodeBase64((uint8_t*) *pAtCommand, *bytesRead, (uint8_t*) data, &decodedSize))
+			if (!Base64_Decode((uint8_t*) *pAtCommand, *bytesRead, (uint8_t*) data, &decodedSize))
 			{
 				return false;
 			}

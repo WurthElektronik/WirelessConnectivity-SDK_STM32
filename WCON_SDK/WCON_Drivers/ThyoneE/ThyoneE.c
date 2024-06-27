@@ -498,11 +498,7 @@ bool ThyoneE_Init(WE_UART_t *uartP, ThyoneE_Pins_t *pinoutP, ThyoneE_OperationMo
 	WE_Delay(10);
 
 	/* reset module */
-	if (ThyoneE_PinReset())
-	{
-		WE_Delay(THYONEE_BOOT_DURATION);
-	}
-	else
+	if (!ThyoneE_PinReset())
 	{
 		printf("Pin reset failed\n");
 		ThyoneE_Deinit();
@@ -553,6 +549,7 @@ bool ThyoneE_PinReset()
 
 	if (operationMode == ThyoneE_OperationMode_TransparentMode)
 	{
+		WE_Delay(THYONEE_BOOT_DURATION);
 		/* transparent mode is ready (the module doesn't send a "ready for operation" message in transparent mode) */
 		return true;
 	}

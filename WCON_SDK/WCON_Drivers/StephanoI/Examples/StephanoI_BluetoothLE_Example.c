@@ -114,6 +114,10 @@ bool received_securitykey_request = false;
 StephanoI_ATBluetoothLE_SecurityKeyRequest_t StephanoI_Examples_SecurityKeyRequest = {
 		.conn_index = BLE_CONNECTION_INDEX_INVALID };
 
+bool received_confirmsecuritykey_request = false;
+StephanoI_ATBluetoothLE_NotifyKey_t StephanoI_Examples_ConfirmSecurityKeyRequest = {
+		.conn_index = BLE_CONNECTION_INDEX_INVALID };
+
 /**
  * @brief Is called when an event notification has been received.
  *
@@ -368,6 +372,17 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char *eventText)
 		}
 	}
 		break;
+	case StephanoI_ATEvent_BLE_SecurityConfirmKeyRequest:
+	{
+		if (StephanoI_ATBluetoothLE_ParseNotifyKey(eventText, &StephanoI_Examples_ConfirmSecurityKeyRequest))
+		{
+			printf("Confirm key event received.\r\n"
+					"Connection index: %d\r\n"
+					"Key: %s\r\n", StephanoI_Examples_ConfirmSecurityKeyRequest.conn_index, StephanoI_Examples_ConfirmSecurityKeyRequest.key);
+			received_confirmsecuritykey_request = true;
+		}
+	}
+		break;
 	default:
 	{
 		StephanoI_Examples_EventCallback(eventText_original);
@@ -619,6 +634,13 @@ void StephanoI_BluetoothLE_Central_Data_Example()
 			received_securitykey_request = false;
 			WE_Delay(10);
 		}
+		else if (received_confirmsecuritykey_request == true)
+		{
+			ret = StephanoI_ATBluetoothLE_ConfirmValue(StephanoI_Examples_ConfirmSecurityKeyRequest.conn_index, true);
+			StephanoI_Examples_Print("Confirming key", ret);
+			received_confirmsecuritykey_request = false;
+			WE_Delay(10);
+		}
 
 		if (central_connection_setup_ongoing == true)
 		{
@@ -700,6 +722,7 @@ void StephanoI_BluetoothLE_Peripheral_Data_Example()
 	printf("*** Start of StephanoI Bluetooth LE data transmission (Bluetooth LE -> Stephano-I peripheral) example ***\r\n");
 
 	/* generate data for later data transmission */
+	/* refer to the Base64.h file in the utils folder for Base64 encoding in case its needed for the data. */
 	uint8_t data[1024];
 	for (uint16_t i = 0; i < sizeof(data); i++)
 	{

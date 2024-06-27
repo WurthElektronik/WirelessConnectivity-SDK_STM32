@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <global/global_types.h>
+#include <utils/base64.h>
 
 /**
  * @brief Max recommended payload size is 1460 bytes.
@@ -172,11 +173,6 @@ extern bool Calypso_SendRequest(char *data);
 extern bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char *pOutResponse);
 
 extern int32_t Calypso_GetLastError(char *lastErrorText);
-
-extern uint32_t Calypso_GetBase64DecBufSize(uint8_t *inputData, uint32_t inputLength);
-extern uint32_t Calypso_GetBase64EncBufSize(uint32_t inputLength);
-extern bool Calypso_DecodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
-extern bool Calypso_EncodeBase64(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
 
 extern bool Calypso_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
 extern void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout);

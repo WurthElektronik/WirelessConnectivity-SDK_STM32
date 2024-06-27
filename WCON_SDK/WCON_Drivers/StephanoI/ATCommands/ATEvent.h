@@ -74,6 +74,7 @@ typedef enum StephanoI_ATEvent_t
 	StephanoI_ATEvent_BLE_AuthenticationComplete,
 	StephanoI_ATEvent_BLE_NotifySecurityKey,
 	StephanoI_ATEvent_BLE_SecurityKeyRequest,
+	StephanoI_ATEvent_BLE_SecurityConfirmKeyRequest,
 	StephanoI_ATEvent_BLE_BondingInformation,
 
 	StephanoI_ATEvent_Wifi_Mode,

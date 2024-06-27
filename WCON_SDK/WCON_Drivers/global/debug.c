@@ -91,10 +91,17 @@ void WE_Debug_Init()
 {
 	uartDebug = USART2;
 
-	/* Peripheral clock enable */
-	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
-
 #if defined(STM32L073xx)
+
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
+
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART2;
+	PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+	{
+		WE_Error_Handler();
+	}
+
 	LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
 	uint32_t alternateFunction = LL_GPIO_AF_4;
 
@@ -129,6 +136,9 @@ void WE_Debug_Init()
 	gpioInitStruct.Pull = LL_GPIO_PULL_NO;
 	gpioInitStruct.Alternate = alternateFunction;
 	LL_GPIO_Init(GPIOA, &gpioInitStruct);
+
+	/* Peripheral clock enable */
+	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
 
 	LL_USART_InitTypeDef uartInitStruct = {
 			0 };
@@ -253,7 +263,7 @@ int _write(int fd, char *ptr, int len)
 		if (!transferRunning && LL_USART_IsActiveFlag_TXE(uartDebug))
 		{
 			transferRunning = true;
-			LL_USART_TransmitData8(uartDebug, *(debugBuffer + readPos));
+			LL_USART_TransmitData8(uartDebug, *(debugBuffer + debugBufferReadPos));
 		}
 
 		lock = false;

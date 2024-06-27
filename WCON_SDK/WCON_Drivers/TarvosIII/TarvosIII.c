@@ -121,9 +121,11 @@ static WE_UART_HandleRxByte_t byteRxCallback = TarvosIII_HandleRxByte;
 typedef enum TarvosIII_CMD_Status_t
 {
 	CMD_Status_Success = 0x00,
-	CMD_Status_Failed,
-	CMD_Status_Invalid,
-	CMD_Status_Reset,
+	CMD_Status_Failed = 0x01,
+	CMD_Status_Invalid_Channel = 0x02,
+	CMD_Status_LBT_Channel_Busy = 0x03,
+	CMD_Status_Busy = 0x04,
+	CMD_Status_Invalid = 0xFF,
 } TarvosIII_CMD_Status_t;
 
 #define LENGTH_CMD_OVERHEAD             (uint16_t)4
@@ -981,6 +983,36 @@ bool TarvosIII_GetDefaultRFProfile(uint8_t *profile)
 }
 
 /**
+ * @brief Get the LBT observation period
+ *
+ * @param[out] threshold: LBT observation period in ms
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool TarvosIII_GetLBTObservationPeriod(uint8_t *period)
+{
+	uint8_t length;
+
+	return TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, period, &length);
+}
+
+/**
+ * @brief Get the LBT threshold value
+ *
+ * @param[out] threshold: LBT threshold value in dBm
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool TarvosIII_GetLBTThreshold(int8_t *threshold)
+{
+	uint8_t length;
+
+	return TarvosIII_Get(TarvosIII_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*) threshold, &length);
+}
+
+/**
  * @brief Set the default TX power
  *
  * Note: Reset the module after the adaption of the setting so that it can take effect.
@@ -1117,6 +1149,48 @@ bool TarvosIII_SetDefaultRFChannel(uint8_t channel)
 bool TarvosIII_SetDefaultRFProfile(uint8_t profile)
 {
 	return TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1);
+}
+
+/**
+ * @brief Set the LBT observation period
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] period: LBT observation period in ms
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool TarvosIII_SetLBTObservationPeriod(uint8_t period)
+{
+	if (period > 15)
+	{
+		return false;
+	}
+
+	return TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, &period, 1);
+}
+
+/**
+ * @brief Set the LBT threshold
+ *
+ * Note: Reset the module after the adaption of the setting so that it can take effect.
+ * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
+ *
+ * @param[in] threshold: LBT threshold in dBm
+ *
+ * @return true if request succeeded,
+ *         false otherwise
+ */
+bool TarvosIII_SetLBTThreshold(int8_t threshold)
+{
+	if ((threshold < -100) || (threshold > -45))
+	{
+		return false;
+	}
+
+	return TarvosIII_Set(TarvosIII_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*) &threshold, 1);
 }
 
 /**

@@ -618,7 +618,7 @@ static void StephanoI_HandleRxLine(char *rxPacket, uint16_t rxLength)
 				(StephanoI_rxBuffer[0] == '+') &&
 				(StephanoI_pendingCommandName[0] != '\0') &&
 				(0 == strncmp(StephanoI_pendingCommandName, StephanoI_rxBuffer + 1, StephanoI_pendingCommandNameLength)))
-												// @formatter:on
+															// @formatter:on
 {			/* Copy to response text buffer, taking care not to exceed buffer size */
 			uint16_t chunkLength = rxLength;
 
@@ -666,7 +666,7 @@ if (('+' == rxPacket[0]) ||
 			(0 == strcmp(rxPacket, "Will force to restart!!!")) ||
 			(0 == strncmp(rxPacket, "ERR CODE:", 9))
 			)
-					// @formatter:on
+						// @formatter:on
 {	/* An event occurred. Execute callback (if specified). */
 	if (NULL != StephanoI_eventCallback)
 	{

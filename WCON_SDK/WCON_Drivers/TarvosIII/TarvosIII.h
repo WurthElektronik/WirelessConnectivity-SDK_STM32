@@ -76,9 +76,10 @@ typedef enum TarvosIII_UserSettings_t
 	TarvosIII_CMD_SETGET_OPTION_CFG_FLAGS = 0x0F,
 	TarvosIII_CMD_SETGET_OPTION_RP_FLAGS = 0x10,
 	TarvosIII_CMD_SETGET_OPTION_RP_NUMSLOTS = 0x11,
+	TarvosIII_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD = 0x1A,
+	TarvosIII_CMD_SETGET_OPTION_LBT_THRESHOLD = 0x1B,
 	TarvosIII_CMD_SETGET_OPTION_FACTORYSETTINGS = 0x20,
 	TarvosIII_CMD_SETGET_OPTION_FWVERSION = 0x21,
-	TarvosIII_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } TarvosIII_UserSettings_t;
 
 /**
@@ -116,6 +117,8 @@ extern bool TarvosIII_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *srcaddr
 extern bool TarvosIII_GetDefaultDestNetID(uint8_t *destnetid);
 extern bool TarvosIII_GetDefaultRFChannel(uint8_t *channel);
 extern bool TarvosIII_GetDefaultRFProfile(uint8_t *profile);
+extern bool TarvosIII_GetLBTObservationPeriod(uint8_t *period);
+extern bool TarvosIII_GetLBTThreshold(int8_t *threshold);
 
 /* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
  * the module must be reset such that the update takes effect.
@@ -132,6 +135,8 @@ extern bool TarvosIII_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t srcaddr_m
 extern bool TarvosIII_SetDefaultDestNetID(uint8_t destnetid);
 extern bool TarvosIII_SetDefaultRFChannel(uint8_t channel);
 extern bool TarvosIII_SetDefaultRFProfile(uint8_t profile);
+extern bool TarvosIII_SetLBTObservationPeriod(uint8_t period);
+extern bool TarvosIII_SetLBTThreshold(int8_t threshold);
 extern bool TarvosIII_EnableSnifferMode();
 
 /* write volatile settings into RAM, these settings are lost after a reset */

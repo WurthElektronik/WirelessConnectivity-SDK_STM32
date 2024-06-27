@@ -79,9 +79,10 @@ typedef enum ThemistoI_UserSettings_t
 	ThemistoI_CMD_SETGET_OPTION_CFG_FLAGS = 0x0F,
 	ThemistoI_CMD_SETGET_OPTION_RP_FLAGS = 0x10,
 	ThemistoI_CMD_SETGET_OPTION_RP_NUMSLOTS = 0x11,
+	ThemistoI_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD = 0x1A,
+	ThemistoI_CMD_SETGET_OPTION_LBT_THRESHOLD = 0x1B,
 	ThemistoI_CMD_SETGET_OPTION_FACTORYSETTINGS = 0x20,
 	ThemistoI_CMD_SETGET_OPTION_FWVERSION = 0x21,
-	ThemistoI_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } ThemistoI_UserSettings_t;
 
 /**
@@ -119,6 +120,8 @@ extern bool ThemistoI_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *srcaddr
 extern bool ThemistoI_GetDefaultDestNetID(uint8_t *destnetid);
 extern bool ThemistoI_GetDefaultRFChannel(uint8_t *channel);
 extern bool ThemistoI_GetDefaultRFProfile(uint8_t *profile);
+extern bool ThemistoI_GetLBTObservationPeriod(uint8_t *period);
+extern bool ThemistoI_GetLBTThreshold(int8_t *threshold);
 
 /* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
  * the module must be reset such that the update takes effect.
@@ -135,6 +138,8 @@ extern bool ThemistoI_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t srcaddr_m
 extern bool ThemistoI_SetDefaultDestNetID(uint8_t destnetid);
 extern bool ThemistoI_SetDefaultRFChannel(uint8_t channel);
 extern bool ThemistoI_SetDefaultRFProfile(uint8_t profile);
+extern bool ThemistoI_SetLBTObservationPeriod(uint8_t period);
+extern bool ThemistoI_SetLBTThreshold(int8_t threshold);
 extern bool ThemistoI_EnableSnifferMode();
 
 /* Write volatile settings into RAM, these settings are lost after a reset */

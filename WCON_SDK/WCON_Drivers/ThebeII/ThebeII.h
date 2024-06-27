@@ -79,9 +79,10 @@ typedef enum ThebeII_UserSettings_t
 	ThebeII_CMD_SETGET_OPTION_CFG_FLAGS = 0x0F,
 	ThebeII_CMD_SETGET_OPTION_RP_FLAGS = 0x10,
 	ThebeII_CMD_SETGET_OPTION_RP_NUMSLOTS = 0x11,
+	ThebeII_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD = 0x1A,
+	ThebeII_CMD_SETGET_OPTION_LBT_THRESHOLD = 0x1B,
 	ThebeII_CMD_SETGET_OPTION_FACTORYSETTINGS = 0x20,
 	ThebeII_CMD_SETGET_OPTION_FWVERSION = 0x21,
-	ThebeII_CMD_SETGET_OPTION_RUNTIMESETTINGS = 0x22,
 } ThebeII_UserSettings_t;
 
 /**
@@ -119,6 +120,8 @@ extern bool ThebeII_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *srcaddr_m
 extern bool ThebeII_GetDefaultDestNetID(uint8_t *destnetid);
 extern bool ThebeII_GetDefaultRFChannel(uint8_t *channel);
 extern bool ThebeII_GetDefaultRFProfile(uint8_t *profile);
+extern bool ThebeII_GetLBTObservationPeriod(uint8_t *period);
+extern bool ThebeII_GetLBTThreshold(int8_t *threshold);
 
 /* Functions that write the non-volatile settings in the flash: After modification of any non-volatile setting,
  * the module must be reset such that the update takes effect.
@@ -135,6 +138,8 @@ extern bool ThebeII_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t srcaddr_msb
 extern bool ThebeII_SetDefaultDestNetID(uint8_t destnetid);
 extern bool ThebeII_SetDefaultRFChannel(uint8_t channel);
 extern bool ThebeII_SetDefaultRFProfile(uint8_t profile);
+extern bool ThebeII_SetLBTObservationPeriod(uint8_t period);
+extern bool ThebeII_SetLBTThreshold(int8_t threshold);
 extern bool ThebeII_EnableSnifferMode();
 
 /* Write volatile settings into RAM, these settings are lost after a reset */

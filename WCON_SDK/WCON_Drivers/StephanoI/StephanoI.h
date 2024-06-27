@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <global/global_types.h>
+#include <utils/base64.h>
 
 /**
  * @brief Max recommended payload size is 512 bytes.

@@ -3,3 +3,5 @@ Debug/
 Release/
 *.launch
 .settings
+/WCON_SDK/Doc/html
+/WCON_SDK/Doc/latex

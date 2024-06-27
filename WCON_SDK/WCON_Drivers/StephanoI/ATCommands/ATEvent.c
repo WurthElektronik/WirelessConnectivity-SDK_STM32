@@ -63,6 +63,7 @@ static ATCommand_Event_t moduleMainEvents[] = {
 				EVENTENTRY("+BLEAUTHCMPL", StephanoI_ATEvent_BLE_AuthenticationComplete)
 				EVENTENTRY("+BLESECNTFYKEY", StephanoI_ATEvent_BLE_NotifySecurityKey)
 				EVENTENTRY("+BLESECKEYREQ", StephanoI_ATEvent_BLE_SecurityKeyRequest)
+				EVENTENTRY("+BLESECNCREQ", StephanoI_ATEvent_BLE_SecurityConfirmKeyRequest)
 				EVENTENTRY("+BLEENCDEV", StephanoI_ATEvent_BLE_BondingInformation)
 				EVENTENTRY("+CWMODE", StephanoI_ATEvent_Wifi_Mode)
 				EVENTENTRY("+CWLAP", StephanoI_ATEvent_Wifi_Scan)

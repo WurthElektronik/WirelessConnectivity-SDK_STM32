@@ -923,7 +923,7 @@ bool StephanoI_ATWifi_GetDHCPState(uint8_t *stateP)
 /**
  * @brief Configure IP address range of AP
  *
- * @param[in] enable Enable or disablet
+ * @param[in] enable Enable or disable
  * @param[in] range IP range
  *
  * @return true if successful, false otherwise

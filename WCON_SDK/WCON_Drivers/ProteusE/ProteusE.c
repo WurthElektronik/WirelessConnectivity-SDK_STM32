@@ -725,11 +725,7 @@ bool ProteusE_Init(WE_UART_t *uartP, ProteusE_Pins_t *pinoutP, ProteusE_Operatio
 	WE_Delay(10);
 
 	/* reset module */
-	if (ProteusE_PinReset())
-	{
-		WE_Delay(PROTEUSE_BOOT_DURATION);
-	}
-	else
+	if (!ProteusE_PinReset())
 	{
 		printf("Pin reset failed\n");
 		ProteusE_Deinit();
@@ -794,6 +790,7 @@ bool ProteusE_PinReset()
 
 	if (operationMode == ProteusE_OperationMode_TransparentMode)
 	{
+		WE_Delay(PROTEUSE_BOOT_DURATION);
 		/* transparent mode is ready (the module doesn't send a "ready for operation" message in transparent mode) */
 		return true;
 	}
@@ -949,7 +946,12 @@ bool ProteusE_Transmit(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /*
@@ -1048,7 +1050,12 @@ bool ProteusE_Set(ProteusE_UserSettings_t userSetting, uint8_t *valueP, uint8_t 
 	}
 
 	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_CNF, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_SET_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSE_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
 }
 
 /**

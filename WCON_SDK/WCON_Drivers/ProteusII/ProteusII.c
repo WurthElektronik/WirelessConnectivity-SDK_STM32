@@ -711,11 +711,7 @@ bool ProteusII_Init(WE_UART_t *uartP, ProteusII_Pins_t *pinoutP, ProteusII_Opera
 	WE_Delay(10);
 
 	/* reset module */
-	if (ProteusII_PinReset())
-	{
-		WE_Delay(PROTEUSII_BOOT_DURATION);
-	}
-	else
+	if (!ProteusII_PinReset())
 	{
 		printf("Pin reset failed\n");
 		ProteusII_Deinit();
@@ -837,6 +833,7 @@ bool ProteusII_PinReset()
 
 	if (operationMode == ProteusII_OperationMode_PeripheralOnlyMode)
 	{
+		WE_Delay(PROTEUSII_BOOT_DURATION);
 		/* peripheral only mode is ready (the module doesn't send a "ready for operation" message in peripheral only mode) */
 		return true;
 	}
@@ -958,7 +955,13 @@ bool ProteusII_Transmit(uint8_t *payloadP, uint16_t length)
 	{
 		return false;
 	}
-	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+
+	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -1086,7 +1089,12 @@ bool ProteusII_Set(ProteusII_UserSettings_t userSetting, uint8_t *valueP, uint8_
 	}
 
 	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SET_CNF, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SET_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
 }
 
 /**

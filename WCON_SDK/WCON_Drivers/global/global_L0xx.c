@@ -119,7 +119,6 @@ void WE_SystemClock_Config()
 {
 	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
-	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
 
 	/* Configure the main internal regulator output voltage */
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
@@ -148,13 +147,6 @@ void WE_SystemClock_Config()
 	{
 		WE_Error_Handler();
 	}
-	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_USART2;
-	PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
-	PeriphClkInit.Usart2ClockSelection = RCC_USART2CLKSOURCE_PCLK1;
-	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-	{
-		WE_Error_Handler();
-	}
 }
 
 bool WE_UART1_Transmit(const uint8_t *data, uint16_t length)
@@ -173,6 +165,14 @@ bool WE_UART1_Init(uint32_t baudrate, WE_FlowControl_t flowControl, WE_Parity_t 
 	NVIC_SetPriority(PendSV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), WE_PRIORITY_RX_DATA_PROCESSING, 0));
 	NVIC_EnableIRQ(PendSV_IRQn);
 #endif
+
+	RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
+	PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+	PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+	{
+		WE_Error_Handler();
+	}
 
 	/* USART1 clock enable */
 	LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
@@ -537,6 +537,9 @@ void USART1_IRQHandler()
     	WE_UART1_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART1_Internal.uart);
     	(*WE_UART1_Internal.rxByteHandlerP)(&WE_UART1_Internal.receivedByte, 1);
     }
+	if (LL_USART_IsActiveFlag_ORE(WE_UART1_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART1_Internal.uart);
+    }
 #endif
 }
 
@@ -557,6 +560,9 @@ void USART4_5_IRQHandler()
 		WE_UART4_Internal.receivedByte = LL_USART_ReceiveData8(WE_UART4_Internal.uart);
 		(*WE_UART4_Internal.rxByteHandlerP)(&WE_UART4_Internal.receivedByte, 1);
 	}
+	if (LL_USART_IsActiveFlag_ORE(WE_UART4_Internal.uart)) {
+        LL_USART_ClearFlag_ORE(WE_UART4_Internal.uart);
+    }
 }
 
 #if defined(WE_UART_DMA)

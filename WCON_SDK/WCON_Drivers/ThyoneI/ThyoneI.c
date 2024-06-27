@@ -42,8 +42,6 @@
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
 
 #define MAX_RADIO_PAYLOAD_LENGTH              (uint16_t)224
-#define MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX (uint16_t)223
-#define MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX   (uint16_t)220
 
 #define MAX_CMD_PAYLOAD_LENGTH                  (uint16_t)(MAX_RADIO_PAYLOAD_LENGTH + 6)
 
@@ -494,11 +492,7 @@ bool ThyoneI_Init(WE_UART_t *uartP, ThyoneI_Pins_t *pinoutP, ThyoneI_OperationMo
 	WE_Delay(10);
 
 	/* reset module */
-	if (ThyoneI_PinReset())
-	{
-		WE_Delay(THYONEI_BOOT_DURATION);
-	}
-	else
+	if (!ThyoneI_PinReset())
 	{
 		printf("Pin reset failed\n");
 		ThyoneI_Deinit();
@@ -585,6 +579,7 @@ bool ThyoneI_PinReset()
 
 	if (operationMode == ThyoneI_OperationMode_TransparentMode)
 	{
+		WE_Delay(THYONEI_BOOT_DURATION);
 		/* transparent mode is ready (the module doesn't send a "ready for operation" message in transparent mode) */
 		return true;
 	}
@@ -665,7 +660,12 @@ bool ThyoneI_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -696,7 +696,12 @@ bool ThyoneI_TransmitMulticast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -727,7 +732,12 @@ bool ThyoneI_TransmitUnicast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -742,7 +752,7 @@ bool ThyoneI_TransmitUnicast(uint8_t *payloadP, uint16_t length)
  */
 bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX ))
+	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
 	{
 		return false;
 	}
@@ -760,7 +770,12 @@ bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -775,7 +790,7 @@ bool ThyoneI_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
  */
 bool ThyoneI_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX ))
+	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
 	{
 		return false;
 	}
@@ -793,7 +808,12 @@ bool ThyoneI_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -889,7 +909,12 @@ bool ThyoneI_Set(ThyoneI_UserSettings_t userSetting, uint8_t *ValueP, uint8_t le
 	}
 
 	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_SET_CNF, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_SET_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEI_CMD_START_IND, CMD_Status_NoStatus, false);
 }
 
 /**
