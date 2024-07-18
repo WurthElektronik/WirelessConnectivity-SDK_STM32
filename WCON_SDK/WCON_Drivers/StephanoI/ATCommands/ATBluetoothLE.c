@@ -78,7 +78,12 @@ bool StephanoI_ATBluetoothLE_SetDeviceName(StephanoI_ATBluetoothLE_DeviceName_t 
 	{
 		return false;
 	}
-
+	
+	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+	{
+		return false;
+	}
+	
 	if (!StephanoI_SendRequest(pRequestCommand))
 	{
 		return false;
