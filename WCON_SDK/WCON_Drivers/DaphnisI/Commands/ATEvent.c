@@ -33,12 +33,12 @@
 #include <global/ATCommands.h>
 #include <stdlib.h>
 
-static ATCommand_Event_t ContextSubEvents[] = {
+const static ATCommand_Event_t ContextSubEvents[] = {
 				EVENTENTRY("NVM_DATA_STORED", DaphnisI_ATEvent_ContextState_Stored)
 				LASTEVENTENTRY("NVM_DATA_RESTORED", DaphnisI_ATEvent_ContextState_Restored)
 		};
 
-static ATCommand_Event_t JoinSubEvents[] = {
+const static ATCommand_Event_t JoinSubEvents[] = {
 				EVENTENTRY("JOINED", DaphnisI_ATEvent_JoinState_Success)
 				LASTEVENTENTRY("JOIN_FAILED", DaphnisI_ATEvent_JoinState_Fail)
 		};

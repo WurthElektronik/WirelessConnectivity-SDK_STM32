@@ -31,13 +31,13 @@
 #include <AdrasteaI/AdrasteaI.h>
 #include <global/ATCommands.h>
 
-static ATCommand_Event_t GNSSSubEvents[] = {
+const static ATCommand_Event_t GNSSSubEvents[] = {
 				EVENTENTRY(" \"NMEA\"", AdrasteaI_ATEvent_GNSS_NMEA)
 				EVENTENTRY(" \"SESSIONSTAT\"", AdrasteaI_ATEvent_GNSS_Session_Status_Change)
 				LASTEVENTENTRY(" \"ALLOWSTAT\"", AdrasteaI_ATEvent_GNSS_Allowed_Status_Change)
 		};
 
-static ATCommand_Event_t MQTTSubEvents[] = {
+const static ATCommand_Event_t MQTTSubEvents[] = {
 				EVENTENTRY("\"CONCONF\"", AdrasteaI_ATEvent_MQTT_Connection_Confirmation)
 				EVENTENTRY("\"DISCONF\"", AdrasteaI_ATEvent_MQTT_Disconnection_Confirmation)
 				EVENTENTRY("\"SUBCONF\"", AdrasteaI_ATEvent_MQTT_Subscription_Confirmation)
@@ -47,7 +47,7 @@ static ATCommand_Event_t MQTTSubEvents[] = {
 				LASTEVENTENTRY("\"CONFAIL\"", AdrasteaI_ATEvent_MQTT_Connection_Failure)
 		};
 
-static ATCommand_Event_t MQTT_AWSIOTSubEvents[] = {
+const static ATCommand_Event_t MQTT_AWSIOTSubEvents[] = {
 				EVENTENTRY("\"CONCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Confirmation)
 				EVENTENTRY("\"DISCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Disconnection_Confirmation)
 				EVENTENTRY("\"SUBCONF\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Subscription_Confirmation)
@@ -57,7 +57,7 @@ static ATCommand_Event_t MQTT_AWSIOTSubEvents[] = {
 				LASTEVENTENTRY("\"CONFAIL\"", AdrasteaI_ATEvent_MQTT_AWSIOT_Connection_Failure)
 		};
 
-static ATCommand_Event_t HTTPSubEvents[] = {
+const static ATCommand_Event_t HTTPSubEvents[] = {
 				EVENTENTRY("\"PUTCONF\"", AdrasteaI_ATEvent_HTTP_PUT_Confirmation)
 				EVENTENTRY("\"POSTCONF\"", AdrasteaI_ATEvent_HTTP_POST_Confirmation)
 				EVENTENTRY("\"DELCONF\"", AdrasteaI_ATEvent_HTTP_DELETE_Confirmation)
@@ -65,7 +65,7 @@ static ATCommand_Event_t HTTPSubEvents[] = {
 				LASTEVENTENTRY("\"SESTERM\"", AdrasteaI_ATEvent_HTTP_Session_Termination)
 		};
 
-static ATCommand_Event_t SocketSubEvents[] = {
+const static ATCommand_Event_t SocketSubEvents[] = {
 				EVENTENTRY("1", AdrasteaI_ATEvent_Socket_Data_Received)
 				EVENTENTRY("2", AdrasteaI_ATEvent_Socket_Deactivated_Idle_Timer)
 				EVENTENTRY("3", AdrasteaI_ATEvent_Socket_Terminated_By_Peer)
@@ -73,7 +73,7 @@ static ATCommand_Event_t SocketSubEvents[] = {
 				LASTEVENTENTRY("SOCKETCMD", AdrasteaI_ATEvent_Socket_Sockets_Read)
 		};
 
-static ATCommand_Event_t moduleMainEvents[] = {
+const static ATCommand_Event_t moduleMainEvents[] = {
 				EVENTENTRY("+COPN", AdrasteaI_ATEvent_NetService_Operator_Read)
 				EVENTENTRY("%PINGCMD", AdrasteaI_ATEvent_Proprietary_Ping_Result)
 				EVENTENTRY("%DNSRSLV", AdrasteaI_ATEvent_Proprietary_Domain_Name_Resolve)

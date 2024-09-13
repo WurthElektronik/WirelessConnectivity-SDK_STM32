@@ -77,10 +77,31 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
-## Metis pinout
+## Metis (-I, -II) pinout
 ```
  _____________________           ______________________
-|        STM32        |         |        Metis         |
+|        STM32        |         |    Metis (-I, -II)   |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
+```
+
+## Metis-e pinout
+```
+ _____________________           ______________________
+|        STM32        |         |        Metis-e       |
+|                     |         |                      |
+|         Sleep  (PA9)|-------->|Wake-up               |
+|                     |         |                      |
+|         Boot   (PA7)|-------->|Boot                  |
 |                     |         |                      |
 |         Reset (PA10)|-------->|Reset                 |
 |                     |         |                      |
@@ -236,10 +257,10 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
-## Thebe-II pinout
+## Thebe-II (-IND) pinout
 ```
  _____________________           ______________________
-|        STM32        |         |       Thebe-II       |
+|        STM32        |         |    Thebe-II (-IND)   |
 |                     |         |                      |
 |         Reset (PA10)|-------->|Reset                 |
 |                     |         |                      |

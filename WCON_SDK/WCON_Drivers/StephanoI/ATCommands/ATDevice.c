@@ -335,7 +335,7 @@ bool StephanoI_ATDevice_EchoOn(bool on)
 			return false;
 		}
 	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_FactoryReset), StephanoI_CNFStatus_Success);
+	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
 /**

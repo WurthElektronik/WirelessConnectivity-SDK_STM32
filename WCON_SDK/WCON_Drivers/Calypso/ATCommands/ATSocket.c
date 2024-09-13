@@ -444,10 +444,11 @@ bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
 			{
 				return false;
 			}
+
 			/* Recursively call Calypso_ATSocket_Send() with the encoded binary data (excluding '\0') */
 			uint16_t chunkBytesWritten = 0;
 			bool ok = Calypso_ATSocket_SendTo(socketID, remoteSocket, format,
-			false, lengthEncoded - 1, base64Buffer, &chunkBytesWritten);
+			false, lengthEncoded, base64Buffer, &chunkBytesWritten);
 			if (!ok)
 			{
 				return false;

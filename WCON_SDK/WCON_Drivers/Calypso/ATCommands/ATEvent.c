@@ -31,12 +31,12 @@
 #include <global/ATCommands.h>
 #include <Calypso/Calypso.h>
 
-static ATCommand_Event_t generalSubEvents[] = {
+const static ATCommand_Event_t generalSubEvents[] = {
 				EVENTENTRY("reset_request", Calypso_ATEvent_GeneralResetRequest)
 				LASTEVENTENTRY("error", Calypso_ATEvent_GeneralError)
 		};
 
-static ATCommand_Event_t wlanSubEvents[] = {
+const static ATCommand_Event_t wlanSubEvents[] = {
 				EVENTENTRY("connect", Calypso_ATEvent_WlanConnect)
 				EVENTENTRY("disconnect", Calypso_ATEvent_WlanDisconnect)
 				EVENTENTRY("sta_added", Calypso_ATEvent_WlanStaAdded)
@@ -52,12 +52,12 @@ static ATCommand_Event_t wlanSubEvents[] = {
 				LASTEVENTENTRY("provisioning_profile_added", Calypso_ATEvent_WlanProvisioningProfileAdded)
 		};
 
-static ATCommand_Event_t socketSubEvents[] = {
+const static ATCommand_Event_t socketSubEvents[] = {
 				EVENTENTRY("tx_failed", Calypso_ATEvent_SocketTxFailed)
 				LASTEVENTENTRY("async_event", Calypso_ATEvent_SocketAsyncEvent)
 		};
 
-static ATCommand_Event_t netAppSubEvents[] = {
+const static ATCommand_Event_t netAppSubEvents[] = {
 				EVENTENTRY("ipv4_acquired", Calypso_ATEvent_NetappIP4Acquired)
 				EVENTENTRY("ipv6_acquired", Calypso_ATEvent_NetappIP6Acquired)
 				EVENTENTRY("ip_collision", Calypso_ATEvent_NetappIPCollision)
@@ -68,20 +68,20 @@ static ATCommand_Event_t netAppSubEvents[] = {
 				LASTEVENTENTRY("ipv6_lost", Calypso_ATEvent_NetappIPv6Lost)
 		};
 
-static ATCommand_Event_t mqttOperationSubEvents[] = {
+const static ATCommand_Event_t mqttOperationSubEvents[] = {
 				EVENTENTRY("connack", Calypso_ATEvent_MQTTConnack)
 				EVENTENTRY("puback", Calypso_ATEvent_MQTTPuback)
 				EVENTENTRY("suback", Calypso_ATEvent_MQTTSuback)
 				LASTEVENTENTRY("unsuback", Calypso_ATEvent_MQTTUnsuback)
 		};
 
-static ATCommand_Event_t mqttSubEvents[] = {
+const static ATCommand_Event_t mqttSubEvents[] = {
 				PARENTEVENTENTRY("operation", mqttOperationSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				EVENTENTRY("recv", Calypso_ATEvent_MQTTRecv)
 				LASTEVENTENTRY("disconnect", Calypso_ATEvent_MQTTDisconnect)
 		};
 
-static ATCommand_Event_t fatalErrorSubEvents[] = {
+const static ATCommand_Event_t fatalErrorSubEvents[] = {
 				EVENTENTRY("device_abort", Calypso_ATEvent_FatalErrorDeviceAbort)
 				EVENTENTRY("driver_abort", Calypso_ATEvent_FatalErrorDriverAbort)
 				EVENTENTRY("sync_loss", Calypso_ATEvent_FatalErrorSyncLost)
@@ -89,12 +89,12 @@ static ATCommand_Event_t fatalErrorSubEvents[] = {
 				LASTEVENTENTRY("cmd_timout", Calypso_ATEvent_FatalErrorCmdTimeout)
 		};
 
-static ATCommand_Event_t customSubEvents[] = {
+const static ATCommand_Event_t customSubEvents[] = {
 				EVENTENTRY("0", Calypso_ATEvent_CustomGPIO)
 				LASTEVENTENTRY("1", Calypso_ATEvent_CustomHTTPPost)
 		};
 
-static ATCommand_Event_t moduleMainEvents[] = {
+const static ATCommand_Event_t moduleMainEvents[] = {
 				PARENTEVENTENTRY("+eventgeneral", generalSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				PARENTEVENTENTRY("+eventwlan", wlanSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				PARENTEVENTENTRY("+eventsock", socketSubEvents, ATCOMMAND_ARGUMENT_DELIM)
@@ -310,22 +310,26 @@ bool decodeBase64, Calypso_ATEvent_SocketRcvd_t *rcvdEvent)
 	if (decodeBase64)
 	{
 		uint32_t decodedSize;
-
 		if (!Base64_GetDecBufSize((uint8_t*) *pEventArguments, rcvdEvent->length, &decodedSize))
 		{
 			return false;
 		}
 
-		if (decodedSize - 1 > sizeof(rcvdEvent->data))
+		if (decodedSize + 1 > sizeof(rcvdEvent->data))
 		{
+			/* not enough space */
 			return false;
 		}
 
+		decodedSize = sizeof(rcvdEvent->data) - 1 /*'\0'*/;
 		if (!Base64_Decode((uint8_t*) *pEventArguments, rcvdEvent->length, (uint8_t*) rcvdEvent->data, &decodedSize))
 		{
 			return false;
 		}
-		rcvdEvent->length = decodedSize - 1;
+		/* add string termination character needed by the Calypso functions */
+		rcvdEvent->data[decodedSize] = '\0';
+
+		rcvdEvent->length = decodedSize;
 		return true;
 	}
 
@@ -381,13 +385,16 @@ bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char **pEventArguments, Calypso_AT
 	{
 		if (rcvdEvent->dataFormat == Calypso_DataFormat_Base64)
 		{
-			/*Decode the base64 encoded data*/
+			/* Decode the base64 encoded data */
 			uint32_t elen = CALYPSO_LINE_MAX_SIZE;
-			char out[CALYPSO_LINE_MAX_SIZE];
+			char out[CALYPSO_LINE_MAX_SIZE+1];
 			if (!Base64_Decode((uint8_t*) rcvdEvent->data, rcvdEvent->dataLength, (uint8_t*) out, &elen))
 			{
 				return false;
 			}
+			/* add string termination character needed by the Calypso functions */
+			out[elen] = '\0';
+
 			strcpy(rcvdEvent->data, out);
 			rcvdEvent->dataLength = elen;
 		}

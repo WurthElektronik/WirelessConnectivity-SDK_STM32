@@ -28,16 +28,15 @@
  * @brief Thyone-e driver header file.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <global/global_types.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifndef THYONEE_H_INCLUDED
 #define THYONEE_H_INCLUDED
+
+#include <global/global_types.h>
+#include <stdbool.h>
 
 /* timings */
 #define THYONEE_BOOT_DURATION (uint16_t)10
@@ -102,7 +101,7 @@ typedef struct ThyoneE_GPIOControlBlock_t
 
 typedef enum ThyoneE_ResetReason_t
 {
-	ThyoneE_ResetReason_PowerOn_Wakeup = (uint8_t) 0x01,
+	ThyoneE_ResetReason_PowerOn_WakeUp = (uint8_t) 0x01,
 	ThyoneE_ResetReason_PinReset = (uint8_t) 0x02,
 	ThyoneE_ResetReason_SoftReset = (uint8_t) 0x04,
 	ThyoneE_ResetReason_Invalid = (uint8_t) 0xFF,

@@ -233,9 +233,6 @@ static const uint8_t base64DecTable[123] = {
  * This routine calculates the expected raw data buffer size
  * for the given Base64 buffer and buffer size.
  *
- * Note that the returned size includes the string termination character ('\0'),
- * so the size of the actual data is one character less.
- *
  * @param[in] inputData Source buffer holding the base64 data
  * @param[in] inputLength Length of base64 data without termination character
  * @param[out] outputLengthP Pointer to calculated length of decoded data and the termination character
@@ -265,9 +262,6 @@ bool Base64_GetDecBufSize(uint8_t *inputData, uint32_t inputLength, uint32_t *ou
 		*outputLengthP = *outputLengthP - 1;
 	}
 
-	/* Data size plus string termination character */
-	*outputLengthP = *outputLengthP + 1;
-
 	return true;
 }
 
@@ -276,9 +270,6 @@ bool Base64_GetDecBufSize(uint8_t *inputData, uint32_t inputLength, uint32_t *ou
  *
  * This routine calculates the expected Base64 buffer size
  * for the given raw data size.
- *
- * Note that the returned size includes the string termination character ('\0'),
- * so the size of the actual data is one character less.
  *
  * @param[in] inputLength Length of the raw data
  * @param[out] outputLengthP Pointer to calculated length of encoded data and the termination character
@@ -292,8 +283,8 @@ bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t *outputLengthP)
 		return false;
 	}
 
-	/* Data size plus string termination character */
-	*outputLengthP = (4 * ((inputLength + 2) / 3)) + 1;
+	/* Data size without additional string termination character */
+	*outputLengthP = (4 * ((inputLength + 2) / 3));
 
 	return true;
 }
@@ -304,9 +295,6 @@ bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t *outputLengthP)
  * This routine decodes the supplied data in Base64 format to raw data
  * and writes it to the output buffer (outputData, must be pre-allocated).
  * The size of the output buffer is also returned.
- *
- * Note that the data is returned as a null terminated string, the destination
- * buffer must have size Base64_GetDecBufSize.
  *
  * @param[in] inputData Source buffer (holding the Base64 data to be decoded)
  * @param[in] inputLength Source buffer size
@@ -355,20 +343,19 @@ bool Base64_Decode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData
 
 		decode_value = (nibble6_1 << 3 * 6) + (nibble6_2 << 2 * 6) + (nibble6_3 << 1 * 6) + (nibble6_4 << 0 * 6);
 
-		if (j < *outputLength - 1)
+		if (j < *outputLength)
 		{
 			outputData[j++] = (decode_value >> 2 * 8) & 0xFF;
 		}
-		if (j < *outputLength - 1)
+		if (j < *outputLength)
 		{
 			outputData[j++] = (decode_value >> 1 * 8) & 0xFF;
 		}
-		if (j < *outputLength - 1)
+		if (j < *outputLength)
 		{
 			outputData[j++] = (decode_value >> 0 * 8) & 0xFF;
 		}
 	}
-	outputData[j] = 0;
 
 	return true;
 }
@@ -432,14 +419,12 @@ bool Base64_Encode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData
 
 	if (inputLength % 3 >= 1)
 	{
-		outputData[*outputLength - 2] = '=';
+		outputData[*outputLength - 1] = '=';
 	}
 	if (inputLength % 3 == 1)
 	{
-		outputData[*outputLength - 3] = '=';
+		outputData[*outputLength - 2] = '=';
 	}
-
-	outputData[*outputLength - 1] = 0;
 
 	return true;
 }

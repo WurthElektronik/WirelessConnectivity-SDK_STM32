@@ -169,7 +169,7 @@ extern bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char **pInArgume
 
 extern int ATCommand_CountArgs(char *stringP);
 
-extern bool ATCommand_ParseEventType(char **pAtCommand, ATCommand_Event_t *pmoduleEvents, char *delimiters, uint8_t number_of_delimiters, uint16_t *pEvent);
+extern bool ATCommand_ParseEventType(char **pAtCommand, const ATCommand_Event_t *pmoduleEvents, char *delimiters, uint8_t number_of_delimiters, uint16_t *pEvent);
 
 #ifdef __cplusplus
 }

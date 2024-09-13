@@ -253,8 +253,8 @@ void ThyoneE_Examples(void)
 	ThyoneE_uart.uartDeinit = WE_UART1_DeInit;
 	ThyoneE_uart.uartTransmit = WE_UART1_Transmit;
 
-	Example_CommandMode_Throughput();
-	//Example_CommandMode_DataTransmission();
+	//Example_CommandMode_Throughput();
+	Example_CommandMode_DataTransmission();
 	//Example_TransparentMode_DataTransmission();
 
 	return;

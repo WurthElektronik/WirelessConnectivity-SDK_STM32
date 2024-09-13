@@ -1187,7 +1187,7 @@ bool AdrasteaI_ATMQTT_ParseAWSIOTPublicationReceivedEvent(char *pEventArguments,
  */
 bool AdrasteaI_ATMQTT_AWSIOTConnect()
 {
-	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"CONNECT\""))
+	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"CONNECT\"\r\n"))
 	{
 		return false;
 	}
@@ -1207,7 +1207,7 @@ bool AdrasteaI_ATMQTT_AWSIOTConnect()
  */
 bool AdrasteaI_ATMQTT_AWSIOTDisconnect()
 {
-	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"DISCONNECT\""))
+	if (!AdrasteaI_SendRequest("AT%AWSIOTCMD=\"DISCONNECT\"\r\n"))
 	{
 		return false;
 	}
@@ -1313,6 +1313,11 @@ bool AdrasteaI_ATMQTT_AWSIOTPublish(AdrasteaI_ATMQTT_Topic_Name_t topicName, cha
 	}
 
 	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, payload, ATCOMMAND_STRING_TERMINATE))
+	{
+		return false;
+	}
+
+	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
 	{
 		return false;
 	}

@@ -223,7 +223,7 @@ bool StephanoI_Init(WE_UART_t *uartP, StephanoI_Pins_t *pinoutP, StephanoI_Event
 
 	/* Set response timeouts */
 	StephanoI_timeouts[StephanoI_Timeout_General] = 1000;
-	StephanoI_timeouts[StephanoI_Timeout_FactoryReset] = 100000;
+	StephanoI_timeouts[StephanoI_Timeout_FactoryReset] = 5000;
 	StephanoI_timeouts[StephanoI_Timeout_WifiScan] = 5000;
 	StephanoI_timeouts[StephanoI_Timeout_WifiConnect] = 10000;
 	StephanoI_timeouts[StephanoI_Timeout_SocketOpen] = 2500;

@@ -284,7 +284,7 @@ bool encodeAsBase64, uint16_t bytesToWrite, const char *data, uint16_t *bytesWri
 			/* Recursively call Calypso_ATFile_Write() with the encoded binary data */
 			uint16_t chunkBytesWritten = 0;
 			bool ok = Calypso_ATFile_Write(fileID, offset + chunkOffset, format,
-			false, lengthEncoded - 1, base64Buffer, &chunkBytesWritten);
+			false, lengthEncoded, base64Buffer, &chunkBytesWritten);
 			if (!ok)
 			{
 				return false;
@@ -758,22 +758,26 @@ bool decodeBase64, uint16_t *bytesRead, char *data)
 		if (decodeBase64)
 		{
 			uint32_t decodedSize;
-
 			if (!Base64_GetDecBufSize((uint8_t*) *pAtCommand, *bytesRead, &decodedSize))
 			{
 				return false;
 			}
 
-			if (decodedSize - 1 > bytesToRead)
+			/* we are expecting only 'bytesToRead' of decoded data */
+			if (decodedSize > bytesToRead)
 			{
 				return false;
 			}
 
+			decodedSize = bytesToRead;
 			if (!Base64_Decode((uint8_t*) *pAtCommand, *bytesRead, (uint8_t*) data, &decodedSize))
 			{
 				return false;
 			}
-			*bytesRead = decodedSize - 1;
+			/* add string termination character needed by the Calypso functions */
+			data[decodedSize] = '\0';
+
+			*bytesRead = decodedSize;
 			return true;
 		}
 		else

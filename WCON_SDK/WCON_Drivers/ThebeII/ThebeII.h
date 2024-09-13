@@ -39,11 +39,24 @@ extern "C" {
 #ifndef THEBEII_H_INCLUDED
 #define THEBEII_H_INCLUDED
 
-#define THEBEII_BROADCASTADDRESS 0xFF
-#define THEBEII_MAX_USERSETTING_LENGTH 4
+/* define product */
+#define Thebe_II_2609031181000
+//#define Thebe_II_India_2609031181060
 
+#if (defined Thebe_II_2609031181000)
+/* Thebe-II (2609031181000) */
 #define THEBEII_MIN_RFCHANNEL 128
 #define THEBEII_MAX_RFCHANNEL 133
+#elif (defined Thebe_II_India_2609031181060)
+/* Thebe-II for India (2609031181060) */
+#define THEBEII_MIN_RFCHANNEL 41
+#define THEBEII_MAX_RFCHANNEL 79
+#else
+#error "no product selected"
+#endif
+
+#define THEBEII_BROADCASTADDRESS 0xFF
+#define THEBEII_MAX_USERSETTING_LENGTH 4
 
 #define THEBEII_DEFAULT_BAUDRATE (uint32_t)115200
 

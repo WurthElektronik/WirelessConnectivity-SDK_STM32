@@ -7,6 +7,7 @@ Products supported by this SDK:
 - Calypso
 - Daphnis
 - Metis (-I and -II)
+- Metis-e
 - Proteus-e
 - Proteus-II
 - Proteus-III
@@ -14,6 +15,7 @@ Products supported by this SDK:
 - Tarvos-III
 - Telesto-III
 - Thebe-II
+- Thebe-II India (2609031181060)
 - Themisto-I
 - Thyone-e
 - Thyone-I

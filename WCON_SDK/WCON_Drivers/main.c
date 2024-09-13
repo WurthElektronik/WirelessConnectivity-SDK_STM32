@@ -29,6 +29,7 @@
 #include <Calypso/Examples/Calypso_Examples.h>
 #include <DaphnisI/DaphnisI_Examples.h>
 #include <Metis/Metis_Examples.h>
+#include <MetisE/MetisE_Examples.h>
 #include <ProteusE/ProteusE_Examples.h>
 #include <ProteusII/ProteusII_Examples.h>
 #include <ProteusIII/ProteusIII_Examples.h>
@@ -58,6 +59,7 @@ int main(void)
 	//Calypso_Examples();
 	//DaphnisI_Examples();
 	//Metis_Examples();
+	//MetisE_Examples();
 	//ProteusE_Examples();
 	//ProteusII_Examples();
 	ProteusIII_Examples();

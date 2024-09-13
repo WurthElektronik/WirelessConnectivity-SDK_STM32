@@ -32,19 +32,19 @@
 #include <StephanoI/ATCommands/ATEvent.h>
 #include <StephanoI/StephanoI.h>
 
-static ATCommand_Event_t MQTTSubEvents[] = {
+const static ATCommand_Event_t MQTTSubEvents[] = {
 				EVENTENTRY("OK", StephanoI_ATEvent_MQTT_PublishOK)
 				LASTEVENTENTRY("FAIL", StephanoI_ATEvent_MQTT_PublishFailed)
 		};
 
-static ATCommand_Event_t WildCardSubEvents[] = {
+const static ATCommand_Event_t WildCardSubEvents[] = {
 				EVENTENTRY("CONNECT",StephanoI_ATEvent_Socket_Connected)
 				LASTEVENTENTRY("CLOSED", StephanoI_ATEvent_Socket_Closed)
 		};
 
-static ATCommand_Event_t moduleMainEvents[] = {
+const static ATCommand_Event_t moduleMainEvents[] = {
 				EVENTENTRY("ready", StephanoI_ATEvent_Startup)
-				EVENTENTRY("busy p…", StephanoI_ATEvent_Busy)
+				EVENTENTRY("busy p...", StephanoI_ATEvent_Busy)
 				EVENTENTRY("+BLEGATTSSRV", StephanoI_ATEvent_BLE_Peripheral_DiscoverService)
 				EVENTENTRY("+BLEGATTSCHAR", StephanoI_ATEvent_BLE_Peripheral_DiscoverCharacteristics)
 				EVENTENTRY("+BLECONN", StephanoI_ATEvent_BLE_Connection)

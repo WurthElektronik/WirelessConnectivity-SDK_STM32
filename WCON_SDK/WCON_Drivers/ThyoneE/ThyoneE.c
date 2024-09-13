@@ -33,14 +33,6 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef enum ThyoneE_Pin_t
-{
-	ThyoneE_Pin_Reset,
-	ThyoneE_Pin_Mode,
-	ThyoneE_Pin_Busy,
-	ThyoneE_Pin_Count
-} ThyoneE_Pin_t;
-
 #define CMD_WAIT_TIME 1500
 #define CMD_WAIT_TIME_STEP_MS 0
 #define CNFINVALID 255
@@ -50,8 +42,6 @@ typedef enum ThyoneE_Pin_t
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
 
 #define MAX_RADIO_PAYLOAD_LENGTH              (uint16_t)224
-#define MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX (uint16_t)223
-#define MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX   (uint16_t)220
 
 #define MAX_CMD_PAYLOAD_LENGTH                  (uint16_t)(MAX_RADIO_PAYLOAD_LENGTH + 6)
 
@@ -196,11 +186,11 @@ static ThyoneE_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LEN
  * @brief Pin configuration struct pointer.
  */
 static ThyoneE_Pins_t *ThyoneE_pinsP = NULL;
-
 /**
  * @brief Uart configuration struct pointer.
  */
 static WE_UART_t *ThyoneE_uartP = NULL;
+
 static uint8_t checksum = 0;
 static uint16_t rxByteCounter = 0;
 static uint16_t bytesToReceive = 0;
@@ -396,7 +386,7 @@ void ThyoneE_HandleRxByte(uint8_t *dataP, size_t size)
 		default:
 			/* data field */
 			rxByteCounter++;
-			if (rxByteCounter == bytesToReceive)
+			if (rxByteCounter >= bytesToReceive)
 			{
 				/* check CRC */
 				checksum = 0;
@@ -630,7 +620,12 @@ bool ThyoneE_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -661,7 +656,12 @@ bool ThyoneE_TransmitMulticast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -692,7 +692,12 @@ bool ThyoneE_TransmitUnicast(uint8_t *payloadP, uint16_t length)
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -707,7 +712,7 @@ bool ThyoneE_TransmitUnicast(uint8_t *payloadP, uint16_t length)
  */
 bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH_MULTICAST_EX ))
+	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
 	{
 		return false;
 	}
@@ -725,7 +730,12 @@ bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -740,7 +750,7 @@ bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
  */
 bool ThyoneE_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH_UNICAST_EX ))
+	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
 	{
 		return false;
 	}
@@ -758,7 +768,12 @@ bool ThyoneE_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16
 		return false;
 	}
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -854,7 +869,12 @@ bool ThyoneE_Set(ThyoneE_UserSettings_t userSetting, uint8_t *ValueP, uint8_t le
 	}
 
 	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SET_CNF, CMD_Status_Success, true);
+	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SET_CNF, CMD_Status_Success, true))
+	{
+		return false;
+	}
+
+	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, false);
 }
 
 /**
@@ -912,8 +932,8 @@ bool ThyoneE_SetBaudrateIndex(ThyoneE_BaudRateIndex_t baudrate, ThyoneE_UartPari
  */
 bool ThyoneE_SetRFChannel(uint8_t channel)
 {
-	/* permissible value for channel: 0-38 */
-	if (channel > 38)
+	/* permissible value for channel: 0-39 */
+	if (channel > 39)
 	{
 		return false;
 	}
@@ -932,8 +952,8 @@ bool ThyoneE_SetRFChannel(uint8_t channel)
  */
 bool ThyoneE_SetRFChannelRuntime(uint8_t channel)
 {
-	/* permissible value for channel: 0-38 */
-	if (channel > 38)
+	/* permissible value for channel: 0-39 */
+	if (channel > 39)
 	{
 		return false;
 	}
@@ -1412,6 +1432,7 @@ bool ThyoneE_GetState(ThyoneE_States_t *state)
 	{
 		return false;
 	}
+
 	/* wait for cnf */
 	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GETSTATE_CNF, CMD_Status_Success, true))
 	{
@@ -1877,6 +1898,7 @@ bool ThyoneE_GPIORemoteWrite(uint32_t destAddress, ThyoneE_GPIOControlBlock_t *c
 
 	txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_WRITE_REQ;
 	txPacket.Length = length;
+
 	memcpy(&txPacket.Data[0], &destAddress, 4);
 
 	FillChecksum(&txPacket);
@@ -1961,4 +1983,3 @@ bool ThyoneE_IsTransparentModeBusy()
 {
 	return WE_Pin_Level_High == WE_GetPinLevel(ThyoneE_pinsP->ThyoneE_Pin_Busy);
 }
-
