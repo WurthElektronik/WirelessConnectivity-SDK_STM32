@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -814,17 +814,17 @@ bool AdrasteaI_ATProprietary_ListTLSProfiles(AdrasteaI_ATProprietary_TLS_Profile
  *
  * @param[in] profileID Profile ID of TLS Profile.
  *
- * @param[in] CA Name of CA (optional pass NULL to skip).
+ * @param[in] CA Name of CA (optional pass empty string to skip).
  *
- * @param[in] CAPath Path of CA (optional pass NULL to skip).
+ * @param[in] CAPath Path of CA (optional pass empty string to skip).
  *
- * @param[in] deviceCert Name of device Certificate (optional pass NULL to skip).
+ * @param[in] deviceCert Name of device Certificate (optional pass empty string to skip).
  *
- * @param[in] deviceKey Name of device Key (optional pass NULL to skip).
+ * @param[in] deviceKey Name of device Key (optional pass empty string to skip).
  *
- * @param[in] pskID Name of PSK ID (optional pass NULL to skip).
+ * @param[in] pskID Name of PSK ID (optional pass empty string to skip).
  *
- * @param[in] pskKey Name of PSK Key (optional pass NULL to skip).
+ * @param[in] pskKey Name of PSK Key (optional pass empty string to skip).
  *
  * @return true if successful, false otherwise
  */
@@ -841,7 +841,7 @@ bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t p
 		return false;
 	}
 
-	if (CA != NULL)
+	if (strlen(CA) != 0)
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, CA, ATCOMMAND_ARGUMENT_DELIM))
 		{
@@ -850,7 +850,7 @@ bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t p
 
 		AdrasteaI_optionalParamsDelimCount = 1;
 
-		if (CAPath != NULL)
+		if (strlen(CAPath) != 0)
 		{
 			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, CAPath, ATCOMMAND_ARGUMENT_DELIM))
 			{
@@ -885,7 +885,7 @@ bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t p
 		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (deviceCert != NULL && deviceKey != NULL)
+	if ((strlen(deviceCert) != 0) && (strlen(deviceKey) != 0))
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, deviceCert, ATCOMMAND_ARGUMENT_DELIM))
 		{
@@ -917,7 +917,7 @@ bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t p
 		AdrasteaI_optionalParamsDelimCount++;
 	}
 
-	if (pskID != NULL && pskKey != NULL)
+	if ((strlen(pskID) != 0) && (strlen(pskKey) != 0))
 	{
 		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
 		{
@@ -1008,7 +1008,7 @@ bool AdrasteaI_ATProprietary_SetPDNParameters(AdrasteaI_ATProprietary_PDN_Parame
 		return false;
 	}
 
-	if (parameters.apnName != NULL)
+	if (strlen(parameters.apnName) != 0)
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, parameters.apnName, ATCOMMAND_ARGUMENT_DELIM))
 		{

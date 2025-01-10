@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -98,7 +98,7 @@ bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSI
  *
  * @param[in] mode Lock Mode. See AdrasteaI_ATSIM_Lock_Mode_t.
  *
- * @param[in] pin PIN (optional pass NULL to skip).
+ * @param[in] pin PIN (optional pass empty string to skip).
  *
  * @return true if successful, false otherwise
  */
@@ -125,7 +125,7 @@ bool AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_t facility, Adrast
 		return false;
 	}
 
-	if (pin != NULL)
+	if (strlen(pin) != 0)
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin, ATCOMMAND_STRING_TERMINATE))
 		{
@@ -279,7 +279,7 @@ bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t *statusP)
  *
  * @param[in] pin1 PIN1.
  *
- * @param[in] pin2 PIN2 (optional pass NULL to skip).
+ * @param[in] pin2 PIN2 (optional pass empty string to skip).
  *
  * @return true if successful, false otherwise
  */
@@ -296,7 +296,7 @@ bool AdrasteaI_ATSIM_EnterPin(AdrasteaI_ATSIM_PIN_t pin1, AdrasteaI_ATSIM_PIN_t 
 		return false;
 	}
 
-	if (pin2 != NULL)
+	if (strlen(pin2) != 0)
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin2, ATCOMMAND_STRING_TERMINATE))
 		{

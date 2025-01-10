@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -417,7 +417,7 @@ bool Calypso_SendRequest(char *data)
 	}
 
 #ifdef WE_DEBUG
-	printf("> %s", data);
+	WE_DEBUG_PRINT("> %s", data);
 #endif
 
 	Calypso_Transparent_Transmit(data, dataLength);
@@ -634,7 +634,7 @@ static void Calypso_HandleRxByte(uint8_t *dataP, size_t size)
 static void Calypso_HandleRxLine(char *rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-	printf("< %s\r\n", rxPacket);
+	WE_DEBUG_PRINT("< %s\r\n", rxPacket);
 #endif
 
 	/* Check if a custom line rx callback is specified and call it if so */

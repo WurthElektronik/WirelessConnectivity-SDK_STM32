@@ -1,6 +1,6 @@
 /**
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  **/
@@ -32,17 +32,17 @@
 #include <StephanoI/ATCommands/ATEvent.h>
 #include <StephanoI/StephanoI.h>
 
-const static ATCommand_Event_t MQTTSubEvents[] = {
+static const ATCommand_Event_t MQTTSubEvents[] = {
 				EVENTENTRY("OK", StephanoI_ATEvent_MQTT_PublishOK)
 				LASTEVENTENTRY("FAIL", StephanoI_ATEvent_MQTT_PublishFailed)
 		};
 
-const static ATCommand_Event_t WildCardSubEvents[] = {
+static const ATCommand_Event_t WildCardSubEvents[] = {
 				EVENTENTRY("CONNECT",StephanoI_ATEvent_Socket_Connected)
 				LASTEVENTENTRY("CLOSED", StephanoI_ATEvent_Socket_Closed)
 		};
 
-const static ATCommand_Event_t moduleMainEvents[] = {
+static const ATCommand_Event_t moduleMainEvents[] = {
 				EVENTENTRY("ready", StephanoI_ATEvent_Startup)
 				EVENTENTRY("busy p...", StephanoI_ATEvent_Busy)
 				EVENTENTRY("+BLEGATTSSRV", StephanoI_ATEvent_BLE_Peripheral_DiscoverService)

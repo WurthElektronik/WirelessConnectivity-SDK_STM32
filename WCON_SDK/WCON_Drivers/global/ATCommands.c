@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -324,7 +324,7 @@ bool ATCommand_AppendArgumentBoolean(char *pOutString, bool inBool, char delimit
  */
 bool ATCommand_GetNextArgumentString(char **pInArguments, char *pOutArgument, char delimiter, uint16_t maxLength)
 {
-	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	if ((NULL == pInArguments) || (NULL == pOutArgument) || (maxLength == 0))
 	{
 		return false;
 	}
@@ -335,7 +335,7 @@ bool ATCommand_GetNextArgumentString(char **pInArguments, char *pOutArgument, ch
 
 	while (true)
 	{
-		if (argumentLength > maxLength - 1)
+		if (argumentLength > (size_t)(maxLength - 1))
 		{
 			return false;
 		}
@@ -377,7 +377,7 @@ bool ATCommand_GetNextArgumentString(char **pInArguments, char *pOutArgument, ch
  */
 bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments, char *pOutArgument, char delimiter, uint16_t maxLength)
 {
-	if ((NULL == pInArguments) || (NULL == pOutArgument))
+	if ((NULL == pInArguments) || (NULL == pOutArgument) || (maxLength == 0))
 	{
 		return false;
 	}
@@ -388,7 +388,7 @@ bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char **pInArguments, c
 
 	while (true)
 	{
-		if (argumentLength > maxLength + 1)
+		if (argumentLength > (size_t)(maxLength + 1))
 		{
 			return false;
 		}

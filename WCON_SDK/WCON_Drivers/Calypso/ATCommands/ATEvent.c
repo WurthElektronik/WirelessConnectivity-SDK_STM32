@@ -1,6 +1,6 @@
 /**
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  **/
@@ -31,12 +31,12 @@
 #include <global/ATCommands.h>
 #include <Calypso/Calypso.h>
 
-const static ATCommand_Event_t generalSubEvents[] = {
+static const ATCommand_Event_t generalSubEvents[] = {
 				EVENTENTRY("reset_request", Calypso_ATEvent_GeneralResetRequest)
 				LASTEVENTENTRY("error", Calypso_ATEvent_GeneralError)
 		};
 
-const static ATCommand_Event_t wlanSubEvents[] = {
+static const ATCommand_Event_t wlanSubEvents[] = {
 				EVENTENTRY("connect", Calypso_ATEvent_WlanConnect)
 				EVENTENTRY("disconnect", Calypso_ATEvent_WlanDisconnect)
 				EVENTENTRY("sta_added", Calypso_ATEvent_WlanStaAdded)
@@ -52,12 +52,12 @@ const static ATCommand_Event_t wlanSubEvents[] = {
 				LASTEVENTENTRY("provisioning_profile_added", Calypso_ATEvent_WlanProvisioningProfileAdded)
 		};
 
-const static ATCommand_Event_t socketSubEvents[] = {
+static const ATCommand_Event_t socketSubEvents[] = {
 				EVENTENTRY("tx_failed", Calypso_ATEvent_SocketTxFailed)
 				LASTEVENTENTRY("async_event", Calypso_ATEvent_SocketAsyncEvent)
 		};
 
-const static ATCommand_Event_t netAppSubEvents[] = {
+static const ATCommand_Event_t netAppSubEvents[] = {
 				EVENTENTRY("ipv4_acquired", Calypso_ATEvent_NetappIP4Acquired)
 				EVENTENTRY("ipv6_acquired", Calypso_ATEvent_NetappIP6Acquired)
 				EVENTENTRY("ip_collision", Calypso_ATEvent_NetappIPCollision)
@@ -68,20 +68,20 @@ const static ATCommand_Event_t netAppSubEvents[] = {
 				LASTEVENTENTRY("ipv6_lost", Calypso_ATEvent_NetappIPv6Lost)
 		};
 
-const static ATCommand_Event_t mqttOperationSubEvents[] = {
+static const ATCommand_Event_t mqttOperationSubEvents[] = {
 				EVENTENTRY("connack", Calypso_ATEvent_MQTTConnack)
 				EVENTENTRY("puback", Calypso_ATEvent_MQTTPuback)
 				EVENTENTRY("suback", Calypso_ATEvent_MQTTSuback)
 				LASTEVENTENTRY("unsuback", Calypso_ATEvent_MQTTUnsuback)
 		};
 
-const static ATCommand_Event_t mqttSubEvents[] = {
+static const ATCommand_Event_t mqttSubEvents[] = {
 				PARENTEVENTENTRY("operation", mqttOperationSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				EVENTENTRY("recv", Calypso_ATEvent_MQTTRecv)
 				LASTEVENTENTRY("disconnect", Calypso_ATEvent_MQTTDisconnect)
 		};
 
-const static ATCommand_Event_t fatalErrorSubEvents[] = {
+static const ATCommand_Event_t fatalErrorSubEvents[] = {
 				EVENTENTRY("device_abort", Calypso_ATEvent_FatalErrorDeviceAbort)
 				EVENTENTRY("driver_abort", Calypso_ATEvent_FatalErrorDriverAbort)
 				EVENTENTRY("sync_loss", Calypso_ATEvent_FatalErrorSyncLost)
@@ -89,12 +89,12 @@ const static ATCommand_Event_t fatalErrorSubEvents[] = {
 				LASTEVENTENTRY("cmd_timout", Calypso_ATEvent_FatalErrorCmdTimeout)
 		};
 
-const static ATCommand_Event_t customSubEvents[] = {
+static const ATCommand_Event_t customSubEvents[] = {
 				EVENTENTRY("0", Calypso_ATEvent_CustomGPIO)
 				LASTEVENTENTRY("1", Calypso_ATEvent_CustomHTTPPost)
 		};
 
-const static ATCommand_Event_t moduleMainEvents[] = {
+static const ATCommand_Event_t moduleMainEvents[] = {
 				PARENTEVENTENTRY("+eventgeneral", generalSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				PARENTEVENTENTRY("+eventwlan", wlanSubEvents, ATCOMMAND_ARGUMENT_DELIM)
 				PARENTEVENTENTRY("+eventsock", socketSubEvents, ATCOMMAND_ARGUMENT_DELIM)

@@ -1,6 +1,6 @@
 ﻿/*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -295,7 +295,7 @@ static void HandleRxPacket(uint8_t *prxBuffer)
 /**
  * @brief Function that waits for the return value of ThyoneE (*_CNF), when a command (*_REQ) was sent before
  */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ThyoneE_CMD_Status_t expectedStatus, bool reset_confirmstate)
+static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, ThyoneE_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
 	uint32_t t0 = WE_GetTick();
 
@@ -490,7 +490,7 @@ bool ThyoneE_Init(WE_UART_t *uartP, ThyoneE_Pins_t *pinoutP, ThyoneE_OperationMo
 	/* reset module */
 	if (!ThyoneE_PinReset())
 	{
-		printf("Pin reset failed\n");
+		WE_DEBUG_PRINT("Pin reset failed\n");
 		ThyoneE_Deinit();
 		return false;
 	}

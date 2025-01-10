@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,14 +18,14 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
 
 /**
  * @file
- * @brief This is the main header file of the WE Wireless Connectivity SDK for STM32.
+ * @brief This is the main header file of the WE Wireless Connectivity SDK.
  */
 
 #ifndef GLOBAL_H_INCLUDED
@@ -36,29 +36,24 @@
 
 #include "global_types.h"
 
-#if defined(STM32L073xx)
-#include "global_L0xx.h"
-#elif defined(STM32F401xE)
-#include "global_F4xx.h"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifndef UNUSED
+#define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 #endif
 
 /**
  * @brief Driver version
  */
-#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {2,2,0}
+#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {2,3,0}
 
 #if defined(WE_DEBUG) || defined(WE_DEBUG_INIT)
-/* Redirect printf() to UART for testing/debugging purposes */
 #include "debug.h"
+#define WE_DEBUG_PRINT(...) printf(__VA_ARGS__)
 #else
-/* Ignore all occurrences of fprintf(), printf() and fflush() */
-#define fprintf(...)
-#define printf(...)
-#define fflush(...)
+#define WE_DEBUG_PRINT(...)
 #endif /* WE_DEBUG */
 
 /**
@@ -102,6 +97,9 @@ extern bool WE_GetDriverVersion(uint8_t *version);
  * @return true if request succeeded, false otherwise
  */
 extern bool WE_InitPins(WE_Pin_t pins[], uint8_t numPins);
+
+
+extern bool WE_Reconfigure(WE_Pin_t pin);
 
 /**
  * @brief Deinitialize a pin.

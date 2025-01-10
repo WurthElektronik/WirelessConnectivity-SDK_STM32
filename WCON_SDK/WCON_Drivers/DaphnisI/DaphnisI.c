@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -31,11 +31,14 @@
 #include <DaphnisI/DaphnisI.h>
 #include <global/global.h>
 #include <global/ATCommands.h>
+#include <DaphnisI/ATCommands/ATDevice.h>
 #include <stdio.h>
 
 static void DaphnisI_HandleRxByte(uint8_t *dataP, size_t size);
 static void DaphnisI_HandleRxLine(char *rxPacket, uint16_t rxLength);
+static bool DaphnisI_Transparent_Transmit(const char *data, uint16_t dataLength);
 static WE_UART_HandleRxByte_t byteRxCallback = DaphnisI_HandleRxByte;
+static bool DaphnisI_ATEvent_ParseEventType(char **pAtCommand, DaphnisI_ATEvent_t *pEvent);
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
@@ -79,7 +82,14 @@ static DaphnisI_ErrorMessage_t DaphnisI_lastError = DaphnisI_ErrorMessage_Invali
 /**
  * @brief Confirmation status of the current (last issued) command.
  */
-static DaphnisI_CNFStatus_t DaphnisI_cmdConfirmStatus;
+static volatile DaphnisI_CNFStatus_t DaphnisI_cmdConfirmStatus;
+
+#define EVENT_BUFFER_LENGTH 3
+
+/**
+ * @brief Last received events.
+ */
+static volatile DaphnisI_ATEvent_t DaphnisI_events[EVENT_BUFFER_LENGTH];
 
 /**
  * @brief Data buffer for received data.
@@ -102,20 +112,20 @@ static bool DaphnisI_eolChar1Found = false;
  * @brief First EOL character expected for responses received from DaphnisI.
  * @see DaphnisI_eolChar2, DaphnisI_twoEolCharacters, DaphnisI_SetEolCharacters()
  */
-static uint8_t DaphnisI_eolChar1 = '\r';
+static const uint8_t DaphnisI_eolChar1 = '\r';
 
 /**
  * @brief Second EOL character expected for responses received from DaphnisI.
  * Only applicable if DaphnisI_twoEolCharacters is true.
  * @see DaphnisI_eolChar1, DaphnisI_twoEolCharacters, DaphnisI_SetEolCharacters()
  */
-static uint8_t DaphnisI_eolChar2 = '\n';
+static const uint8_t DaphnisI_eolChar2 = '\n';
 
 /**
  * @brief Controls whether a line of text received from DaphnisI is considered complete after one or two EOL characters.
  * @see DaphnisI_eolChar1, DaphnisI_eolChar2, DaphnisI_SetEolCharacters()
  */
-static bool DaphnisI_twoEolCharacters = true;
+static const bool DaphnisI_twoEolCharacters = true;
 
 /**
  * @brief Pin configuration struct pointer.
@@ -134,7 +144,7 @@ static WE_UART_t *DaphnisI_uartP = NULL;
  *
  * @see DaphnisI_SetTimingParameters
  */
-static uint32_t DaphnisI_waitTimeStepUsec = 5 * 1000;
+static uint32_t DaphnisI_waitTimeStepUsec = 1000;
 
 /**
  * @brief Minimum interval (microseconds) between subsequent commands sent to DaphnisI
@@ -175,7 +185,67 @@ static const char *DaphnisI_ErrorMessage_Strings[DaphnisI_ErrorMessage_Count] = 
 		"NO_NETWORK_JOINED",
 		"RX_ERROR",
 		"DUTYCYCLE_RESTRICTED",
-		"CRYPTO_ERROR", };
+		"CRYPTO_ERROR",
+#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+		"INVALID_MODE",
+		"INVALID_ROLE"
+#endif
+};
+
+static const ATCommand_Event_t LoRaWANContextSubEvents[] = {
+				EVENTENTRY("NVM_DATA_STORED", DaphnisI_ATEvent_LoRaWAN_ContextState_Stored)
+				LASTEVENTENTRY("NVM_DATA_RESTORED", DaphnisI_ATEvent_LoRaWAN_ContextState_Restored)
+		};
+
+static const ATCommand_Event_t LoRaWANJoinSubEvents[] = {
+				EVENTENTRY("JOINED", DaphnisI_ATEvent_LoRaWAN_JoinState_Success)
+				LASTEVENTENTRY("JOIN_FAILED", DaphnisI_ATEvent_LoRaWAN_JoinState_Fail)
+		};
+
+static const ATCommand_Event_t SysnotfSubEvents[] = {
+				LASTEVENTENTRY("READY", DaphnisI_ATEvent_StartUp)
+		};
+
+#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+static const ATCommand_Event_t P2PTxConfSubEvents[] = {
+				EVENTENTRY("SUCCESS", DaphnisI_ATEvent_P2P_TxConf_Success)
+				EVENTENTRY("ERROR", DaphnisI_ATEvent_P2P_TxConf_Error)
+				LASTEVENTENTRY("BUSY", DaphnisI_ATEvent_P2P_TxConf_Busy)
+		};
+
+static const ATCommand_Event_t P2PTxRespSubEvents[] = {
+				EVENTENTRY("SENT", DaphnisI_ATEvent_P2P_TxResp_Success)
+				EVENTENTRY("ACK", DaphnisI_ATEvent_P2P_TxResp_Success)
+				EVENTENTRY("NACK,0", DaphnisI_ATEvent_P2P_TxResp_Fail_Timeout)
+				EVENTENTRY("NACK,1", DaphnisI_ATEvent_P2P_TxResp_Fail_NACK_Received)
+				LASTEVENTENTRY("NACK,2", DaphnisI_ATEvent_P2P_TxResp_Fail_Internal_Error)
+		};
+#endif
+
+static const ATCommand_Event_t moduleMainEvents[] = {
+				PARENTEVENTENTRY("+CS", LoRaWANContextSubEvents, ATCOMMAND_STRING_TERMINATE)
+				PARENTEVENTENTRY("+JOIN", LoRaWANJoinSubEvents, ATCOMMAND_STRING_TERMINATE)
+				PARENTEVENTENTRY("+SYSNOTF", SysnotfSubEvents, ATCOMMAND_STRING_TERMINATE)
+#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+				PARENTEVENTENTRY("+P2PTXCONF", P2PTxConfSubEvents, ATCOMMAND_STRING_TERMINATE)
+				EVENTENTRY("+P2PTXTIME", DaphnisI_ATEvent_P2P_TxTime)
+				PARENTEVENTENTRY("+P2PTXRESP", P2PTxRespSubEvents, ATCOMMAND_STRING_TERMINATE)
+				EVENTENTRY("+P2PRXDATA", DaphnisI_ATEvent_P2P_RxData)
+				EVENTENTRY("+P2PGPIORCFGSET", DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Set_Response)
+				EVENTENTRY("+P2PGPIORCFGGET", DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Get_Response)
+				EVENTENTRY("+P2PGPIORVALUESET", DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Set_Response)
+				EVENTENTRY("+P2PGPIORVALUEGET", DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Get_Response)
+				EVENTENTRY("+P2PGPIORCFGCHANGED", DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Changed)
+				EVENTENTRY("+P2PGPIORVALUECHANGED", DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Changed)
+#endif
+				EVENTENTRY("+RXINFO", DaphnisI_ATEvent_LoRaWAN_RxInfo)
+				EVENTENTRY("+RXDATA", DaphnisI_ATEvent_LoRaWAN_RxData)
+				EVENTENTRY("+TXCONF", DaphnisI_ATEvent_LoRaWAN_TxConf)
+				EVENTENTRY("+CLASSUPDATE", DaphnisI_ATEvent_LoRaWAN_Class)
+				EVENTENTRY("+BEACONINFO", DaphnisI_ATEvent_LoRaWAN_BeaconInfo)
+				EVENTENTRY("+BEACONLOST", DaphnisI_ATEvent_LoRaWAN_BeaconLost)
+				LASTEVENTENTRY("+BEACONNOTRECEIVED", DaphnisI_ATEvent_LoRaWAN_BeaconNotReceived)
+		};
 
 /**
  * @brief Is called when a complete line has been received.
@@ -186,7 +256,7 @@ static const char *DaphnisI_ErrorMessage_Strings[DaphnisI_ErrorMessage_Count] = 
 static void DaphnisI_HandleRxLine(char *rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-	printf("< %s\r\n", rxPacket);
+	WE_DEBUG_PRINT("< %s\r\n", rxPacket);
 #endif
 
 	if (DaphnisI_requestPending)
@@ -240,11 +310,27 @@ static void DaphnisI_HandleRxLine(char *rxPacket, uint16_t rxLength)
 
 	if ('+' == rxPacket[0])
 	{
+		DaphnisI_ATEvent_t event;
+		char *bufferP = DaphnisI_rxBuffer;
+		if (!DaphnisI_ATEvent_ParseEventType(&bufferP, &event))
+		{
+			return;
+		}
+
+		for(uint8_t i=0; i<EVENT_BUFFER_LENGTH; i++)
+		{
+			if(DaphnisI_events[i] == DaphnisI_ATEvent_Invalid)
+			{
+				DaphnisI_events[i] = event;
+				break;
+			}
+		}
+
 		/* An event occurred. Execute callback (if specified). */
 		if (NULL != DaphnisI_eventCallback)
 		{
 			DaphnisI_executingEventCallback = true;
-			DaphnisI_eventCallback(DaphnisI_rxBuffer);
+			DaphnisI_eventCallback(event, bufferP);
 			DaphnisI_executingEventCallback = false;
 		}
 	}
@@ -318,15 +404,6 @@ static void DaphnisI_HandleRxByte(uint8_t *dataP, size_t size)
 	}
 }
 
-/**
- * @brief Initializes the serial communication with the module
- *
- * @param[in] uartP:          definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] eventCallback  Function pointer to event handler (optional)
-
- * @return true if successful, false otherwise
- */
 bool DaphnisI_Init(WE_UART_t *uartP, DaphnisI_Pins_t *pinoutP, DaphnisI_EventCallback_t eventCallback)
 {
 	DaphnisI_requestPending = false;
@@ -344,16 +421,17 @@ bool DaphnisI_Init(WE_UART_t *uartP, DaphnisI_Pins_t *pinoutP, DaphnisI_EventCal
 	DaphnisI_pinsP->DaphnisI_Pin_Boot.type = WE_Pin_Type_Output;
 	DaphnisI_pinsP->DaphnisI_Pin_WakeUp.type = WE_Pin_Type_Output;
 	DaphnisI_pinsP->DaphnisI_Pin_Reset.type = WE_Pin_Type_Output;
-	DaphnisI_pinsP->DaphnisI_Pin_StatusInd0.type = WE_Pin_Type_Input;
-	DaphnisI_pinsP->DaphnisI_Pin_StatusInd1.type = WE_Pin_Type_Input;
 
 	WE_Pin_t pins[sizeof(DaphnisI_Pins_t) / sizeof(WE_Pin_t)];
 	uint8_t pin_count = 0;
 	memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_Boot, sizeof(WE_Pin_t));
 	memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_WakeUp, sizeof(WE_Pin_t));
 	memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_Reset, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_StatusInd0, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_StatusInd1, sizeof(WE_Pin_t));
+
+	for(uint8_t i=0; i<EVENT_BUFFER_LENGTH; i++)
+	{
+		DaphnisI_events[i] = DaphnisI_ATEvent_Invalid;
+	}
 
 	if (!WE_InitPins(pins, pin_count))
 	{
@@ -372,6 +450,7 @@ bool DaphnisI_Init(WE_UART_t *uartP, DaphnisI_Pins_t *pinoutP, DaphnisI_EventCal
 	{
 		return false;
 	}
+
 	WE_Delay(10);
 
 	/* reset module */
@@ -383,14 +462,29 @@ bool DaphnisI_Init(WE_UART_t *uartP, DaphnisI_Pins_t *pinoutP, DaphnisI_EventCal
 	/* Set response timeouts */
 	DaphnisI_timeouts[DaphnisI_Timeout_General] = 1000;
 
+#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+	DaphnisI_timeouts[DaphnisI_Timeout_P2P_Data] = 10000;
+	DaphnisI_timeouts[DaphnisI_Timeout_P2P_Remote_GPIO] = 3000;
+#endif
+
+	DaphnisI_FW_Version_t fw;
+	DaphnisI_LoRaWAN_LL_Version_t ll;
+	DaphnisI_LoRaWAN_RP_Version_t rp;
+
+	if(!DaphnisI_GetGenericVersion(&fw, &ll, &rp))
+	{
+		return false;
+	}
+
+	if(FW(fw.Major, fw.Minor, fw.Patch) < DAPHNISI_MIN_FW_VER)
+	{
+		WE_DEBUG_PRINT("Please update the module to the selected version.\r\n");
+		return false;
+	}
+
 	return true;
 }
 
-/**
- * @brief Deinitializes the serial communication with the module.
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_Deinit(void)
 {
 	DaphnisI_eventCallback = NULL;
@@ -414,7 +508,7 @@ bool DaphnisI_Deinit(void)
  *
  * @return true if successful, false otherwise
  */
-bool DaphnisI_Transparent_Transmit(const char *data, uint16_t dataLength)
+static bool DaphnisI_Transparent_Transmit(const char *data, uint16_t dataLength)
 {
 	if ((data == NULL) || (dataLength == 0))
 	{
@@ -423,26 +517,25 @@ bool DaphnisI_Transparent_Transmit(const char *data, uint16_t dataLength)
 	return DaphnisI_uartP->uartTransmit((uint8_t*) data, dataLength);
 }
 
-/**
- * @brief Performs a reset of the module using the reset pin.
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_PinReset(void)
 {
 	if (!WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_Reset, WE_Pin_Level_Low))
 	{
 		return false;
 	}
+
 	WE_Delay(5);
-	return WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_Reset, WE_Pin_Level_High);
+
+	if(!WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_Reset, WE_Pin_Level_High))
+	{
+		return false;
+	}
+
+	DaphnisI_ATEvent_t startUpEvent = DaphnisI_ATEvent_StartUp;
+
+	return (DaphnisI_WaitForEvents(DAPHNISI_STARTUP_TIME, &startUpEvent, 1, true) == DaphnisI_ATEvent_StartUp);
 }
 
-/**
- * @brief Wakes the module up from power save mode using the wake up pin.
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_PinWakeUp(void)
 {
 	if (!WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_WakeUp, WE_Pin_Level_High))
@@ -453,38 +546,16 @@ bool DaphnisI_PinWakeUp(void)
 	return WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_WakeUp, WE_Pin_Level_Low);
 }
 
-/**
- * @brief Sets pin level to high or low.
- *
- * @param[in] pin Output pin to be set
- * @param[in] level Output level to be set
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_SetPin(WE_Pin_t pin, WE_Pin_Level_t level)
 {
 	return WE_SetPin(pin, level);
 }
 
-/**
- * @brief Read current pin level.
- *
- * @param[in] pin Pin to be read
- *
- * @return Current level of pin
- */
 WE_Pin_Level_t DaphnisI_GetPinLevel(WE_Pin_t pin)
 {
 	return WE_GetPinLevel(pin);
 }
 
-/**
- * @brief Sends the supplied AT command to the module
- *
- * @param[in] data AT command to send. Note that the command has to end with "\r\n\0".
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_SendRequest(char *data)
 {
 	if (DaphnisI_executingEventCallback)
@@ -524,7 +595,7 @@ bool DaphnisI_SendRequest(char *data)
 	}
 
 #ifdef WE_DEBUG
-	printf("> %s", data);
+	WE_DEBUG_PRINT("> %s", data);
 #endif
 
 	DaphnisI_Transparent_Transmit(data, dataLength);
@@ -532,15 +603,6 @@ bool DaphnisI_SendRequest(char *data)
 	return true;
 }
 
-/**
- * @brief Waits for the response from the module after a request.
- *
- * @param[in] maxTimeMs Maximum wait time in milliseconds
- * @param[in] expectedStatus Status to wait for
- * @param[out] pOutResponse Received response text (if any) will be written to this buffer (optional)
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_WaitForConfirm(uint32_t maxTimeMs, DaphnisI_CNFStatus_t expectedStatus, char *pOutResponse)
 {
 	DaphnisI_cmdConfirmStatus = DaphnisI_CNFStatus_Invalid;
@@ -588,13 +650,49 @@ bool DaphnisI_WaitForConfirm(uint32_t maxTimeMs, DaphnisI_CNFStatus_t expectedSt
 	return false;
 }
 
-/**
- * @brief Returns the code of the last error (if any).
- *
- * @param[out] lastError value of last error (if any). See DaphnisI_ErrorMessage_t.
- *
- * @return true if successful, false otherwise
- */
+DaphnisI_ATEvent_t DaphnisI_WaitForEvents(uint32_t maxTimeMs, DaphnisI_ATEvent_t *expectedEvents, uint8_t eventsLength, bool resetEventsBuffer)
+{
+
+	if(resetEventsBuffer)
+	{
+		for(uint8_t i=0; i<EVENT_BUFFER_LENGTH; i++)
+		{
+			DaphnisI_events[i] = DaphnisI_ATEvent_Invalid;
+		}
+	}
+
+	uint32_t t0 = WE_GetTick();
+
+	while (1)
+	{
+
+		for(uint8_t i=0; i<EVENT_BUFFER_LENGTH; i++)
+		{
+			for(uint8_t j=0;j<eventsLength;j++)
+			{
+				if(DaphnisI_events[i] == expectedEvents[j])
+				{
+					return expectedEvents[j];
+				}
+			}
+		}
+
+		uint32_t now = WE_GetTick();
+		if (now - t0 > maxTimeMs)
+		{
+			/* Timeout */
+			break;
+		}
+
+		if (DaphnisI_waitTimeStepUsec > 0)
+		{
+			WE_DelayMicroseconds(DaphnisI_waitTimeStepUsec);
+		}
+	}
+
+	return DaphnisI_ATEvent_Invalid;
+}
+
 bool DaphnisI_GetLastError(DaphnisI_ErrorMessage_t *lastError)
 {
 	if (NULL == lastError || DaphnisI_ErrorMessage_Invalid == DaphnisI_lastError)
@@ -607,16 +705,6 @@ bool DaphnisI_GetLastError(DaphnisI_ErrorMessage_t *lastError)
 	return true;
 }
 
-/**
- * @brief Set timing parameters used by the DaphnisI driver.
- *
- * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
- *
- * @param[in] waitTimeStepUsec Time step (microseconds) when waiting for responses from DaphnisI.
- * @param[in] minCommandIntervalUsec Minimum interval (microseconds) between subsequent commands sent to DaphnisI.
- *
- * @return true if successful, false otherwise
- */
 bool DaphnisI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
 	DaphnisI_waitTimeStepUsec = waitTimeStepUsec;
@@ -624,39 +712,35 @@ bool DaphnisI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommand
 	return true;
 }
 
-/**
- * @brief Sets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- * @param[in] timeout Timeout in milliseconds
- */
 void DaphnisI_SetTimeout(DaphnisI_Timeout_t type, uint32_t timeout)
 {
 	DaphnisI_timeouts[type] = timeout;
 }
 
-/**
- * @brief Gets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- *
- * @return Timeout in milliseconds
- */
 uint32_t DaphnisI_GetTimeout(DaphnisI_Timeout_t type)
 {
 	return DaphnisI_timeouts[type];
 }
 
 /**
- * @brief Sets EOL character(s) used for interpreting responses from DaphnisI.
+ * @brief Parses the received AT command and returns the corresponding DaphnisI_ATEvent_t.
  *
- * @param[in] eol1 First EOL character
- * @param[in] eol2 Second EOL character (is only used if twoEolCharacters is true)
- * @param[in] twoEolCharacters Controls whether the two EOL characters eol1 and eol2 (true) or only eol1 (false) is used
+ * @param[in,out] pAtCommand AT command starting with '+'
+ * @param[out] pEvent DaphnisI_ATEvent_t representing the event
+ *
+ * @return true if parsed successfully, false otherwise
  */
-void DaphnisI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
+static bool DaphnisI_ATEvent_ParseEventType(char **pAtCommand, DaphnisI_ATEvent_t *pEvent)
 {
-	DaphnisI_eolChar1 = eol1;
-	DaphnisI_eolChar2 = eol2;
-	DaphnisI_twoEolCharacters = twoEolCharacters;
+	char delimiters[] = {
+			ATCOMMAND_EVENT_DELIM,
+			ATCOMMAND_STRING_TERMINATE };
+
+	if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*) pEvent))
+	{
+		*pEvent = DaphnisI_ATEvent_Invalid;
+		return false;
+	}
+
+	return true;
 }

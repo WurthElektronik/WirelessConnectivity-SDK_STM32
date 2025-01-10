@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -51,9 +51,9 @@ static const char *AdrasteaI_ATMQTT_Event_Strings[AdrasteaI_ATMQTT_Event_NumberO
  *
  * @param[in] addr Broker ip address or URL.
  *
- * @param[in] username Username if authentication is required (optional pass NULL to skip).
+ * @param[in] username Username if authentication is required (optional pass empty string to skip).
  *
- * @param[in] password Password if authentication is required (optional pass NULL to skip).
+ * @param[in] password Password if authentication is required (optional pass empty string to skip).
  *
  * @return true if successful, false otherwise
  */
@@ -80,7 +80,7 @@ bool AdrasteaI_ATMQTT_ConfigureNodes(AdrasteaI_ATMQTT_Conn_ID_t connID, Adrastea
 		return false;
 	}
 
-	if (username != NULL && password != NULL)
+	if ((strlen(username) != 0) && (strlen(password) != 0))
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_ARGUMENT_DELIM))
 		{

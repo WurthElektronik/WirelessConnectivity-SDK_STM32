@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -346,10 +346,10 @@ bool StephanoI_SendRequest_ex(uint8_t *data, size_t dataLength)
 	}
 
 #ifdef WE_DEBUG
-	printf("> %.*s", dataLength, data);
+	WE_DEBUG_PRINT("> %.*s", dataLength, data);
 	if ((data[dataLength - 2] != '\r') && (data[dataLength - 1] != '\n'))
 	{
-		printf("\r\n");
+		WE_DEBUG_PRINT("\r\n");
 	}
 #endif
 
@@ -573,7 +573,7 @@ static void StephanoI_HandleRxByte(uint8_t *dataP, size_t size)
 static void StephanoI_HandleRxLine(char *rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-	printf("< %s\r\n", rxPacket);
+	WE_DEBUG_PRINT("< %s\r\n", rxPacket);
 #endif
 
 	/* confirmations */

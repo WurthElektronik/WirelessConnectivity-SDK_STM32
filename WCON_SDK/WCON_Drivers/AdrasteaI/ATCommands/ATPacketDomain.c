@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -340,7 +340,7 @@ bool AdrasteaI_ATPacketDomain_DefinePDPContext(AdrasteaI_ATPacketDomain_PDP_Cont
 		return false;
 	}
 
-	if (context.apnName != NULL)
+	if (strlen(context.apnName) != 0)
 	{
 		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, context.apnName, ATCOMMAND_STRING_TERMINATE))
 		{

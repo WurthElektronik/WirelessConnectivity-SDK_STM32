@@ -42,6 +42,7 @@ const struct _json_value json_value_none;
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <global/global.h>
 
 typedef unsigned int json_uchar;
 
@@ -100,11 +101,14 @@ typedef struct
 
 static void* default_alloc(size_t size, int zero, void *user_data)
 {
+	UNUSED(user_data);
+	UNUSED(zero);
 	return zero ? calloc(1, size) : malloc(size);
 }
 
 static void default_free(void *ptr, void *user_data)
 {
+	UNUSED(user_data);
 	free(ptr);
 }
 
@@ -251,10 +255,14 @@ json_value* json_parse_ex(json_settings *settings, const json_char *json, size_t
 	memcpy(&state.settings, settings, sizeof(json_settings));
 
 	if (!state.settings.mem_alloc)
+	{
 		state.settings.mem_alloc = default_alloc;
+	}
 
 	if (!state.settings.mem_free)
+	{
 		state.settings.mem_free = default_free;
+	}
 
 	memset(&state.uint_max, 0xFF, sizeof(state.uint_max));
 	memset(&state.ulong_max, 0xFF, sizeof(state.ulong_max));
@@ -744,6 +752,7 @@ json_value* json_parse_ex(json_settings *settings, const json_char *json, size_t
 							flags &= ~flag_need_comma;
 							break;
 						}
+						//fall through is intended here
 
 					default:
 						sprintf(error, "%d:%d: Unexpected `%c` in object",

@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -120,7 +120,7 @@ extern bool ThebeII_Transparent_Transmit(const uint8_t *data, uint16_t dataLengt
 
 extern bool ThebeII_Shutdown(void);
 extern bool ThebeII_Standby(void);
-extern bool ThebeII_PinWakeup();
+extern bool ThebeII_PinWakeup(bool standby);
 
 /* Read the non-volatile settings */
 extern bool ThebeII_Get(ThebeII_UserSettings_t us, uint8_t *response, uint8_t *response_length);

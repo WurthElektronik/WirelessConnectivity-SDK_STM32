@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -575,7 +575,7 @@ static void ProteusII_HandleRxByte(uint8_t *dataP, size_t size)
  * @brief Function that waits for the return value of ProteusII (*_CNF),
  * when a command (*_REQ) was sent before.
  */
-static bool Wait4CNF(int maxTimeMs, uint8_t expectedCmdConfirmation, ProteusII_CMD_Status_t expectedStatus, bool resetConfirmState)
+static bool Wait4CNF(uint32_t maxTimeMs, uint8_t expectedCmdConfirmation, ProteusII_CMD_Status_t expectedStatus, bool resetConfirmState)
 {
 	int count = 0;
 	int timeStepMs = 5; /* 5ms */
@@ -713,7 +713,7 @@ bool ProteusII_Init(WE_UART_t *uartP, ProteusII_Pins_t *pinoutP, ProteusII_Opera
 	/* reset module */
 	if (!ProteusII_PinReset())
 	{
-		printf("Pin reset failed\n");
+		WE_DEBUG_PRINT("Pin reset failed\n");
 		ProteusII_Deinit();
 		return false;
 	}

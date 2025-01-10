@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2024 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -334,7 +334,7 @@ static void HandleRxPacket(uint8_t *rxBuffer)
 /**
  * @brief Function that waits for the return value of MetisE (*_CNF), when a command (*_REQ) was sent before
  */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, MetisE_CMD_Status_t expectedStatus, bool reset_confirmstate)
+static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, MetisE_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
 	int count = 0;
 	int time_step_ms = 5; /* 5ms */
@@ -526,19 +526,6 @@ bool MetisE_Init(WE_UART_t *uartP, MetisE_Pins_t *pinoutP, void (*RXcb)(MetisE_R
 	MetisE_uartP = uartP;
 	if (!MetisE_uartP->uartInit(MetisE_uartP->baudrate, MetisE_uartP->flowControl, MetisE_uartP->parity, &byteRxCallback))
 	{
-		return false;
-	}
-	WE_Delay(10);
-
-	/* reset module */
-	if (MetisE_PinReset())
-	{
-		WE_Delay(300);
-	}
-	else
-	{
-		printf("Pin reset failed\n");
-		MetisE_Deinit();
 		return false;
 	}
 
@@ -745,7 +732,7 @@ static bool MetisE_GetSetting(MetisE_UserSettings_t us, bool getDefault, uint8_t
 	}
 
 	MetisE_CMD_Option_t option;
-	MetisE_GetOptionPointer(&rxPacket, us, &option);
+	MetisE_GetOptionPointer(&rxPacket, (MetisE_Options_t)us, &option);
 
 	if(MetisE_OPTION_Invalid == option.OptionByte)
 	{
@@ -1345,7 +1332,7 @@ bool MetisE_Transmit(MetisE_wmBusMode_t mode, MetisE_wmBusFrameFormat_t frameFor
 
 	if (length > MAX_PAYLOAD_LENGTH)
 	{
-		printf("Data exceeds maximal payload length\n");
+		WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
 		return false;
 	}
 

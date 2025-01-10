@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -735,7 +735,7 @@ bool decodeBase64, uint16_t *bytesRead, char *data)
 	const char *cmd = "+fileread:";
 	const size_t cmdLength = strlen(cmd);
 
-	if (0 != strncmp(*pAtCommand, cmd, cmdLength))
+	if ((0 != strncmp(*pAtCommand, cmd, cmdLength)) || (bytesRead == NULL) || (data == NULL) )
 	{
 		return false;
 	}
@@ -753,7 +753,7 @@ bool decodeBase64, uint16_t *bytesRead, char *data)
 		return false;
 	}
 
-	if (bytesRead >= 0)
+	if (*bytesRead > 0)
 	{
 		if (decodeBase64)
 		{

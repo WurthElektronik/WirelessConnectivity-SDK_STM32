@@ -5,14 +5,17 @@ Products supported by this SDK:
 
 - Adrastea-I
 - Calypso
-- Daphnis
+- Cordelia-I
+- Daphnis-I
 - Metis (-I and -II)
 - Metis-e
 - Proteus-e
 - Proteus-II
 - Proteus-III
+- Skoll-I
 - Stephano-I
 - Tarvos-III
+- Tarvos-e
 - Telesto-III
 - Thebe-II
 - Thebe-II India (2609031181060)

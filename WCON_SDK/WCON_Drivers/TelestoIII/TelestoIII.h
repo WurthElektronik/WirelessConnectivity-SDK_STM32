@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -104,7 +104,7 @@ extern bool TelestoIII_Transparent_Transmit(const uint8_t *data, uint16_t dataLe
 
 extern bool TelestoIII_Shutdown(void);
 extern bool TelestoIII_Standby(void);
-extern bool TelestoIII_PinWakeup();
+extern bool TelestoIII_PinWakeup(bool standby);
 
 /* Read the non-volatile settings */
 extern bool TelestoIII_Get(TelestoIII_UserSettings_t us, uint8_t *response, uint8_t *response_length);

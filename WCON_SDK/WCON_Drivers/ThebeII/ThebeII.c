@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -168,7 +168,7 @@ static ThebeII_Pins_t *ThebeII_pinsP = NULL;
  */
 static WE_UART_t *ThebeII_uartP = NULL;
 static uint8_t checksum = 0;
-static uint8_t rxByteCounter = 0;
+static uint16_t rxByteCounter = 0;
 static uint8_t bytesToReceive = 0;
 static uint8_t rxBuffer[sizeof(ThebeII_CMD_Frame_t)]; /* data buffer for RX */
 static void (*RxCallback)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t); /* callback function */
@@ -294,7 +294,7 @@ static void HandleRxPacket(uint8_t *rxBuffer)
 /**
  * @brief Function that waits for the return value of ThebeII (*_CNF), when a command (*_REQ) was sent before
  */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, ThebeII_CMD_Status_t expectedStatus, bool reset_confirmstate)
+static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, ThebeII_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
 	int count = 0;
 	int time_step_ms = 5; /* 5ms */
@@ -493,7 +493,7 @@ bool ThebeII_Init(WE_UART_t *uartP, ThebeII_Pins_t *pinoutP, ThebeII_AddressMode
 	}
 	else
 	{
-		printf("Pin Reset failed\n");
+		WE_DEBUG_PRINT("Pin Reset failed\n");
 		ThebeII_Deinit();
 		return false;
 	}
@@ -521,12 +521,15 @@ bool ThebeII_Deinit()
 }
 
 /**
- * @brief Wakeup the ThebeII from standby or shutdown by pin
+ * @brief Wakeup the ThebeII from standby or shutdown mode by pin
+ *
+ * @param[in] standby:       true, if wake-up from standby mode is made
+ * 							 false, if wake-up from shutdown mode is made
  *
  * @return true if wakeup succeeded,
  *         false otherwise
  */
-bool ThebeII_PinWakeup()
+bool ThebeII_PinWakeup(bool standby)
 {
 	if (!WE_SetPin(ThebeII_pinsP->ThebeII_Pin_SleepWakeUp, WE_Pin_Level_High))
 	{
@@ -547,7 +550,7 @@ bool ThebeII_PinWakeup()
 	}
 
 	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEBEII_CMD_RESET_IND, CMD_Status_Success, false);
+	return Wait4CNF(CMD_WAIT_TIME, standby?THEBEII_CMD_STANDBY_IND:THEBEII_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -1407,7 +1410,7 @@ bool ThebeII_Transmit(uint8_t *payload, uint8_t length)
 
 	if (length > MAX_PAYLOAD_LENGTH)
 	{
-		printf("Data exceeds maximal payload length\n");
+		WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
 		return false;
 	}
 
@@ -1448,7 +1451,7 @@ bool ThebeII_Transmit_Extended(uint8_t *payload, uint8_t length, uint8_t channel
 
 	if (length > MAX_PAYLOAD_LENGTH)
 	{
-		printf("Data exceeds maximal payload length\n");
+		WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
 		return false;
 	}
 

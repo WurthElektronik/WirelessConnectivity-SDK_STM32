@@ -5,16 +5,14 @@ It implements the UART communication (UART1, DMA-based and/or interrupt-based) w
 
 For more details, please refer to the application note [ANR008_WirelessConnectivity_Software_Development_Kit_SDK](http://www.we-online.com/ANR008).
 
-# Pinout
+# Module pinout
 
-The following sections contain wiring instructions for each radio module.
+The following sections contain wiring instructions for each radio module. Note that some connections are optional and may not be required depending on the application.
 
-Note that some connections are optional and may not be required depending on the application.
-
-## Adrastea pinout
+## Adrastea-I pinout
 ```
  _____________________           ______________________
-|        STM32        |         |       Adrastea       |
+|        STM32        |         |       Adrastea-I     |
 |                     |         |                      |
 |         Reset (PA10)|-------->|Reset                 | 
 |                     |         |                      |  
@@ -25,12 +23,12 @@ Note that some connections are optional and may not be required depending on the
 |       UART1 RX (PB7)|<--------|UART TX               |
 |_____________________|         |______________________|
 ```
-**Note** Please make sure to to match the voltage level according to the module since the GPIO pins in Adrastea are 1.8v (In case of using the evaluation board there is already a level shifter to 1.8v on the UART pins only).
+**Note** Please make sure to match the voltage level according to the module since the GPIO pins in Adrastea-I are 1.8V (In case of using the evaluation board there is already a level shifter to 1.8V on the UART pins only).
 
-## Calypso pinout
+## Calypso-I pinout
 ```
  _____________________           ______________________
-|        STM32        |         |       Calypso        |
+|        STM32        |         |       Calypso-I      |
 |                     |         |                      |
 |         Reset (PA10)|-------->|Reset                 |
 |                     |         |                      |
@@ -56,10 +54,39 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
-## Daphnis pinout
+## Cordelia-I pinout
 ```
  _____________________           ______________________
-|        STM32        |         |       Daphnis        |
+|        STM32        |         |      Cordelia-I      |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|        Wake_up (PA9)|-------->|Wake_up               |
+|                     |         |                      |
+|           Boot (PA7)|-------->|Boot                  |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|                     |         |                      |
+|     APP_MODE_0 (PA0)|-------->|APP_MODE_0            |
+|                     |         |                      |
+|     APP_MODE_1 (PA1)|-------->|APP_MODE_1            |
+|                     |         |                      |
+|   STATUS_IND_0 (PB8)|<--------|STATUS_IND_0          |
+|                     |         |                      |
+|   STATUS_IND_1 (PB9)|<--------|STATUS_IND_1          |
+|_____________________|         |______________________|
+```
+
+## Daphnis-I pinout
+```
+ _____________________           ______________________
+|        STM32        |         |       Daphnis-I      |
 |                     |         |                      |
 |         Reset (PA10)|-------->|Reset                 |
 |                     |         |                      |
@@ -234,6 +261,29 @@ Note that some connections are optional and may not be required depending on the
 |_____________________|         |______________________|
 ```
 
+## Tarvos-e pinout
+```
+ _____________________           ______________________
+|        STM32        |         |       Tarvos-e       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|        Wake_up (PA9)|-------->|Wake_up               |
+|                     |         |                      |
+|           Boot (PA7)|-------->|Boot                  |
+|                     |         |                      |
+|           Mode (PA8)|-------->|Mode                  |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
+```
+
 ## Telesto-III pinout
 ```
  _____________________           ______________________
@@ -348,3 +398,7 @@ Note that some connections are optional and may not be required depending on the
 |     UART1 CTS (PA11)|<--------|UART RTS              |
 |_____________________|         |______________________|
 ```
+
+# STM32 Nucleo pinout
+![alt text](Doc/Nucleo-L073RZ.png)
+![alt text](Doc/Nucleo-F401RE.png)

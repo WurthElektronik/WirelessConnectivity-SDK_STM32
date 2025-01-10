@@ -35,5 +35,15 @@
 			<type>2</type>
 			<locationURI>PARENT-1-PROJECT_LOC/WCON_Drivers</locationURI>
 		</link>
+		<link>
+			<name>Examples</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Examples</locationURI>
+		</link>
+		<link>
+			<name>global</name>
+			<type>2</type>
+			<locationURI>PARENT-1-PROJECT_LOC/global</locationURI>
+		</link>
 	</linkedResources>
 </projectDescription>

@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -18,7 +18,7 @@
  * FOR MORE INFORMATION PLEASE CAREFULLY READ THE LICENSE AGREEMENT FILE LOCATED
  * IN THE ROOT DIRECTORY OF THIS DRIVER PACKAGE.
  *
- * COPYRIGHT (c) 2023 Würth Elektronik eiSos GmbH & Co. KG
+ * COPYRIGHT (c) 2025 Würth Elektronik eiSos GmbH & Co. KG
  *
  ***************************************************************************************************
  */
@@ -147,7 +147,7 @@ static Metis_US_Confirmation_t usConfirmation; /* variable used to check if GET 
 static Metis_Frequency_t frequency; /* frequency used by module */
 static bool rssi_enable = false;
 static uint8_t checksum = 0;
-static uint8_t rxByteCounter = 0;
+static uint16_t rxByteCounter = 0;
 static uint8_t bytesToReceive = 0; /* read buffer for next available byte */
 static uint8_t rxBuffer[sizeof(Metis_CMD_Frame_t)]; /* data buffer for RX */
 static Metis_RxCallback_t RxCallback;
@@ -306,7 +306,7 @@ static void HandleRxPacket(uint8_t *packetData)
 /**
  * @brief Function that waits for the return value of Metis (*_CNF), when a command (*_REQ) was sent before.
  */
-static bool Wait4CNF(int max_time_ms, uint8_t expectedCmdConfirmation, Metis_CMD_Status_t expectedStatus, bool reset_confirmstate)
+static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, Metis_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
 	int count = 0;
 	int time_step_ms = 5; /* 5ms */
@@ -493,7 +493,7 @@ bool enable_rssi, Metis_RxCallback_t RXcb)
 		}
 		else
 		{
-			printf("Set UART_CMD_OUT_MODE failed\n");
+			WE_DEBUG_PRINT("Set UART_CMD_OUT_MODE failed\n");
 			Metis_Deinit();
 			return false;
 		}
@@ -517,7 +517,7 @@ bool enable_rssi, Metis_RxCallback_t RXcb)
 		}
 		else
 		{
-			printf("Set RSSI failed\n");
+			WE_DEBUG_PRINT("Set RSSI failed\n");
 			Metis_Deinit();
 			return false;
 		}
@@ -541,7 +541,7 @@ bool enable_rssi, Metis_RxCallback_t RXcb)
 		}
 		else
 		{
-			printf("Set AESEnable failed\n");
+			WE_DEBUG_PRINT("Set AESEnable failed\n");
 			Metis_Deinit();
 			return false;
 		}
@@ -565,7 +565,7 @@ bool enable_rssi, Metis_RxCallback_t RXcb)
 		}
 		else
 		{
-			printf("Set mode preselect failed\n");
+			WE_DEBUG_PRINT("Set mode preselect failed\n");
 			Metis_Deinit();
 			return false;
 		}
@@ -578,7 +578,7 @@ bool enable_rssi, Metis_RxCallback_t RXcb)
 	}
 	else
 	{
-		printf("Reset failed\n");
+		WE_DEBUG_PRINT("Reset failed\n");
 		Metis_Deinit();
 		return false;
 	}
@@ -1182,7 +1182,7 @@ bool Metis_Transmit(uint8_t *payload)
 
 	if (length > MAX_PAYLOAD_LENGTH)
 	{
-		printf("Data exceeds maximal payload length");
+		WE_DEBUG_PRINT("Data exceeds maximal payload length");
 		return false;
 	}
 
@@ -1197,7 +1197,7 @@ bool Metis_Transmit(uint8_t *payload)
 		if (modePreselect == Metis_Mode_Preselect_868_C2_T2_other)
 		{
 			/* module can not send in this mode. */
-			printf("Mode Preselect %x is not suitable for transmitting\n", modePreselect);
+			WE_DEBUG_PRINT("Mode Preselect %x is not suitable for transmitting\n", modePreselect);
 			return false;
 		}
 	}
