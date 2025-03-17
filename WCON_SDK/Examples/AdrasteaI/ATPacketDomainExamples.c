@@ -22,18 +22,17 @@
  *
  ***************************************************************************************************
  */
-#include <stdio.h>
-#include <AdrasteaI/ATProprietaryExamples.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
 #include <AdrasteaI/ATCommands/ATPacketDomain.h>
 #include <AdrasteaI/ATCommands/ATProprietary.h>
+#include <AdrasteaI/ATProprietaryExamples.h>
 #include <AdrasteaI/AdrasteaI.h>
-#include <AdrasteaI/ATCommands/ATEvent.h>
 #include <AdrasteaI/AdrasteaI_Examples.h>
+#include <stdio.h>
 
-void AdrasteaI_ATPacketDomain_EventCallback(char *eventText);
+void AdrasteaI_ATPacketDomain_EventCallback(char* eventText);
 
-static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
-		.state = 0 };
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {.state = 0};
 
 /**
  * @brief This example connects to the cellular network and checks the domain of the connection
@@ -41,79 +40,76 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
  */
 void ATPacketDomainExample()
 {
-	WE_DEBUG_PRINT("*** Start of Adrastea-I ATPacketDomain example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of Adrastea-I ATPacketDomain example ***\r\n");
 
-	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATPacketDomain_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATPacketDomain_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
-	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
-	{
-		WE_Delay(10);
-	}
+    bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+    AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+    while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
+    {
+        WE_Delay(10);
+    }
 
-	AdrasteaI_ATPacketDomain_Network_Registration_Status_t statusRead;
-	ret = AdrasteaI_ATPacketDomain_ReadNetworkRegistrationStatus(&statusRead);
-	AdrasteaI_ExamplesPrint("Read Network Registration Status", ret);
-	if (ret)
-	{
-		WE_DEBUG_PRINT("Result Code: %d, State: %d, TAC: %s, ECI: %s, AcT: %d\r\n", statusRead.resultCode, statusRead.state, statusRead.TAC, statusRead.ECI, statusRead.AcT);
-	}
+    AdrasteaI_ATPacketDomain_Network_Registration_Status_t statusRead;
+    ret = AdrasteaI_ATPacketDomain_ReadNetworkRegistrationStatus(&statusRead);
+    AdrasteaI_ExamplesPrint("Read Network Registration Status", ret);
+    if (ret)
+    {
+        WE_DEBUG_PRINT("Result Code: %d, State: %d, TAC: %s, ECI: %s, AcT: %d\r\n", statusRead.resultCode, statusRead.state, statusRead.TAC, statusRead.ECI, statusRead.AcT);
+    }
 
-	AdrasteaI_ATPacketDomain_PDP_Context_t context = {
-			.cid = 2,
-			.pdpType = AdrasteaI_ATPacketDomain_PDP_Type_IPv4,
-			.apnName = "web.vodafone.de" };
-	ret = AdrasteaI_ATPacketDomain_DefinePDPContext(context);
-	AdrasteaI_ExamplesPrint("Define PDP Context", ret);
+    AdrasteaI_ATPacketDomain_PDP_Context_t context = {.cid = 2, .pdpType = AdrasteaI_ATPacketDomain_PDP_Type_IPv4, .apnName = "web.vodafone.de"};
+    ret = AdrasteaI_ATPacketDomain_DefinePDPContext(context);
+    AdrasteaI_ExamplesPrint("Define PDP Context", ret);
 
-	ret = AdrasteaI_ATPacketDomain_ReadPDPContexts();
-	AdrasteaI_ExamplesPrint("Read PDP Contexts", ret);
+    ret = AdrasteaI_ATPacketDomain_ReadPDPContexts();
+    AdrasteaI_ExamplesPrint("Read PDP Contexts", ret);
 
-	ret = AdrasteaI_ATPacketDomain_ReadPDPContextsState();
-	AdrasteaI_ExamplesPrint("Read PDP Contexts State", ret);
+    ret = AdrasteaI_ATPacketDomain_ReadPDPContextsState();
+    AdrasteaI_ExamplesPrint("Read PDP Contexts State", ret);
 }
 
-void AdrasteaI_ATPacketDomain_EventCallback(char *eventText)
+void AdrasteaI_ATPacketDomain_EventCallback(char* eventText)
 {
-	AdrasteaI_ATEvent_t event;
-	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
-	{
-		return;
-	}
+    AdrasteaI_ATEvent_t event;
+    if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
-	{
-		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
-		break;
-	}
-	case AdrasteaI_ATEvent_PacketDomain_PDP_Context:
-	{
-		AdrasteaI_ATPacketDomain_PDP_Context_t pdpContext;
-		if (!AdrasteaI_ATPacketDomain_ParsePDPContextEvent(eventText, &pdpContext))
-		{
-			return;
-		}
-		WE_DEBUG_PRINT("CID: %d, PDP Type: %d, APN Name: %s\r\n", pdpContext.cid, pdpContext.pdpType, pdpContext.apnName);
-		break;
-	}
-	case AdrasteaI_ATEvent_PacketDomain_PDP_Context_State:
-	{
-		AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t pdpContextState;
-		if (!AdrasteaI_ATPacketDomain_ParsePDPContextStateEvent(eventText, &pdpContextState))
-		{
-			return;
-		}
-		WE_DEBUG_PRINT("CID: %d, State: %d\r\n", pdpContextState.cid, pdpContextState.state);
-		break;
-	}
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
+        {
+            AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+            break;
+        }
+        case AdrasteaI_ATEvent_PacketDomain_PDP_Context:
+        {
+            AdrasteaI_ATPacketDomain_PDP_Context_t pdpContext;
+            if (!AdrasteaI_ATPacketDomain_ParsePDPContextEvent(eventText, &pdpContext))
+            {
+                return;
+            }
+            WE_DEBUG_PRINT("CID: %d, PDP Type: %d, APN Name: %s\r\n", pdpContext.cid, pdpContext.pdpType, pdpContext.apnName);
+            break;
+        }
+        case AdrasteaI_ATEvent_PacketDomain_PDP_Context_State:
+        {
+            AdrasteaI_ATPacketDomain_PDP_Context_CID_State_t pdpContextState;
+            if (!AdrasteaI_ATPacketDomain_ParsePDPContextStateEvent(eventText, &pdpContextState))
+            {
+                return;
+            }
+            WE_DEBUG_PRINT("CID: %d, State: %d\r\n", pdpContextState.cid, pdpContextState.state);
+            break;
+        }
+        default:
+            break;
+    }
 }

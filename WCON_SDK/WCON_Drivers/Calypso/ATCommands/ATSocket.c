@@ -31,84 +31,53 @@
 #include <Calypso/Calypso.h>
 #include <global/global.h>
 
-static const char *ATSocketFamilyString[Calypso_ATSocket_Family_NumberOfValues] = {
-		"INET",
-		"INET6" };
+static const char* ATSocketFamilyString[Calypso_ATSocket_Family_NumberOfValues] = {"INET", "INET6"};
 
-static const char *ATSocketTypeString[Calypso_ATSocket_Type_NumberOfValues] = {
-		"STREAM",
-		"DGRAM" };
+static const char* ATSocketTypeString[Calypso_ATSocket_Type_NumberOfValues] = {"STREAM", "DGRAM"};
 
-static const char *ATSocketProcotolString[Calypso_ATSocket_Protocol_NumberOfValues] = {
-		"TCP",
-		"UDP",
-		"SEC" };
+static const char* ATSocketProcotolString[Calypso_ATSocket_Protocol_NumberOfValues] = {"TCP", "UDP", "SEC"};
 
-static const char *ATSocketSockOptLevelString[Calypso_ATSocket_SockOptLevel_NumberOfValues] = {
-		"SOCKET",
-		"IP" };
+static const char* ATSocketSockOptLevelString[Calypso_ATSocket_SockOptLevel_NumberOfValues] = {"SOCKET", "IP"};
 
-static const char *ATSocketSockOptSocketString[Calypso_ATSocket_SockOptSocket_NumberOfValues] = {
-		"KEEPALIVE",
-		"KEEPALIVETIME",
-		"RX_NO_IP_BOUNDARY",
-		"RCVTIMEO",
-		"RCVBUF",
-		"NONBLOCKING",
-		"SECMETHOD",
-		"SECURE_MASK",
-		"SECURE_FILES_CA_FILE_NAME",
-		"SECURE_FILES_PRIVATE_KEY_FILE_NAME",
-		"SECURE_FILES_CERTIFICATE_FILE_NAME",
-		"SECURE_FILES_DH_KEY_FILE_NAME",
-		"SECURE_DOMAIN_NAME_VERIFICATION",
-		"DISABLE_CERTIFICATE_STORE" };
+static const char* ATSocketSockOptSocketString[Calypso_ATSocket_SockOptSocket_NumberOfValues] = {
+    "KEEPALIVE", "KEEPALIVETIME", "RX_NO_IP_BOUNDARY", "RCVTIMEO", "RCVBUF", "NONBLOCKING", "SECMETHOD", "SECURE_MASK", "SECURE_FILES_CA_FILE_NAME", "SECURE_FILES_PRIVATE_KEY_FILE_NAME", "SECURE_FILES_CERTIFICATE_FILE_NAME", "SECURE_FILES_DH_KEY_FILE_NAME", "SECURE_DOMAIN_NAME_VERIFICATION", "DISABLE_CERTIFICATE_STORE"};
 
-static const char *ATSocketSockOptIPString[Calypso_ATSocket_SockOptIP_NumberOfValues] = {
-		"MULTICAST_TTL",
-		"ADD_MEMBERSHIP",
-		"DROP_MEMBERSHIP" };
+static const char* ATSocketSockOptIPString[Calypso_ATSocket_SockOptIP_NumberOfValues] = {"MULTICAST_TTL", "ADD_MEMBERSHIP", "DROP_MEMBERSHIP"};
 
-static const char *AtSocketSockOptSecMethod[Calypso_ATSocket_SockOptSecMethod_NumberOfValues] = {
-		"SSLV3",
-		"TLSV1",
-		"TLSV1_1",
-		"TLSV1_2",
-		"SSLV3_TLSV1_2" };
+static const char* AtSocketSockOptSecMethod[Calypso_ATSocket_SockOptSecMethod_NumberOfValues] = {"SSLV3", "TLSV1", "TLSV1_1", "TLSV1_2", "SSLV3_TLSV1_2"};
 
-static const char *Calypso_ATSocket_CipherStrings[Calypso_ATSocket_Cipher_NumberOfValues] = {
-		"SSL_RSA_WITH_RC4_128_SHA",
-		"SSL_RSA_WITH_RC4_128_MD5",
-		"TLS_RSA_WITH_AES_256_CBC_SHA",
-		"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-		"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-		"TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-		"TLS_RSA_WITH_AES_128_CBC_SHA256",
-		"TLS_RSA_WITH_AES_256_CBC_SHA256",
-		"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
-		"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-		"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-		"TLS_RSA_WITH_AES_128_GCM_SHA256",
-		"TLS_RSA_WITH_AES_256_GCM_SHA384",
-		"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-		"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
-		"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-		"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-		"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-		"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
-		"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
-		"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
-		"TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256" };
+static const char* Calypso_ATSocket_CipherStrings[Calypso_ATSocket_Cipher_NumberOfValues] = {"SSL_RSA_WITH_RC4_128_SHA",
+                                                                                             "SSL_RSA_WITH_RC4_128_MD5",
+                                                                                             "TLS_RSA_WITH_AES_256_CBC_SHA",
+                                                                                             "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                                                                                             "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                                                                                             "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+                                                                                             "TLS_RSA_WITH_AES_128_CBC_SHA256",
+                                                                                             "TLS_RSA_WITH_AES_256_CBC_SHA256",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+                                                                                             "TLS_RSA_WITH_AES_128_GCM_SHA256",
+                                                                                             "TLS_RSA_WITH_AES_256_GCM_SHA384",
+                                                                                             "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+                                                                                             "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+                                                                                             "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                                                                                             "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+                                                                                             "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
+                                                                                             "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
+                                                                                             "TLS_DHE_RSA_WITH_CHACHA20_POLY1305_SHA256"};
 
-static bool Calypso_ATSocket_AddArgumentsCreate(char *pAtCommand, Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol);
-static bool Calypso_ATSocket_AddArgumentsBindConnect(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socket);
-static bool Calypso_ATSocket_AddArgumentsRecv(char *pAtCommand, uint8_t socketID, Calypso_DataFormat_t format, uint16_t length);
-static bool Calypso_ATSocket_AddArgumentsRecvFrom(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socketFrom, Calypso_DataFormat_t format, uint16_t length);
-static bool Calypso_ATSocket_AddArgumentsSendTo(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t *remoteSocket, Calypso_DataFormat_t format, uint16_t length, char *data);
-static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t *data);
+static bool Calypso_ATSocket_AddArgumentsCreate(char* pAtCommand, Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol);
+static bool Calypso_ATSocket_AddArgumentsBindConnect(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socket);
+static bool Calypso_ATSocket_AddArgumentsRecv(char* pAtCommand, uint8_t socketID, Calypso_DataFormat_t format, uint16_t length);
+static bool Calypso_ATSocket_AddArgumentsRecvFrom(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socketFrom, Calypso_DataFormat_t format, uint16_t length);
+static bool Calypso_ATSocket_AddArgumentsSendTo(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t* remoteSocket, Calypso_DataFormat_t format, uint16_t length, char* data);
+static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* data);
 
-static bool Calypso_ATSocket_ParseResponseCreate(char **pAtCommand, uint8_t *pOutSocketID);
-static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLevel_t level, uint8_t option, char **pAtCommand, Calypso_ATSocket_Options_t *pValues);
+static bool Calypso_ATSocket_ParseResponseCreate(char** pAtCommand, uint8_t* pOutSocketID);
+static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLevel_t level, uint8_t option, char** pAtCommand, Calypso_ATSocket_Options_t* pValues);
 
 /**
  * @brief Creates a socket (using the AT+socket command).
@@ -121,30 +90,29 @@ static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLev
  * @return true if successful, false otherwise
  */
 
-bool Calypso_ATSocket_Create(Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol, uint8_t *socketID)
+bool Calypso_ATSocket_Create(Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol, uint8_t* socketID)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+socket=");
+    strcpy(pRequestCommand, "AT+socket=");
 
-	if (!Calypso_ATSocket_AddArgumentsCreate(pRequestCommand, family, type, protocol))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AddArgumentsCreate(pRequestCommand, family, type, protocol))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return Calypso_ATSocket_ParseResponseCreate(&pRespondCommand, socketID);
-
+    return Calypso_ATSocket_ParseResponseCreate(&pRespondCommand, socketID);
 }
 
 /**
@@ -157,26 +125,25 @@ bool Calypso_ATSocket_Create(Calypso_ATSocket_Family_t family, Calypso_ATSocket_
 bool Calypso_ATSocket_Close(uint8_t socketID)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+close=");
+    strcpy(pRequestCommand, "AT+close=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
-
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -190,20 +157,20 @@ bool Calypso_ATSocket_Close(uint8_t socketID)
 bool Calypso_ATSocket_Bind(uint8_t socketID, Calypso_ATSocket_Descriptor_t socket)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+bind=");
+    strcpy(pRequestCommand, "AT+bind=");
 
-	if (!Calypso_ATSocket_AddArgumentsBindConnect(pRequestCommand, socketID, socket))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AddArgumentsBindConnect(pRequestCommand, socketID, socket))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -217,31 +184,31 @@ bool Calypso_ATSocket_Bind(uint8_t socketID, Calypso_ATSocket_Descriptor_t socke
 bool Calypso_ATSocket_Listen(uint8_t socketID, uint16_t backlog)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+listen=");
+    strcpy(pRequestCommand, "AT+listen=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, backlog, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, backlog, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -255,20 +222,20 @@ bool Calypso_ATSocket_Listen(uint8_t socketID, uint16_t backlog)
 bool Calypso_ATSocket_Connect(uint8_t socketID, Calypso_ATSocket_Descriptor_t remoteSocket)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+connect=");
+    strcpy(pRequestCommand, "AT+connect=");
 
-	if (!Calypso_ATSocket_AddArgumentsBindConnect(pRequestCommand, socketID, remoteSocket))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AddArgumentsBindConnect(pRequestCommand, socketID, remoteSocket))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -282,30 +249,30 @@ bool Calypso_ATSocket_Connect(uint8_t socketID, Calypso_ATSocket_Descriptor_t re
 bool Calypso_ATSocket_Accept(uint8_t socketID, Calypso_ATSocket_Family_t family)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+accept=");
+    strcpy(pRequestCommand, "AT+accept=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketFamilyString[family], ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketFamilyString[family], ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -323,20 +290,20 @@ bool Calypso_ATSocket_Accept(uint8_t socketID, Calypso_ATSocket_Family_t family)
 bool Calypso_ATSocket_Receive(uint8_t socketID, Calypso_DataFormat_t format, uint16_t length)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+recv=");
+    strcpy(pRequestCommand, "AT+recv=");
 
-	if (!Calypso_ATSocket_AddArgumentsRecv(pRequestCommand, socketID, format, length))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AddArgumentsRecv(pRequestCommand, socketID, format, length))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -355,19 +322,19 @@ bool Calypso_ATSocket_Receive(uint8_t socketID, Calypso_DataFormat_t format, uin
 bool Calypso_ATSocket_ReceiveFrom(uint8_t socketID, Calypso_ATSocket_Descriptor_t remoteSocket, Calypso_DataFormat_t format, uint16_t length)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+recvFrom=");
+    strcpy(pRequestCommand, "AT+recvFrom=");
 
-	if (!Calypso_ATSocket_AddArgumentsRecvFrom(pRequestCommand, socketID, remoteSocket, format, length))
-	{
-		return false;
-	}
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_ATSocket_AddArgumentsRecvFrom(pRequestCommand, socketID, remoteSocket, format, length))
+    {
+        return false;
+    }
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -386,12 +353,7 @@ bool Calypso_ATSocket_ReceiveFrom(uint8_t socketID, Calypso_ATSocket_Descriptor_
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_Send(uint8_t socketID, Calypso_DataFormat_t format,
-bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
-{
-	return Calypso_ATSocket_SendTo(socketID,
-	NULL, format, encodeAsBase64, length, data, bytesSent);
-}
+bool Calypso_ATSocket_Send(uint8_t socketID, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, char* data, uint16_t* bytesSent) { return Calypso_ATSocket_SendTo(socketID, NULL, format, encodeAsBase64, length, data, bytesSent); }
 
 /**
  * Sends data via the supplied local socket (using the AT+send or AT+sendTo command).
@@ -413,102 +375,100 @@ bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t *remoteSocket, Calypso_DataFormat_t format,
-bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
+bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t* remoteSocket, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, char* data, uint16_t* bytesSent)
 {
-	*bytesSent = 0;
+    *bytesSent = 0;
 
-	if (encodeAsBase64)
-	{
-		/* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
+    if (encodeAsBase64)
+    {
+        /* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
 		 * the data is encoded in chunks, if necessary. */
 
-		uint16_t maxChunkSize = (((CALYPSO_MAX_PAYLOAD_SIZE - 1) * 3) / 4) - 2;
-		uint16_t chunkSize = 0;
-		for (uint16_t chunkOffset = 0; chunkOffset < length; chunkOffset += chunkSize)
-		{
-			chunkSize = length - chunkOffset;
-			if (chunkSize > maxChunkSize)
-			{
-				chunkSize = maxChunkSize;
-			}
+        uint16_t maxChunkSize = (((CALYPSO_MAX_PAYLOAD_SIZE - 1) * 3) / 4) - 2;
+        uint16_t chunkSize = 0;
+        for (uint16_t chunkOffset = 0; chunkOffset < length; chunkOffset += chunkSize)
+        {
+            chunkSize = length - chunkOffset;
+            if (chunkSize > maxChunkSize)
+            {
+                chunkSize = maxChunkSize;
+            }
 
-			/* Encode as Base64 */
-			uint32_t lengthEncoded;
-			if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
-			{
-				return false;
-			}
-			char base64Buffer[lengthEncoded];
-			if (!Base64_Encode((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded))
-			{
-				return false;
-			}
+            /* Encode as Base64 */
+            uint32_t lengthEncoded;
+            if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
+            {
+                return false;
+            }
+            char base64Buffer[lengthEncoded];
+            if (!Base64_Encode((uint8_t*)data + chunkOffset, chunkSize, (uint8_t*)base64Buffer, &lengthEncoded))
+            {
+                return false;
+            }
 
-			/* Recursively call Calypso_ATSocket_Send() with the encoded binary data (excluding '\0') */
-			uint16_t chunkBytesWritten = 0;
-			bool ok = Calypso_ATSocket_SendTo(socketID, remoteSocket, format,
-			false, lengthEncoded, base64Buffer, &chunkBytesWritten);
-			if (!ok)
-			{
-				return false;
-			}
+            /* Recursively call Calypso_ATSocket_Send() with the encoded binary data (excluding '\0') */
+            uint16_t chunkBytesWritten = 0;
+            bool ok = Calypso_ATSocket_SendTo(socketID, remoteSocket, format, false, lengthEncoded, base64Buffer, &chunkBytesWritten);
+            if (!ok)
+            {
+                return false;
+            }
 
-			*bytesSent += chunkSize;
-		}
+            *bytesSent += chunkSize;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	/* Send data using either AT+send or AT+sendTo, splitting the payload into
+    /* Send data using either AT+send or AT+sendTo, splitting the payload into
 	 * chunks of max. CALYPSO_MAX_PAYLOAD_SIZE, if necessary. */
-	uint16_t chunkBytesSent = 0;
-	for (uint16_t chunkOffset = 0; chunkOffset < length; chunkOffset += chunkBytesSent)
-	{
-		uint16_t chunkSize = length - chunkOffset;
-		if (chunkSize > CALYPSO_MAX_PAYLOAD_SIZE)
-		{
-			chunkSize = CALYPSO_MAX_PAYLOAD_SIZE;
-		}
+    uint16_t chunkBytesSent = 0;
+    for (uint16_t chunkOffset = 0; chunkOffset < length; chunkOffset += chunkBytesSent)
+    {
+        uint16_t chunkSize = length - chunkOffset;
+        if (chunkSize > CALYPSO_MAX_PAYLOAD_SIZE)
+        {
+            chunkSize = CALYPSO_MAX_PAYLOAD_SIZE;
+        }
 
-		char *pRequestCommand = AT_commandBuffer;
+        char* pRequestCommand = AT_commandBuffer;
 
-		if (NULL == remoteSocket)
-		{
-			/* Stream / TCP */
-			strcpy(pRequestCommand, "AT+send=");
-		}
-		else
-		{
-			/* Datagram / UDP */
-			strcpy(pRequestCommand, "AT+sendTo=");
-		}
+        if (NULL == remoteSocket)
+        {
+            /* Stream / TCP */
+            strcpy(pRequestCommand, "AT+send=");
+        }
+        else
+        {
+            /* Datagram / UDP */
+            strcpy(pRequestCommand, "AT+sendTo=");
+        }
 
-		if (!Calypso_ATSocket_AddArgumentsSendTo(pRequestCommand, socketID, remoteSocket, format, chunkSize, data + chunkOffset))
-		{
-			return false;
-		}
+        if (!Calypso_ATSocket_AddArgumentsSendTo(pRequestCommand, socketID, remoteSocket, format, chunkSize, data + chunkOffset))
+        {
+            return false;
+        }
 
-		chunkBytesSent = chunkSize;
+        chunkBytesSent = chunkSize;
 
-		if (!Calypso_SendRequest(pRequestCommand))
-		{
-			return false;
-		}
-		if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL))
-		{
-			return false;
-		}
+        if (!Calypso_SendRequest(pRequestCommand))
+        {
+            return false;
+        }
+        if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL))
+        {
+            return false;
+        }
 
-		*bytesSent += chunkBytesSent;
+        *bytesSent += chunkBytesSent;
 
 #ifdef WE_DEBUG
-		/* Flush debug buffer, as it may have been filled up with the written data */
-		WE_Debug_Flush();
+        /* Flush debug buffer, as it may have been filled up with the written data */
+        WE_Debug_Flush();
 #endif
-	}
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -521,23 +481,23 @@ bool encodeAsBase64, uint16_t length, char *data, uint16_t *bytesSent)
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_SetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t *pValues)
+bool Calypso_ATSocket_SetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* pValues)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+setSockOpt=");
+    strcpy(pRequestCommand, "AT+setSockOpt=");
 
-	if (!Calypso_ATSocket_AddArgumentsSetSockOpt(pRequestCommand, socketID, level, option, pValues))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AddArgumentsSetSockOpt(pRequestCommand, socketID, level, option, pValues))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
 /**
@@ -550,62 +510,62 @@ bool Calypso_ATSocket_SetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOpt
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_GetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t *pValues)
+bool Calypso_ATSocket_GetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* pValues)
 {
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+getSockOpt=");
+    strcpy(pRequestCommand, "AT+getSockOpt=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (Calypso_ATSocket_SockOptLevel_Socket == level)
-	{
-		if (option == Calypso_ATSocket_SockOptSocket_DisableCertificateStore)
-		{
-			/* Not supported */
-			return false;
-		}
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptSocketString[option], ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-	}
-	else if (Calypso_ATSocket_SockOptLevel_IP == level)
-	{
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptIPString[option], ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+    if (Calypso_ATSocket_SockOptLevel_Socket == level)
+    {
+        if (option == Calypso_ATSocket_SockOptSocket_DisableCertificateStore)
+        {
+            /* Not supported */
+            return false;
+        }
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptSocketString[option], ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+    }
+    else if (Calypso_ATSocket_SockOptLevel_IP == level)
+    {
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATSocketSockOptIPString[option], ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!Calypso_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!Calypso_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return Calypso_ATSocket_ParseResponseGetOptions(level, option, &pRespondCommand, pValues);
+    return Calypso_ATSocket_ParseResponseGetOptions(level, option, &pRespondCommand, pValues);
 }
 
 /**
@@ -617,25 +577,24 @@ bool Calypso_ATSocket_GetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOpt
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_AppendSocketDescriptor(char *pAtCommand, Calypso_ATSocket_Descriptor_t socket, char lastDelim)
+bool Calypso_ATSocket_AppendSocketDescriptor(char* pAtCommand, Calypso_ATSocket_Descriptor_t socket, char lastDelim)
 {
-	if (socket.family >= Calypso_ATSocket_Family_NumberOfValues)
-	{
-		return false;
-	}
+    if (socket.family >= Calypso_ATSocket_Family_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[socket.family], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[socket.family], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socket.port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socket.port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, socket.address, lastDelim);
-
+    return ATCommand_AppendArgumentString(pAtCommand, socket.address, lastDelim);
 }
 
 /**
@@ -648,40 +607,40 @@ bool Calypso_ATSocket_AppendSocketDescriptor(char *pAtCommand, Calypso_ATSocket_
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsCreate(char *pAtCommand, Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol)
+static bool Calypso_ATSocket_AddArgumentsCreate(char* pAtCommand, Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol)
 {
 
-	if (family >= Calypso_ATSocket_Family_NumberOfValues)
-	{
-		return false;
-	}
+    if (family >= Calypso_ATSocket_Family_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[family], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketFamilyString[family], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (type >= Calypso_ATSocket_Type_NumberOfValues)
-	{
-		return false;
-	}
+    if (type >= Calypso_ATSocket_Type_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketTypeString[type], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketTypeString[type], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (protocol >= Calypso_ATSocket_Protocol_NumberOfValues)
-	{
-		return false;
-	}
+    if (protocol >= Calypso_ATSocket_Protocol_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketProcotolString[protocol], ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketProcotolString[protocol], ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -693,20 +652,20 @@ static bool Calypso_ATSocket_AddArgumentsCreate(char *pAtCommand, Calypso_ATSock
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsBindConnect(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socket)
+static bool Calypso_ATSocket_AddArgumentsBindConnect(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socket)
 {
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, socket, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, socket, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -719,32 +678,30 @@ static bool Calypso_ATSocket_AddArgumentsBindConnect(char *pAtCommand, uint8_t s
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsRecv(char *pAtCommand, uint8_t socketID, Calypso_DataFormat_t format, uint16_t length)
+static bool Calypso_ATSocket_AddArgumentsRecv(char* pAtCommand, uint8_t socketID, Calypso_DataFormat_t format, uint16_t length)
 {
 
-	if (format >= Calypso_DataFormat_NumberOfValues)
-	{
-		return false;
-	}
+    if (format >= Calypso_DataFormat_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ),
-	ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -758,32 +715,30 @@ static bool Calypso_ATSocket_AddArgumentsRecv(char *pAtCommand, uint8_t socketID
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsRecvFrom(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socketFrom, Calypso_DataFormat_t format, uint16_t length)
+static bool Calypso_ATSocket_AddArgumentsRecvFrom(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t socketFrom, Calypso_DataFormat_t format, uint16_t length)
 {
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, socketFrom, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, socketFrom, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ),
-	ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, length < CALYPSO_MAX_PAYLOAD_SIZE ? length : CALYPSO_MAX_PAYLOAD_SIZE, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -798,42 +753,42 @@ static bool Calypso_ATSocket_AddArgumentsRecvFrom(char *pAtCommand, uint8_t sock
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsSendTo(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t *remoteSocket, Calypso_DataFormat_t format, uint16_t length, char *data)
+static bool Calypso_ATSocket_AddArgumentsSendTo(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_Descriptor_t* remoteSocket, Calypso_DataFormat_t format, uint16_t length, char* data)
 {
-	if (format >= Calypso_DataFormat_NumberOfValues)
-	{
-		return false;
-	}
+    if (format >= Calypso_DataFormat_NumberOfValues)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (NULL != remoteSocket)
-	{
-		if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, *remoteSocket, ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-	}
+    if (NULL != remoteSocket)
+    {
+        if (!Calypso_ATSocket_AppendSocketDescriptor(pAtCommand, *remoteSocket, ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentBytes(pAtCommand, data, length, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentBytes(pAtCommand, data, length, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -847,160 +802,159 @@ static bool Calypso_ATSocket_AddArgumentsSendTo(char *pAtCommand, uint8_t socket
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char *pAtCommand, uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t *pValues)
+static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char* pAtCommand, uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* pValues)
 {
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, socketID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptLevelString[level], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (Calypso_ATSocket_SockOptLevel_Socket == level)
-	{
-		if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptSocketString[option], ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
+    if (Calypso_ATSocket_SockOptLevel_Socket == level)
+    {
+        if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptSocketString[option], ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
 
-		switch (option)
-		{
-		case Calypso_ATSocket_SockOptSocket_KeepAlive:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAlive, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+        switch (option)
+        {
+            case Calypso_ATSocket_SockOptSocket_KeepAlive:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAlive, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_KeepAliveTime:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAliveTimeSeconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_KeepAliveTime:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->keepAliveTimeSeconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_RXNoIPBoundary:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rxNoIpBoundary, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_RXNoIPBoundary:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rxNoIpBoundary, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_RCVTimeout:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.seconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.microseconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_RCVTimeout:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.seconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+                {
+                    return false;
+                }
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvTimeout.microseconds, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_RCVBuf:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvBuf, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_RCVBuf:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->rcvBuf, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_NonBlocking:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->nonBlocking, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_NonBlocking:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->nonBlocking, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_SecMethod:
-			if (!ATCommand_AppendArgumentString(pAtCommand, AtSocketSockOptSecMethod[pValues->secMethod], ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_SecMethod:
+                if (!ATCommand_AppendArgumentString(pAtCommand, AtSocketSockOptSecMethod[pValues->secMethod], ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_SecureMask:
-			if (!Calypso_ATSocket_AppendCipherMask(pAtCommand, pValues->secureMask))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_SecureMask:
+                if (!Calypso_ATSocket_AppendCipherMask(pAtCommand, pValues->secureMask))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_SecureFilesCAFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesPrivateKeyFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesCertificateFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
-			/* File name strings to append */
-			if (!ATCommand_AppendArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_SecureFilesCAFileName:
+            case Calypso_ATSocket_SockOptSocket_SecureFilesPrivateKeyFileName:
+            case Calypso_ATSocket_SockOptSocket_SecureFilesCertificateFileName:
+            case Calypso_ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
+                /* File name strings to append */
+                if (!ATCommand_AppendArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_SecureDomainNameVerification:
-			if (!ATCommand_AppendArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_SecureDomainNameVerification:
+                if (!ATCommand_AppendArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptSocket_DisableCertificateStore:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->disableCertificateStore, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptSocket_DisableCertificateStore:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->disableCertificateStore, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		default:
-		{
-			/* Invalid option or not implemented */
-			return false;
-		}
-		}
-	}
-	else if (Calypso_ATSocket_SockOptLevel_IP == level)
-	{
-		if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptIPString[option], ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
+            default:
+            {
+                /* Invalid option or not implemented */
+                return false;
+            }
+        }
+    }
+    else if (Calypso_ATSocket_SockOptLevel_IP == level)
+    {
+        if (!ATCommand_AppendArgumentString(pAtCommand, ATSocketSockOptIPString[option], ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
 
-		switch (option)
-		{
-		case Calypso_ATSocket_SockOptIP_MulticastTTL:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->multicastTTL, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+        switch (option)
+        {
+            case Calypso_ATSocket_SockOptIP_MulticastTTL:
+                if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->multicastTTL, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		case Calypso_ATSocket_SockOptIP_AddMembership:
-		case Calypso_ATSocket_SockOptIP_DropMembership:
-			if (!ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
-			if (!ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            case Calypso_ATSocket_SockOptIP_AddMembership:
+            case Calypso_ATSocket_SockOptIP_DropMembership:
+                if (!ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM))
+                {
+                    return false;
+                }
+                if (!ATCommand_AppendArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE))
+                {
+                    return false;
+                }
+                break;
 
-		default:
-			/* Invalid option or not implemented */
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+            default:
+                /* Invalid option or not implemented */
+                return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -1011,173 +965,172 @@ static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char *pAtCommand, uint8_t so
  *
  * @return true if successful, false otherwise
  */
-static bool Calypso_ATSocket_ParseResponseCreate(char **pAtCommand, uint8_t *pOutSocketID)
+static bool Calypso_ATSocket_ParseResponseCreate(char** pAtCommand, uint8_t* pOutSocketID)
 {
-	const char *cmd = "+socket:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+socket:";
+    const size_t cmdLength = strlen(cmd);
 
-	/* Check if response is for this command */
-	if (0 != strncmp(*pAtCommand, cmd, cmdLength))
-	{
-		return false;
-	}
-	*pAtCommand += cmdLength;
-	return ATCommand_GetNextArgumentInt(pAtCommand, pOutSocketID, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
+    /* Check if response is for this command */
+    if (0 != strncmp(*pAtCommand, cmd, cmdLength))
+    {
+        return false;
+    }
+    *pAtCommand += cmdLength;
+    return ATCommand_GetNextArgumentInt(pAtCommand, pOutSocketID, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLevel_t level, uint8_t option, char **pAtCommand, Calypso_ATSocket_Options_t *pValues)
+static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLevel_t level, uint8_t option, char** pAtCommand, Calypso_ATSocket_Options_t* pValues)
 {
 
-	const char *expectedCmd = "+getsockopt:";
-	const size_t cmdLength = strlen(expectedCmd);
+    const char* expectedCmd = "+getsockopt:";
+    const size_t cmdLength = strlen(expectedCmd);
 
-	char tempString[50];
+    char tempString[50];
 
-	/* Check if response is for getSockOpt */
-	if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
-	{
-		return false;
-	}
+    /* Check if response is for getSockOpt */
+    if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
+    {
+        return false;
+    }
 
-	*pAtCommand += cmdLength;
+    *pAtCommand += cmdLength;
 
-	switch (level)
-	{
-	case Calypso_ATSocket_SockOptLevel_Socket:
-	{
-		switch (option)
-		{
-		case Calypso_ATSocket_SockOptSocket_KeepAlive:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAlive, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+    switch (level)
+    {
+        case Calypso_ATSocket_SockOptLevel_Socket:
+        {
+            switch (option)
+            {
+                case Calypso_ATSocket_SockOptSocket_KeepAlive:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAlive, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_KeepAliveTime:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAliveTimeSeconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_KeepAliveTime:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->keepAliveTimeSeconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_RXNoIPBoundary:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rxNoIpBoundary, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_RXNoIPBoundary:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rxNoIpBoundary, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_RCVTimeout:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.seconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.microseconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_RCVTimeout:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.seconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+                    {
+                        return false;
+                    }
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvTimeout.microseconds, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_RCVBuf:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvBuf, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_RCVBuf:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->rcvBuf, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_NonBlocking:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->nonBlocking, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_NonBlocking:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->nonBlocking, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_SecMethod:
-		{
-			bool ret;
-			if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString)))
-			{
-				return false;
-			}
-			pValues->secMethod = ATCommand_FindString(AtSocketSockOptSecMethod, Calypso_ATSocket_SockOptSecMethod_NumberOfValues, tempString, Calypso_ATSocket_SockOptSecMethod_SSLv3, &ret);
-			if (!ret)
-			{
-				return false;
-			}
-			break;
-		}
+                case Calypso_ATSocket_SockOptSocket_SecMethod:
+                {
+                    bool ret;
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString)))
+                    {
+                        return false;
+                    }
+                    pValues->secMethod = ATCommand_FindString(AtSocketSockOptSecMethod, Calypso_ATSocket_SockOptSecMethod_NumberOfValues, tempString, Calypso_ATSocket_SockOptSecMethod_SSLv3, &ret);
+                    if (!ret)
+                    {
+                        return false;
+                    }
+                    break;
+                }
 
-		case Calypso_ATSocket_SockOptSocket_SecureMask:
-			if (!ATCommand_GetNextArgumentBitmask(pAtCommand, Calypso_ATSocket_CipherStrings, Calypso_ATSocket_Cipher_NumberOfValues, 50, &pValues->secureMask,
-			ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_SecureMask:
+                    if (!ATCommand_GetNextArgumentBitmask(pAtCommand, Calypso_ATSocket_CipherStrings, Calypso_ATSocket_Cipher_NumberOfValues, 50, &pValues->secureMask, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_SecureFilesCAFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesPrivateKeyFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesCertificateFileName:
-		case Calypso_ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
-			if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->fileName)))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_SecureFilesCAFileName:
+                case Calypso_ATSocket_SockOptSocket_SecureFilesPrivateKeyFileName:
+                case Calypso_ATSocket_SockOptSocket_SecureFilesCertificateFileName:
+                case Calypso_ATSocket_SockOptSocket_SecureFilesDHKeyFileName:
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->fileName, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->fileName)))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_SecureDomainNameVerification:
-			if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->secureDomainNameVerification)))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_SecureDomainNameVerification:
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->secureDomainNameVerification, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->secureDomainNameVerification)))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptSocket_DisableCertificateStore:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->disableCertificateStore, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptSocket_DisableCertificateStore:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->disableCertificateStore, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		default:
-			return false;
-		}
-		break;
-	}
+                default:
+                    return false;
+            }
+            break;
+        }
 
-	case Calypso_ATSocket_SockOptLevel_IP:
-		switch (option)
-		{
-		case Calypso_ATSocket_SockOptIP_MulticastTTL:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->multicastTTL, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+        case Calypso_ATSocket_SockOptLevel_IP:
+            switch (option)
+            {
+                case Calypso_ATSocket_SockOptIP_MulticastTTL:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &pValues->multicastTTL, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case Calypso_ATSocket_SockOptIP_AddMembership:
-		case Calypso_ATSocket_SockOptIP_DropMembership:
-			if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->multicastGroup.ipv4Address)))
-			{
-				return false;
-			}
-			if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->multicastGroup.interfaceAddress)))
-			{
-				return false;
-			}
-			break;
+                case Calypso_ATSocket_SockOptIP_AddMembership:
+                case Calypso_ATSocket_SockOptIP_DropMembership:
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.ipv4Address, ATCOMMAND_ARGUMENT_DELIM, sizeof(pValues->multicastGroup.ipv4Address)))
+                    {
+                        return false;
+                    }
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, pValues->multicastGroup.interfaceAddress, ATCOMMAND_STRING_TERMINATE, sizeof(pValues->multicastGroup.interfaceAddress)))
+                    {
+                        return false;
+                    }
+                    break;
 
-		default:
-			return false;
-		}
-		break;
+                default:
+                    return false;
+            }
+            break;
 
-	default:
-		return false;
-	}
+        default:
+            return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -1188,11 +1141,11 @@ static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLev
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_ParseSocketFamily(const char *familyString, Calypso_ATSocket_Family_t *pOutFamily)
+bool Calypso_ATSocket_ParseSocketFamily(const char* familyString, Calypso_ATSocket_Family_t* pOutFamily)
 {
-	bool ok;
-	*pOutFamily = ATCommand_FindString(ATSocketFamilyString, Calypso_ATSocket_Family_NumberOfValues, familyString, Calypso_ATSocket_Family_INET, &ok);
-	return ok;
+    bool ok;
+    *pOutFamily = ATCommand_FindString(ATSocketFamilyString, Calypso_ATSocket_Family_NumberOfValues, familyString, Calypso_ATSocket_Family_INET, &ok);
+    return ok;
 }
 
 /**
@@ -1203,14 +1156,14 @@ bool Calypso_ATSocket_ParseSocketFamily(const char *familyString, Calypso_ATSock
  *
  * @return true if successful, false otherwise
  */
-bool Calypso_ATSocket_GetSocketFamilyString(Calypso_ATSocket_Family_t family, char *pOutFamilyStr)
+bool Calypso_ATSocket_GetSocketFamilyString(Calypso_ATSocket_Family_t family, char* pOutFamilyStr)
 {
-	if (family >= Calypso_ATSocket_Family_NumberOfValues)
-	{
-		return false;
-	}
-	strcpy(pOutFamilyStr, ATSocketFamilyString[family]);
-	return true;
+    if (family >= Calypso_ATSocket_Family_NumberOfValues)
+    {
+        return false;
+    }
+    strcpy(pOutFamilyStr, ATSocketFamilyString[family]);
+    return true;
 }
 
 /**
@@ -1219,8 +1172,4 @@ bool Calypso_ATSocket_GetSocketFamilyString(Calypso_ATSocket_Family_t family, ch
  * @param[out] pOutStr The string to which the flags should be added (must be null terminated)
  * @param[in] cipherMask Cipher mask flags (see Calypso_ATSocket_Cipher_t)
  */
-bool Calypso_ATSocket_AppendCipherMask(char *pOutStr, uint32_t cipherMask)
-{
-	return ATCommand_AppendArgumentBitmask(pOutStr, Calypso_ATSocket_CipherStrings, Calypso_ATSocket_Cipher_NumberOfValues, cipherMask,
-	ATCOMMAND_STRING_TERMINATE, AT_MAX_COMMAND_BUFFER_SIZE);
-}
+bool Calypso_ATSocket_AppendCipherMask(char* pOutStr, uint32_t cipherMask) { return ATCommand_AppendArgumentBitmask(pOutStr, Calypso_ATSocket_CipherStrings, Calypso_ATSocket_Cipher_NumberOfValues, cipherMask, ATCOMMAND_STRING_TERMINATE, AT_MAX_COMMAND_BUFFER_SIZE); }

@@ -28,9 +28,9 @@
  * @brief AT commands for web server functionality.
  */
 
-#include <global/ATCommands.h>
 #include <StephanoI/ATCommands/ATWebserver.h>
 #include <StephanoI/StephanoI.h>
+#include <global/ATCommands.h>
 
 /**
  * @brief Enable or disable the web server
@@ -43,38 +43,38 @@
  */
 bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t connection_timeout)
 {
-	char *pRequestCommand = AT_commandBuffer;
-	if (!enable)
-	{
-		strcpy(pRequestCommand, "AT+WEBSERVER=0\r\n");
-	}
-	else
-	{
-		strcpy(pRequestCommand, "AT+WEBSERVER=");
+    char* pRequestCommand = AT_commandBuffer;
+    if (!enable)
+    {
+        strcpy(pRequestCommand, "AT+WEBSERVER=0\r\n");
+    }
+    else
+    {
+        strcpy(pRequestCommand, "AT+WEBSERVER=");
 
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, enable ? (uint8_t) 1 : (uint8_t) 0, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, server_port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, connection_timeout, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-	}
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, enable ? (uint8_t)1 : (uint8_t)0, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, server_port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, connection_timeout, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -85,8 +85,8 @@ bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t con
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATWebserver_ParseResponse(char *EventArgumentsP, StephanoI_ATWebserver_Response_t *t)
+bool StephanoI_ATWebserver_ParseResponse(char* EventArgumentsP, StephanoI_ATWebserver_Response_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
+    char* argumentsP = EventArgumentsP;
+    return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }

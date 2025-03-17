@@ -29,21 +29,20 @@
  */
 
 #include <StephanoI/StephanoI.h>
-#include <global/global.h>
 #include <global/ATCommands.h>
+#include <global/global.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static void StephanoI_HandleRxByte(uint8_t *dataP, size_t size);
-static void StephanoI_HandleRxLine(char *rxPacket, uint16_t rxLength);
+static void StephanoI_HandleRxByte(uint8_t* dataP, size_t size);
+static void StephanoI_HandleRxLine(char* rxPacket, uint16_t rxLength);
 static WE_UART_HandleRxByte_t byteRxCallback = StephanoI_HandleRxByte;
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
  * Initialization is done in StephanoI_Init().
  */
-static uint32_t StephanoI_timeouts[StephanoI_Timeout_NumberOfValues] = {
-		0 };
+static uint32_t StephanoI_timeouts[StephanoI_Timeout_NumberOfValues] = {0};
 /**
  * @brief Is set to true when sending an AT command and is reset to false when the response has been received.
  */
@@ -52,8 +51,7 @@ static bool StephanoI_requestPending = false;
 /**
  * @brief Name of the command last sent using StephanoI_SendRequest() (without prefix "AT+").
  */
-static char StephanoI_pendingCommandName[64] = {
-		0 };
+static char StephanoI_pendingCommandName[64] = {0};
 
 /**
  * @brief Length of StephanoI_pendingCommandName.
@@ -63,7 +61,7 @@ static size_t StephanoI_pendingCommandNameLength = 0;
 /**
  * @brief Buffer used for current response text.
  */
-static char *StephanoI_currentResponseText = NULL;
+static char* StephanoI_currentResponseText = NULL;
 static size_t StephanoI_currentResponseLength = 0;
 static size_t StephanoI_currentResponseAvailableLength = 0;
 
@@ -111,12 +109,12 @@ static bool StephanoI_twoEolCharacters = true;
 /**
  * @brief Pin configuration struct pointer.
  */
-static StephanoI_Pins_t *StephanoI_pinsP = NULL;
+static StephanoI_Pins_t* StephanoI_pinsP = NULL;
 
 /**
  * @brief Uart configuration struct pointer.
  */
-static WE_UART_t *StephanoI_uartP = NULL;
+static WE_UART_t* StephanoI_uartP = NULL;
 
 /**
  * @brief Time step (microseconds) when waiting for responses from StephanoI.
@@ -164,76 +162,76 @@ static bool StephanoI_executingEventCallback = false;
 
  * @return true if successful, false otherwise
  */
-bool StephanoI_Init(WE_UART_t *uartP, StephanoI_Pins_t *pinoutP, StephanoI_EventCallback_t eventCallback)
+bool StephanoI_Init(WE_UART_t* uartP, StephanoI_Pins_t* pinoutP, StephanoI_EventCallback_t eventCallback)
 {
-	StephanoI_requestPending = false;
+    StephanoI_requestPending = false;
 
-	/* Callbacks */
-	StephanoI_eventCallback = eventCallback;
+    /* Callbacks */
+    StephanoI_eventCallback = eventCallback;
 
-	if (pinoutP == NULL)
-	{
-		return false;
-	}
-	else if (uartP == NULL)
-	{
-		return false;
-	}
-	else if (uartP->uartInit == NULL)
-	{
-		return false;
-	}
-	else if (uartP->uartDeinit == NULL)
-	{
-		return false;
-	}
-	else if (uartP->uartTransmit == NULL)
-	{
-		return false;
-	}
+    if (pinoutP == NULL)
+    {
+        return false;
+    }
+    else if (uartP == NULL)
+    {
+        return false;
+    }
+    else if (uartP->uartInit == NULL)
+    {
+        return false;
+    }
+    else if (uartP->uartDeinit == NULL)
+    {
+        return false;
+    }
+    else if (uartP->uartTransmit == NULL)
+    {
+        return false;
+    }
 
-	/* initialize the pins */
-	StephanoI_pinsP = pinoutP;
-	StephanoI_pinsP->StephanoI_Pin_Reset.type = WE_Pin_Type_Output;
-	StephanoI_pinsP->StephanoI_Pin_Wakeup.type = WE_Pin_Type_Output;
+    /* initialize the pins */
+    StephanoI_pinsP = pinoutP;
+    StephanoI_pinsP->StephanoI_Pin_Reset.type = WE_Pin_Type_Output;
+    StephanoI_pinsP->StephanoI_Pin_Wakeup.type = WE_Pin_Type_Output;
 
-	WE_Pin_t pins[sizeof(StephanoI_Pins_t) / sizeof(WE_Pin_t)];
-	uint8_t pin_count = 0;
-	memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Reset, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Wakeup, sizeof(WE_Pin_t));
+    WE_Pin_t pins[sizeof(StephanoI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Wakeup, sizeof(WE_Pin_t));
 
-	if (!WE_InitPins(pins, pin_count))
-	{
-		/* error */
-		return false;
-	}
+    if (!WE_InitPins(pins, pin_count))
+    {
+        /* error */
+        return false;
+    }
 
-	/* Set initial pin levels */
-	if (!WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Wakeup, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    /* Set initial pin levels */
+    if (!WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Wakeup, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	StephanoI_uartP = uartP;
-	if (false == StephanoI_uartP->uartInit(StephanoI_uartP->baudrate, StephanoI_uartP->flowControl, StephanoI_uartP->parity, &byteRxCallback))
-	{
-		return false;
-	}
-	WE_Delay(10);
+    StephanoI_uartP = uartP;
+    if (false == StephanoI_uartP->uartInit(StephanoI_uartP->baudrate, StephanoI_uartP->flowControl, StephanoI_uartP->parity, &byteRxCallback))
+    {
+        return false;
+    }
+    WE_Delay(10);
 
-	/* Set response timeouts */
-	StephanoI_timeouts[StephanoI_Timeout_General] = 1000;
-	StephanoI_timeouts[StephanoI_Timeout_FactoryReset] = 5000;
-	StephanoI_timeouts[StephanoI_Timeout_WifiScan] = 5000;
-	StephanoI_timeouts[StephanoI_Timeout_WifiConnect] = 10000;
-	StephanoI_timeouts[StephanoI_Timeout_SocketOpen] = 2500;
-	StephanoI_timeouts[StephanoI_Timeout_SocketPing] = 5000;
-	StephanoI_timeouts[StephanoI_Timeout_MQTTGeneral] = 10000;
-	StephanoI_timeouts[StephanoI_Timeout_MQTTConnect] = 15000;
-	StephanoI_timeouts[StephanoI_Timeout_HTTPGeneral] = 1000;
-	StephanoI_timeouts[StephanoI_Timeout_HTTPGetPost] = 10000;
+    /* Set response timeouts */
+    StephanoI_timeouts[StephanoI_Timeout_General] = 1000;
+    StephanoI_timeouts[StephanoI_Timeout_FactoryReset] = 5000;
+    StephanoI_timeouts[StephanoI_Timeout_WifiScan] = 5000;
+    StephanoI_timeouts[StephanoI_Timeout_WifiConnect] = 10000;
+    StephanoI_timeouts[StephanoI_Timeout_SocketOpen] = 2500;
+    StephanoI_timeouts[StephanoI_Timeout_SocketPing] = 5000;
+    StephanoI_timeouts[StephanoI_Timeout_MQTTGeneral] = 10000;
+    StephanoI_timeouts[StephanoI_Timeout_MQTTConnect] = 15000;
+    StephanoI_timeouts[StephanoI_Timeout_HTTPGeneral] = 1000;
+    StephanoI_timeouts[StephanoI_Timeout_HTTPGetPost] = 10000;
 
-	return true;
+    return true;
 }
 
 /**
@@ -243,14 +241,14 @@ bool StephanoI_Init(WE_UART_t *uartP, StephanoI_Pins_t *pinoutP, StephanoI_Event
  */
 bool StephanoI_Deinit(void)
 {
-	StephanoI_eventCallback = NULL;
+    StephanoI_eventCallback = NULL;
 
-	StephanoI_rxByteCounter = 0;
-	StephanoI_eolChar1Found = 0;
-	StephanoI_requestPending = false;
-	StephanoI_currentResponseLength = 0;
+    StephanoI_rxByteCounter = 0;
+    StephanoI_eolChar1Found = 0;
+    StephanoI_requestPending = false;
+    StephanoI_currentResponseLength = 0;
 
-	return StephanoI_uartP->uartDeinit();
+    return StephanoI_uartP->uartDeinit();
 }
 
 /**
@@ -260,12 +258,12 @@ bool StephanoI_Deinit(void)
  */
 bool StephanoI_PinReset(void)
 {
-	if (!WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_Low))
-	{
-		return false;
-	}
-	WE_Delay(5);
-	return WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_High);
+    if (!WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_Low))
+    {
+        return false;
+    }
+    WE_Delay(5);
+    return WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_High);
 }
 
 /**
@@ -275,18 +273,15 @@ bool StephanoI_PinReset(void)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_SetWakeUpPin(bool high)
-{
-	return WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Wakeup, high ? WE_Pin_Level_High : WE_Pin_Level_Low);
-}
+bool StephanoI_SetWakeUpPin(bool high) { return WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Wakeup, high ? WE_Pin_Level_High : WE_Pin_Level_Low); }
 
-bool StephanoI_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
+bool StephanoI_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
 {
-	if ((data == NULL) || (dataLength == 0))
-	{
-		return false;
-	}
-	return StephanoI_uartP->uartTransmit((uint8_t*) data, dataLength);
+    if ((data == NULL) || (dataLength == 0))
+    {
+        return false;
+    }
+    return StephanoI_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
 /**
@@ -296,10 +291,7 @@ bool StephanoI_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_SendRequest(char *data)
-{
-	return StephanoI_SendRequest_ex((uint8_t*) data, strlen(data));
-}
+bool StephanoI_SendRequest(char* data) { return StephanoI_SendRequest_ex((uint8_t*)data, strlen(data)); }
 
 /**
  * @brief Sends the supplied AT command to the module
@@ -309,53 +301,50 @@ bool StephanoI_SendRequest(char *data)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_SendRequest_ex(uint8_t *data, size_t dataLength)
+bool StephanoI_SendRequest_ex(uint8_t* data, size_t dataLength)
 {
-	if (StephanoI_executingEventCallback)
-	{
-		/* Don't allow sending AT commands from event handlers, as this will
+    if (StephanoI_executingEventCallback)
+    {
+        /* Don't allow sending AT commands from event handlers, as this will
 		 * mess up send/receive states and buffers. */
-		return false;
-	}
+        return false;
+    }
 
-	StephanoI_requestPending = true;
-	StephanoI_currentResponseLength = 0;
+    StephanoI_requestPending = true;
+    StephanoI_currentResponseLength = 0;
 
-	/* Make sure that the time between the last confirmation received from the module
+    /* Make sure that the time between the last confirmation received from the module
 	 * and the next command sent to the module is not shorter than StephanoI_minCommandIntervalUsec */
-	uint32_t t = WE_GetTickMicroseconds() - StephanoI_lastConfirmTimeUsec;
-	if (t < StephanoI_minCommandIntervalUsec)
-	{
-		WE_DelayMicroseconds(StephanoI_minCommandIntervalUsec - t);
-	}
+    uint32_t t = WE_GetTickMicroseconds() - StephanoI_lastConfirmTimeUsec;
+    if (t < StephanoI_minCommandIntervalUsec)
+    {
+        WE_DelayMicroseconds(StephanoI_minCommandIntervalUsec - t);
+    }
 
-	/* Get command name from request string (remove prefix "AT+" and parameters) */
-	StephanoI_pendingCommandName[0] = '\0';
-	StephanoI_pendingCommandNameLength = 0;
-	if (dataLength > 3 && (data[0] == 'a' || data[0] == 'A') && (data[1] == 't' || data[1] == 'T') && data[2] == '+')
-	{
-		char *pData = (char*) (data + 3);
-		char delimiters[] = {
-				ATCOMMAND_COMMAND_DELIM,
-				'?',
-				'\r' };
-		if (ATCommand_GetCmdName(&pData, StephanoI_pendingCommandName, sizeof(StephanoI_pendingCommandName), delimiters, sizeof(delimiters)))
-		{
-			StephanoI_pendingCommandNameLength = strlen(StephanoI_pendingCommandName);
-		}
-	}
+    /* Get command name from request string (remove prefix "AT+" and parameters) */
+    StephanoI_pendingCommandName[0] = '\0';
+    StephanoI_pendingCommandNameLength = 0;
+    if (dataLength > 3 && (data[0] == 'a' || data[0] == 'A') && (data[1] == 't' || data[1] == 'T') && data[2] == '+')
+    {
+        char* pData = (char*)(data + 3);
+        char delimiters[] = {ATCOMMAND_COMMAND_DELIM, '?', '\r'};
+        if (ATCommand_GetCmdName(&pData, StephanoI_pendingCommandName, sizeof(StephanoI_pendingCommandName), delimiters, sizeof(delimiters)))
+        {
+            StephanoI_pendingCommandNameLength = strlen(StephanoI_pendingCommandName);
+        }
+    }
 
 #ifdef WE_DEBUG
-	WE_DEBUG_PRINT("> %.*s", dataLength, data);
-	if ((data[dataLength - 2] != '\r') && (data[dataLength - 1] != '\n'))
-	{
-		WE_DEBUG_PRINT("\r\n");
-	}
+    WE_DEBUG_PRINT("> %.*s", dataLength, data);
+    if ((data[dataLength - 2] != '\r') && (data[dataLength - 1] != '\n'))
+    {
+        WE_DEBUG_PRINT("\r\n");
+    }
 #endif
 
-	StephanoI_Transparent_Transmit(data, dataLength);
+    StephanoI_Transparent_Transmit(data, dataLength);
 
-	return true;
+    return true;
 }
 
 /**
@@ -368,70 +357,69 @@ bool StephanoI_SendRequest_ex(uint8_t *data, size_t dataLength)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_WaitForConfirm_ex(uint32_t maxTimeMs, StephanoI_CNFStatus_t expectedStatus, char *pOutResponse, uint16_t responseSize)
+bool StephanoI_WaitForConfirm_ex(uint32_t maxTimeMs, StephanoI_CNFStatus_t expectedStatus, char* pOutResponse, uint16_t responseSize)
 {
-	StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Invalid;
+    StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Invalid;
 
-	if ((NULL != pOutResponse) && (responseSize != 0))
-	{
-		StephanoI_currentResponseText = pOutResponse;
-		StephanoI_currentResponseAvailableLength = responseSize;
-		StephanoI_currentResponseLength = 0;
-	}
-	else
-	{
-		StephanoI_currentResponseText = NULL;
-		StephanoI_currentResponseAvailableLength = 0;
-		StephanoI_currentResponseLength = 0;
-	}
+    if ((NULL != pOutResponse) && (responseSize != 0))
+    {
+        StephanoI_currentResponseText = pOutResponse;
+        StephanoI_currentResponseAvailableLength = responseSize;
+        StephanoI_currentResponseLength = 0;
+    }
+    else
+    {
+        StephanoI_currentResponseText = NULL;
+        StephanoI_currentResponseAvailableLength = 0;
+        StephanoI_currentResponseLength = 0;
+    }
 
-	uint32_t t0 = WE_GetTick();
+    uint32_t t0 = WE_GetTick();
 
-	while (1)
-	{
-		if (StephanoI_CNFStatus_Invalid != StephanoI_cmdConfirmStatus)
-		{
-			/* Store current time to enable check for min. time between received confirm and next command. */
-			StephanoI_lastConfirmTimeUsec = WE_GetTickMicroseconds();
-			StephanoI_requestPending = false;
+    while (1)
+    {
+        if (StephanoI_CNFStatus_Invalid != StephanoI_cmdConfirmStatus)
+        {
+            /* Store current time to enable check for min. time between received confirm and next command. */
+            StephanoI_lastConfirmTimeUsec = WE_GetTickMicroseconds();
+            StephanoI_requestPending = false;
 
-			bool ret = false;
-			if (StephanoI_cmdConfirmStatus == expectedStatus)
-			{
-				if (NULL != StephanoI_currentResponseText)
-				{
-					StephanoI_currentResponseText[StephanoI_currentResponseLength] = '\0';
-				}
+            bool ret = false;
+            if (StephanoI_cmdConfirmStatus == expectedStatus)
+            {
+                if (NULL != StephanoI_currentResponseText)
+                {
+                    StephanoI_currentResponseText[StephanoI_currentResponseLength] = '\0';
+                }
 
-				ret = true;
-			}
+                ret = true;
+            }
 
-			StephanoI_currentResponseText = NULL;
-			StephanoI_currentResponseAvailableLength = 0;
-			StephanoI_currentResponseLength = 0;
-			return ret;
+            StephanoI_currentResponseText = NULL;
+            StephanoI_currentResponseAvailableLength = 0;
+            StephanoI_currentResponseLength = 0;
+            return ret;
+        }
 
-		}
+        uint32_t now = WE_GetTick();
+        if (now - t0 > maxTimeMs)
+        {
+            /* Timeout */
+            break;
+        }
 
-		uint32_t now = WE_GetTick();
-		if (now - t0 > maxTimeMs)
-		{
-			/* Timeout */
-			break;
-		}
+        if (StephanoI_waitTimeStepUsec > 0)
+        {
+            WE_DelayMicroseconds(StephanoI_waitTimeStepUsec);
+        }
+    }
 
-		if (StephanoI_waitTimeStepUsec > 0)
-		{
-			WE_DelayMicroseconds(StephanoI_waitTimeStepUsec);
-		}
-	}
-
-	/* Timeout occurred */
-	StephanoI_requestPending = false;
-	StephanoI_currentResponseText = NULL;
-	StephanoI_currentResponseAvailableLength = 0;
-	StephanoI_currentResponseLength = 0;
-	return false;
+    /* Timeout occurred */
+    StephanoI_requestPending = false;
+    StephanoI_currentResponseText = NULL;
+    StephanoI_currentResponseAvailableLength = 0;
+    StephanoI_currentResponseLength = 0;
+    return false;
 }
 
 /**
@@ -442,10 +430,7 @@ bool StephanoI_WaitForConfirm_ex(uint32_t maxTimeMs, StephanoI_CNFStatus_t expec
  *
  * @return true if successful, false otherwise
  */
-inline bool StephanoI_WaitForConfirm(uint32_t maxTimeMs, StephanoI_CNFStatus_t expectedStatus)
-{
-	return StephanoI_WaitForConfirm_ex(maxTimeMs, expectedStatus, NULL, 0);
-}
+inline bool StephanoI_WaitForConfirm(uint32_t maxTimeMs, StephanoI_CNFStatus_t expectedStatus) { return StephanoI_WaitForConfirm_ex(maxTimeMs, expectedStatus, NULL, 0); }
 
 /**
  * @brief Set timing parameters used by the StephanoI driver.
@@ -459,9 +444,9 @@ inline bool StephanoI_WaitForConfirm(uint32_t maxTimeMs, StephanoI_CNFStatus_t e
  */
 bool StephanoI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
-	StephanoI_waitTimeStepUsec = waitTimeStepUsec;
-	StephanoI_minCommandIntervalUsec = minCommandIntervalUsec;
-	return true;
+    StephanoI_waitTimeStepUsec = waitTimeStepUsec;
+    StephanoI_minCommandIntervalUsec = minCommandIntervalUsec;
+    return true;
 }
 
 /**
@@ -470,10 +455,7 @@ bool StephanoI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minComman
  * @param[in] type Timeout (i.e. command) type
  * @param[in] timeout Timeout in milliseconds
  */
-void StephanoI_SetTimeout(StephanoI_Timeout_t type, uint32_t timeout)
-{
-	StephanoI_timeouts[type] = timeout;
-}
+void StephanoI_SetTimeout(StephanoI_Timeout_t type, uint32_t timeout) { StephanoI_timeouts[type] = timeout; }
 
 /**
  * @brief Gets the timeout for responses to AT commands of the given type.
@@ -482,10 +464,7 @@ void StephanoI_SetTimeout(StephanoI_Timeout_t type, uint32_t timeout)
  *
  * @return Timeout in milliseconds
  */
-uint32_t StephanoI_GetTimeout(StephanoI_Timeout_t type)
-{
-	return StephanoI_timeouts[type];
-}
+uint32_t StephanoI_GetTimeout(StephanoI_Timeout_t type) { return StephanoI_timeouts[type]; }
 
 /**
  * @brief Default byte received callback.
@@ -494,74 +473,73 @@ uint32_t StephanoI_GetTimeout(StephanoI_Timeout_t type)
  *
  * @param[in] receivedByte The received byte.
  */
-static void StephanoI_HandleRxByte(uint8_t *dataP, size_t size)
+static void StephanoI_HandleRxByte(uint8_t* dataP, size_t size)
 {
-	uint8_t receivedByte;
-	for (; size > 0; size--, dataP++)
-	{
-		receivedByte = *dataP;
+    uint8_t receivedByte;
+    for (; size > 0; size--, dataP++)
+    {
+        receivedByte = *dataP;
 
-		/* Interpret received byte */
-		if (StephanoI_rxByteCounter == 0)
-		{
-			if (STEPHANOI_READY4DATA_CHAR == receivedByte)
-			{
-				StephanoI_rxBuffer[StephanoI_rxByteCounter] = receivedByte;
-				StephanoI_rxByteCounter++;
-				StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
-				StephanoI_rxByteCounter++;
-				StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
-				StephanoI_eolChar1Found = false;
-				StephanoI_rxByteCounter = 0;
+        /* Interpret received byte */
+        if (StephanoI_rxByteCounter == 0)
+        {
+            if (STEPHANOI_READY4DATA_CHAR == receivedByte)
+            {
+                StephanoI_rxBuffer[StephanoI_rxByteCounter] = receivedByte;
+                StephanoI_rxByteCounter++;
+                StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
+                StephanoI_rxByteCounter++;
+                StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
+                StephanoI_eolChar1Found = false;
+                StephanoI_rxByteCounter = 0;
+            }
+            else if (('\n' != receivedByte) && ('\r' != receivedByte))
+            {
+                StephanoI_rxBuffer[StephanoI_rxByteCounter] = receivedByte;
+                StephanoI_rxByteCounter++;
+            }
+        }
+        else
+        {
+            if (StephanoI_rxByteCounter >= STEPHANOI_LINE_MAX_SIZE)
+            {
+                StephanoI_rxByteCounter = 0;
+                StephanoI_eolChar1Found = false;
+                return;
+            }
 
-			}
-			else if (('\n' != receivedByte) && ('\r' != receivedByte))
-			{
-				StephanoI_rxBuffer[StephanoI_rxByteCounter] = receivedByte;
-				StephanoI_rxByteCounter++;
-			}
-		}
-		else
-		{
-			if (StephanoI_rxByteCounter >= STEPHANOI_LINE_MAX_SIZE)
-			{
-				StephanoI_rxByteCounter = 0;
-				StephanoI_eolChar1Found = false;
-				return;
-			}
+            if (receivedByte == StephanoI_eolChar1)
+            {
+                StephanoI_eolChar1Found = true;
 
-			if (receivedByte == StephanoI_eolChar1)
-			{
-				StephanoI_eolChar1Found = true;
-
-				if (!StephanoI_twoEolCharacters)
-				{
-					/* Interpret it now */
-					StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
-					StephanoI_rxByteCounter++;
-					StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
-					StephanoI_eolChar1Found = false;
-					StephanoI_rxByteCounter = 0;
-				}
-			}
-			else if (StephanoI_eolChar1Found)
-			{
-				if (receivedByte == StephanoI_eolChar2)
-				{
-					/* Interpret it now */
-					StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
-					StephanoI_rxByteCounter++;
-					StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
-					StephanoI_eolChar1Found = false;
-					StephanoI_rxByteCounter = 0;
-				}
-			}
-			else
-			{
-				StephanoI_rxBuffer[StephanoI_rxByteCounter++] = receivedByte;
-			}
-		}
-	}
+                if (!StephanoI_twoEolCharacters)
+                {
+                    /* Interpret it now */
+                    StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
+                    StephanoI_rxByteCounter++;
+                    StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
+                    StephanoI_eolChar1Found = false;
+                    StephanoI_rxByteCounter = 0;
+                }
+            }
+            else if (StephanoI_eolChar1Found)
+            {
+                if (receivedByte == StephanoI_eolChar2)
+                {
+                    /* Interpret it now */
+                    StephanoI_rxBuffer[StephanoI_rxByteCounter] = '\0';
+                    StephanoI_rxByteCounter++;
+                    StephanoI_HandleRxLine(StephanoI_rxBuffer, StephanoI_rxByteCounter);
+                    StephanoI_eolChar1Found = false;
+                    StephanoI_rxByteCounter = 0;
+                }
+            }
+            else
+            {
+                StephanoI_rxBuffer[StephanoI_rxByteCounter++] = receivedByte;
+            }
+        }
+    }
 }
 
 /**
@@ -570,111 +548,94 @@ static void StephanoI_HandleRxByte(uint8_t *dataP, size_t size)
  * @param[in] rxPacket Received text
  * @param[in] rxLength Received text length
  */
-static void StephanoI_HandleRxLine(char *rxPacket, uint16_t rxLength)
+static void StephanoI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-	WE_DEBUG_PRINT("< %s\r\n", rxPacket);
+    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
 #endif
 
-	/* confirmations */
-	if (StephanoI_requestPending)
-	{
-		/* AT command was sent to module. Waiting for response. */
-		if (STEPHANOI_READY4DATA_CHAR == rxPacket[0])
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Ready4Data;
-		}
-		else if (0 == strncmp(&rxPacket[0], ATCOMMAND_RESPONSE_OK, strlen(ATCOMMAND_RESPONSE_OK)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Success;
-		}
-		else if (0 == strncmp(&rxPacket[0], STEPHANOI_RESPONSE_ERROR, strlen(STEPHANOI_RESPONSE_ERROR)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Failed;
-		}
-		else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_OK, strlen(STEPHANOI_SEND_OK)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_SendOK;
-		}
-		else if (0 == strncmp(&rxPacket[0], STEPHANOI_SET_OK, strlen(STEPHANOI_SET_OK)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_SetOK;
-		}
-		else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_FAIL, strlen(STEPHANOI_SEND_FAIL)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Failed;
-		}
-		else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_CANCELLED, strlen(STEPHANOI_SEND_CANCELLED)))
-		{
-			StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Success; //STEPHANOI_SEND_CANCELLED is a success message when closing the data transmission
-		}
-		else
-		{
-			/* Doesn't start with o or e - copy to response text buffer, if the start
+    /* confirmations */
+    if (StephanoI_requestPending)
+    {
+        /* AT command was sent to module. Waiting for response. */
+        if (STEPHANOI_READY4DATA_CHAR == rxPacket[0])
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Ready4Data;
+        }
+        else if (0 == strncmp(&rxPacket[0], ATCOMMAND_RESPONSE_OK, strlen(ATCOMMAND_RESPONSE_OK)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Success;
+        }
+        else if (0 == strncmp(&rxPacket[0], STEPHANOI_RESPONSE_ERROR, strlen(STEPHANOI_RESPONSE_ERROR)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Failed;
+        }
+        else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_OK, strlen(STEPHANOI_SEND_OK)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_SendOK;
+        }
+        else if (0 == strncmp(&rxPacket[0], STEPHANOI_SET_OK, strlen(STEPHANOI_SET_OK)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_SetOK;
+        }
+        else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_FAIL, strlen(STEPHANOI_SEND_FAIL)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Failed;
+        }
+        else if (0 == strncmp(&rxPacket[0], STEPHANOI_SEND_CANCELLED, strlen(STEPHANOI_SEND_CANCELLED)))
+        {
+            StephanoI_cmdConfirmStatus = StephanoI_CNFStatus_Success; //STEPHANOI_SEND_CANCELLED is a success message when closing the data transmission
+        }
+        else
+        {
+            /* Doesn't start with o or e - copy to response text buffer, if the start
 			 * of the response matches the pending command name preceded by '+' */
-			// @formatter:off
-			if ((StephanoI_currentResponseText != NULL) &&
-				(rxLength > 1) &&
-				(StephanoI_rxBuffer[0] == '+') &&
-				(StephanoI_pendingCommandName[0] != '\0') &&
-				(0 == strncmp(StephanoI_pendingCommandName, StephanoI_rxBuffer + 1, StephanoI_pendingCommandNameLength)))
-															// @formatter:on
-{			/* Copy to response text buffer, taking care not to exceed buffer size */
-			uint16_t chunkLength = rxLength;
+            if ((StephanoI_currentResponseText != NULL) && (rxLength > 1) && (StephanoI_rxBuffer[0] == '+') && (StephanoI_pendingCommandName[0] != '\0') && (0 == strncmp(StephanoI_pendingCommandName, StephanoI_rxBuffer + 1, StephanoI_pendingCommandNameLength)))
+            { /* Copy to response text buffer, taking care not to exceed buffer size */
+                uint16_t chunkLength = rxLength;
 
-			/* on first copy operation remove command to only copy the arguments */
-			if(StephanoI_currentResponseLength == 0)
-			{
-				/* cut off command, '+', and ':' */
-				if(chunkLength > (StephanoI_pendingCommandNameLength + 2))
-				{
-					chunkLength -= (StephanoI_pendingCommandNameLength + 2);
-				}
-			}
+                /* on first copy operation remove command to only copy the arguments */
+                if (StephanoI_currentResponseLength == 0)
+                {
+                    /* cut off command, '+', and ':' */
+                    if (chunkLength > (StephanoI_pendingCommandNameLength + 2))
+                    {
+                        chunkLength -= (StephanoI_pendingCommandNameLength + 2);
+                    }
+                }
 
-			if (StephanoI_currentResponseLength + chunkLength > StephanoI_currentResponseAvailableLength)
-			{
-				/* shorten chunk length to not overflow the buffer size */
-				chunkLength = StephanoI_currentResponseAvailableLength - StephanoI_currentResponseLength;
-			}
+                if (StephanoI_currentResponseLength + chunkLength > StephanoI_currentResponseAvailableLength)
+                {
+                    /* shorten chunk length to not overflow the buffer size */
+                    chunkLength = StephanoI_currentResponseAvailableLength - StephanoI_currentResponseLength;
+                }
 
-			if(StephanoI_currentResponseLength == 0)
-			{
-				/* cut off command, '+', and ':' */
-				memcpy(&StephanoI_currentResponseText[StephanoI_currentResponseLength], &StephanoI_rxBuffer[1 /*+*/+ StephanoI_pendingCommandNameLength /* command name */+ 1 /*:*/], chunkLength);
-			}
-			else
-			{
-				memcpy(&StephanoI_currentResponseText[StephanoI_currentResponseLength], &StephanoI_rxBuffer[0], chunkLength);
-			}
-			StephanoI_currentResponseLength += chunkLength;
-		}
-	}
-}
+                if (StephanoI_currentResponseLength == 0)
+                {
+                    /* cut off command, '+', and ':' */
+                    memcpy(&StephanoI_currentResponseText[StephanoI_currentResponseLength], &StephanoI_rxBuffer[1 /*+*/ + StephanoI_pendingCommandNameLength /* command name */ + 1 /*:*/], chunkLength);
+                }
+                else
+                {
+                    memcpy(&StephanoI_currentResponseText[StephanoI_currentResponseLength], &StephanoI_rxBuffer[0], chunkLength);
+                }
+                StephanoI_currentResponseLength += chunkLength;
+            }
+        }
+    }
 
-// @formatter:off
-/* indications */
-if (('+' == rxPacket[0]) ||
-			(0 == strcmp(rxPacket, "ready")) ||
-			(0 == strncmp(rxPacket, "WIFI ", 5)) ||
-			(0 == strcmp(strrchr(rxPacket, ATCOMMAND_STRING_TERMINATE) - 7, "CONNECT"))	|| //check last 7 chars
-			(0 == strcmp(strrchr(rxPacket, ATCOMMAND_STRING_TERMINATE) - 6, "CLOSED"))	|| //check last 6 chars
-			(0 == strncmp(rxPacket, "SEND ", 5)) || (0 == strcmp(rxPacket, "NO CERT FOUND")) ||
-			(0 == strcmp(rxPacket, "NO PRVT_KEY FOUND")) ||
-			(0 == strcmp(rxPacket, "NO CA FOUND")) ||
-			(0 == strcmp(rxPacket, "busy p...")) ||
-			(0 == strcmp(rxPacket, "Will force to restart!!!")) ||
-			(0 == strncmp(rxPacket, "ERR CODE:", 9))
-			)
-						// @formatter:on
-{	/* An event occurred. Execute callback (if specified). */
-	if (NULL != StephanoI_eventCallback)
-	{
-		StephanoI_executingEventCallback = true;
-		StephanoI_eventCallback(StephanoI_rxBuffer);
-		StephanoI_executingEventCallback = false;
-	}
-}
+    /* indications */
+    if (('+' == rxPacket[0]) || (0 == strcmp(rxPacket, "ready")) || (0 == strncmp(rxPacket, "WIFI ", 5)) || (0 == strcmp(strrchr(rxPacket, ATCOMMAND_STRING_TERMINATE) - 7, "CONNECT")) || //check last 7 chars
+        (0 == strcmp(strrchr(rxPacket, ATCOMMAND_STRING_TERMINATE) - 6, "CLOSED")) ||                                                                                                      //check last 6 chars
+        (0 == strncmp(rxPacket, "SEND ", 5)) || (0 == strcmp(rxPacket, "NO CERT FOUND")) || (0 == strcmp(rxPacket, "NO PRVT_KEY FOUND")) || (0 == strcmp(rxPacket, "NO CA FOUND")) || (0 == strcmp(rxPacket, "busy p...")) || (0 == strcmp(rxPacket, "Will force to restart!!!")) || (0 == strncmp(rxPacket, "ERR CODE:", 9)))
+    { /* An event occurred. Execute callback (if specified). */
+        if (NULL != StephanoI_eventCallback)
+        {
+            StephanoI_executingEventCallback = true;
+            StephanoI_eventCallback(StephanoI_rxBuffer);
+            StephanoI_executingEventCallback = false;
+        }
+    }
 }
 
 /**
@@ -686,7 +647,7 @@ if (('+' == rxPacket[0]) ||
  */
 void StephanoI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
-	StephanoI_eolChar1 = eol1;
-	StephanoI_eolChar2 = eol2;
-	StephanoI_twoEolCharacters = twoEolCharacters;
+    StephanoI_eolChar1 = eol1;
+    StephanoI_eolChar2 = eol2;
+    StephanoI_twoEolCharacters = twoEolCharacters;
 }

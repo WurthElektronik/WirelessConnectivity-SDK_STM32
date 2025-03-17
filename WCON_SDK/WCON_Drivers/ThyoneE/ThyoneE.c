@@ -30,27 +30,27 @@
 
 #include <ThyoneE/ThyoneE.h>
 #include <global/global.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #define CMD_WAIT_TIME 1500
 #define CMD_WAIT_TIME_STEP_MS 0
 #define CNFINVALID 255
 
 /* Normal overhead: Start signal + Command + Length + CS = 1+1+2+1=5 bytes */
-#define LENGTH_CMD_OVERHEAD             (uint16_t)5
+#define LENGTH_CMD_OVERHEAD (uint16_t)5
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
 
-#define MAX_RADIO_PAYLOAD_LENGTH              (uint16_t)224
+#define MAX_RADIO_PAYLOAD_LENGTH (uint16_t)224
 
-#define MAX_CMD_PAYLOAD_LENGTH                  (uint16_t)(MAX_RADIO_PAYLOAD_LENGTH + 6)
+#define MAX_CMD_PAYLOAD_LENGTH (uint16_t)(MAX_RADIO_PAYLOAD_LENGTH + 6)
 
 typedef struct
 {
-	const uint8_t Stx;
-	uint8_t Cmd;
-	uint16_t Length;
-	uint8_t Data[MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
+    const uint8_t Stx;
+    uint8_t Cmd;
+    uint16_t Length;
+    uint8_t Data[MAX_CMD_PAYLOAD_LENGTH + 1]; /* +1 from CS */
 
 } ThyoneE_CMD_Frame_t;
 
@@ -148,7 +148,7 @@ typedef struct
 #define THYONEE_CMD_GPIO_REMOTE_READ_CNF (THYONEE_CMD_GPIO_REMOTE_READ | THYONEE_CMD_TYPE_CNF)
 #define THYONEE_CMD_GPIO_REMOTE_READ_RSP (THYONEE_CMD_GPIO_REMOTE_READ | THYONEE_CMD_TYPE_RSP)
 
-void ThyoneE_HandleRxByte(uint8_t *dataP, size_t size);
+void ThyoneE_HandleRxByte(uint8_t* dataP, size_t size);
 static WE_UART_HandleRxByte_t byteRxCallback = ThyoneE_HandleRxByte;
 
 /**
@@ -156,28 +156,24 @@ static WE_UART_HandleRxByte_t byteRxCallback = ThyoneE_HandleRxByte;
  */
 typedef enum ThyoneE_CMD_Status_t
 {
-	CMD_Status_Success = (uint8_t) 0x00,
-	CMD_Status_Failed = (uint8_t) 0x01,
-	CMD_Status_Invalid,
-	CMD_Status_Reset,
-	CMD_Status_NoStatus,
+    CMD_Status_Success = (uint8_t)0x00,
+    CMD_Status_Failed = (uint8_t)0x01,
+    CMD_Status_Invalid,
+    CMD_Status_Reset,
+    CMD_Status_NoStatus,
 } ThyoneE_CMD_Status_t;
 
 typedef struct
 {
-	uint8_t cmd; /* variable to check if correct CMD has been confirmed */
-	ThyoneE_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThyoneE */
+    uint8_t cmd;                 /* variable to check if correct CMD has been confirmed */
+    ThyoneE_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThyoneE */
 } ThyoneE_CMD_Confirmation_t;
 
 /**************************************
  *          Static variables          *
  **************************************/
-static ThyoneE_CMD_Frame_t txPacket = {
-		.Stx = CMD_STX,
-		.Length = 0 }; /* request to be sent to the module */
-static ThyoneE_CMD_Frame_t rxPacket = {
-		.Stx = CMD_STX,
-		.Length = 0 }; /* received packet that has been sent by the module */
+static ThyoneE_CMD_Frame_t txPacket = {.Stx = CMD_STX, .Length = 0}; /* request to be sent to the module */
+static ThyoneE_CMD_Frame_t rxPacket = {.Stx = CMD_STX, .Length = 0}; /* received packet that has been sent by the module */
 ;
 
 #define CMDCONFIRMATIONARRAY_LENGTH 3
@@ -185,16 +181,16 @@ static ThyoneE_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LEN
 /**
  * @brief Pin configuration struct pointer.
  */
-static ThyoneE_Pins_t *ThyoneE_pinsP = NULL;
+static ThyoneE_Pins_t* ThyoneE_pinsP = NULL;
 /**
  * @brief Uart configuration struct pointer.
  */
-static WE_UART_t *ThyoneE_uartP = NULL;
+static WE_UART_t* ThyoneE_uartP = NULL;
 
 static uint8_t checksum = 0;
 static uint16_t rxByteCounter = 0;
 static uint16_t bytesToReceive = 0;
-static uint8_t rxBuffer[sizeof(ThyoneE_CMD_Frame_t)]; /* For UART RX from module */
+static uint8_t rxBuffer[sizeof(ThyoneE_CMD_Frame_t)];            /* For UART RX from module */
 static void (*RxCallback)(uint8_t*, uint16_t, uint32_t, int8_t); /* callback function */
 static ThyoneE_OperationMode_t operationMode = ThyoneE_OperationMode_CommandMode;
 
@@ -202,94 +198,94 @@ static ThyoneE_OperationMode_t operationMode = ThyoneE_OperationMode_CommandMode
  *         Static functions           *
  **************************************/
 
-static void HandleRxPacket(uint8_t *prxBuffer)
+static void HandleRxPacket(uint8_t* prxBuffer)
 {
-	ThyoneE_CMD_Confirmation_t cmdConfirmation;
-	cmdConfirmation.cmd = CNFINVALID;
-	cmdConfirmation.status = CMD_Status_Invalid;
+    ThyoneE_CMD_Confirmation_t cmdConfirmation;
+    cmdConfirmation.cmd = CNFINVALID;
+    cmdConfirmation.status = CMD_Status_Invalid;
 
-	uint16_t cmdLength = ((ThyoneE_CMD_Frame_t*) prxBuffer)->Length;
-	memcpy(&rxPacket, prxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
+    uint16_t cmdLength = ((ThyoneE_CMD_Frame_t*)prxBuffer)->Length;
+    memcpy(&rxPacket, prxBuffer, cmdLength + LENGTH_CMD_OVERHEAD);
 
-	switch (rxPacket.Cmd)
-	{
-	case THYONEE_CMD_RESET_CNF:
-	case THYONEE_CMD_START_IND :
-	case THYONEE_CMD_GPIO_REMOTE_GETCONFIG_RSP:
-	case THYONEE_CMD_GPIO_REMOTE_READ_RSP:
-	{
-		cmdConfirmation.cmd = rxPacket.Cmd;
-		cmdConfirmation.status = CMD_Status_NoStatus;
-		break;
-	}
+    switch (rxPacket.Cmd)
+    {
+        case THYONEE_CMD_RESET_CNF:
+        case THYONEE_CMD_START_IND:
+        case THYONEE_CMD_GPIO_REMOTE_GETCONFIG_RSP:
+        case THYONEE_CMD_GPIO_REMOTE_READ_RSP:
+        {
+            cmdConfirmation.cmd = rxPacket.Cmd;
+            cmdConfirmation.status = CMD_Status_NoStatus;
+            break;
+        }
 
-	case THYONEE_CMD_DATA_CNF:
-	case THYONEE_CMD_GET_CNF:
-	case THYONEE_CMD_SET_CNF:
-	case THYONEE_CMD_SETCHANNEL_CNF:
-	case THYONEE_CMD_FACTORYRESET_CNF:
-	case THYONEE_CMD_SLEEP_CNF:
-	case THYONEE_CMD_GPIO_LOCAL_SETCONFIG_CNF:
-	case THYONEE_CMD_GPIO_LOCAL_GETCONFIG_CNF:
-	case THYONEE_CMD_GPIO_LOCAL_WRITE_CNF:
-	case THYONEE_CMD_GPIO_LOCAL_READ_CNF:
-	case THYONEE_CMD_GPIO_REMOTE_SETCONFIG_CNF:
-	case THYONEE_CMD_GPIO_REMOTE_GETCONFIG_CNF:
-	case THYONEE_CMD_GPIO_REMOTE_WRITE_CNF:
-	case THYONEE_CMD_TXCOMPLETE_RSP:
-	case THYONEE_CMD_GETSTATE_CNF:
-	{
-		cmdConfirmation.cmd = rxPacket.Cmd;
-		cmdConfirmation.status = rxPacket.Data[0];
-		break;
-	}
+        case THYONEE_CMD_DATA_CNF:
+        case THYONEE_CMD_GET_CNF:
+        case THYONEE_CMD_SET_CNF:
+        case THYONEE_CMD_SETCHANNEL_CNF:
+        case THYONEE_CMD_FACTORYRESET_CNF:
+        case THYONEE_CMD_SLEEP_CNF:
+        case THYONEE_CMD_GPIO_LOCAL_SETCONFIG_CNF:
+        case THYONEE_CMD_GPIO_LOCAL_GETCONFIG_CNF:
+        case THYONEE_CMD_GPIO_LOCAL_WRITE_CNF:
+        case THYONEE_CMD_GPIO_LOCAL_READ_CNF:
+        case THYONEE_CMD_GPIO_REMOTE_SETCONFIG_CNF:
+        case THYONEE_CMD_GPIO_REMOTE_GETCONFIG_CNF:
+        case THYONEE_CMD_GPIO_REMOTE_WRITE_CNF:
+        case THYONEE_CMD_TXCOMPLETE_RSP:
+        case THYONEE_CMD_GETSTATE_CNF:
+        {
+            cmdConfirmation.cmd = rxPacket.Cmd;
+            cmdConfirmation.status = rxPacket.Data[0];
+            break;
+        }
 
-	case THYONEE_CMD_GPIO_REMOTE_READ_CNF:
-	{
-		cmdConfirmation.cmd = rxPacket.Cmd;
-		cmdConfirmation.status = CMD_Status_Invalid;
+        case THYONEE_CMD_GPIO_REMOTE_READ_CNF:
+        {
+            cmdConfirmation.cmd = rxPacket.Cmd;
+            cmdConfirmation.status = CMD_Status_Invalid;
 
-		break;
-	}
+            break;
+        }
 
-	case THYONEE_CMD_DATA_IND:
-	{
-		if (RxCallback != NULL)
-		{
-			uint32_t src_address;
-			memcpy(&src_address, &rxPacket.Data[0], 4);
-			RxCallback(&rxPacket.Data[5], rxPacket.Length - 5, src_address, rxPacket.Data[4]);
-		}
-		break;
-	}
+        case THYONEE_CMD_DATA_IND:
+        {
+            if (RxCallback != NULL)
+            {
+                uint32_t src_address;
+                memcpy(&src_address, &rxPacket.Data[0], 4);
+                RxCallback(&rxPacket.Data[5], rxPacket.Length - 5, src_address, rxPacket.Data[4]);
+            }
+            break;
+        }
 
-	case THYONEE_CMD_SNIFFER_IND :
-	{
-		if (RxCallback != NULL)
-		{
-			uint32_t src_address;
-			memcpy(&src_address, &rxPacket.Data[0], 4);
-			RxCallback(&rxPacket.Data[6], rxPacket.Length - 6, src_address, rxPacket.Data[4]);
-		}
-		break;
-	}
+        case THYONEE_CMD_SNIFFER_IND:
+        {
+            if (RxCallback != NULL)
+            {
+                uint32_t src_address;
+                memcpy(&src_address, &rxPacket.Data[0], 4);
+                RxCallback(&rxPacket.Data[6], rxPacket.Length - 6, src_address, rxPacket.Data[4]);
+            }
+            break;
+        }
 
-	default:
-	{
-		/* invalid*/
-		break;
-	}
-	}
+        default:
+        {
+            /* invalid*/
+            break;
+        }
+    }
 
-	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-	{
-		if (cmdConfirmation_array[i].cmd == CNFINVALID)
-		{
-			cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
-			cmdConfirmation_array[i].status = cmdConfirmation.status;
-			break;
-		}
-	}
+    for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+    {
+        if (cmdConfirmation_array[i].cmd == CNFINVALID)
+        {
+            cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
+            cmdConfirmation_array[i].status = cmdConfirmation.status;
+            break;
+        }
+    }
 }
 
 /**
@@ -297,116 +293,116 @@ static void HandleRxPacket(uint8_t *prxBuffer)
  */
 static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, ThyoneE_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
-	uint32_t t0 = WE_GetTick();
+    uint32_t t0 = WE_GetTick();
 
-	if (reset_confirmstate)
-	{
-		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-		{
-			cmdConfirmation_array[i].cmd = CNFINVALID;
-		}
-	}
-	while (1)
-	{
-		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-		{
-			if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
-			{
-				return (cmdConfirmation_array[i].status == expectedStatus);
-			}
-		}
+    if (reset_confirmstate)
+    {
+        for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+        {
+            cmdConfirmation_array[i].cmd = CNFINVALID;
+        }
+    }
+    while (1)
+    {
+        for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+        {
+            if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
+            {
+                return (cmdConfirmation_array[i].status == expectedStatus);
+            }
+        }
 
-		uint32_t now = WE_GetTick();
-		if (now - t0 > max_time_ms)
-		{
-			/* received no correct response within timeout */
-			return false;
-		}
+        uint32_t now = WE_GetTick();
+        if (now - t0 > max_time_ms)
+        {
+            /* received no correct response within timeout */
+            return false;
+        }
 
-		if (CMD_WAIT_TIME_STEP_MS > 0)
-		{
-			/* wait */
-			WE_Delay(CMD_WAIT_TIME_STEP_MS);
-		}
-	}
-	return true;
+        if (CMD_WAIT_TIME_STEP_MS > 0)
+        {
+            /* wait */
+            WE_Delay(CMD_WAIT_TIME_STEP_MS);
+        }
+    }
+    return true;
 }
 
 /**
  * @brief Function to add the checksum at the end of the data packet.
  */
-static void FillChecksum(ThyoneE_CMD_Frame_t *cmd)
+static void FillChecksum(ThyoneE_CMD_Frame_t* cmd)
 {
-	uint8_t checksum = (uint8_t) cmd->Stx;
-	uint8_t *pArray = (uint8_t*) cmd;
-	for (uint16_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
-	{
-		checksum ^= pArray[i];
-	}
-	cmd->Data[cmd->Length] = checksum;
+    uint8_t checksum = (uint8_t)cmd->Stx;
+    uint8_t* pArray = (uint8_t*)cmd;
+    for (uint16_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC); i++)
+    {
+        checksum ^= pArray[i];
+    }
+    cmd->Data[cmd->Length] = checksum;
 }
 
-void ThyoneE_HandleRxByte(uint8_t *dataP, size_t size)
+void ThyoneE_HandleRxByte(uint8_t* dataP, size_t size)
 {
-	for (; size > 0; size--, dataP++)
-	{
-		if (rxByteCounter < sizeof(rxBuffer))
-		{
-			rxBuffer[rxByteCounter] = *dataP;
-		}
+    for (; size > 0; size--, dataP++)
+    {
+        if (rxByteCounter < sizeof(rxBuffer))
+        {
+            rxBuffer[rxByteCounter] = *dataP;
+        }
 
-		switch (rxByteCounter)
-		{
-		case 0:
-			/* wait for start byte of frame */
-			if (rxBuffer[rxByteCounter] == CMD_STX)
-			{
-				bytesToReceive = 0;
-				rxByteCounter = 1;
-			}
-			break;
+        switch (rxByteCounter)
+        {
+            case 0:
+                /* wait for start byte of frame */
+                if (rxBuffer[rxByteCounter] == CMD_STX)
+                {
+                    bytesToReceive = 0;
+                    rxByteCounter = 1;
+                }
+                break;
 
-		case 1:
-			/* CMD */
-			rxByteCounter++;
-			break;
+            case 1:
+                /* CMD */
+                rxByteCounter++;
+                break;
 
-		case 2:
-			/* length field LSB */
-			rxByteCounter++;
-			bytesToReceive = (uint16_t) (rxBuffer[rxByteCounter - 1]);
-			break;
+            case 2:
+                /* length field LSB */
+                rxByteCounter++;
+                bytesToReceive = (uint16_t)(rxBuffer[rxByteCounter - 1]);
+                break;
 
-		case 3:
-			/* length field MSB */
-			rxByteCounter++;
-			bytesToReceive += (((uint16_t) rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD ); /* len_msb + len_lsb + crc + sfd + cmd */
-			break;
+            case 3:
+                /* length field MSB */
+                rxByteCounter++;
+                bytesToReceive += (((uint16_t)rxBuffer[rxByteCounter - 1] << 8) + LENGTH_CMD_OVERHEAD); /* len_msb + len_lsb + crc + sfd + cmd */
+                break;
 
-		default:
-			/* data field */
-			rxByteCounter++;
-			if (rxByteCounter >= bytesToReceive)
-			{
-				/* check CRC */
-				checksum = 0;
-				for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
-				{
-					checksum ^= rxBuffer[i];
-				}
+            default:
+                /* data field */
+                rxByteCounter++;
+                if (rxByteCounter >= bytesToReceive)
+                {
+                    /* check CRC */
+                    checksum = 0;
+                    for (uint16_t i = 0; i < (bytesToReceive - 1); i++)
+                    {
+                        checksum ^= rxBuffer[i];
+                    }
 
-				if (checksum == rxBuffer[bytesToReceive - 1])
-				{
-					/* received frame ok, interpret it now */
-					HandleRxPacket(rxBuffer);
-				}
+                    if (checksum == rxBuffer[bytesToReceive - 1])
+                    {
+                        /* received frame ok, interpret it now */
+                        HandleRxPacket(rxBuffer);
+                    }
 
-				rxByteCounter = 0;
-				bytesToReceive = 0;
-			}
-			break;
-		}
-	}
+                    rxByteCounter = 0;
+                    bytesToReceive = 0;
+                }
+                break;
+        }
+    }
 }
 
 /**************************************
@@ -421,14 +417,14 @@ void ThyoneE_HandleRxByte(uint8_t *dataP, size_t size)
  * @return true if transmission succeeded,
  *         false otherwise
  */
-bool ThyoneE_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
+bool ThyoneE_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
 {
-	if ((data == NULL) || (dataLength == 0))
-	{
-		return false;
-	}
+    if ((data == NULL) || (dataLength == 0))
+    {
+        return false;
+    }
 
-	return ThyoneE_uartP->uartTransmit((uint8_t*) data, dataLength);
+    return ThyoneE_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
 /**
@@ -446,56 +442,56 @@ bool ThyoneE_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool ThyoneE_Init(WE_UART_t *uartP, ThyoneE_Pins_t *pinoutP, ThyoneE_OperationMode_t opMode, void (*RXcb)(uint8_t*, uint16_t, uint32_t, int8_t))
+bool ThyoneE_Init(WE_UART_t* uartP, ThyoneE_Pins_t* pinoutP, ThyoneE_OperationMode_t opMode, void (*RXcb)(uint8_t*, uint16_t, uint32_t, int8_t))
 {
-	/* set RX callback function */
-	RxCallback = RXcb;
+    /* set RX callback function */
+    RxCallback = RXcb;
 
-	operationMode = opMode;
+    operationMode = opMode;
 
-	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
-	{
-		return false;
-	}
+    if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+    {
+        return false;
+    }
 
-	ThyoneE_pinsP = pinoutP;
-	ThyoneE_pinsP->ThyoneE_Pin_Reset.type = WE_Pin_Type_Output;
-	ThyoneE_pinsP->ThyoneE_Pin_Busy.type = WE_Pin_Type_Input;
-	ThyoneE_pinsP->ThyoneE_Pin_Mode.type = WE_Pin_Type_Output;
+    ThyoneE_pinsP = pinoutP;
+    ThyoneE_pinsP->ThyoneE_Pin_Reset.type = WE_Pin_Type_Output;
+    ThyoneE_pinsP->ThyoneE_Pin_Busy.type = WE_Pin_Type_Input;
+    ThyoneE_pinsP->ThyoneE_Pin_Mode.type = WE_Pin_Type_Output;
 
-	WE_Pin_t pins[sizeof(ThyoneE_Pins_t) / sizeof(WE_Pin_t)];
-	uint8_t pin_count = 0;
-	memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Reset, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Mode, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Busy, sizeof(WE_Pin_t));
+    WE_Pin_t pins[sizeof(ThyoneE_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Mode, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ThyoneE_pinsP->ThyoneE_Pin_Busy, sizeof(WE_Pin_t));
 
-	if (!WE_InitPins(pins, pin_count))
-	{
-		/* error */
-		return false;
-	}
+    if (!WE_InitPins(pins, pin_count))
+    {
+        /* error */
+        return false;
+    }
 
-	if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Mode, (operationMode == ThyoneE_OperationMode_TransparentMode) ? WE_Pin_Level_High : WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Mode, (operationMode == ThyoneE_OperationMode_TransparentMode) ? WE_Pin_Level_High : WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	ThyoneE_uartP = uartP;
-	if (false == ThyoneE_uartP->uartInit(ThyoneE_uartP->baudrate, ThyoneE_uartP->flowControl, ThyoneE_uartP->parity, &byteRxCallback))
-	{
-		return false;
-	}
-	WE_Delay(10);
+    ThyoneE_uartP = uartP;
+    if (false == ThyoneE_uartP->uartInit(ThyoneE_uartP->baudrate, ThyoneE_uartP->flowControl, ThyoneE_uartP->parity, &byteRxCallback))
+    {
+        return false;
+    }
+    WE_Delay(10);
 
-	/* reset module */
-	if (!ThyoneE_PinReset())
-	{
-		WE_DEBUG_PRINT("Pin reset failed\n");
-		ThyoneE_Deinit();
-		return false;
-	}
+    /* reset module */
+    if (!ThyoneE_PinReset())
+    {
+        WE_DEBUG_PRINT("Pin reset failed\n");
+        ThyoneE_Deinit();
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -506,15 +502,15 @@ bool ThyoneE_Init(WE_UART_t *uartP, ThyoneE_Pins_t *pinoutP, ThyoneE_OperationMo
  */
 bool ThyoneE_Deinit()
 {
-	/* deinit pins */
-	if (!WE_DeinitPin(ThyoneE_pinsP->ThyoneE_Pin_Reset) || !WE_DeinitPin(ThyoneE_pinsP->ThyoneE_Pin_Mode))
-	{
-		return false;
-	}
+    /* deinit pins */
+    if (!WE_DeinitPin(ThyoneE_pinsP->ThyoneE_Pin_Reset) || !WE_DeinitPin(ThyoneE_pinsP->ThyoneE_Pin_Mode))
+    {
+        return false;
+    }
 
-	RxCallback = NULL;
+    RxCallback = NULL;
 
-	return ThyoneE_uartP->uartDeinit();
+    return ThyoneE_uartP->uartDeinit();
 }
 
 /**
@@ -525,27 +521,27 @@ bool ThyoneE_Deinit()
  */
 bool ThyoneE_PinReset()
 {
-	if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	WE_Delay(5);
+    WE_Delay(5);
 
-	if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_High))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThyoneE_pinsP->ThyoneE_Pin_Reset, WE_Pin_Level_High))
+    {
+        return false;
+    }
 
-	if (operationMode == ThyoneE_OperationMode_TransparentMode)
-	{
-		WE_Delay(THYONEE_BOOT_DURATION);
-		/* transparent mode is ready (the module doesn't send a "ready for operation" message in transparent mode) */
-		return true;
-	}
+    if (operationMode == ThyoneE_OperationMode_TransparentMode)
+    {
+        WE_Delay(THYONEE_BOOT_DURATION);
+        /* transparent mode is ready (the module doesn't send a "ready for operation" message in transparent mode) */
+        return true;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
 }
 
 /**
@@ -556,18 +552,18 @@ bool ThyoneE_PinReset()
  */
 bool ThyoneE_Reset()
 {
-	txPacket.Cmd = THYONEE_CMD_RESET_REQ;
-	txPacket.Length = 0;
+    txPacket.Cmd = THYONEE_CMD_RESET_REQ;
+    txPacket.Length = 0;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
 }
 
 /**
@@ -578,18 +574,18 @@ bool ThyoneE_Reset()
  */
 bool ThyoneE_Sleep()
 {
-	txPacket.Cmd = THYONEE_CMD_SLEEP_REQ;
-	txPacket.Length = 0;
+    txPacket.Cmd = THYONEE_CMD_SLEEP_REQ;
+    txPacket.Length = 0;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SLEEP_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SLEEP_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -601,31 +597,31 @@ bool ThyoneE_Sleep()
  * @return true if succeeded,
  *         false otherwise
  */
-bool ThyoneE_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
+bool ThyoneE_TransmitBroadcast(uint8_t* payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
-	{
-		return false;
-	}
+    if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_BROADCAST_DATA_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_BROADCAST_DATA_REQ;
+    txPacket.Length = length;
 
-	memcpy(&txPacket.Data[0], payloadP, length);
+    memcpy(&txPacket.Data[0], payloadP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -637,31 +633,31 @@ bool ThyoneE_TransmitBroadcast(uint8_t *payloadP, uint16_t length)
  * @return true if succeeded,
  *         false otherwise
  */
-bool ThyoneE_TransmitMulticast(uint8_t *payloadP, uint16_t length)
+bool ThyoneE_TransmitMulticast(uint8_t* payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
-	{
-		return false;
-	}
+    if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_MULTICAST_DATA_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_MULTICAST_DATA_REQ;
+    txPacket.Length = length;
 
-	memcpy(&txPacket.Data[0], payloadP, length);
+    memcpy(&txPacket.Data[0], payloadP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -673,31 +669,31 @@ bool ThyoneE_TransmitMulticast(uint8_t *payloadP, uint16_t length)
  * @return true if succeeded,
  *         false otherwise
  */
-bool ThyoneE_TransmitUnicast(uint8_t *payloadP, uint16_t length)
+bool ThyoneE_TransmitUnicast(uint8_t* payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
-	{
-		return false;
-	}
+    if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_UNICAST_DATA_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_UNICAST_DATA_REQ;
+    txPacket.Length = length;
 
-	memcpy(&txPacket.Data[0], payloadP, length);
+    memcpy(&txPacket.Data[0], payloadP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -710,32 +706,32 @@ bool ThyoneE_TransmitUnicast(uint8_t *payloadP, uint16_t length)
  * @return true if succeeded,
  *         false otherwise
  */
-bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint16_t length)
+bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t* payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
-	{
-		return false;
-	}
+    if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_MULTICAST_DATA_EX_REQ;
-	txPacket.Length = length + 1;
-	txPacket.Data[0] = groupID;
+    txPacket.Cmd = THYONEE_CMD_MULTICAST_DATA_EX_REQ;
+    txPacket.Length = length + 1;
+    txPacket.Data[0] = groupID;
 
-	memcpy(&txPacket.Data[1], payloadP, length);
+    memcpy(&txPacket.Data[1], payloadP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -748,32 +744,32 @@ bool ThyoneE_TransmitMulticastExtended(uint8_t groupID, uint8_t *payloadP, uint1
  * @return true if succeeded,
  *         false otherwise
  */
-bool ThyoneE_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16_t length)
+bool ThyoneE_TransmitUnicastExtended(uint32_t address, uint8_t* payloadP, uint16_t length)
 {
-	if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH ))
-	{
-		return false;
-	}
+    if ((payloadP == NULL) || (length > MAX_RADIO_PAYLOAD_LENGTH))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_UNICAST_DATA_EX_REQ;
-	txPacket.Length = length + 4;
+    txPacket.Cmd = THYONEE_CMD_UNICAST_DATA_EX_REQ;
+    txPacket.Length = length + 4;
 
-	memcpy(&txPacket.Data[0], &address, 4);
-	memcpy(&txPacket.Data[4], payloadP, length);
+    memcpy(&txPacket.Data[0], &address, 4);
+    memcpy(&txPacket.Data[4], payloadP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_DATA_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
 /**
@@ -784,18 +780,18 @@ bool ThyoneE_TransmitUnicastExtended(uint32_t address, uint8_t *payloadP, uint16
  */
 bool ThyoneE_FactoryReset()
 {
-	txPacket.Cmd = THYONEE_CMD_FACTORYRESET_REQ;
-	txPacket.Length = 0;
+    txPacket.Cmd = THYONEE_CMD_FACTORYRESET_REQ;
+    txPacket.Length = 0;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for reset after factory reset */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
+    /* wait for reset after factory reset */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, true);
 }
 
 /**
@@ -811,29 +807,29 @@ bool ThyoneE_FactoryReset()
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_CheckNSet(ThyoneE_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+bool ThyoneE_CheckNSet(ThyoneE_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
-	if (valueP == NULL)
-	{
-		return false;
-	}
+    if (valueP == NULL)
+    {
+        return false;
+    }
 
-	uint8_t current_value[length];
-	uint16_t current_length = length;
+    uint8_t current_value[length];
+    uint16_t current_length = length;
 
-	if (!ThyoneE_Get(userSetting, current_value, &current_length))
-	{
-		return false;
-	}
+    if (!ThyoneE_Get(userSetting, current_value, &current_length))
+    {
+        return false;
+    }
 
-	if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
-	{
-		/* value is already set, no need to set it again */
-		return true;
-	}
+    if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+    {
+        /* value is already set, no need to set it again */
+        return true;
+    }
 
-	/* value differs, and thus must be set */
-	return ThyoneE_Set(userSetting, valueP, length);
+    /* value differs, and thus must be set */
+    return ThyoneE_Set(userSetting, valueP, length);
 }
 
 /**
@@ -849,32 +845,32 @@ bool ThyoneE_CheckNSet(ThyoneE_UserSettings_t userSetting, uint8_t *valueP, uint
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_Set(ThyoneE_UserSettings_t userSetting, uint8_t *ValueP, uint8_t length)
+bool ThyoneE_Set(ThyoneE_UserSettings_t userSetting, uint8_t* ValueP, uint8_t length)
 {
-	if (ValueP == NULL)
-	{
-		return false;
-	}
+    if (ValueP == NULL)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_SET_REQ;
-	txPacket.Length = 1 + length;
-	txPacket.Data[0] = userSetting;
-	memcpy(&txPacket.Data[1], ValueP, length);
+    txPacket.Cmd = THYONEE_CMD_SET_REQ;
+    txPacket.Length = 1 + length;
+    txPacket.Data[0] = userSetting;
+    memcpy(&txPacket.Data[1], ValueP, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SET_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SET_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, false);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_START_IND, CMD_Status_NoStatus, false);
 }
 
 /**
@@ -885,10 +881,7 @@ bool ThyoneE_Set(ThyoneE_UserSettings_t userSetting, uint8_t *ValueP, uint8_t le
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetTXPower(ThyoneE_TXPower_t txPower)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_TX_POWER, (uint8_t*) &txPower, 1);
-}
+bool ThyoneE_SetTXPower(ThyoneE_TXPower_t txPower) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_TX_POWER, (uint8_t*)&txPower, 1); }
 
 /**
  * @brief Set the UART baudrate index
@@ -905,21 +898,21 @@ bool ThyoneE_SetTXPower(ThyoneE_TXPower_t txPower)
  */
 bool ThyoneE_SetBaudrateIndex(ThyoneE_BaudRateIndex_t baudrate, ThyoneE_UartParity_t parity, bool flowcontrolEnable)
 {
-	uint8_t baudrateIndex = (uint8_t) baudrate;
+    uint8_t baudrateIndex = (uint8_t)baudrate;
 
-	/* If flowcontrol is to be enabled UART index has to be increased by one in regard to base value */
-	if (flowcontrolEnable)
-	{
-		baudrateIndex++;
-	}
+    /* If flowcontrol is to be enabled UART index has to be increased by one in regard to base value */
+    if (flowcontrolEnable)
+    {
+        baudrateIndex++;
+    }
 
-	/* If parity bit is even, UART index has to be increased by 64 in regard of base value*/
-	if (ThyoneE_UartParity_Even == parity)
-	{
-		baudrateIndex += 64;
-	}
+    /* If parity bit is even, UART index has to be increased by 64 in regard of base value*/
+    if (ThyoneE_UartParity_Even == parity)
+    {
+        baudrateIndex += 64;
+    }
 
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_UART_CONFIG, (uint8_t*) &baudrateIndex, 1);
+    return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_UART_CONFIG, (uint8_t*)&baudrateIndex, 1);
 }
 
 /**
@@ -932,13 +925,13 @@ bool ThyoneE_SetBaudrateIndex(ThyoneE_BaudRateIndex_t baudrate, ThyoneE_UartPari
  */
 bool ThyoneE_SetRFChannel(uint8_t channel)
 {
-	/* permissible value for channel: 0-39 */
-	if (channel > 39)
-	{
-		return false;
-	}
+    /* permissible value for channel: 0-39 */
+    if (channel > 39)
+    {
+        return false;
+    }
 
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_CHANNEL, (uint8_t*) &channel, 1);
+    return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_CHANNEL, (uint8_t*)&channel, 1);
 }
 
 /**
@@ -952,24 +945,24 @@ bool ThyoneE_SetRFChannel(uint8_t channel)
  */
 bool ThyoneE_SetRFChannelRuntime(uint8_t channel)
 {
-	/* permissible value for channel: 0-39 */
-	if (channel > 39)
-	{
-		return false;
-	}
+    /* permissible value for channel: 0-39 */
+    if (channel > 39)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_SETCHANNEL_REQ;
-	txPacket.Length = 1;
-	txPacket.Data[0] = channel;
+    txPacket.Cmd = THYONEE_CMD_SETCHANNEL_REQ;
+    txPacket.Length = 1;
+    txPacket.Data[0] = channel;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SETCHANNEL_CNF, CMD_Status_Success, true);
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_SETCHANNEL_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -980,10 +973,7 @@ bool ThyoneE_SetRFChannelRuntime(uint8_t channel)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetEncryptionMode(ThyoneE_EncryptionMode_t encryptionMode)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_ENCRYPTION_MODE, (uint8_t*) &encryptionMode, 1);
-}
+bool ThyoneE_SetEncryptionMode(ThyoneE_EncryptionMode_t encryptionMode) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_ENCRYPTION_MODE, (uint8_t*)&encryptionMode, 1); }
 
 /**
  * @brief Set the rf profile
@@ -993,10 +983,7 @@ bool ThyoneE_SetEncryptionMode(ThyoneE_EncryptionMode_t encryptionMode)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetRfProfile(ThyoneE_Profile_t profile)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_PROFILE, (uint8_t*) &profile, 1);
-}
+bool ThyoneE_SetRfProfile(ThyoneE_Profile_t profile) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_PROFILE, (uint8_t*)&profile, 1); }
 
 /**
  * @brief Set the number of retries
@@ -1006,10 +993,7 @@ bool ThyoneE_SetRfProfile(ThyoneE_Profile_t profile)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetNumRetries(uint8_t numRetries)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_NUM_RETRIES, (uint8_t*) &numRetries, 1);
-}
+bool ThyoneE_SetNumRetries(uint8_t numRetries) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_NUM_RETRIES, (uint8_t*)&numRetries, 1); }
 
 /**
  * @brief Set the number of time slots
@@ -1019,10 +1003,7 @@ bool ThyoneE_SetNumRetries(uint8_t numRetries)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetRpNumSlots(uint8_t numSlots)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_RP_NUM_SLOTS, (uint8_t*) &numSlots, 1);
-}
+bool ThyoneE_SetRpNumSlots(uint8_t numSlots) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_RF_RP_NUM_SLOTS, (uint8_t*)&numSlots, 1); }
 
 /**
  * @brief Set the source address
@@ -1032,10 +1013,7 @@ bool ThyoneE_SetRpNumSlots(uint8_t numSlots)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetSourceAddress(uint32_t sourceAddress)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_SOURCE_ADDRESS, (uint8_t*) &sourceAddress, 4);
-}
+bool ThyoneE_SetSourceAddress(uint32_t sourceAddress) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_SOURCE_ADDRESS, (uint8_t*)&sourceAddress, 4); }
 
 /**
  * @brief Set the destination address
@@ -1045,10 +1023,7 @@ bool ThyoneE_SetSourceAddress(uint32_t sourceAddress)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetDestinationAddress(uint32_t destinationAddress)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_DESTINATION_ADDRESS, (uint8_t*) &destinationAddress, 4);
-}
+bool ThyoneE_SetDestinationAddress(uint32_t destinationAddress) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_DESTINATION_ADDRESS, (uint8_t*)&destinationAddress, 4); }
 
 /**
  * @brief Set the group id
@@ -1058,10 +1033,7 @@ bool ThyoneE_SetDestinationAddress(uint32_t destinationAddress)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetGroupID(uint8_t groupId)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_GROUP_ID, (uint8_t*) &groupId, 1);
-}
+bool ThyoneE_SetGroupID(uint8_t groupId) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_GROUP_ID, (uint8_t*)&groupId, 1); }
 
 /**
  * @brief Set the encryption key
@@ -1071,10 +1043,7 @@ bool ThyoneE_SetGroupID(uint8_t groupId)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetEncryptionKey(uint8_t *keyP)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_ENCRYPTION_KEY, keyP, 16);
-}
+bool ThyoneE_SetEncryptionKey(uint8_t* keyP) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_ENCRYPTION_KEY, keyP, 16); }
 
 /**
  * @brief Set the time-to-live defining the maximum of hops if repeating
@@ -1084,10 +1053,7 @@ bool ThyoneE_SetEncryptionKey(uint8_t *keyP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetTimeToLive(uint8_t ttl)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_TLL, &ttl, 1);
-}
+bool ThyoneE_SetTimeToLive(uint8_t ttl) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MAC_TLL, &ttl, 1); }
 
 /**
  * @brief Set remote gpio config
@@ -1097,10 +1063,7 @@ bool ThyoneE_SetTimeToLive(uint8_t ttl)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetGPIOBlockRemoteConfig(uint8_t remoteConfig)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_REMOTE_GPIO_CONFIG, &remoteConfig, 1);
-}
+bool ThyoneE_SetGPIOBlockRemoteConfig(uint8_t remoteConfig) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_REMOTE_GPIO_CONFIG, &remoteConfig, 1); }
 
 /**
  * @brief Set module mode
@@ -1110,10 +1073,7 @@ bool ThyoneE_SetGPIOBlockRemoteConfig(uint8_t remoteConfig)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_SetModuleMode(ThyoneE_ModuleMode_t moduleMode)
-{
-	return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MODULE_MODE, (uint8_t*) &moduleMode, 1);
-}
+bool ThyoneE_SetModuleMode(ThyoneE_ModuleMode_t moduleMode) { return ThyoneE_Set(ThyoneE_USERSETTING_INDEX_MODULE_MODE, (uint8_t*)&moduleMode, 1); }
 
 /**
  * @brief Request the current user settings
@@ -1125,35 +1085,35 @@ bool ThyoneE_SetModuleMode(ThyoneE_ModuleMode_t moduleMode)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_Get(ThyoneE_UserSettings_t userSetting, uint8_t *ResponseP, uint16_t *Response_LengthP)
+bool ThyoneE_Get(ThyoneE_UserSettings_t userSetting, uint8_t* ResponseP, uint16_t* Response_LengthP)
 {
-	if (ResponseP == NULL || Response_LengthP == NULL)
-	{
-		return false;
-	}
+    if (ResponseP == NULL || Response_LengthP == NULL)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GET_REQ;
-	txPacket.Length = 1;
-	txPacket.Data[0] = userSetting;
+    txPacket.Cmd = THYONEE_CMD_GET_REQ;
+    txPacket.Length = 1;
+    txPacket.Data[0] = userSetting;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GET_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GET_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	uint16_t length = rxPacket.Length;
-	memcpy(ResponseP, &rxPacket.Data[1], length - 1); /* First Data byte is status, following bytes response*/
-	*Response_LengthP = length - 1;
+    uint16_t length = rxPacket.Length;
+    memcpy(ResponseP, &rxPacket.Data[1], length - 1); /* First Data byte is status, following bytes response*/
+    *Response_LengthP = length - 1;
 
-	return true;
+    return true;
 }
 
 /**
@@ -1164,10 +1124,10 @@ bool ThyoneE_Get(ThyoneE_UserSettings_t userSetting, uint8_t *ResponseP, uint16_
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetSerialNumber(uint8_t *serialNumberP)
+bool ThyoneE_GetSerialNumber(uint8_t* serialNumberP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_SERIAL_NUMBER, serialNumberP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_SERIAL_NUMBER, serialNumberP, &length);
 }
 
 /**
@@ -1178,10 +1138,10 @@ bool ThyoneE_GetSerialNumber(uint8_t *serialNumberP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetFWVersion(uint8_t *versionP)
+bool ThyoneE_GetFWVersion(uint8_t* versionP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_FW_VERSION, versionP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_FW_VERSION, versionP, &length);
 }
 
 /**
@@ -1192,10 +1152,10 @@ bool ThyoneE_GetFWVersion(uint8_t *versionP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetTXPower(ThyoneE_TXPower_t *txpowerP)
+bool ThyoneE_GetTXPower(ThyoneE_TXPower_t* txpowerP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_TX_POWER, (uint8_t*) txpowerP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_TX_POWER, (uint8_t*)txpowerP, &length);
 }
 
 /**
@@ -1208,49 +1168,49 @@ bool ThyoneE_GetTXPower(ThyoneE_TXPower_t *txpowerP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetBaudrateIndex(ThyoneE_BaudRateIndex_t *baudrateP, ThyoneE_UartParity_t *parityP, bool *flowcontrolEnableP)
+bool ThyoneE_GetBaudrateIndex(ThyoneE_BaudRateIndex_t* baudrateP, ThyoneE_UartParity_t* parityP, bool* flowcontrolEnableP)
 {
-	if ((baudrateP == NULL) || (parityP == NULL) || (flowcontrolEnableP == NULL))
-	{
-		return false;
-	}
+    if ((baudrateP == NULL) || (parityP == NULL) || (flowcontrolEnableP == NULL))
+    {
+        return false;
+    }
 
-	uint16_t length;
-	uint8_t uartIndex;
+    uint16_t length;
+    uint8_t uartIndex;
 
-	if (!ThyoneE_Get(ThyoneE_USERSETTING_INDEX_UART_CONFIG, (uint8_t*) &uartIndex, &length))
-	{
-		return false;
-	}
+    if (!ThyoneE_Get(ThyoneE_USERSETTING_INDEX_UART_CONFIG, (uint8_t*)&uartIndex, &length))
+    {
+        return false;
+    }
 
-	/* if index is even, flow control is off.
+    /* if index is even, flow control is off.
 	 * If flow control is on, decrease index by one to later determine the base baudrate */
-	if (0x01 == (uartIndex & 0x01))
-	{
-		/* odd */
-		*flowcontrolEnableP = true;
-		uartIndex--;
-	}
-	else
-	{
-		/* even */
-		*flowcontrolEnableP = false;
-	}
+    if (0x01 == (uartIndex & 0x01))
+    {
+        /* odd */
+        *flowcontrolEnableP = true;
+        uartIndex--;
+    }
+    else
+    {
+        /* even */
+        *flowcontrolEnableP = false;
+    }
 
-	/* If baudrate index is greater than or equal to 64, parity bit is even*/
-	if (uartIndex < 64)
-	{
-		*parityP = ThyoneE_UartParity_None;
-	}
-	else
-	{
-		*parityP = ThyoneE_UartParity_Even;
-		uartIndex -= 64;
-	}
+    /* If baudrate index is greater than or equal to 64, parity bit is even*/
+    if (uartIndex < 64)
+    {
+        *parityP = ThyoneE_UartParity_None;
+    }
+    else
+    {
+        *parityP = ThyoneE_UartParity_Even;
+        uartIndex -= 64;
+    }
 
-	*baudrateP = (ThyoneE_BaudRateIndex_t) uartIndex;
+    *baudrateP = (ThyoneE_BaudRateIndex_t)uartIndex;
 
-	return true;
+    return true;
 }
 
 /**
@@ -1261,10 +1221,10 @@ bool ThyoneE_GetBaudrateIndex(ThyoneE_BaudRateIndex_t *baudrateP, ThyoneE_UartPa
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetEncryptionMode(ThyoneE_EncryptionMode_t *encryptionModeP)
+bool ThyoneE_GetEncryptionMode(ThyoneE_EncryptionMode_t* encryptionModeP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_ENCRYPTION_MODE, (uint8_t*) encryptionModeP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_ENCRYPTION_MODE, (uint8_t*)encryptionModeP, &length);
 }
 
 /**
@@ -1276,10 +1236,10 @@ bool ThyoneE_GetEncryptionMode(ThyoneE_EncryptionMode_t *encryptionModeP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetRfProfile(ThyoneE_Profile_t *profileP)
+bool ThyoneE_GetRfProfile(ThyoneE_Profile_t* profileP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_PROFILE, (uint8_t*) profileP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_PROFILE, (uint8_t*)profileP, &length);
 }
 
 /**
@@ -1290,10 +1250,10 @@ bool ThyoneE_GetRfProfile(ThyoneE_Profile_t *profileP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetRFChannel(uint8_t *channelP)
+bool ThyoneE_GetRFChannel(uint8_t* channelP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_CHANNEL, (uint8_t*) channelP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_CHANNEL, (uint8_t*)channelP, &length);
 }
 
 /**
@@ -1304,10 +1264,10 @@ bool ThyoneE_GetRFChannel(uint8_t *channelP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetNumRetries(uint8_t *numRetriesP)
+bool ThyoneE_GetNumRetries(uint8_t* numRetriesP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_NUM_RETRIES, numRetriesP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_NUM_RETRIES, numRetriesP, &length);
 }
 
 /**
@@ -1318,10 +1278,10 @@ bool ThyoneE_GetNumRetries(uint8_t *numRetriesP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetRpNumSlots(uint8_t *numSlotsP)
+bool ThyoneE_GetRpNumSlots(uint8_t* numSlotsP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_RP_NUM_SLOTS, numSlotsP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_RF_RP_NUM_SLOTS, numSlotsP, &length);
 }
 
 /**
@@ -1332,10 +1292,10 @@ bool ThyoneE_GetRpNumSlots(uint8_t *numSlotsP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetSourceAddress(uint32_t *sourceAddressP)
+bool ThyoneE_GetSourceAddress(uint32_t* sourceAddressP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_SOURCE_ADDRESS, (uint8_t*) sourceAddressP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_SOURCE_ADDRESS, (uint8_t*)sourceAddressP, &length);
 }
 
 /**
@@ -1346,10 +1306,10 @@ bool ThyoneE_GetSourceAddress(uint32_t *sourceAddressP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetDestinationAddress(uint32_t *destinationAddressP)
+bool ThyoneE_GetDestinationAddress(uint32_t* destinationAddressP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_DESTINATION_ADDRESS, (uint8_t*) destinationAddressP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_DESTINATION_ADDRESS, (uint8_t*)destinationAddressP, &length);
 }
 
 /**
@@ -1360,10 +1320,10 @@ bool ThyoneE_GetDestinationAddress(uint32_t *destinationAddressP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetGroupID(uint8_t *groupIdP)
+bool ThyoneE_GetGroupID(uint8_t* groupIdP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_GROUP_ID, groupIdP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_GROUP_ID, groupIdP, &length);
 }
 
 /**
@@ -1374,10 +1334,10 @@ bool ThyoneE_GetGroupID(uint8_t *groupIdP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetTimeToLive(uint8_t *ttlP)
+bool ThyoneE_GetTimeToLive(uint8_t* ttlP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_TLL, ttlP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MAC_TLL, ttlP, &length);
 }
 
 /**
@@ -1388,10 +1348,10 @@ bool ThyoneE_GetTimeToLive(uint8_t *ttlP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetGPIOBlockRemoteConfig(uint8_t *remoteConfigP)
+bool ThyoneE_GetGPIOBlockRemoteConfig(uint8_t* remoteConfigP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_REMOTE_GPIO_CONFIG, remoteConfigP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_REMOTE_GPIO_CONFIG, remoteConfigP, &length);
 }
 
 /**
@@ -1402,10 +1362,10 @@ bool ThyoneE_GetGPIOBlockRemoteConfig(uint8_t *remoteConfigP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetModuleMode(ThyoneE_ModuleMode_t *moduleModeP)
+bool ThyoneE_GetModuleMode(ThyoneE_ModuleMode_t* moduleModeP)
 {
-	uint16_t length;
-	return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MODULE_MODE, (uint8_t*) moduleModeP, &length);
+    uint16_t length;
+    return ThyoneE_Get(ThyoneE_USERSETTING_INDEX_MODULE_MODE, (uint8_t*)moduleModeP, &length);
 }
 
 /**
@@ -1416,31 +1376,31 @@ bool ThyoneE_GetModuleMode(ThyoneE_ModuleMode_t *moduleModeP)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GetState(ThyoneE_States_t *state)
+bool ThyoneE_GetState(ThyoneE_States_t* state)
 {
-	if (state == NULL)
-	{
-		return false;
-	}
+    if (state == NULL)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GETSTATE_REQ;
-	txPacket.Length = 0;
+    txPacket.Cmd = THYONEE_CMD_GETSTATE_REQ;
+    txPacket.Length = 0;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GETSTATE_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GETSTATE_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	*state = rxPacket.Data[1];
-	return true;
+    *state = rxPacket.Data[1];
+    return true;
 }
 
 /**
@@ -1452,66 +1412,66 @@ bool ThyoneE_GetState(ThyoneE_States_t *state)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIOLocalSetConfig(ThyoneE_GPIOConfigBlock_t *configP, uint16_t number_of_configs)
+bool ThyoneE_GPIOLocalSetConfig(ThyoneE_GPIOConfigBlock_t* configP, uint16_t number_of_configs)
 {
-	if ((configP == NULL) || (number_of_configs == 0))
-	{
-		return false;
-	}
+    if ((configP == NULL) || (number_of_configs == 0))
+    {
+        return false;
+    }
 
-	uint16_t length = 0;
+    uint16_t length = 0;
 
-	for (uint16_t i = 0; i < number_of_configs; i++)
-	{
-		switch (configP->function)
-		{
-		case ThyoneE_GPIO_IO_Disconnected:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = 0x00;
-			length += 4;
-		}
-			break;
-		case ThyoneE_GPIO_IO_Input:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = configP->value.input;
-			length += 4;
-		}
-			break;
-		case ThyoneE_GPIO_IO_Output:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = configP->value.output;
-			length += 4;
-		}
-			break;
-		default:
-		{
-		}
-			break;
-		}
-		configP++;
-	}
+    for (uint16_t i = 0; i < number_of_configs; i++)
+    {
+        switch (configP->function)
+        {
+            case ThyoneE_GPIO_IO_Disconnected:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = 0x00;
+                length += 4;
+            }
+            break;
+            case ThyoneE_GPIO_IO_Input:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = configP->value.input;
+                length += 4;
+            }
+            break;
+            case ThyoneE_GPIO_IO_Output:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = configP->value.output;
+                length += 4;
+            }
+            break;
+            default:
+            {
+            }
+            break;
+        }
+        configP++;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_SETCONFIG_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_SETCONFIG_REQ;
+    txPacket.Length = length;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_SETCONFIG_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_SETCONFIG_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1523,84 +1483,84 @@ bool ThyoneE_GPIOLocalSetConfig(ThyoneE_GPIOConfigBlock_t *configP, uint16_t num
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIOLocalGetConfig(ThyoneE_GPIOConfigBlock_t *configP, uint16_t *number_of_configsP)
+bool ThyoneE_GPIOLocalGetConfig(ThyoneE_GPIOConfigBlock_t* configP, uint16_t* number_of_configsP)
 {
-	if ((configP == NULL) || (number_of_configsP == NULL))
-	{
-		return false;
-	}
+    if ((configP == NULL) || (number_of_configsP == NULL))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_GETCONFIG_REQ;
-	txPacket.Length = 0;
+    txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_GETCONFIG_REQ;
+    txPacket.Length = 0;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_GETCONFIG_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_GETCONFIG_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	uint16_t length = rxPacket.Length;
+    uint16_t length = rxPacket.Length;
 
-	*number_of_configsP = 0;
-	uint8_t *uartP = &rxPacket.Data[1];
-	ThyoneE_GPIOConfigBlock_t *configP_running = configP;
-	while (uartP < &rxPacket.Data[length])
-	{
-		switch (*(uartP + 2))
-		{
-		case ThyoneE_GPIO_IO_Disconnected:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
+    *number_of_configsP = 0;
+    uint8_t* uartP = &rxPacket.Data[1];
+    ThyoneE_GPIOConfigBlock_t* configP_running = configP;
+    while (uartP < &rxPacket.Data[length])
+    {
+        switch (*(uartP + 2))
+        {
+            case ThyoneE_GPIO_IO_Disconnected:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		case ThyoneE_GPIO_IO_Input:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
-				configP_running->value.input = *(uartP + 3);
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            case ThyoneE_GPIO_IO_Input:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
+                    configP_running->value.input = *(uartP + 3);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		case ThyoneE_GPIO_IO_Output:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
-				configP_running->value.output = *(uartP + 3);
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            case ThyoneE_GPIO_IO_Output:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
+                    configP_running->value.output = *(uartP + 3);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		default:
-		{
-		}
-			break;
-		}
-		uartP += *uartP + 1;
-	}
-	return true;
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            default:
+            {
+            }
+            break;
+        }
+        uartP += *uartP + 1;
+    }
+    return true;
 }
 
 /**
@@ -1613,36 +1573,36 @@ bool ThyoneE_GPIOLocalGetConfig(ThyoneE_GPIOConfigBlock_t *configP, uint16_t *nu
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIOLocalWrite(ThyoneE_GPIOControlBlock_t *controlP, uint16_t number_of_controls)
+bool ThyoneE_GPIOLocalWrite(ThyoneE_GPIOControlBlock_t* controlP, uint16_t number_of_controls)
 {
-	if ((controlP == NULL) || (number_of_controls == 0))
-	{
-		return false;
-	}
+    if ((controlP == NULL) || (number_of_controls == 0))
+    {
+        return false;
+    }
 
-	uint16_t length = 0;
+    uint16_t length = 0;
 
-	for (uint16_t i = 0; i < number_of_controls; i++)
-	{
-		txPacket.Data[length] = 2;
-		txPacket.Data[length + 1] = controlP->GPIO_ID;
-		txPacket.Data[length + 2] = controlP->value.output;
-		length += 3;
-		controlP++;
-	}
+    for (uint16_t i = 0; i < number_of_controls; i++)
+    {
+        txPacket.Data[length] = 2;
+        txPacket.Data[length + 1] = controlP->GPIO_ID;
+        txPacket.Data[length + 2] = controlP->value.output;
+        length += 3;
+        controlP++;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_WRITE_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_WRITE_REQ;
+    txPacket.Length = length;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_WRITE_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_WRITE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1657,49 +1617,49 @@ bool ThyoneE_GPIOLocalWrite(ThyoneE_GPIOControlBlock_t *controlP, uint16_t numbe
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIOLocalRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, ThyoneE_GPIOControlBlock_t *controlP, uint16_t *number_of_controlsP)
+bool ThyoneE_GPIOLocalRead(uint8_t* GPIOToReadP, uint8_t amountGPIOToRead, ThyoneE_GPIOControlBlock_t* controlP, uint16_t* number_of_controlsP)
 {
-	if ((GPIOToReadP == NULL) || (amountGPIOToRead == 0) || (controlP == NULL) || (number_of_controlsP == NULL))
-	{
-		return false;
-	}
+    if ((GPIOToReadP == NULL) || (amountGPIOToRead == 0) || (controlP == NULL) || (number_of_controlsP == NULL))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_READ_REQ;
-	txPacket.Length = amountGPIOToRead + 1;
-	txPacket.Data[0] = amountGPIOToRead;
-	memcpy(&txPacket.Data[1], GPIOToReadP, amountGPIOToRead);
+    txPacket.Cmd = THYONEE_CMD_GPIO_LOCAL_READ_REQ;
+    txPacket.Length = amountGPIOToRead + 1;
+    txPacket.Data[0] = amountGPIOToRead;
+    memcpy(&txPacket.Data[1], GPIOToReadP, amountGPIOToRead);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_READ_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_LOCAL_READ_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	uint16_t length = rxPacket.Length;
+    uint16_t length = rxPacket.Length;
 
-	*number_of_controlsP = 0;
-	uint8_t *uartP = &rxPacket.Data[1];
-	ThyoneE_GPIOControlBlock_t *controlP_running = controlP;
-	while (uartP < &rxPacket.Data[length])
-	{
-		if (*uartP == 2)
-		{
-			controlP_running->GPIO_ID = *(uartP + 1);
-			controlP_running->value.output = *(uartP + 2);
+    *number_of_controlsP = 0;
+    uint8_t* uartP = &rxPacket.Data[1];
+    ThyoneE_GPIOControlBlock_t* controlP_running = controlP;
+    while (uartP < &rxPacket.Data[length])
+    {
+        if (*uartP == 2)
+        {
+            controlP_running->GPIO_ID = *(uartP + 1);
+            controlP_running->value.output = *(uartP + 2);
 
-			controlP_running++;
-			*number_of_controlsP += 1;
-		}
-		uartP += *uartP + 1;
-	}
-	return true;
+            controlP_running++;
+            *number_of_controlsP += 1;
+        }
+        uartP += *uartP + 1;
+    }
+    return true;
 }
 
 /**
@@ -1712,68 +1672,68 @@ bool ThyoneE_GPIOLocalRead(uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, Thyon
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIORemoteSetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t *configP, uint16_t number_of_configs)
+bool ThyoneE_GPIORemoteSetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t* configP, uint16_t number_of_configs)
 {
-	if ((configP == NULL) || (number_of_configs == 0))
-	{
-		return false;
-	}
+    if ((configP == NULL) || (number_of_configs == 0))
+    {
+        return false;
+    }
 
-	uint16_t length = 4;
+    uint16_t length = 4;
 
-	for (uint16_t i = 0; i < number_of_configs; i++)
-	{
-		switch (configP->function)
-		{
-		case ThyoneE_GPIO_IO_Disconnected:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = 0x00;
-			length += 4;
-		}
-			break;
-		case ThyoneE_GPIO_IO_Input:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = configP->value.input;
-			length += 4;
-		}
-			break;
-		case ThyoneE_GPIO_IO_Output:
-		{
-			txPacket.Data[length] = 3;
-			txPacket.Data[length + 1] = configP->GPIO_ID;
-			txPacket.Data[length + 2] = configP->function;
-			txPacket.Data[length + 3] = configP->value.output;
-			length += 4;
-		}
-			break;
-		default:
-		{
-		}
-			break;
-		}
-		configP++;
-	}
+    for (uint16_t i = 0; i < number_of_configs; i++)
+    {
+        switch (configP->function)
+        {
+            case ThyoneE_GPIO_IO_Disconnected:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = 0x00;
+                length += 4;
+            }
+            break;
+            case ThyoneE_GPIO_IO_Input:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = configP->value.input;
+                length += 4;
+            }
+            break;
+            case ThyoneE_GPIO_IO_Output:
+            {
+                txPacket.Data[length] = 3;
+                txPacket.Data[length + 1] = configP->GPIO_ID;
+                txPacket.Data[length + 2] = configP->function;
+                txPacket.Data[length + 3] = configP->value.output;
+                length += 4;
+            }
+            break;
+            default:
+            {
+            }
+            break;
+        }
+        configP++;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_SETCONFIG_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_SETCONFIG_REQ;
+    txPacket.Length = length;
 
-	memcpy(&txPacket.Data[0], &destAddress, 4);
+    memcpy(&txPacket.Data[0], &destAddress, 4);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_SETCONFIG_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_SETCONFIG_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1786,85 +1746,85 @@ bool ThyoneE_GPIORemoteSetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIORemoteGetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t *configP, uint16_t *number_of_configsP)
+bool ThyoneE_GPIORemoteGetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t* configP, uint16_t* number_of_configsP)
 {
-	if ((configP == NULL) || (number_of_configsP == NULL))
-	{
-		return false;
-	}
+    if ((configP == NULL) || (number_of_configsP == NULL))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_GETCONFIG_REQ;
-	txPacket.Length = 4;
-	memcpy(&txPacket.Data[0], &destAddress, 4);
+    txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_GETCONFIG_REQ;
+    txPacket.Length = 4;
+    memcpy(&txPacket.Data[0], &destAddress, 4);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_GETCONFIG_RSP, CMD_Status_NoStatus, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_GETCONFIG_RSP, CMD_Status_NoStatus, true))
+    {
+        return false;
+    }
 
-	uint16_t length = rxPacket.Length;
+    uint16_t length = rxPacket.Length;
 
-	*number_of_configsP = 0;
-	uint8_t *uartP = &rxPacket.Data[1 + 4];
-	ThyoneE_GPIOConfigBlock_t *configP_running = configP;
-	while (uartP < &rxPacket.Data[length])
-	{
-		switch (*(uartP + 2))
-		{
-		case ThyoneE_GPIO_IO_Disconnected:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
+    *number_of_configsP = 0;
+    uint8_t* uartP = &rxPacket.Data[1 + 4];
+    ThyoneE_GPIOConfigBlock_t* configP_running = configP;
+    while (uartP < &rxPacket.Data[length])
+    {
+        switch (*(uartP + 2))
+        {
+            case ThyoneE_GPIO_IO_Disconnected:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		case ThyoneE_GPIO_IO_Input:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
-				configP_running->value.input = *(uartP + 3);
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            case ThyoneE_GPIO_IO_Input:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
+                    configP_running->value.input = *(uartP + 3);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		case ThyoneE_GPIO_IO_Output:
-		{
-			if (*uartP == 3)
-			{
-				configP_running->GPIO_ID = *(uartP + 1);
-				configP_running->function = *(uartP + 2);
-				configP_running->value.output = *(uartP + 3);
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            case ThyoneE_GPIO_IO_Output:
+            {
+                if (*uartP == 3)
+                {
+                    configP_running->GPIO_ID = *(uartP + 1);
+                    configP_running->function = *(uartP + 2);
+                    configP_running->value.output = *(uartP + 3);
 
-				configP_running++;
-				*number_of_configsP += 1;
-			}
-		}
-			break;
-		default:
-		{
-		}
-			break;
-		}
-		uartP += *uartP + 1;
-	}
-	return true;
+                    configP_running++;
+                    *number_of_configsP += 1;
+                }
+            }
+            break;
+            default:
+            {
+            }
+            break;
+        }
+        uartP += *uartP + 1;
+    }
+    return true;
 }
 
 /**
@@ -1878,38 +1838,38 @@ bool ThyoneE_GPIORemoteGetConfig(uint32_t destAddress, ThyoneE_GPIOConfigBlock_t
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIORemoteWrite(uint32_t destAddress, ThyoneE_GPIOControlBlock_t *controlP, uint16_t number_of_controls)
+bool ThyoneE_GPIORemoteWrite(uint32_t destAddress, ThyoneE_GPIOControlBlock_t* controlP, uint16_t number_of_controls)
 {
-	if ((controlP == NULL) || (number_of_controls == 0))
-	{
-		return false;
-	}
+    if ((controlP == NULL) || (number_of_controls == 0))
+    {
+        return false;
+    }
 
-	uint16_t length = 4;
+    uint16_t length = 4;
 
-	for (uint16_t i = 0; i < number_of_controls; i++)
-	{
-		txPacket.Data[length] = 2;
-		txPacket.Data[length + 1] = controlP->GPIO_ID;
-		txPacket.Data[length + 2] = controlP->value.output;
-		length += 3;
-		controlP += sizeof(ThyoneE_GPIOControlBlock_t);
-	}
+    for (uint16_t i = 0; i < number_of_controls; i++)
+    {
+        txPacket.Data[length] = 2;
+        txPacket.Data[length + 1] = controlP->GPIO_ID;
+        txPacket.Data[length + 2] = controlP->value.output;
+        length += 3;
+        controlP += sizeof(ThyoneE_GPIOControlBlock_t);
+    }
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_WRITE_REQ;
-	txPacket.Length = length;
+    txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_WRITE_REQ;
+    txPacket.Length = length;
 
-	memcpy(&txPacket.Data[0], &destAddress, 4);
+    memcpy(&txPacket.Data[0], &destAddress, 4);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_WRITE_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THYONEE_CMD_GPIO_REMOTE_WRITE_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1925,61 +1885,79 @@ bool ThyoneE_GPIORemoteWrite(uint32_t destAddress, ThyoneE_GPIOControlBlock_t *c
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThyoneE_GPIORemoteRead(uint32_t destAddress, uint8_t *GPIOToReadP, uint8_t amountGPIOToRead, ThyoneE_GPIOControlBlock_t *controlP, uint16_t *number_of_controlsP)
+bool ThyoneE_GPIORemoteRead(uint32_t destAddress, uint8_t* GPIOToReadP, uint8_t amountGPIOToRead, ThyoneE_GPIOControlBlock_t* controlP, uint16_t* number_of_controlsP)
 {
-	if ((GPIOToReadP == NULL) || (amountGPIOToRead == 0) || (controlP == NULL) || (number_of_controlsP == NULL))
-	{
-		return false;
-	}
+    if ((GPIOToReadP == NULL) || (amountGPIOToRead == 0) || (controlP == NULL) || (number_of_controlsP == NULL))
+    {
+        return false;
+    }
 
-	/* payload is 4-byte destination address + pin configuration*/
-	uint16_t commandLength = 1 + amountGPIOToRead + 4;
+    /* payload is 4-byte destination address + pin configuration*/
+    uint16_t commandLength = 1 + amountGPIOToRead + 4;
 
-	txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_READ_REQ;
-	txPacket.Length = commandLength;
+    txPacket.Cmd = THYONEE_CMD_GPIO_REMOTE_READ_REQ;
+    txPacket.Length = commandLength;
 
-	memcpy(&txPacket.Data[0], &destAddress, 4);
-	txPacket.Data[4] = amountGPIOToRead;
-	memcpy(&txPacket.Data[5], GPIOToReadP, amountGPIOToRead);
+    memcpy(&txPacket.Data[0], &destAddress, 4);
+    txPacket.Data[4] = amountGPIOToRead;
+    memcpy(&txPacket.Data[5], GPIOToReadP, amountGPIOToRead);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThyoneE_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThyoneE_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(1000, THYONEE_CMD_GPIO_REMOTE_READ_RSP, CMD_Status_NoStatus, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(1000, THYONEE_CMD_GPIO_REMOTE_READ_RSP, CMD_Status_NoStatus, true))
+    {
+        return false;
+    }
 
-	uint16_t length = rxPacket.Length;
+    uint16_t length = rxPacket.Length;
 
-	*number_of_controlsP = 0;
-	uint8_t *uartP = &rxPacket.Data[1 + 4];
-	ThyoneE_GPIOControlBlock_t *controlP_running = controlP;
-	while (uartP < &rxPacket.Data[length])
-	{
-		if (*uartP == 2)
-		{
-			controlP_running->GPIO_ID = *(uartP + 1);
-			controlP_running->value.output = *(uartP + 2);
+    *number_of_controlsP = 0;
+    uint8_t* uartP = &rxPacket.Data[1 + 4];
+    ThyoneE_GPIOControlBlock_t* controlP_running = controlP;
+    while (uartP < &rxPacket.Data[length])
+    {
+        if (*uartP == 2)
+        {
+            controlP_running->GPIO_ID = *(uartP + 1);
+            controlP_running->value.output = *(uartP + 2);
 
-			controlP_running++;
-			*number_of_controlsP += 1;
-		}
-		uartP += *uartP + 1;
-	}
-	return true;
+            controlP_running++;
+            *number_of_controlsP += 1;
+        }
+        uartP += *uartP + 1;
+    }
+    return true;
 }
 
 /**
  * @brief Returns the current level of the BUSY pin.
- * @return true if level is HIGH, false otherwise.
+ *
+ * @param[out] busyStateP: busy pin state
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  */
-bool ThyoneE_IsTransparentModeBusy()
+bool ThyoneE_IsTransparentModeBusy(bool* busyStateP)
 {
-	return WE_Pin_Level_High == WE_GetPinLevel(ThyoneE_pinsP->ThyoneE_Pin_Busy);
+    if (busyStateP == NULL)
+    {
+        return false;
+    }
+
+    WE_Pin_Level_t pin_level;
+
+    if (!WE_GetPinLevel(ThyoneE_pinsP->ThyoneE_Pin_Busy, &pin_level))
+    {
+        return false;
+    }
+
+    *busyStateP = (pin_level == WE_Pin_Level_High);
+
+    return true;
 }

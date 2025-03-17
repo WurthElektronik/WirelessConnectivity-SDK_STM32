@@ -33,199 +33,14 @@
 /**
  * @brief Base64 encoding table
  */
-static const uint8_t base64EncTable[64] = {
-		'A',
-		'B',
-		'C',
-		'D',
-		'E',
-		'F',
-		'G',
-		'H',
-		'I',
-		'J',
-		'K',
-		'L',
-		'M',
-		'N',
-		'O',
-		'P',
-		'Q',
-		'R',
-		'S',
-		'T',
-		'U',
-		'V',
-		'W',
-		'X',
-		'Y',
-		'Z',
-		'a',
-		'b',
-		'c',
-		'd',
-		'e',
-		'f',
-		'g',
-		'h',
-		'i',
-		'j',
-		'k',
-		'l',
-		'm',
-		'n',
-		'o',
-		'p',
-		'q',
-		'r',
-		's',
-		't',
-		'u',
-		'v',
-		'w',
-		'x',
-		'y',
-		'z',
-		'0',
-		'1',
-		'2',
-		'3',
-		'4',
-		'5',
-		'6',
-		'7',
-		'8',
-		'9',
-		'+',
-		'/' };
+static const uint8_t base64EncTable[64] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 /**
  * @brief Base64 decoding table
  */
-static const uint8_t base64DecTable[123] = {
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		62,
-		0,
-		0,
-		0,
-		63,
-		52,
-		53,
-		54,
-		55,
-		56,
-		57,
-		58,
-		59,
-		60,
-		61, /* 0-9 */
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		1,
-		2,
-		3,
-		4,
-		5,
-		6,
-		7,
-		8,
-		9,
-		10,
-		11,
-		12,
-		13,
-		14,
-		15,
-		16,
-		17,
-		18,
-		19,
-		20,
-		21,
-		22,
-		23,
-		24,
-		25, /* A-Z */
-		0,
-		0,
-		0,
-		0,
-		0,
-		0,
-		26,
-		27,
-		28,
-		29,
-		30,
-		31,
-		32,
-		33,
-		34,
-		35,
-		36,
-		37,
-		38,
-		39,
-		40,
-		41,
-		42,
-		43,
-		44,
-		45,
-		46,
-		47,
-		48,
-		49,
-		50,
-		51 }; /* a-z */
+static const uint8_t base64DecTable[123] = {0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 0, 0, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, /* 0-9 */
+                                            0, 0, 0, 0, 0, 0, 0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,                                                                                        /* A-Z */
+                                            0, 0, 0, 0, 0, 0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};                                                                                           /* a-z */
 
 /**
  * @brief Get Base64 decoded buffer size.
@@ -239,30 +54,30 @@ static const uint8_t base64DecTable[123] = {
  *
  * @return true if successful, false otherwise.
  */
-bool Base64_GetDecBufSize(uint8_t *inputData, uint32_t inputLength, uint32_t *outputLengthP)
+bool Base64_GetDecBufSize(uint8_t* inputData, uint32_t inputLength, uint32_t* outputLengthP)
 {
-	if ((inputData == NULL) || (outputLengthP == NULL))
-	{
-		return false;
-	}
+    if ((inputData == NULL) || (outputLengthP == NULL))
+    {
+        return false;
+    }
 
-	*outputLengthP = inputLength / 4 * 3;
+    *outputLengthP = inputLength / 4 * 3;
 
-	if (*outputLengthP == 0)
-	{
-		return false;
-	}
+    if (*outputLengthP == 0)
+    {
+        return false;
+    }
 
-	if (inputData[inputLength - 1] == '=')
-	{
-		*outputLengthP = *outputLengthP - 1;
-	}
-	if (inputData[inputLength - 2] == '=')
-	{
-		*outputLengthP = *outputLengthP - 1;
-	}
+    if (inputData[inputLength - 1] == '=')
+    {
+        *outputLengthP = *outputLengthP - 1;
+    }
+    if (inputData[inputLength - 2] == '=')
+    {
+        *outputLengthP = *outputLengthP - 1;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -276,17 +91,17 @@ bool Base64_GetDecBufSize(uint8_t *inputData, uint32_t inputLength, uint32_t *ou
  *
  * @return true if successful, false otherwise.
  */
-bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t *outputLengthP)
+bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t* outputLengthP)
 {
-	if (outputLengthP == NULL)
-	{
-		return false;
-	}
+    if (outputLengthP == NULL)
+    {
+        return false;
+    }
 
-	/* Data size without additional string termination character */
-	*outputLengthP = (4 * ((inputLength + 2) / 3));
+    /* Data size without additional string termination character */
+    *outputLengthP = (4 * ((inputLength + 2) / 3));
 
-	return true;
+    return true;
 }
 
 /**
@@ -304,60 +119,60 @@ bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t *outputLengthP)
  *
  * @return true if successful, false otherwise
  */
-bool Base64_Decode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength)
+bool Base64_Decode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength)
 {
-	if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))
-	{
-		return false;
-	}
+    if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))
+    {
+        return false;
+    }
 
-	uint32_t decode_value;
-	uint32_t nibble6_1, nibble6_2, nibble6_3, nibble6_4;
-	uint32_t i, j;
+    uint32_t decode_value;
+    uint32_t nibble6_1, nibble6_2, nibble6_3, nibble6_4;
+    uint32_t i, j;
 
-	if (inputLength % 4 != 0)
-	{
-		return false;
-	}
+    if (inputLength % 4 != 0)
+    {
+        return false;
+    }
 
-	uint32_t decoded_buffer_length;
+    uint32_t decoded_buffer_length;
 
-	if (!Base64_GetDecBufSize(inputData, inputLength, &decoded_buffer_length))
-	{
-		return false;
-	}
+    if (!Base64_GetDecBufSize(inputData, inputLength, &decoded_buffer_length))
+    {
+        return false;
+    }
 
-	if (*outputLength < decoded_buffer_length)
-	{
-		return false;
-	}
+    if (*outputLength < decoded_buffer_length)
+    {
+        return false;
+    }
 
-	*outputLength = decoded_buffer_length;
+    *outputLength = decoded_buffer_length;
 
-	for (i = 0, j = 0; i < inputLength;)
-	{
-		nibble6_1 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
-		nibble6_2 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
-		nibble6_3 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
-		nibble6_4 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
+    for (i = 0, j = 0; i < inputLength;)
+    {
+        nibble6_1 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
+        nibble6_2 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
+        nibble6_3 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
+        nibble6_4 = inputData[i] == '=' ? 0 & i++ : base64DecTable[inputData[i++]];
 
-		decode_value = (nibble6_1 << 3 * 6) + (nibble6_2 << 2 * 6) + (nibble6_3 << 1 * 6) + (nibble6_4 << 0 * 6);
+        decode_value = (nibble6_1 << 3 * 6) + (nibble6_2 << 2 * 6) + (nibble6_3 << 1 * 6) + (nibble6_4 << 0 * 6);
 
-		if (j < *outputLength)
-		{
-			outputData[j++] = (decode_value >> 2 * 8) & 0xFF;
-		}
-		if (j < *outputLength)
-		{
-			outputData[j++] = (decode_value >> 1 * 8) & 0xFF;
-		}
-		if (j < *outputLength)
-		{
-			outputData[j++] = (decode_value >> 0 * 8) & 0xFF;
-		}
-	}
+        if (j < *outputLength)
+        {
+            outputData[j++] = (decode_value >> 2 * 8) & 0xFF;
+        }
+        if (j < *outputLength)
+        {
+            outputData[j++] = (decode_value >> 1 * 8) & 0xFF;
+        }
+        if (j < *outputLength)
+        {
+            outputData[j++] = (decode_value >> 0 * 8) & 0xFF;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -378,53 +193,53 @@ bool Base64_Decode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData
  *
  * @return true if successful, false otherwise
  */
-bool Base64_Encode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength)
+bool Base64_Encode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength)
 {
-	if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))
-	{
-		return false;
-	}
+    if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))
+    {
+        return false;
+    }
 
-	uint32_t encodeValue;
-	uint32_t nibble6_1, nibble6_2, nibble6_3;
-	uint32_t i, j;
+    uint32_t encodeValue;
+    uint32_t nibble6_1, nibble6_2, nibble6_3;
+    uint32_t i, j;
 
-	uint32_t encoded_buffer_length;
+    uint32_t encoded_buffer_length;
 
-	if (!Base64_GetEncBufSize(inputLength, &encoded_buffer_length))
-	{
-		return false;
-	}
+    if (!Base64_GetEncBufSize(inputLength, &encoded_buffer_length))
+    {
+        return false;
+    }
 
-	if (*outputLength < encoded_buffer_length)
-	{
-		return false;
-	}
+    if (*outputLength < encoded_buffer_length)
+    {
+        return false;
+    }
 
-	*outputLength = encoded_buffer_length;
+    *outputLength = encoded_buffer_length;
 
-	for (i = 0, j = 0; i < inputLength;)
-	{
-		nibble6_1 = i < inputLength ? inputData[i++] : 0;
-		nibble6_2 = i < inputLength ? inputData[i++] : 0;
-		nibble6_3 = i < inputLength ? inputData[i++] : 0;
+    for (i = 0, j = 0; i < inputLength;)
+    {
+        nibble6_1 = i < inputLength ? inputData[i++] : 0;
+        nibble6_2 = i < inputLength ? inputData[i++] : 0;
+        nibble6_3 = i < inputLength ? inputData[i++] : 0;
 
-		encodeValue = (nibble6_1 << 0x10) + (nibble6_2 << 0x08) + nibble6_3;
+        encodeValue = (nibble6_1 << 0x10) + (nibble6_2 << 0x08) + nibble6_3;
 
-		outputData[j++] = base64EncTable[(encodeValue >> 3 * 6) & 0x3F];
-		outputData[j++] = base64EncTable[(encodeValue >> 2 * 6) & 0x3F];
-		outputData[j++] = base64EncTable[(encodeValue >> 1 * 6) & 0x3F];
-		outputData[j++] = base64EncTable[(encodeValue >> 0 * 6) & 0x3F];
-	}
+        outputData[j++] = base64EncTable[(encodeValue >> 3 * 6) & 0x3F];
+        outputData[j++] = base64EncTable[(encodeValue >> 2 * 6) & 0x3F];
+        outputData[j++] = base64EncTable[(encodeValue >> 1 * 6) & 0x3F];
+        outputData[j++] = base64EncTable[(encodeValue >> 0 * 6) & 0x3F];
+    }
 
-	if (inputLength % 3 >= 1)
-	{
-		outputData[*outputLength - 1] = '=';
-	}
-	if (inputLength % 3 == 1)
-	{
-		outputData[*outputLength - 2] = '=';
-	}
+    if (inputLength % 3 >= 1)
+    {
+        outputData[*outputLength - 1] = '=';
+    }
+    if (inputLength % 3 == 1)
+    {
+        outputData[*outputLength - 2] = '=';
+    }
 
-	return true;
+    return true;
 }

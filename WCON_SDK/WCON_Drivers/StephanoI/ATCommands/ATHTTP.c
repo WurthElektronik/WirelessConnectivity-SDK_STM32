@@ -28,9 +28,9 @@
  * @brief AT commands for HTTP functionality.
  */
 
-#include <global/ATCommands.h>
 #include <StephanoI/ATCommands/ATHTTP.h>
 #include <StephanoI/StephanoI.h>
+#include <global/ATCommands.h>
 
 /**
  * @brief HTTP Client
@@ -46,61 +46,61 @@
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Content_t content, char *url, char *host, char *path, bool transport_via_SSL, char *data, char *header)
+bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Content_t content, char* url, char* host, char* path, bool transport_via_SSL, char* data, char* header)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+HTTPCLIENT=");
+    strcpy(pRequestCommand, "AT+HTTPCLIENT=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) opt, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) content, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, host, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, path, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, transport_via_SSL ? (uint8_t) 2 : (uint8_t) 1, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), (opt == StephanoI_ATHTTP_Opt_Post) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (opt == StephanoI_ATHTTP_Opt_Post)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, data, (header != NULL) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		if (header != NULL)
-		{
-			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, header, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-		}
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)opt, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)content, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, host, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, path, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, transport_via_SSL ? (uint8_t)2 : (uint8_t)1, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), (opt == StephanoI_ATHTTP_Opt_Post) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (opt == StephanoI_ATHTTP_Opt_Post)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, data, (header != NULL) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        if (header != NULL)
+        {
+            if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, header, ATCOMMAND_STRING_TERMINATE))
+            {
+                return false;
+            }
+        }
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -112,32 +112,32 @@ bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Conten
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATHTTP_GetSize(char *url, StephanoI_ATHTTP_Size_t *t)
+bool StephanoI_ATHTTP_GetSize(char* url, StephanoI_ATHTTP_Size_t* t)
 {
-	char responsebuffer[16];
-	char *pRequestCommand = AT_commandBuffer;
-	strcpy(pRequestCommand, "AT+HTTPGETSIZE=");
+    char responsebuffer[16];
+    char* pRequestCommand = AT_commandBuffer;
+    strcpy(pRequestCommand, "AT+HTTPGETSIZE=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!StephanoI_WaitForConfirm_ex(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success, responsebuffer, sizeof(responsebuffer)))
-	{
-		return false;
-	}
+    if (!StephanoI_WaitForConfirm_ex(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success, responsebuffer, sizeof(responsebuffer)))
+    {
+        return false;
+    }
 
-	return StephanoI_ATHTTP_ParseGetSize(responsebuffer, t);
+    return StephanoI_ATHTTP_ParseGetSize(responsebuffer, t);
 }
 
 /**
@@ -148,33 +148,33 @@ bool StephanoI_ATHTTP_GetSize(char *url, StephanoI_ATHTTP_Size_t *t)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATHTTP_Get(char *url, StephanoI_ATHTTP_Get_t *t)
+bool StephanoI_ATHTTP_Get(char* url, StephanoI_ATHTTP_Get_t* t)
 {
-	char responsebuffer[7 + t->length];
-	char *pRequestCommand = AT_commandBuffer;
+    char responsebuffer[7 + t->length];
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+HTTPCGET=");
+    strcpy(pRequestCommand, "AT+HTTPCGET=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!StephanoI_WaitForConfirm_ex(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success, responsebuffer, sizeof(responsebuffer)))
-	{
-		return false;
-	}
+    if (!StephanoI_WaitForConfirm_ex(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success, responsebuffer, sizeof(responsebuffer)))
+    {
+        return false;
+    }
 
-	return StephanoI_ATHTTP_ParseGet(responsebuffer, t);
+    return StephanoI_ATHTTP_ParseGet(responsebuffer, t);
 }
 
 /**
@@ -188,58 +188,58 @@ bool StephanoI_ATHTTP_Get(char *url, StephanoI_ATHTTP_Get_t *t)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATHTTP_Post(char *url, uint8_t *data, uint32_t length, uint8_t number_of_headers, char **headers)
+bool StephanoI_ATHTTP_Post(char* url, uint8_t* data, uint32_t length, uint8_t number_of_headers, char** headers)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+HTTPCPOST=");
+    strcpy(pRequestCommand, "AT+HTTPCPOST=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), (number_of_headers > 0) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (number_of_headers > 0)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, number_of_headers, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		for (uint8_t i = 0; i < number_of_headers - 1; i++)
-		{
-			if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, *(headers + i), ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
-		}
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, *(headers + number_of_headers - 1), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, url, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, length, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), (number_of_headers > 0) ? ATCOMMAND_ARGUMENT_DELIM : ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (number_of_headers > 0)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, number_of_headers, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+        for (uint8_t i = 0; i < number_of_headers - 1; i++)
+        {
+            if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, *(headers + i), ATCOMMAND_ARGUMENT_DELIM))
+            {
+                return false;
+            }
+        }
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, *(headers + number_of_headers - 1), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGeneral), StephanoI_CNFStatus_Ready4Data))
-	{
-		return false;
-	}
+    if (!StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGeneral), StephanoI_CNFStatus_Ready4Data))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest_ex(data, length))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_SendOK);
+    if (!StephanoI_SendRequest_ex(data, length))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_SendOK);
 }
 
 /**
@@ -250,16 +250,16 @@ bool StephanoI_ATHTTP_Post(char *url, uint8_t *data, uint32_t length, uint8_t nu
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATHTTP_ParseClient(char *EventArgumentsP, StephanoI_ATHTTP_Client_t *t)
+bool StephanoI_ATHTTP_ParseClient(char* EventArgumentsP, StephanoI_ATHTTP_Client_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    char* argumentsP = EventArgumentsP;
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	t->data = malloc(t->length);
-	return ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length);
+    t->data = malloc(t->length);
+    return ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length);
 }
 
 /**
@@ -270,10 +270,10 @@ bool StephanoI_ATHTTP_ParseClient(char *EventArgumentsP, StephanoI_ATHTTP_Client
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATHTTP_ParseGetSize(char *EventArgumentsP, StephanoI_ATHTTP_Size_t *t)
+bool StephanoI_ATHTTP_ParseGetSize(char* EventArgumentsP, StephanoI_ATHTTP_Size_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
+    char* argumentsP = EventArgumentsP;
+    return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -284,15 +284,14 @@ bool StephanoI_ATHTTP_ParseGetSize(char *EventArgumentsP, StephanoI_ATHTTP_Size_
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATHTTP_ParseGet(char *EventArgumentsP, StephanoI_ATHTTP_Get_t *t)
+bool StephanoI_ATHTTP_ParseGet(char* EventArgumentsP, StephanoI_ATHTTP_Get_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    char* argumentsP = EventArgumentsP;
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	t->data = malloc(t->length);
-	return ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length);
+    t->data = malloc(t->length);
+    return ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length);
 }
-

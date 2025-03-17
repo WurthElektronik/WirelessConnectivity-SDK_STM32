@@ -31,20 +31,21 @@
 #ifndef ADRASTEAI_EXAMPLES_H_INCLUDED
 #define ADRASTEAI_EXAMPLES_H_INCLUDED
 
-#include <stdbool.h>
 #include <AdrasteaI/AdrasteaI.h>
 #include <global/global.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern AdrasteaI_Pins_t AdrasteaI_pins;
-extern WE_UART_t AdrasteaI_uart;
+    extern AdrasteaI_Pins_t AdrasteaI_pins;
+    extern WE_UART_t AdrasteaI_uart;
 
-extern void AdrasteaI_Examples();
+    extern void AdrasteaI_Examples();
 
-extern void AdrasteaI_ExamplesPrint(char *str, bool success);
+    extern void AdrasteaI_ExamplesPrint(char* str, bool success);
 
 #ifdef __cplusplus
 }

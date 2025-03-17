@@ -28,9 +28,9 @@
  * @brief StephanoI device example.
  */
 
-#include <StephanoI/StephanoI_Examples.h>
-#include <StephanoI/StephanoI_Device_Example.h>
 #include <StephanoI/ATCommands/ATDevice.h>
+#include <StephanoI/StephanoI_Device_Example.h>
+#include <StephanoI/StephanoI_Examples.h>
 
 /**
  * @brief Is called when an event notification has been received.
@@ -45,27 +45,27 @@
  * events (i.e. events from StephanoI_ATEvent_t). Some events might in fact be responses
  * to AT commands that are not included in StephanoI_ATEvent_t.
  */
-void StephanoI_Device_Examples_EventCallback(char *eventText)
+void StephanoI_Device_Examples_EventCallback(char* eventText)
 {
-	char *eventText_original = eventText;
-	StephanoI_ATEvent_t event;
-	if (false == StephanoI_ATEvent_ParseEventType(&eventText, &event))
-	{
-		return;
-	}
+    char* eventText_original = eventText;
+    StephanoI_ATEvent_t event;
+    if (false == StephanoI_ATEvent_ParseEventType(&eventText, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	default:
-		StephanoI_Examples_EventCallback(eventText_original);
-		break;
-	}
+    switch (event)
+    {
+        default:
+            StephanoI_Examples_EventCallback(eventText_original);
+            break;
+    }
 }
 
 void StephanoI_ManufacturingUserPartitions_SubExample()
 {
-	bool ret = StephanoI_ATDevice_GetManufacturingUserPartitions();
-	StephanoI_Examples_Print("Get manufacturing user partitions", ret);
+    bool ret = StephanoI_ATDevice_GetManufacturingUserPartitions();
+    StephanoI_Examples_Print("Get manufacturing user partitions", ret);
 
 #if 0
 	char new_server_cert[] = "-----BEGIN CERTIFICATE-----\r\n\
@@ -94,39 +94,39 @@ zA==\r\n\
 	StephanoI_Examples_Print("Write server certificate", ret);
 #endif
 
-	StephanoI_ATDevice_SYSMFG_t manu;
-	ret = StephanoI_ATDevice_ReadManufacturingUserPartitions("server_cert", "server_cert", 0, 0, &manu);
-	StephanoI_Examples_Print("Read server cert", ret);
-	if (manu.value != NULL)
-	{
-		free(manu.value);
-	}
+    StephanoI_ATDevice_SYSMFG_t manu;
+    ret = StephanoI_ATDevice_ReadManufacturingUserPartitions("server_cert", "server_cert", 0, 0, &manu);
+    StephanoI_Examples_Print("Read server cert", ret);
+    if (manu.value != NULL)
+    {
+        free(manu.value);
+    }
 }
 
 void StephanoI_Filesystem_SubExample()
 {
-	char *filename = "test3.txt";
-	bool ret = StephanoI_ATDevice_FileSystemGetFiles();
-	StephanoI_Examples_Print("Get FS files", ret);
+    char* filename = "test3.txt";
+    bool ret = StephanoI_ATDevice_FileSystemGetFiles();
+    StephanoI_Examples_Print("Get FS files", ret);
 
-	char *testdata = "Hello world";
-	ret = StephanoI_ATDevice_FileSystemWrite(filename, 0, strlen(testdata), (uint8_t*) testdata);
-	StephanoI_Examples_Print("Write FS file", ret);
+    char* testdata = "Hello world";
+    ret = StephanoI_ATDevice_FileSystemWrite(filename, 0, strlen(testdata), (uint8_t*)testdata);
+    StephanoI_Examples_Print("Write FS file", ret);
 
-	uint16_t size = 0;
-	ret = StephanoI_ATDevice_FileSystemGetFileSize(filename, &size);
-	StephanoI_Examples_Print("Get FS file size", ret);
+    uint16_t size = 0;
+    ret = StephanoI_ATDevice_FileSystemGetFileSize(filename, &size);
+    StephanoI_Examples_Print("Get FS file size", ret);
 
-	StephanoI_ATDevice_FileSystemRead_t read;
-	ret = StephanoI_ATDevice_FileSystemRead(filename, 0, size, &read);
-	StephanoI_Examples_Print("Read FS file", ret);
-	if (read.value != NULL)
-	{
-		free(read.value);
-	}
+    StephanoI_ATDevice_FileSystemRead_t read;
+    ret = StephanoI_ATDevice_FileSystemRead(filename, 0, size, &read);
+    StephanoI_Examples_Print("Read FS file", ret);
+    if (read.value != NULL)
+    {
+        free(read.value);
+    }
 
-	ret = StephanoI_ATDevice_FileSystemDelete(filename);
-	StephanoI_Examples_Print("Delete FS file", ret);
+    ret = StephanoI_ATDevice_FileSystemDelete(filename);
+    StephanoI_Examples_Print("Delete FS file", ret);
 }
 
 /**
@@ -134,18 +134,18 @@ void StephanoI_Filesystem_SubExample()
  */
 void StephanoI_Device_Example()
 {
-	WE_DEBUG_PRINT("*** Start of StephanoI ATDevice example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of StephanoI ATDevice example ***\r\n");
 
-	if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	bool ret = StephanoI_PinReset();
-	StephanoI_Examples_Print("PinReset", ret);
-	ret = StephanoI_Examples_WaitForStartup(5000);
-	StephanoI_Examples_Print("Startup event", ret);
+    bool ret = StephanoI_PinReset();
+    StephanoI_Examples_Print("PinReset", ret);
+    ret = StephanoI_Examples_WaitForStartup(5000);
+    StephanoI_Examples_Print("Startup event", ret);
 
 #if 0
     ret = StephanoI_ATDevice_Restore();
@@ -154,59 +154,59 @@ void StephanoI_Device_Example()
     StephanoI_Examples_Print("Startup event", ret);
 #endif
 
-	ret = StephanoI_ATDevice_EchoOn(false);
-	StephanoI_Examples_Print("Echo off", ret);
+    ret = StephanoI_ATDevice_EchoOn(false);
+    StephanoI_Examples_Print("Echo off", ret);
 
-	ret = StephanoI_ATDevice_GetVersion();
-	StephanoI_Examples_Print("Get version", ret);
+    ret = StephanoI_ATDevice_GetVersion();
+    StephanoI_Examples_Print("Get version", ret);
 
-	bool enable;
-	ret = StephanoI_ATWifi_GetInit(&enable);
-	StephanoI_Examples_Print("Read wifi driver state", ret);
-	if (enable)
-	{
-		ret = StephanoI_ATWifi_Init(false);
-		StephanoI_Examples_Print("Disable wifi", ret);
-	}
+    bool enable;
+    ret = StephanoI_ATWifi_GetInit(&enable);
+    StephanoI_Examples_Print("Read wifi driver state", ret);
+    if (enable)
+    {
+        ret = StephanoI_ATWifi_Init(false);
+        StephanoI_Examples_Print("Disable wifi", ret);
+    }
 
-	uint32_t time = 0;
-	ret = StephanoI_ATDevice_SetSystemTimestamp(100);
-	StephanoI_Examples_Print("Set time stamp", ret);
-	ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
-	StephanoI_Examples_Print("Get time stamp", ret);
-	WE_DEBUG_PRINT("Time stamp = %d\r\n", (int) time);
+    uint32_t time = 0;
+    ret = StephanoI_ATDevice_SetSystemTimestamp(100);
+    StephanoI_Examples_Print("Set time stamp", ret);
+    ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
+    StephanoI_Examples_Print("Get time stamp", ret);
+    WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
 
-	ret = StephanoI_ATDevice_SetTXPower(StephanoI_ATDevice_WifiPower_Plus20, StephanoI_ATDevice_BluetoothLEPower_None);
-	StephanoI_Examples_Print("Set WiFi TX power", ret);
+    ret = StephanoI_ATDevice_SetTXPower(StephanoI_ATDevice_WifiPower_Plus20, StephanoI_ATDevice_BluetoothLEPower_None);
+    StephanoI_Examples_Print("Set WiFi TX power", ret);
 
-	StephanoI_ATDevice_WifiPower_t wifi_power;
-	StephanoI_ATDevice_BluetoothLEPower_t ble_power;
-	ret = StephanoI_ATDevice_GetTXPower(&wifi_power, &ble_power);
-	StephanoI_Examples_Print("Get WiFi TX power", ret);
+    StephanoI_ATDevice_WifiPower_t wifi_power;
+    StephanoI_ATDevice_BluetoothLEPower_t ble_power;
+    ret = StephanoI_ATDevice_GetTXPower(&wifi_power, &ble_power);
+    StephanoI_Examples_Print("Get WiFi TX power", ret);
 
-	StephanoI_ATDevice_UART_t uart;
-	ret = StephanoI_ATDevice_GetDefaultUART(&uart);
-	StephanoI_Examples_Print("Get default uart TX power", ret);
-	WE_DEBUG_PRINT("%d Baud\r\n", (int) uart.baudrate);
+    StephanoI_ATDevice_UART_t uart;
+    ret = StephanoI_ATDevice_GetDefaultUART(&uart);
+    StephanoI_Examples_Print("Get default uart TX power", ret);
+    WE_DEBUG_PRINT("%d Baud\r\n", (int)uart.baudrate);
 
-	float temp;
-	ret = StephanoI_ATDevice_GetSystemTemp(&temp);
-	StephanoI_Examples_Print("Get system temperature", ret);
-	WE_DEBUG_PRINT("%.2f C\r\n", temp);
+    float temp;
+    ret = StephanoI_ATDevice_GetSystemTemp(&temp);
+    StephanoI_Examples_Print("Get system temperature", ret);
+    WE_DEBUG_PRINT("%.2f C\r\n", temp);
 
-	bool storemode;
-	ret = StephanoI_ATDevice_GetSystemStoremode(&storemode);
-	StephanoI_Examples_Print("Get system store mode", ret);
-	WE_DEBUG_PRINT("Storemode %s\r\n", storemode ? "enabled" : "disabled");
+    bool storemode;
+    ret = StephanoI_ATDevice_GetSystemStoremode(&storemode);
+    StephanoI_Examples_Print("Get system store mode", ret);
+    WE_DEBUG_PRINT("Storemode %s\r\n", storemode ? "enabled" : "disabled");
 
-	//StephanoI_ManufacturingUserPartitions_SubExample();
-	StephanoI_Filesystem_SubExample();
+    //StephanoI_ManufacturingUserPartitions_SubExample();
+    StephanoI_Filesystem_SubExample();
 
-	ret = StephanoI_ATDevice_SetDeepSleep(ATDEVICE_DEEPSLEEP_TIME_MAX);
-	StephanoI_Examples_Print("Deep sleep", ret);
-	WE_Delay(500);
+    ret = StephanoI_ATDevice_SetDeepSleep(ATDEVICE_DEEPSLEEP_TIME_MAX);
+    StephanoI_Examples_Print("Deep sleep", ret);
+    WE_Delay(500);
 
-	StephanoI_Deinit();
+    StephanoI_Deinit();
 }
 
 /**
@@ -214,18 +214,18 @@ void StephanoI_Device_Example()
  */
 void StephanoI_DeviceSleep_Example()
 {
-	WE_DEBUG_PRINT("*** Start of StephanoI ATDeviceSleep example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of StephanoI ATDeviceSleep example ***\r\n");
 
-	if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	bool ret = StephanoI_PinReset();
-	StephanoI_Examples_Print("PinReset", ret);
-	ret = StephanoI_Examples_WaitForStartup(5000);
-	StephanoI_Examples_Print("Startup event", ret);
+    bool ret = StephanoI_PinReset();
+    StephanoI_Examples_Print("PinReset", ret);
+    ret = StephanoI_Examples_WaitForStartup(5000);
+    StephanoI_Examples_Print("Startup event", ret);
 
 #if 0
     ret = StephanoI_ATDevice_Restore();
@@ -234,55 +234,55 @@ void StephanoI_DeviceSleep_Example()
     StephanoI_Examples_Print("Startup event", ret);
 #endif
 
-	ret = StephanoI_ATDevice_EchoOn(false);
-	StephanoI_Examples_Print("Echo off", ret);
+    ret = StephanoI_ATDevice_EchoOn(false);
+    StephanoI_Examples_Print("Echo off", ret);
 
-	ret = StephanoI_ATDevice_GetVersion();
-	StephanoI_Examples_Print("Get version", ret);
+    ret = StephanoI_ATDevice_GetVersion();
+    StephanoI_Examples_Print("Get version", ret);
 
-	uint32_t time = 0;
-	ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
-	StephanoI_Examples_Print("Get time stamp", ret);
-	WE_DEBUG_PRINT("Time stamp = %d\r\n", (int) time);
+    uint32_t time = 0;
+    ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
+    StephanoI_Examples_Print("Get time stamp", ret);
+    WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
 
-	/* set wake-up pin to pin 10, active level to high and enable sleep mode */
-	bool active_level = true;
-	ret = StephanoI_ATDevice_SetWakeUpSource(StephanoI_ATDevice_WakeupPin_GPIO10, active_level);
-	StephanoI_Examples_Print("Set wake-up source", ret);
-	ret = StephanoI_SetWakeUpPin(active_level);
-	StephanoI_Examples_Print("Set wake-up pin", ret);
-	ret = StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_Light);
-	StephanoI_Examples_Print("Enable sleep mode", ret);
+    /* set wake-up pin to pin 10, active level to high and enable sleep mode */
+    bool active_level = true;
+    ret = StephanoI_ATDevice_SetWakeUpSource(StephanoI_ATDevice_WakeupPin_GPIO10, active_level);
+    StephanoI_Examples_Print("Set wake-up source", ret);
+    ret = StephanoI_SetWakeUpPin(active_level);
+    StephanoI_Examples_Print("Set wake-up pin", ret);
+    ret = StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_Light);
+    StephanoI_Examples_Print("Enable sleep mode", ret);
 
-	for (uint8_t i = 0; i < 10; i++)
-	{
-		/* wake-up */
-		ret = StephanoI_SetWakeUpPin(active_level);
-		StephanoI_Examples_Print("Wake-up", ret);
-		/* wait to wake-up */
-		WE_Delay(1);
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        /* wake-up */
+        ret = StephanoI_SetWakeUpPin(active_level);
+        StephanoI_Examples_Print("Wake-up", ret);
+        /* wait to wake-up */
+        WE_Delay(1);
 
-		/* do your stuff */
-		ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
-		StephanoI_Examples_Print("Get time stamp", ret);
-		WE_DEBUG_PRINT("Time stamp = %d\r\n", (int) time);
+        /* do your stuff */
+        ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
+        StephanoI_Examples_Print("Get time stamp", ret);
+        WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
 
-		/* go to sleep */
-		ret = StephanoI_SetWakeUpPin(!active_level);
-		StephanoI_Examples_Print("Go to sleep", ret);
+        /* go to sleep */
+        ret = StephanoI_SetWakeUpPin(!active_level);
+        StephanoI_Examples_Print("Go to sleep", ret);
 
-		WE_Delay(100);
-	}
+        WE_Delay(100);
+    }
 
-	/* wake-up and disable sleep */
-	ret = StephanoI_SetWakeUpPin(active_level);
-	StephanoI_Examples_Print("Wake-up", ret);
-	ret = StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_Disable);
-	StephanoI_Examples_Print("Disable sleep mode", ret);
+    /* wake-up and disable sleep */
+    ret = StephanoI_SetWakeUpPin(active_level);
+    StephanoI_Examples_Print("Wake-up", ret);
+    ret = StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_Disable);
+    StephanoI_Examples_Print("Disable sleep mode", ret);
 
-	ret = StephanoI_ATDevice_SetDeepSleep(ATDEVICE_DEEPSLEEP_TIME_MAX);
-	StephanoI_Examples_Print("Deep sleep", ret);
-	WE_Delay(500);
+    ret = StephanoI_ATDevice_SetDeepSleep(ATDEVICE_DEEPSLEEP_TIME_MAX);
+    StephanoI_Examples_Print("Deep sleep", ret);
+    WE_Delay(500);
 
-	StephanoI_Deinit();
+    StephanoI_Deinit();
 }

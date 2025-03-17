@@ -22,18 +22,17 @@
  *
  ***************************************************************************************************
  */
-#include <stdio.h>
-#include <AdrasteaI/ATNetServiceExamples.h>
+#include <AdrasteaI/ATCommands/ATEvent.h>
 #include <AdrasteaI/ATCommands/ATNetService.h>
 #include <AdrasteaI/ATCommands/ATPacketDomain.h>
-#include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/ATNetServiceExamples.h>
 #include <AdrasteaI/AdrasteaI.h>
 #include <AdrasteaI/AdrasteaI_Examples.h>
+#include <stdio.h>
 
-void AdrasteaI_ATNetService_EventCallback(char *eventText);
+void AdrasteaI_ATNetService_EventCallback(char* eventText);
 
-static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
-		0 };
+static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {0};
 
 /**
  * @brief This example connects to the cellular network and checks the quality of the connection
@@ -41,94 +40,85 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {
  */
 void ATNetServiceExample()
 {
-	WE_DEBUG_PRINT("*** Start of Adrastea-I ATNetService example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of Adrastea-I ATNetService example ***\r\n");
 
-	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATNetService_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATNetService_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
-	AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
-	while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
-	{
-		WE_Delay(10);
-	}
+    bool ret = AdrasteaI_ATPacketDomain_SetNetworkRegistrationResultCode(AdrasteaI_ATPacketDomain_Network_Registration_Result_Code_Enable_with_Location_Info);
+    AdrasteaI_ExamplesPrint("Set Network Registration Result Code", ret);
+    while (status.state != AdrasteaI_ATPacketDomain_Network_Registration_State_Registered_Roaming)
+    {
+        WE_Delay(10);
+    }
 
-	ret = AdrasteaI_ATNetService_ReadOperators();
-	AdrasteaI_ExamplesPrint("Read Operators", ret);
+    ret = AdrasteaI_ATNetService_ReadOperators();
+    AdrasteaI_ExamplesPrint("Read Operators", ret);
 
-	ret = AdrasteaI_ATNetService_SetPLMNReadFormat(AdrasteaI_ATNetService_PLMN_Format_Numeric);
-	AdrasteaI_ExamplesPrint("Set PLMN Read Format", ret);
+    ret = AdrasteaI_ATNetService_SetPLMNReadFormat(AdrasteaI_ATNetService_PLMN_Format_Numeric);
+    AdrasteaI_ExamplesPrint("Set PLMN Read Format", ret);
 
-	AdrasteaI_ATNetService_PLMN_t plmn;
-	ret = AdrasteaI_ATNetService_ReadPLMN(&plmn);
-	AdrasteaI_ExamplesPrint("Read PLMN", ret);
-	if (ret)
-	{
-		WE_DEBUG_PRINT("Selection Mode: %d, Format: %d, Operator Numeric: %lu\r\n", plmn.selectionMode, plmn.format, (unsigned long) plmn.operator.operatorNumeric);
-	}
+    AdrasteaI_ATNetService_PLMN_t plmn;
+    ret = AdrasteaI_ATNetService_ReadPLMN(&plmn);
+    AdrasteaI_ExamplesPrint("Read PLMN", ret);
+    if (ret)
+    {
+        WE_DEBUG_PRINT("Selection Mode: %d, Format: %d, Operator Numeric: %lu\r\n", plmn.selectionMode, plmn.format, (unsigned long)plmn.operator.operatorNumeric);
+    }
 
-	AdrasteaI_ATNetService_Signal_Quality_t sq;
-	AdrasteaI_ATNetService_ReadSignalQuality(&sq);
-	AdrasteaI_ExamplesPrint("Read Signal Quality", ret);
-	if (ret)
-	{
-		WE_DEBUG_PRINT("RSSI: %d, BER: %d\r\n", sq.rssi, sq.ber);
-	}
+    AdrasteaI_ATNetService_Signal_Quality_t sq;
+    AdrasteaI_ATNetService_ReadSignalQuality(&sq);
+    AdrasteaI_ExamplesPrint("Read Signal Quality", ret);
+    if (ret)
+    {
+        WE_DEBUG_PRINT("RSSI: %d, BER: %d\r\n", sq.rssi, sq.ber);
+    }
 
-	AdrasteaI_ATNetService_Extended_Signal_Quality_t esq;
-	ret = AdrasteaI_ATNetService_ReadExtendedSignalQuality(&esq);
-	AdrasteaI_ExamplesPrint("Read Extended Signal Quality", ret);
-	if (ret)
-	{
-		WE_DEBUG_PRINT("RXLEV: %d, BER: %d, RSCP: %d, ECNO: %d, RSRQ: %d, RSRP: %d\r\n", esq.rxlev, esq.ber, esq.rscp, esq.ecno, esq.rsrq, esq.rsrp);
-	}
+    AdrasteaI_ATNetService_Extended_Signal_Quality_t esq;
+    ret = AdrasteaI_ATNetService_ReadExtendedSignalQuality(&esq);
+    AdrasteaI_ExamplesPrint("Read Extended Signal Quality", ret);
+    if (ret)
+    {
+        WE_DEBUG_PRINT("RXLEV: %d, BER: %d, RSCP: %d, ECNO: %d, RSRQ: %d, RSRP: %d\r\n", esq.rxlev, esq.ber, esq.rscp, esq.ecno, esq.rsrq, esq.rsrp);
+    }
 
-	AdrasteaI_ATNetService_Power_Saving_Mode_t psm = {
-			.state = AdrasteaI_ATNetService_Power_Saving_Mode_State_Enable,
-			.activeTime = {
-					.activeTimeValues = {
-							.value = 20,
-							.unit = AdrasteaI_ATNetService_Power_Saving_Mode_Active_Time_Unit_1m } },
-			.periodicTAU = {
-					.periodicTAUValues = {
-							.value = 0,
-							.unit = AdrasteaI_ATNetService_Power_Saving_Mode_Periodic_TAU_Deactivated } } };
-	ret = AdrasteaI_ATNetService_SetPowerSavingMode(psm);
-	AdrasteaI_ExamplesPrint("Set Power Saving Mode", ret);
-	psm.state = AdrasteaI_ATNetService_Power_Saving_Mode_State_Disable;
+    AdrasteaI_ATNetService_Power_Saving_Mode_t psm = {.state = AdrasteaI_ATNetService_Power_Saving_Mode_State_Enable, .activeTime = {.activeTimeValues = {.value = 20, .unit = AdrasteaI_ATNetService_Power_Saving_Mode_Active_Time_Unit_1m}}, .periodicTAU = {.periodicTAUValues = {.value = 0, .unit = AdrasteaI_ATNetService_Power_Saving_Mode_Periodic_TAU_Deactivated}}};
+    ret = AdrasteaI_ATNetService_SetPowerSavingMode(psm);
+    AdrasteaI_ExamplesPrint("Set Power Saving Mode", ret);
+    psm.state = AdrasteaI_ATNetService_Power_Saving_Mode_State_Disable;
 
-	ret = AdrasteaI_ATNetService_SetPowerSavingMode(psm);
-	AdrasteaI_ExamplesPrint("Set Power Saving Mode", ret);
+    ret = AdrasteaI_ATNetService_SetPowerSavingMode(psm);
+    AdrasteaI_ExamplesPrint("Set Power Saving Mode", ret);
 }
 
-void AdrasteaI_ATNetService_EventCallback(char *eventText)
+void AdrasteaI_ATNetService_EventCallback(char* eventText)
 {
-	AdrasteaI_ATEvent_t event;
-	if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
-	{
-		return;
-	}
+    AdrasteaI_ATEvent_t event;
+    if (false == AdrasteaI_ATEvent_ParseEventType(&eventText, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
-	{
-		AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
-		break;
-	}
-	case AdrasteaI_ATEvent_NetService_Operator_Read:
-	{
-		AdrasteaI_ATNetService_Operator_t operator;
-		if (!AdrasteaI_ATNetService_ParseOperatorReadEvent(eventText, &operator))
-		{
-			return;
-		}
-		break;
-	}
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:
+        {
+            AdrasteaI_ATPacketDomain_ParseNetworkRegistrationStatusEvent(eventText, &status);
+            break;
+        }
+        case AdrasteaI_ATEvent_NetService_Operator_Read:
+        {
+            AdrasteaI_ATNetService_Operator_t operator;
+            if (!AdrasteaI_ATNetService_ParseOperatorReadEvent(eventText, &operator))
+            {
+                return;
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }

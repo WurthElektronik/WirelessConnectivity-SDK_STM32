@@ -29,43 +29,34 @@
  *
  * Comment/uncomment lines in CordeliaI_Examples() to start the desired example.
  */
+#include <CordeliaI/ATCommands/ATEvent.h>
+#include <CordeliaI/CordeliaI.h>
 #include <CordeliaI/CordeliaI_Examples.h>
 #include <CordeliaI/CordeliaI_Quarklink_Example.h>
+#include <global/global_types.h>
+#include <global_platform_types.h>
 #include <stdio.h>
 #include <string.h>
-#include <CordeliaI/CordeliaI.h>
-#include <CordeliaI/ATCommands/ATEvent.h>
-#include <global/global_types.h>
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
-
 
 /**
  * @brief Contains information on last startup event (if any)
  */
-CordeliaI_ATEvent_Startup_t CordeliaI_Examples_startupEvent = {
-		0 };
+CordeliaI_ATEvent_Startup_t CordeliaI_Examples_startupEvent = {0};
 
 /**
  * @brief Contains information on IoT event (if any)
  */
-CordeliaI_ATEvent_IoT_t CordeliaI_Examples_IoTEvent = {
-		0 };
+CordeliaI_ATEvent_IoT_t CordeliaI_Examples_IoTEvent = {0};
 
 /**
  * @brief Contains information on MQTT event (if any)
  */
-CordeliaI_ATEvent_MQTT_t CordeliaI_Examples_MQTTEvent = {
-		0 };
+CordeliaI_ATEvent_MQTT_t CordeliaI_Examples_MQTTEvent = {0};
 
 /**
  * @brief Contains information on MQTT recv event (if any)
  */
-CordeliaI_ATEvent_MQTTRecv_t CordeliaI_Examples_MQTTRecvEvent = {
-		0 };
+CordeliaI_ATEvent_MQTTRecv_t CordeliaI_Examples_MQTTRecvEvent = {0};
 
 /**
  * @brief Is set to true when a startup event is received
@@ -82,13 +73,21 @@ bool CordeliaI_Examples_IoTEventEnrolComplete = false;
  */
 bool CordeliaI_Examples_IoTConnect = false;
 
-
 /**
  * @brief Is set to true when an IPv4 acquired event is received
  */
 bool CordeliaI_Examples_ip4Acquired = false;
 
-CordeliaI_Pins_t CordeliaI_pins;
+CordeliaI_Pins_t CordeliaI_pins = {
+    .CordeliaI_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+    .CordeliaI_Pin_WakeUp = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_9)),
+    .CordeliaI_Pin_Boot = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_7)),
+    .CordeliaI_Pin_AppMode0 = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_0)),
+    .CordeliaI_Pin_AppMode1 = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_1)),
+    .CordeliaI_Pin_StatusInd0 = WE_PIN((void*)&WE_STM32_PIN(GPIOB, GPIO_PIN_8)),
+    .CordeliaI_Pin_StatusInd1 = WE_PIN((void*)&WE_STM32_PIN(GPIOB, GPIO_PIN_9)),
+};
+
 WE_UART_t CordeliaI_uart;
 
 /**
@@ -96,12 +95,12 @@ WE_UART_t CordeliaI_uart;
  */
 bool CordeliaI_Examples_WaitForStartup(uint32_t timeoutMs)
 {
-	uint32_t t0 = WE_GetTick();
-	CordeliaI_Examples_startupEventReceived = false;
-	while (false == CordeliaI_Examples_startupEventReceived && (WE_GetTick() - t0) < timeoutMs)
-	{
-	}
-	return CordeliaI_Examples_startupEventReceived;
+    uint32_t t0 = WE_GetTick();
+    CordeliaI_Examples_startupEventReceived = false;
+    while (false == CordeliaI_Examples_startupEventReceived && (WE_GetTick() - t0) < timeoutMs)
+    {
+    }
+    return CordeliaI_Examples_startupEventReceived;
 }
 
 /**
@@ -109,12 +108,12 @@ bool CordeliaI_Examples_WaitForStartup(uint32_t timeoutMs)
  */
 bool CordeliaI_Examples_WaitForIoTEnrolCompleteEvent(uint32_t timeoutMs)
 {
-	uint32_t t0 = WE_GetTick();
-	CordeliaI_Examples_IoTEventEnrolComplete = false;
-	while (false == CordeliaI_Examples_IoTEventEnrolComplete && (WE_GetTick() - t0) < timeoutMs)
-	{
-	}
-	return CordeliaI_Examples_IoTEventEnrolComplete;
+    uint32_t t0 = WE_GetTick();
+    CordeliaI_Examples_IoTEventEnrolComplete = false;
+    while (false == CordeliaI_Examples_IoTEventEnrolComplete && (WE_GetTick() - t0) < timeoutMs)
+    {
+    }
+    return CordeliaI_Examples_IoTEventEnrolComplete;
 }
 
 /**
@@ -135,12 +134,12 @@ bool CordeliaI_Examples_WaitForIoTConnectEvent(uint32_t timeoutMs)
  */
 bool CordeliaI_Examples_WaitForIPv4Acquired(uint32_t timeoutMs)
 {
-	uint32_t t0 = WE_GetTick();
-	CordeliaI_Examples_ip4Acquired = false;
-	while (false == CordeliaI_Examples_ip4Acquired && (WE_GetTick() - t0) < timeoutMs)
-	{
-	}
-	return CordeliaI_Examples_ip4Acquired;
+    uint32_t t0 = WE_GetTick();
+    CordeliaI_Examples_ip4Acquired = false;
+    while (false == CordeliaI_Examples_ip4Acquired && (WE_GetTick() - t0) < timeoutMs)
+    {
+    }
+    return CordeliaI_Examples_ip4Acquired;
 }
 
 /**
@@ -150,31 +149,17 @@ bool CordeliaI_Examples_WaitForIPv4Acquired(uint32_t timeoutMs)
  */
 void CordeliaI_Examples(void)
 {
-	CordeliaI_pins.CordeliaI_Pin_Reset.port = (void*) GPIOA;
-	CordeliaI_pins.CordeliaI_Pin_Reset.pin = GPIO_PIN_10;
-	CordeliaI_pins.CordeliaI_Pin_WakeUp.port = (void*) GPIOA;
-	CordeliaI_pins.CordeliaI_Pin_WakeUp.pin = GPIO_PIN_9;
-	CordeliaI_pins.CordeliaI_Pin_Boot.port = (void*) GPIOA;
-	CordeliaI_pins.CordeliaI_Pin_Boot.pin = GPIO_PIN_7;
-	CordeliaI_pins.CordeliaI_Pin_AppMode0.port = (void*) GPIOA;
-	CordeliaI_pins.CordeliaI_Pin_AppMode0.pin = GPIO_PIN_0;
-	CordeliaI_pins.CordeliaI_Pin_AppMode1.port = (void*) GPIOA;
-	CordeliaI_pins.CordeliaI_Pin_AppMode1.pin = GPIO_PIN_1;
-	CordeliaI_pins.CordeliaI_Pin_StatusInd0.port = (void*) GPIOB;
-	CordeliaI_pins.CordeliaI_Pin_StatusInd0.pin = GPIO_PIN_8;
-	CordeliaI_pins.CordeliaI_Pin_StatusInd1.port = (void*) GPIOB;
-	CordeliaI_pins.CordeliaI_Pin_StatusInd1.pin = GPIO_PIN_9;
 
-	CordeliaI_uart.baudrate = 115200;
-	CordeliaI_uart.flowControl = WE_FlowControl_NoFlowControl;
-	CordeliaI_uart.parity = WE_Parity_None;
-	CordeliaI_uart.uartInit = WE_UART1_Init;
-	CordeliaI_uart.uartDeinit = WE_UART1_DeInit;
-	CordeliaI_uart.uartTransmit = WE_UART1_Transmit;
+    CordeliaI_uart.baudrate = 115200;
+    CordeliaI_uart.flowControl = WE_FlowControl_NoFlowControl;
+    CordeliaI_uart.parity = WE_Parity_None;
+    CordeliaI_uart.uartInit = WE_UART1_Init;
+    CordeliaI_uart.uartDeinit = WE_UART1_DeInit;
+    CordeliaI_uart.uartTransmit = WE_UART1_Transmit;
 
-	CordeliaI_Quarklink_Example();
+    CordeliaI_Quarklink_Example();
 
-	return;
+    return;
 }
 
 /**
@@ -190,100 +175,102 @@ void CordeliaI_Examples(void)
  * events (i.e. events from CordeliaI_ATEvent_t). Some events might in fact be responses
  * to AT commands that are not included in CordeliaI_ATEvent_t.
  */
-void CordeliaI_Examples_EventCallback(char *eventText)
+void CordeliaI_Examples_EventCallback(char* eventText)
 {
-	CordeliaI_ATEvent_t event;
-	if (false == CordeliaI_ATEvent_ParseEventType(&eventText, &event))
-	{
-		return;
-	}
+    CordeliaI_ATEvent_t event;
+    if (false == CordeliaI_ATEvent_ParseEventType(&eventText, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	case CordeliaI_ATEvent_Startup:
-		if (CordeliaI_ATEvent_ParseStartUpEvent(&eventText, &CordeliaI_Examples_startupEvent))
-		{
-			printf("Startup event received. "
-					"Article nr: %s, "
-					"Chip ID: %s, "
-					"MAC address: %s, "
-					"Firmware version: %d.%d.%d\r\n", CordeliaI_Examples_startupEvent.articleNr, CordeliaI_Examples_startupEvent.chipID, CordeliaI_Examples_startupEvent.MACAddress, CordeliaI_Examples_startupEvent.firmwareVersion[0], CordeliaI_Examples_startupEvent.firmwareVersion[1], CordeliaI_Examples_startupEvent.firmwareVersion[2]);
-		}
-		CordeliaI_Examples_startupEventReceived = true;
-		break;
-	case CordeliaI_ATEvent_IoTInfo:
-		if (CordeliaI_ATEvent_ParseIoTEvent(&eventText, &CordeliaI_Examples_IoTEvent))
-		{
-		    printf("IoT Info event received. "
-		           "Status message: %s, "
-		           "Status code: %u\r\n",
-		          CordeliaI_Examples_IoTEvent.statusMessage,CordeliaI_Examples_IoTEvent.statusCode);
-		}
-		if (strncmp(CordeliaI_Examples_IoTEvent.statusMessage, "\"ENROLMENT_COMPLETE\"", strlen("\"ENROLMENT_COMPLETE\"")) == 0)
-		{
-			CordeliaI_Examples_IoTEventEnrolComplete = true;
-		}
-		break;
-	case CordeliaI_ATEvent_IoTError:
-		if (CordeliaI_ATEvent_ParseIoTEvent(&eventText, &CordeliaI_Examples_IoTEvent))
-		{
-		    printf("IoT Error event received. "
-		           "Status message: %s, "
-		           "Status code: %u\r\n",
-		           CordeliaI_Examples_IoTEvent.statusMessage,CordeliaI_Examples_IoTEvent.statusCode);
-		}
-		break;
-	case CordeliaI_ATEvent_NetappIP4Acquired:
-		 CordeliaI_Examples_ip4Acquired = true;
-		break;
-	case CordeliaI_ATEvent_MQTTInfo:
-		if (CordeliaI_ATEvent_ParseMQTTEvent(&eventText, &CordeliaI_Examples_MQTTEvent))
-		{
-		    printf("MQTT Info event received. "
-		           "Status message: %s, "
-		           "Status code: %u\r\n",
-		           CordeliaI_Examples_MQTTEvent.statusMessage,CordeliaI_Examples_MQTTEvent.statusCode);
-		}
-		if (strncmp(CordeliaI_Examples_MQTTEvent.statusMessage, "\"CONNACK\"", strlen("\"CONNACK\"")) == 0)
-		{
-			CordeliaI_Examples_IoTConnect = true;
-		}
-		break;
-	case CordeliaI_ATEvent_MQTTError:
-		if (CordeliaI_ATEvent_ParseMQTTEvent(&eventText, &CordeliaI_Examples_MQTTEvent))
-		{
-		    printf("MQTT Error event received. "
-		           "Status message: %s, "
-		           "Status code: %u\r\n",
-		           CordeliaI_Examples_MQTTEvent.statusMessage,CordeliaI_Examples_MQTTEvent.statusCode);
-		}
-		break;
-	case CordeliaI_ATEvent_MQTTRecv:
-		if (CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(&eventText, &CordeliaI_Examples_MQTTRecvEvent))
-		{
-		    printf("MQTT message received. "
-		           "Topic: %s, "
-		           "QoS: %s, "
-		           "Message: %s\r\n",CordeliaI_Examples_MQTTRecvEvent.topic,CordeliaI_Examples_MQTTRecvEvent.qos,CordeliaI_Examples_MQTTRecvEvent.message);
-		}
-        break;
-	case CordeliaI_ATEvent_SocketTxFailed:
-	case CordeliaI_ATEvent_SocketAsyncEvent:
-	case CordeliaI_ATEvent_GeneralResetRequest:
-	case CordeliaI_ATEvent_GeneralError:
-	case CordeliaI_ATEvent_WlanConnect:
-	case CordeliaI_ATEvent_WlanDisconnect:
-	case CordeliaI_ATEvent_WlanStaAdded:
-	case CordeliaI_ATEvent_WlanStaRemoved:
-	case CordeliaI_ATEvent_FatalErrorDeviceAbort:
-	case CordeliaI_ATEvent_FatalErrorDriverAbort:
-	case CordeliaI_ATEvent_FatalErrorSyncLost:
-	case CordeliaI_ATEvent_FatalErrorNoCmdAck:
-	case CordeliaI_ATEvent_FatalErrorCmdTimeout:
-		break;
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case CordeliaI_ATEvent_Startup:
+            if (CordeliaI_ATEvent_ParseStartUpEvent(&eventText, &CordeliaI_Examples_startupEvent))
+            {
+                printf("Startup event received. "
+                       "Article nr: %s, "
+                       "Chip ID: %s, "
+                       "MAC address: %s, "
+                       "Firmware version: %d.%d.%d\r\n",
+                       CordeliaI_Examples_startupEvent.articleNr, CordeliaI_Examples_startupEvent.chipID, CordeliaI_Examples_startupEvent.MACAddress, CordeliaI_Examples_startupEvent.firmwareVersion[0], CordeliaI_Examples_startupEvent.firmwareVersion[1], CordeliaI_Examples_startupEvent.firmwareVersion[2]);
+            }
+            CordeliaI_Examples_startupEventReceived = true;
+            break;
+        case CordeliaI_ATEvent_IoTInfo:
+            if (CordeliaI_ATEvent_ParseIoTEvent(&eventText, &CordeliaI_Examples_IoTEvent))
+            {
+                printf("IoT Info event received. "
+                       "Status message: %s, "
+                       "Status code: %u\r\n",
+                       CordeliaI_Examples_IoTEvent.statusMessage, CordeliaI_Examples_IoTEvent.statusCode);
+            }
+            if (strncmp(CordeliaI_Examples_IoTEvent.statusMessage, "\"ENROLMENT_COMPLETE\"", strlen("\"ENROLMENT_COMPLETE\"")) == 0)
+            {
+                CordeliaI_Examples_IoTEventEnrolComplete = true;
+            }
+            break;
+        case CordeliaI_ATEvent_IoTError:
+            if (CordeliaI_ATEvent_ParseIoTEvent(&eventText, &CordeliaI_Examples_IoTEvent))
+            {
+                printf("IoT Error event received. "
+                       "Status message: %s, "
+                       "Status code: %u\r\n",
+                       CordeliaI_Examples_IoTEvent.statusMessage, CordeliaI_Examples_IoTEvent.statusCode);
+            }
+            break;
+        case CordeliaI_ATEvent_NetappIP4Acquired:
+            CordeliaI_Examples_ip4Acquired = true;
+            break;
+        case CordeliaI_ATEvent_MQTTInfo:
+            if (CordeliaI_ATEvent_ParseMQTTEvent(&eventText, &CordeliaI_Examples_MQTTEvent))
+            {
+                printf("MQTT Info event received. "
+                       "Status message: %s, "
+                       "Status code: %u\r\n",
+                       CordeliaI_Examples_MQTTEvent.statusMessage, CordeliaI_Examples_MQTTEvent.statusCode);
+            }
+            if (strncmp(CordeliaI_Examples_MQTTEvent.statusMessage, "\"CONNACK\"", strlen("\"CONNACK\"")) == 0)
+            {
+                CordeliaI_Examples_IoTConnect = true;
+            }
+            break;
+        case CordeliaI_ATEvent_MQTTError:
+            if (CordeliaI_ATEvent_ParseMQTTEvent(&eventText, &CordeliaI_Examples_MQTTEvent))
+            {
+                printf("MQTT Error event received. "
+                       "Status message: %s, "
+                       "Status code: %u\r\n",
+                       CordeliaI_Examples_MQTTEvent.statusMessage, CordeliaI_Examples_MQTTEvent.statusCode);
+            }
+            break;
+        case CordeliaI_ATEvent_MQTTRecv:
+            if (CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(&eventText, &CordeliaI_Examples_MQTTRecvEvent))
+            {
+                printf("MQTT message received. "
+                       "Topic: %s, "
+                       "QoS: %s, "
+                       "Message: %s\r\n",
+                       CordeliaI_Examples_MQTTRecvEvent.topic, CordeliaI_Examples_MQTTRecvEvent.qos, CordeliaI_Examples_MQTTRecvEvent.message);
+            }
+            break;
+        case CordeliaI_ATEvent_SocketTxFailed:
+        case CordeliaI_ATEvent_SocketAsyncEvent:
+        case CordeliaI_ATEvent_GeneralResetRequest:
+        case CordeliaI_ATEvent_GeneralError:
+        case CordeliaI_ATEvent_WlanConnect:
+        case CordeliaI_ATEvent_WlanDisconnect:
+        case CordeliaI_ATEvent_WlanStaAdded:
+        case CordeliaI_ATEvent_WlanStaRemoved:
+        case CordeliaI_ATEvent_FatalErrorDeviceAbort:
+        case CordeliaI_ATEvent_FatalErrorDriverAbort:
+        case CordeliaI_ATEvent_FatalErrorSyncLost:
+        case CordeliaI_ATEvent_FatalErrorNoCmdAck:
+        case CordeliaI_ATEvent_FatalErrorCmdTimeout:
+            break;
+        default:
+            break;
+    }
 }
 
 /**
@@ -292,7 +279,4 @@ void CordeliaI_Examples_EventCallback(char *eventText)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void CordeliaI_Examples_Print(char *str, bool success)
-{
-	printf("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+void CordeliaI_Examples_Print(char* str, bool success) { printf("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

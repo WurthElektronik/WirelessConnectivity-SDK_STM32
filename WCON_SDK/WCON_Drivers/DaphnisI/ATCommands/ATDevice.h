@@ -31,57 +31,68 @@
 #ifndef DAPHNIS_COMMANDS_DEVICE_H_
 #define DAPHNIS_COMMANDS_DEVICE_H_
 
+#include <DaphnisI/DaphnisI.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <DaphnisI/DaphnisI.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
+    /**
+ * @brief Tests communication with the device (using the AT command).
+ *
+ * @return true if successful, false otherwise
+ */
+    extern bool DaphnisI_Test();
+
+    /**
  * @brief Reboots the device (using the ATZ command).
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_Reset();
+    extern bool DaphnisI_Reset();
 
-/**
+    /**
  * @brief Sleep device (using the AT+SLEEP command).
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_Sleep();
+    extern bool DaphnisI_Sleep();
 
-/**
+    /**
  * @brief Get the battery level (using the AT+BAT command)
  *
  * @param[out] batteryLevelP: Pointer to the battery level in mV.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_GetBatteryLevel(uint16_t *batteryLevelP);
+    extern bool DaphnisI_GetBatteryLevel(uint16_t* batteryLevelP);
 
-typedef struct DaphnisI_FW_Version_t {
-	uint8_t Major;
-	uint8_t Minor;
-	uint8_t Patch;
-} DaphnisI_FW_Version_t;
+    typedef struct DaphnisI_FW_Version_t
+    {
+        uint8_t Major;
+        uint8_t Minor;
+        uint8_t Patch;
+    } DaphnisI_FW_Version_t;
 
-typedef struct DaphnisI_LoRaWAN_LL_Version_t {
-	uint8_t Major;
-	uint8_t Minor;
-	uint8_t Patch;
-} DaphnisI_LoRaWAN_LL_Version_t;
+    typedef struct DaphnisI_LoRaWAN_LL_Version_t
+    {
+        uint8_t Major;
+        uint8_t Minor;
+        uint8_t Patch;
+    } DaphnisI_LoRaWAN_LL_Version_t;
 
-typedef struct DaphnisI_LoRaWAN_RP_Version_t {
-	uint8_t Label;
-	uint8_t Major;
-	uint8_t Minor;
-	uint8_t Patch;
-} DaphnisI_LoRaWAN_RP_Version_t;
+    typedef struct DaphnisI_LoRaWAN_RP_Version_t
+    {
+        uint8_t Label;
+        uint8_t Major;
+        uint8_t Minor;
+        uint8_t Patch;
+    } DaphnisI_LoRaWAN_RP_Version_t;
 
-/**
+    /**
  * @brief Get the generic version (using the AT+VER command)
  *
  * @param[out] firmware_VersionP: Pointer to the firmware version. See DaphnisI_FW_Version_t.
@@ -92,29 +103,29 @@ typedef struct DaphnisI_LoRaWAN_RP_Version_t {
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_GetGenericVersion(DaphnisI_FW_Version_t *firmware_VersionP, DaphnisI_LoRaWAN_LL_Version_t *ll_VersionP, DaphnisI_LoRaWAN_RP_Version_t *rp_VersionP);
+    extern bool DaphnisI_GetGenericVersion(DaphnisI_FW_Version_t* firmware_VersionP, DaphnisI_LoRaWAN_LL_Version_t* ll_VersionP, DaphnisI_LoRaWAN_RP_Version_t* rp_VersionP);
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
-typedef DaphnisI_Device_Address_t DaphnisI_SerialNumber_t;
+    typedef DaphnisI_Device_Address_t DaphnisI_SerialNumber_t;
 
-/**
+    /**
  * @brief Get the serial number (using the AT+SN command)
  *
  * @param[out] serialNumberP: Pointer to the serial number (LSB First). See DaphnisI_SerialNumber_t.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_GetSerialNumber(DaphnisI_SerialNumber_t *serialNumberP);
+    extern bool DaphnisI_GetSerialNumber(DaphnisI_SerialNumber_t* serialNumberP);
 
-/**
+    /**
  * @brief Get the firmware version (using the AT+FWVER command)
  *
  * @param[out] firmware_VersionP: Pointer to the firmware version. See DaphnisI_FW_Version_t.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_GetFirmwareVersion(DaphnisI_FW_Version_t *firmware_VersionP);
+    extern bool DaphnisI_GetFirmwareVersion(DaphnisI_FW_Version_t* firmware_VersionP);
 
 #endif /* DAPHNISI_MIN_FW_VER */
 

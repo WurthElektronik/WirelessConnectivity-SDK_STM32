@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATPOWEREXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATPowerExample();
+    extern void ATPowerExample();
 
 #ifdef __cplusplus
 }

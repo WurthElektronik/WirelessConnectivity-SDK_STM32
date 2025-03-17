@@ -27,35 +27,18 @@
  * @file
  * @brief AT commands for SIM functionality.
  */
-#include <stdio.h>
-#include <global/ATCommands.h>
 #include <AdrasteaI/ATCommands/ATSIM.h>
 #include <AdrasteaI/AdrasteaI.h>
+#include <global/ATCommands.h>
+#include <stdio.h>
 
-static const char *AdrasteaI_ATSIM_Facility_Strings[AdrasteaI_ATSIM_Facility_NumberOfValues] = {
-		"SC",
-		"P2",
-		"PN",
-		"PU",
-		"PS", };
+static const char* AdrasteaI_ATSIM_Facility_Strings[AdrasteaI_ATSIM_Facility_NumberOfValues] = {
+    "SC", "P2", "PN", "PU", "PS",
+};
 
-static const char *AdrasteaI_ATSIM_PIN_Status_Strings[AdrasteaI_ATSIM_PIN_Status_NumberOfValues] = {
-		"READY",
-		"SIM PIN",
-		"SIM PUK",
-		"PH-SIM PIN",
-		"PH-FSIM PIN",
-		"PH-FSIM PUK",
-		"SIM PIN2",
-		"SIM PUK2",
-		"PH-NET PIN",
-		"PH-NET PUK",
-		"PH-NETSUB PIN",
-		"PH-NETSUB PUK",
-		"PH-SP PIN",
-		"PH-SP PUK",
-		"PH-CORP PIN",
-		"PH-CORP PUK", };
+static const char* AdrasteaI_ATSIM_PIN_Status_Strings[AdrasteaI_ATSIM_PIN_Status_NumberOfValues] = {
+    "READY", "SIM PIN", "SIM PUK", "PH-SIM PIN", "PH-FSIM PIN", "PH-FSIM PUK", "SIM PIN2", "SIM PUK2", "PH-NET PIN", "PH-NET PUK", "PH-NETSUB PIN", "PH-NETSUB PUK", "PH-SP PIN", "PH-SP PUK", "PH-CORP PIN", "PH-CORP PUK",
+};
 
 /**
  * @brief Read International Mobile Subscriber Identity (using the AT+CIMI command).
@@ -64,31 +47,31 @@ static const char *AdrasteaI_ATSIM_PIN_Status_Strings[AdrasteaI_ATSIM_PIN_Status
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSIM_IMSI_t *imsiP)
+bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSIM_IMSI_t* imsiP)
 {
-	if (imsiP == NULL)
-	{
-		return false;
-	}
+    if (imsiP == NULL)
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("AT+CIMI\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CIMI\r\n"))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(&pResponseCommand, (char*) *imsiP, ATCOMMAND_STRING_TERMINATE, sizeof(*imsiP)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&pResponseCommand, (char*)*imsiP, ATCOMMAND_STRING_TERMINATE, sizeof(*imsiP)))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -104,54 +87,54 @@ bool AdrasteaI_ATSIM_RequestInternationalMobileSubscriberIdentity(AdrasteaI_ATSI
  */
 bool AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Mode_t mode, AdrasteaI_ATSIM_PIN_t pin)
 {
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CLCK=");
+    strcpy(pRequestCommand, "AT+CLCK=");
 
-	if (facility == AdrasteaI_ATSIM_Facility_P2)
-	{
-		return false;
-	}
+    if (facility == AdrasteaI_ATSIM_Facility_P2)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, mode, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, mode, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (strlen(pin) != 0)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin, ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (strlen(pin) != 0)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin, ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -163,57 +146,57 @@ bool AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_t facility, Adrast
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Status_t *statusP)
+bool AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_Lock_Status_t* statusP)
 {
-	if (statusP == NULL)
-	{
-		return false;
-	}
+    if (statusP == NULL)
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CLCK=");
+    strcpy(pRequestCommand, "AT+CLCK=");
 
-	if (facility == AdrasteaI_ATSIM_Facility_P2)
-	{
-		return false;
-	}
+    if (facility == AdrasteaI_ATSIM_Facility_P2)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, 2, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, 2, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, statusP, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, statusP, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 //TODO check this command
@@ -224,17 +207,17 @@ bool AdrasteaI_ATSIM_ReadFacilityLock(AdrasteaI_ATSIM_Facility_t facility, Adras
  */
 bool AdrasteaI_ATSIM_ReadSubscriberNumber()
 {
-	if (!AdrasteaI_SendRequest("AT+CNUM\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CNUM\r\n"))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -244,34 +227,33 @@ bool AdrasteaI_ATSIM_ReadSubscriberNumber()
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t *statusP)
+bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t* statusP)
 {
-	if (statusP == NULL)
-	{
-		return false;
-	}
+    if (statusP == NULL)
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("AT+CPIN?\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CPIN?\r\n"))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*) statusP, AdrasteaI_ATSIM_PIN_Status_Strings, AdrasteaI_ATSIM_PIN_Status_NumberOfValues, 30,
-	ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*)statusP, AdrasteaI_ATSIM_PIN_Status_Strings, AdrasteaI_ATSIM_PIN_Status_NumberOfValues, 30, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -285,44 +267,44 @@ bool AdrasteaI_ATSIM_ReadPinStatus(AdrasteaI_ATSIM_PIN_Status_t *statusP)
  */
 bool AdrasteaI_ATSIM_EnterPin(AdrasteaI_ATSIM_PIN_t pin1, AdrasteaI_ATSIM_PIN_t pin2)
 {
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CPIN=");
+    strcpy(pRequestCommand, "AT+CPIN=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin1, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin1, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (strlen(pin2) != 0)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin2, ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (strlen(pin2) != 0)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, pin2, ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -338,41 +320,41 @@ bool AdrasteaI_ATSIM_EnterPin(AdrasteaI_ATSIM_PIN_t pin1, AdrasteaI_ATSIM_PIN_t 
  */
 bool AdrasteaI_ATSIM_ChangePassword(AdrasteaI_ATSIM_Facility_t facility, AdrasteaI_ATSIM_PIN_t oldpassword, AdrasteaI_ATSIM_PIN_t newpassword)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CPWD=");
+    strcpy(pRequestCommand, "AT+CPWD=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSIM_Facility_Strings[facility], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, oldpassword, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, oldpassword, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, newpassword, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, newpassword, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -394,101 +376,101 @@ bool AdrasteaI_ATSIM_ChangePassword(AdrasteaI_ATSIM_Facility_t facility, Adraste
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Command_t cmd, AdrasteaI_ATSIM_Restricted_Access_File_ID fileID, AdrasteaI_ATSIM_Restricted_Access_P1 p1, AdrasteaI_ATSIM_Restricted_Access_P2 p2, AdrasteaI_ATSIM_Restricted_Access_P3 p3, char *dataWritten, AdrasteaI_ATSIM_Restricted_Access_Response_t *cmdResponse)
+bool AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Command_t cmd, AdrasteaI_ATSIM_Restricted_Access_File_ID fileID, AdrasteaI_ATSIM_Restricted_Access_P1 p1, AdrasteaI_ATSIM_Restricted_Access_P2 p2, AdrasteaI_ATSIM_Restricted_Access_P3 p3, char* dataWritten, AdrasteaI_ATSIM_Restricted_Access_Response_t* cmdResponse)
 {
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CRSM=");
+    strcpy(pRequestCommand, "AT+CRSM=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, cmd, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, cmd, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, fileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, fileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, p1, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, p1, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, p2, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, p2, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, p3, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, p3, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (dataWritten != NULL)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, dataWritten, ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (dataWritten != NULL)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, dataWritten, ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw1, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw1, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	switch (ATCommand_CountArgs(pResponseCommand))
-	{
-	case 1:
-	{
-		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw2, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		break;
-	}
-	case 2:
-	{
-		if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw2, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, cmdResponse->responseRead, ATCOMMAND_STRING_TERMINATE, cmdResponse->responseReadMaxBufferSize))
-		{
-			return false;
-		}
-		break;
-	}
-	default:
-		return false;
-	}
+    switch (ATCommand_CountArgs(pResponseCommand))
+    {
+        case 1:
+        {
+            if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw2, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+            {
+                return false;
+            }
+            break;
+        }
+        case 2:
+        {
+            if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &cmdResponse->sw2, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+            {
+                return false;
+            }
+            if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, cmdResponse->responseRead, ATCOMMAND_STRING_TERMINATE, cmdResponse->responseReadMaxBufferSize))
+            {
+                return false;
+            }
+            break;
+        }
+        default:
+            return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -498,33 +480,33 @@ bool AdrasteaI_ATSIM_RestrictedSIMAccess(AdrasteaI_ATSIM_Restricted_Access_Comma
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(AdrasteaI_ATSIM_ICCID_t *iccidP)
+bool AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(AdrasteaI_ATSIM_ICCID_t* iccidP)
 {
-	if (iccidP == NULL)
-	{
-		return false;
-	}
+    if (iccidP == NULL)
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("AT%CCID\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT%CCID\r\n"))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SIM), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentString(&pResponseCommand, (char*) *iccidP, ATCOMMAND_STRING_TERMINATE, sizeof(*iccidP)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&pResponseCommand, (char*)*iccidP, ATCOMMAND_STRING_TERMINATE, sizeof(*iccidP)))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -535,48 +517,48 @@ bool AdrasteaI_ATSIM_RequestIntegratedCircuitCardIdentifier(AdrasteaI_ATSIM_ICCI
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ParseSubscriberNumberEvent(char *pEventArguments, AdrasteaI_ATSIM_Subscriber_Number_t *dataP)
+bool AdrasteaI_ATSMS_ParseSubscriberNumberEvent(char* pEventArguments, AdrasteaI_ATSIM_Subscriber_Number_t* dataP)
 {
-	if (dataP == NULL || pEventArguments == NULL)
-	{
-		return false;
-	}
+    if (dataP == NULL || pEventArguments == NULL)
+    {
+        return false;
+    }
 
-	char *argumentsP = pEventArguments;
+    char* argumentsP = pEventArguments;
 
-	argumentsP += 1;
+    argumentsP += 1;
 
-	char alphaN[30];
+    char alphaN[30];
 
-	if (!ATCommand_GetNextArgumentString(&argumentsP, alphaN, ATCOMMAND_ARGUMENT_DELIM, sizeof(alphaN)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&argumentsP, alphaN, ATCOMMAND_ARGUMENT_DELIM, sizeof(alphaN)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->number, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->number)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->number, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->number)))
+    {
+        return false;
+    }
 
-	switch (ATCommand_CountArgs(argumentsP))
-	{
-	case 1:
-	{
-		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->numberType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		break;
-	}
-	default:
-	{
-		if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->numberType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		break;
-	}
-	}
+    switch (ATCommand_CountArgs(argumentsP))
+    {
+        case 1:
+        {
+            if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->numberType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+            {
+                return false;
+            }
+            break;
+        }
+        default:
+        {
+            if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->numberType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_ARGUMENT_DELIM))
+            {
+                return false;
+            }
+            break;
+        }
+    }
 
-	return true;
+    return true;
 }

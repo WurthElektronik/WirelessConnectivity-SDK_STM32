@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATPACKETDOMAINEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATPacketDomainExample();
+    extern void ATPacketDomainExample();
 
 #ifdef __cplusplus
 }

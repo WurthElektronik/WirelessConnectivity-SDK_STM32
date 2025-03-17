@@ -27,24 +27,23 @@
  * @file
  * @brief Adrastea driver source file.
  */
-#include <AdrasteaI/AdrasteaI.h>
 #include <AdrasteaI/ATCommands/ATDevice.h>
 #include <AdrasteaI/ATCommands/ATEvent.h>
+#include <AdrasteaI/AdrasteaI.h>
 #include <global/ATCommands.h>
 #include <global/global.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static void AdrasteaI_HandleRxByte(uint8_t *dataP, size_t size);
-static void AdrasteaI_HandleRxLine(char *rxPacket, uint16_t rxLength);
+static void AdrasteaI_HandleRxByte(uint8_t* dataP, size_t size);
+static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength);
 static WE_UART_HandleRxByte_t byteRxCallback = AdrasteaI_HandleRxByte;
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
  * Initialization is done in AdrasteaI_Init().
  */
-static uint32_t AdrasteaI_timeouts[AdrasteaI_Timeout_NumberOfValues] = {
-		0 };
+static uint32_t AdrasteaI_timeouts[AdrasteaI_Timeout_NumberOfValues] = {0};
 
 /**
  * @brief Is set to true when sending an AT command and is reset to false when the response has been received.
@@ -54,9 +53,7 @@ static bool AdrasteaI_requestPending = false;
 /**
  * @brief Struct to hold current command response expected lines to skip
  */
-static AdrasteaI_Response_Complete_t AdrasteaI_responseSkip = {
-		.delim = '\0',
-		.lineskip = 0 };
+static AdrasteaI_Response_Complete_t AdrasteaI_responseSkip = {.delim = '\0', .lineskip = 0};
 
 /**
  * @brief Is set to false when a command is received and response lines checked.
@@ -66,8 +63,7 @@ static bool AdrasteaI_shouldCheckResponseSkip = true;
 /**
  * @brief Name of the command last sent using AdrasteaI_SendRequest() (without prefix "AT+").
  */
-static char AdrasteaI_pendingCommandName[64] = {
-		0 };
+static char AdrasteaI_pendingCommandName[64] = {0};
 
 /**
  * @brief Length of AdrasteaI_pendingCommandName.
@@ -198,12 +194,12 @@ uint16_t AdrasteaI_firmwareVersionMinor = 6;
 /**
  * @brief Pin configuration struct pointer.
  */
-static AdrasteaI_Pins_t *AdrasteaI_pinsP = NULL;
+static AdrasteaI_Pins_t* AdrasteaI_pinsP = NULL;
 
 /**
  * @brief Uart configuration struct pointer.
  */
-static WE_UART_t *AdrasteaI_uartP = NULL;
+static WE_UART_t* AdrasteaI_uartP = NULL;
 
 /**
  * @brief Initializes the serial communication with the module
@@ -214,89 +210,89 @@ static WE_UART_t *AdrasteaI_uartP = NULL;
 
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_Init(WE_UART_t *uartP, AdrasteaI_Pins_t *pinoutP, AdrasteaI_EventCallback_t eventCallback)
+bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_EventCallback_t eventCallback)
 {
-	AdrasteaI_requestPending = false;
+    AdrasteaI_requestPending = false;
 
-	/* Callbacks */
-	AdrasteaI_eventCallback = eventCallback;
+    /* Callbacks */
+    AdrasteaI_eventCallback = eventCallback;
 
-	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
-	{
-		return false;
-	}
+    if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+    {
+        return false;
+    }
 
-	AdrasteaI_pinsP = pinoutP;
-	AdrasteaI_pinsP->AdrasteaI_Pin_Reset.type = WE_Pin_Type_Output;
-	AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp.type = WE_Pin_Type_Output;
+    AdrasteaI_pinsP = pinoutP;
+    AdrasteaI_pinsP->AdrasteaI_Pin_Reset.type = WE_Pin_Type_Output;
+    AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp.type = WE_Pin_Type_Output;
 
-	WE_Pin_t pins[sizeof(AdrasteaI_Pins_t) / sizeof(WE_Pin_t)];
-	uint8_t pin_count = 0;
-	memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_Reset, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, sizeof(WE_Pin_t));
+    WE_Pin_t pins[sizeof(AdrasteaI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, sizeof(WE_Pin_t));
 
-	if (!WE_InitPins(pins, pin_count))
-	{
-		/* error */
-		return false;
-	}
+    if (!WE_InitPins(pins, pin_count))
+    {
+        /* error */
+        return false;
+    }
 
-	/* Set initial pin levels */
-	if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High))
-	{
-		return false;
-	}
+    /* Set initial pin levels */
+    if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High))
+    {
+        return false;
+    }
 
-	AdrasteaI_uartP = uartP;
-	if (false == AdrasteaI_uartP->uartInit(AdrasteaI_uartP->baudrate, AdrasteaI_uartP->flowControl, AdrasteaI_uartP->parity, &byteRxCallback))
-	{
-		return false;
-	}
-	WE_Delay(10);
+    AdrasteaI_uartP = uartP;
+    if (false == AdrasteaI_uartP->uartInit(AdrasteaI_uartP->baudrate, AdrasteaI_uartP->flowControl, AdrasteaI_uartP->parity, &byteRxCallback))
+    {
+        return false;
+    }
+    WE_Delay(10);
 
-	/* Set response timeouts */
-	AdrasteaI_timeouts[AdrasteaI_Timeout_General] = 1000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_Device] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_GNSS] = 10000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_HTTP] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_MQTT] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_NetService] = 10000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_PacketDomain] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_Proprietary] = 10000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_SIM] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_SMS] = 20000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_Socket] = 3000;
-	AdrasteaI_timeouts[AdrasteaI_Timeout_Power] = 3000;
+    /* Set response timeouts */
+    AdrasteaI_timeouts[AdrasteaI_Timeout_General] = 1000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_Device] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_GNSS] = 10000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_HTTP] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_MQTT] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_NetService] = 10000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_PacketDomain] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_Proprietary] = 10000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_SIM] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_SMS] = 20000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_Socket] = 3000;
+    AdrasteaI_timeouts[AdrasteaI_Timeout_Power] = 3000;
 
-	/* reset module */
-	if (AdrasteaI_PinReset())
-	{
-		WE_Delay(10);
-		while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
-		{
-			WE_Delay(10);
-		}
-	}
-	else
-	{
-		WE_DEBUG_PRINT("Pin reset failed\n");
-		AdrasteaI_Deinit();
-		return false;
-	}
+    /* reset module */
+    if (AdrasteaI_PinReset())
+    {
+        WE_Delay(10);
+        while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
+        {
+            WE_Delay(10);
+        }
+    }
+    else
+    {
+        WE_DEBUG_PRINT("Pin reset failed\n");
+        AdrasteaI_Deinit();
+        return false;
+    }
 
-	AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
-	if (!AdrasteaI_ATDevice_RequestRevisionIdentity(&revisionIdentity))
-	{
-		return false;
-	}
+    AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
+    if (!AdrasteaI_ATDevice_RequestRevisionIdentity(&revisionIdentity))
+    {
+        return false;
+    }
 
-	//check if firmware of connected module matches version of the driver.
-	if (revisionIdentity.major != AdrasteaI_firmwareVersionMajor || revisionIdentity.minor != AdrasteaI_firmwareVersionMinor)
-	{
-		WE_DEBUG_PRINT("Driver version and module firmware version mismatch, driver might not behave as expected\r\n");
-	}
+    //check if firmware of connected module matches version of the driver.
+    if (revisionIdentity.major != AdrasteaI_firmwareVersionMajor || revisionIdentity.minor != AdrasteaI_firmwareVersionMinor)
+    {
+        WE_DEBUG_PRINT("Driver version and module firmware version mismatch, driver might not behave as expected\r\n");
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -306,19 +302,19 @@ bool AdrasteaI_Init(WE_UART_t *uartP, AdrasteaI_Pins_t *pinoutP, AdrasteaI_Event
  */
 bool AdrasteaI_Deinit(void)
 {
-	AdrasteaI_eventCallback = NULL;
+    AdrasteaI_eventCallback = NULL;
 
-	AdrasteaI_rxByteCounter = 0;
-	AdrasteaI_eolChar1Found = 0;
-	AdrasteaI_requestPending = false;
-	AdrasteaI_currentResponseLength = 0;
+    AdrasteaI_rxByteCounter = 0;
+    AdrasteaI_eolChar1Found = 0;
+    AdrasteaI_requestPending = false;
+    AdrasteaI_currentResponseLength = 0;
 
-	if (!WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp) || !WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset))
-	{
-		return false;
-	}
+    if (!WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp) || !WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset))
+    {
+        return false;
+    }
 
-	return AdrasteaI_uartP->uartDeinit();
+    return AdrasteaI_uartP->uartDeinit();
 }
 
 /**
@@ -328,12 +324,12 @@ bool AdrasteaI_Deinit(void)
  */
 bool AdrasteaI_PinReset(void)
 {
-	if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_Low))
-	{
-		return false;
-	}
-	WE_Delay(100);
-	return WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High);
+    if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_Low))
+    {
+        return false;
+    }
+    WE_Delay(100);
+    return WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High);
 }
 
 /**
@@ -343,32 +339,32 @@ bool AdrasteaI_PinReset(void)
  */
 bool AdrasteaI_PinWakeUp(void)
 {
-	AdrasteaI_wakingUp = true;
-	if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_High))
-	{
-		return false;
-	}
+    AdrasteaI_wakingUp = true;
+    if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_High))
+    {
+        return false;
+    }
 
-	WE_Delay(100);
+    WE_Delay(100);
 
-	if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("sleepSet disable\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("sleepSet disable\r\n"))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	AdrasteaI_Transparent_Transmit("map\r\n", 5);
-	AdrasteaI_wakingUp = false;
-	return true;
+    AdrasteaI_Transparent_Transmit("map\r\n", 5);
+    AdrasteaI_wakingUp = false;
+    return true;
 }
 
 /**
@@ -378,60 +374,57 @@ bool AdrasteaI_PinWakeUp(void)
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_SendRequest(char *data)
+bool AdrasteaI_SendRequest(char* data)
 {
-	if (AdrasteaI_executingEventCallback)
-	{
-		/* Don't allow sending AT commands from event handlers, as this will
+    if (AdrasteaI_executingEventCallback)
+    {
+        /* Don't allow sending AT commands from event handlers, as this will
 		 * mess up send/receive states and buffers. */
-		return false;
-	}
+        return false;
+    }
 
-	AdrasteaI_requestPending = true;
-	AdrasteaI_currentResponseLength = 0;
+    AdrasteaI_requestPending = true;
+    AdrasteaI_currentResponseLength = 0;
 
-	/* Make sure that the time between the last confirmation received from the module
+    /* Make sure that the time between the last confirmation received from the module
 	 * and the next command sent to the module is not shorter than AdrasteaI_minCommandIntervalUsec */
-	uint32_t t = WE_GetTickMicroseconds() - AdrasteaI_lastConfirmTimeUsec;
-	if (t < AdrasteaI_minCommandIntervalUsec)
-	{
-		WE_DelayMicroseconds(AdrasteaI_minCommandIntervalUsec - t);
-	}
+    uint32_t t = WE_GetTickMicroseconds() - AdrasteaI_lastConfirmTimeUsec;
+    if (t < AdrasteaI_minCommandIntervalUsec)
+    {
+        WE_DelayMicroseconds(AdrasteaI_minCommandIntervalUsec - t);
+    }
 
-	size_t dataLength = strlen(data);
+    size_t dataLength = strlen(data);
 
-	char delimiters[] = {
-			ATCOMMAND_COMMAND_DELIM,
-			'?',
-			'\r' };
+    char delimiters[] = {ATCOMMAND_COMMAND_DELIM, '?', '\r'};
 
-	/* Get command name from request string (remove prefix "AT+" and parameters) */
-	AdrasteaI_pendingCommandName[0] = '\0';
-	AdrasteaI_pendingCommandNameLength = 0;
-	if (dataLength > 2 && data[0] == 'A' && data[1] == 'T')
-	{
-		char *pData;
-		if (dataLength > 3 && (data[2] == '+' || data[2] == '%'))
-		{
-			pData = data + 3;
-		}
-		else
-		{
-			pData = data + 2;
-		}
-		if (ATCommand_GetCmdName(&pData, AdrasteaI_pendingCommandName, sizeof(AdrasteaI_pendingCommandName), delimiters, sizeof(delimiters)))
-		{
-			AdrasteaI_pendingCommandNameLength = strlen(AdrasteaI_pendingCommandName);
-		}
-	}
+    /* Get command name from request string (remove prefix "AT+" and parameters) */
+    AdrasteaI_pendingCommandName[0] = '\0';
+    AdrasteaI_pendingCommandNameLength = 0;
+    if (dataLength > 2 && data[0] == 'A' && data[1] == 'T')
+    {
+        char* pData;
+        if (dataLength > 3 && (data[2] == '+' || data[2] == '%'))
+        {
+            pData = data + 3;
+        }
+        else
+        {
+            pData = data + 2;
+        }
+        if (ATCommand_GetCmdName(&pData, AdrasteaI_pendingCommandName, sizeof(AdrasteaI_pendingCommandName), delimiters, sizeof(delimiters)))
+        {
+            AdrasteaI_pendingCommandNameLength = strlen(AdrasteaI_pendingCommandName);
+        }
+    }
 
 #ifdef WE_DEBUG
-	WE_DEBUG_PRINT("> %s", data);
+    WE_DEBUG_PRINT("> %s", data);
 #endif
 
-	AdrasteaI_Transparent_Transmit(data, dataLength);
+    AdrasteaI_Transparent_Transmit(data, dataLength);
 
-	return true;
+    return true;
 }
 
 /**
@@ -443,13 +436,13 @@ bool AdrasteaI_SendRequest(char *data)
  * @param[in] data Pointer to data buffer (data to be sent)
  * @param[in] dataLength Number of bytes to be sent
  */
-bool AdrasteaI_Transparent_Transmit(const char *data, uint16_t dataLength)
+bool AdrasteaI_Transparent_Transmit(const char* data, uint16_t dataLength)
 {
-	if ((data == NULL) || (dataLength == 0))
-	{
-		return false;
-	}
-	return AdrasteaI_uartP->uartTransmit((uint8_t*) data, dataLength);
+    if ((data == NULL) || (dataLength == 0))
+    {
+        return false;
+    }
+    return AdrasteaI_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
 /**
@@ -461,51 +454,51 @@ bool AdrasteaI_Transparent_Transmit(const char *data, uint16_t dataLength)
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_WaitForConfirm(uint32_t maxTimeMs, AdrasteaI_CNFStatus_t expectedStatus, char *pOutResponse)
+bool AdrasteaI_WaitForConfirm(uint32_t maxTimeMs, AdrasteaI_CNFStatus_t expectedStatus, char* pOutResponse)
 {
-	AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Invalid;
+    AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Invalid;
 
-	uint32_t t0 = WE_GetTick();
+    uint32_t t0 = WE_GetTick();
 
-	while (1)
-	{
-		if (AdrasteaI_CNFStatus_Invalid != AdrasteaI_cmdConfirmStatus)
-		{
-			/* Store current time to enable check for min. time between received confirm and next command. */
-			AdrasteaI_lastConfirmTimeUsec = WE_GetTickMicroseconds();
-			AdrasteaI_requestPending = false;
-			AdrasteaI_responseincoming = false;
-			if (AdrasteaI_cmdConfirmStatus == expectedStatus)
-			{
-				if (NULL != pOutResponse)
-				{
-					/* Copy response for further processing */
-					memcpy(pOutResponse, AdrasteaI_currentResponseText, AdrasteaI_currentResponseLength);
-				}
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
+    while (1)
+    {
+        if (AdrasteaI_CNFStatus_Invalid != AdrasteaI_cmdConfirmStatus)
+        {
+            /* Store current time to enable check for min. time between received confirm and next command. */
+            AdrasteaI_lastConfirmTimeUsec = WE_GetTickMicroseconds();
+            AdrasteaI_requestPending = false;
+            AdrasteaI_responseincoming = false;
+            if (AdrasteaI_cmdConfirmStatus == expectedStatus)
+            {
+                if (NULL != pOutResponse)
+                {
+                    /* Copy response for further processing */
+                    memcpy(pOutResponse, AdrasteaI_currentResponseText, AdrasteaI_currentResponseLength);
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		uint32_t now = WE_GetTick();
-		if (now - t0 > maxTimeMs)
-		{
-			/* Timeout */
-			break;
-		}
+        uint32_t now = WE_GetTick();
+        if (now - t0 > maxTimeMs)
+        {
+            /* Timeout */
+            break;
+        }
 
-		if (AdrasteaI_waitTimeStepUsec > 0)
-		{
-			WE_DelayMicroseconds(AdrasteaI_waitTimeStepUsec);
-		}
-	}
+        if (AdrasteaI_waitTimeStepUsec > 0)
+        {
+            WE_DelayMicroseconds(AdrasteaI_waitTimeStepUsec);
+        }
+    }
 
-	AdrasteaI_responseincoming = false;
-	AdrasteaI_requestPending = false;
-	return false;
+    AdrasteaI_responseincoming = false;
+    AdrasteaI_requestPending = false;
+    return false;
 }
 
 /**
@@ -513,49 +506,49 @@ bool AdrasteaI_WaitForConfirm(uint32_t maxTimeMs, AdrasteaI_CNFStatus_t expected
  */
 void AdrasteaI_CheckResponseComplete()
 {
-	AdrasteaI_responseSkip.lineskip = 0;
-	AdrasteaI_responseSkip.delim = '\0';
+    AdrasteaI_responseSkip.lineskip = 0;
+    AdrasteaI_responseSkip.delim = '\0';
 
-	if (('+' != AdrasteaI_rxBuffer[0]) && ('%' != AdrasteaI_rxBuffer[0]))
-	{
-		return;
-	}
+    if (('+' != AdrasteaI_rxBuffer[0]) && ('%' != AdrasteaI_rxBuffer[0]))
+    {
+        return;
+    }
 
-	AdrasteaI_ATEvent_t event;
-	char *tmp = AdrasteaI_rxBuffer;
-	if (!AdrasteaI_ATEvent_ParseEventType(&tmp, &event))
-	{
-		return;
-	}
+    AdrasteaI_ATEvent_t event;
+    char* tmp = AdrasteaI_rxBuffer;
+    if (!AdrasteaI_ATEvent_ParseEventType(&tmp, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	case AdrasteaI_ATEvent_Ready:
-	{
-		AdrasteaI_ATMode = AdrasteaI_ATMode_Ready;
-	}
-		break;
-	case AdrasteaI_ATEvent_MQTT_Publication_Received:
-	{
-		AdrasteaI_responseSkip.lineskip = 1;
-		AdrasteaI_responseSkip.delim = ',';
-	}
-		break;
-	case AdrasteaI_ATEvent_SMS_Read_Message:
-	{
-		AdrasteaI_responseSkip.lineskip = 1;
-		AdrasteaI_responseSkip.delim = ',';
-	}
-		break;
-	case AdrasteaI_ATEvent_SMS_List_Messages:
-	{
-		AdrasteaI_responseSkip.lineskip = 1;
-		AdrasteaI_responseSkip.delim = ',';
-	}
-		break;
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case AdrasteaI_ATEvent_Ready:
+        {
+            AdrasteaI_ATMode = AdrasteaI_ATMode_Ready;
+        }
+        break;
+        case AdrasteaI_ATEvent_MQTT_Publication_Received:
+        {
+            AdrasteaI_responseSkip.lineskip = 1;
+            AdrasteaI_responseSkip.delim = ',';
+        }
+        break;
+        case AdrasteaI_ATEvent_SMS_Read_Message:
+        {
+            AdrasteaI_responseSkip.lineskip = 1;
+            AdrasteaI_responseSkip.delim = ',';
+        }
+        break;
+        case AdrasteaI_ATEvent_SMS_List_Messages:
+        {
+            AdrasteaI_responseSkip.lineskip = 1;
+            AdrasteaI_responseSkip.delim = ',';
+        }
+        break;
+        default:
+            break;
+    }
 }
 
 /**
@@ -570,9 +563,9 @@ void AdrasteaI_CheckResponseComplete()
  */
 bool AdrasteaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
-	AdrasteaI_waitTimeStepUsec = waitTimeStepUsec;
-	AdrasteaI_minCommandIntervalUsec = minCommandIntervalUsec;
-	return true;
+    AdrasteaI_waitTimeStepUsec = waitTimeStepUsec;
+    AdrasteaI_minCommandIntervalUsec = minCommandIntervalUsec;
+    return true;
 }
 
 /**
@@ -581,10 +574,7 @@ bool AdrasteaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minComman
  * @param[in] type Timeout (i.e. command) type
  * @param[in] timeout Timeout in milliseconds
  */
-void AdrasteaI_SetTimeout(AdrasteaI_Timeout_t type, uint32_t timeout)
-{
-	AdrasteaI_timeouts[type] = timeout;
-}
+void AdrasteaI_SetTimeout(AdrasteaI_Timeout_t type, uint32_t timeout) { AdrasteaI_timeouts[type] = timeout; }
 
 /**
  * @brief Gets the timeout for responses to AT commands of the given type.
@@ -593,10 +583,7 @@ void AdrasteaI_SetTimeout(AdrasteaI_Timeout_t type, uint32_t timeout)
  *
  * @return Timeout in milliseconds
  */
-uint32_t AdrasteaI_GetTimeout(AdrasteaI_Timeout_t type)
-{
-	return AdrasteaI_timeouts[type];
-}
+uint32_t AdrasteaI_GetTimeout(AdrasteaI_Timeout_t type) { return AdrasteaI_timeouts[type]; }
 
 /**
  * @brief Default byte received callback.
@@ -605,87 +592,87 @@ uint32_t AdrasteaI_GetTimeout(AdrasteaI_Timeout_t type)
  *
  * @param[in] receivedByte The received byte.
  */
-static void AdrasteaI_HandleRxByte(uint8_t *dataP, size_t size)
+static void AdrasteaI_HandleRxByte(uint8_t* dataP, size_t size)
 {
-	uint8_t receivedByte;
-	for (; size > 0; size--, dataP++)
-	{
-		receivedByte = *dataP;
-		if (receivedByte == AdrasteaI_eolChar1 && AdrasteaI_rxByteCounter == 0)
-		{
-			continue;
-		}
+    uint8_t receivedByte;
+    for (; size > 0; size--, dataP++)
+    {
+        receivedByte = *dataP;
+        if (receivedByte == AdrasteaI_eolChar1 && AdrasteaI_rxByteCounter == 0)
+        {
+            continue;
+        }
 
-		if (receivedByte == AdrasteaI_eolChar2 && !AdrasteaI_eolChar1Found)
-		{
-			continue;
-		}
+        if (receivedByte == AdrasteaI_eolChar2 && !AdrasteaI_eolChar1Found)
+        {
+            continue;
+        }
 
-		if (AdrasteaI_rxByteCounter >= ADRASTEAI_LINE_MAX_SIZE)
-		{
-			AdrasteaI_rxByteCounter = 0;
-			AdrasteaI_eolChar1Found = false;
-			return;
-		}
+        if (AdrasteaI_rxByteCounter >= ADRASTEAI_LINE_MAX_SIZE)
+        {
+            AdrasteaI_rxByteCounter = 0;
+            AdrasteaI_eolChar1Found = false;
+            return;
+        }
 
-		if (receivedByte == AdrasteaI_eolChar1)
-		{
-			AdrasteaI_eolChar1Found = true;
+        if (receivedByte == AdrasteaI_eolChar1)
+        {
+            AdrasteaI_eolChar1Found = true;
 
-			if (AdrasteaI_shouldCheckResponseSkip)
-			{
-				AdrasteaI_CheckResponseComplete();
-				AdrasteaI_shouldCheckResponseSkip = false;
-			}
+            if (AdrasteaI_shouldCheckResponseSkip)
+            {
+                AdrasteaI_CheckResponseComplete();
+                AdrasteaI_shouldCheckResponseSkip = false;
+            }
 
-			if (!AdrasteaI_twoEolCharacters)
-			{
-				if (AdrasteaI_responseSkip.lineskip == 0)
-				{
-					AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = '\0';
-					AdrasteaI_rxByteCounter++;
-					AdrasteaI_HandleRxLine(AdrasteaI_rxBuffer, AdrasteaI_rxByteCounter);
-					AdrasteaI_eolChar1Found = false;
-					AdrasteaI_rxByteCounter = 0;
-					AdrasteaI_shouldCheckResponseSkip = true;
-				}
-				else
-				{
-					AdrasteaI_responseSkip.lineskip -= 1;
-					AdrasteaI_eolChar1Found = false;
-					AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = AdrasteaI_responseSkip.delim;
-					AdrasteaI_rxByteCounter++;
-				}
-			}
-		}
-		else if (AdrasteaI_eolChar1Found)
-		{
-			if (receivedByte == AdrasteaI_eolChar2)
-			{
-				if (AdrasteaI_responseSkip.lineskip == 0)
-				{
-					/* Interpret it now */
-					AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = '\0';
-					AdrasteaI_rxByteCounter++;
-					AdrasteaI_HandleRxLine(AdrasteaI_rxBuffer, AdrasteaI_rxByteCounter);
-					AdrasteaI_eolChar1Found = false;
-					AdrasteaI_rxByteCounter = 0;
-					AdrasteaI_shouldCheckResponseSkip = true;
-				}
-				else
-				{
-					AdrasteaI_responseSkip.lineskip -= 1;
-					AdrasteaI_eolChar1Found = false;
-					AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = AdrasteaI_responseSkip.delim;
-					AdrasteaI_rxByteCounter++;
-				}
-			}
-		}
-		else
-		{
-			AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter++] = receivedByte;
-		}
-	}
+            if (!AdrasteaI_twoEolCharacters)
+            {
+                if (AdrasteaI_responseSkip.lineskip == 0)
+                {
+                    AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = '\0';
+                    AdrasteaI_rxByteCounter++;
+                    AdrasteaI_HandleRxLine(AdrasteaI_rxBuffer, AdrasteaI_rxByteCounter);
+                    AdrasteaI_eolChar1Found = false;
+                    AdrasteaI_rxByteCounter = 0;
+                    AdrasteaI_shouldCheckResponseSkip = true;
+                }
+                else
+                {
+                    AdrasteaI_responseSkip.lineskip -= 1;
+                    AdrasteaI_eolChar1Found = false;
+                    AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = AdrasteaI_responseSkip.delim;
+                    AdrasteaI_rxByteCounter++;
+                }
+            }
+        }
+        else if (AdrasteaI_eolChar1Found)
+        {
+            if (receivedByte == AdrasteaI_eolChar2)
+            {
+                if (AdrasteaI_responseSkip.lineskip == 0)
+                {
+                    /* Interpret it now */
+                    AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = '\0';
+                    AdrasteaI_rxByteCounter++;
+                    AdrasteaI_HandleRxLine(AdrasteaI_rxBuffer, AdrasteaI_rxByteCounter);
+                    AdrasteaI_eolChar1Found = false;
+                    AdrasteaI_rxByteCounter = 0;
+                    AdrasteaI_shouldCheckResponseSkip = true;
+                }
+                else
+                {
+                    AdrasteaI_responseSkip.lineskip -= 1;
+                    AdrasteaI_eolChar1Found = false;
+                    AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter] = AdrasteaI_responseSkip.delim;
+                    AdrasteaI_rxByteCounter++;
+                }
+            }
+        }
+        else
+        {
+            AdrasteaI_rxBuffer[AdrasteaI_rxByteCounter++] = receivedByte;
+        }
+    }
 }
 
 /**
@@ -694,109 +681,110 @@ static void AdrasteaI_HandleRxByte(uint8_t *dataP, size_t size)
  * @param[in] rxPacket Received text
  * @param[in] rxLength Received text length
  */
-static void AdrasteaI_HandleRxLine(char *rxPacket, uint16_t rxLength)
+static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
 #ifdef WE_DEBUG
-	WE_DEBUG_PRINT("< %s\r\n", rxPacket);
+    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
 #endif
 
-	if (AdrasteaI_requestPending)
-	{
-		if (0 == strncmp(&rxPacket[0], ADRASTEAI_RESPONSE_OK, strlen(ADRASTEAI_RESPONSE_OK)))
-		{
-			AdrasteaI_responseincoming = false;
-			AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
-		}
-		else if (0 == strncmp(&rxPacket[0], ADRASTEAI_RESPONSE_ERROR, strlen(ADRASTEAI_RESPONSE_ERROR)))
-		{
-			AdrasteaI_responseincoming = false;
-			AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Failed;
-		}
-		else if (0 == strncmp(&rxPacket[0], ADRASTEAI_SMS_ERROR, strlen(ADRASTEAI_SMS_ERROR)))
-		{
-			AdrasteaI_responseincoming = false;
-			AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Failed;
-		}
-		else if (0 == strncmp(&rxPacket[0], ADRASTEAI_POWERMODECHANGE_EVENT, strlen(ADRASTEAI_POWERMODECHANGE_EVENT)))
-		{
-			AdrasteaI_responseincoming = false;
-			AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
-		}
-		else if (0 == strncmp(&rxPacket[0], ADRASTEAI_SLEEPSET_EVENT, strlen(ADRASTEAI_SLEEPSET_EVENT)))
-		{
-			AdrasteaI_responseincoming = false;
-			AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
-		}
-		else
-		{
-			if (AdrasteaI_responseincoming)
-			{
-				/* Copy to response text buffer, taking care not to exceed buffer size */
-				uint16_t chunkLength = rxLength;
-				bool isevent = false;
+    if (AdrasteaI_requestPending)
+    {
+        if (0 == strncmp(&rxPacket[0], ADRASTEAI_RESPONSE_OK, strlen(ADRASTEAI_RESPONSE_OK)))
+        {
+            AdrasteaI_responseincoming = false;
+            AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
+        }
+        else if (0 == strncmp(&rxPacket[0], ADRASTEAI_RESPONSE_ERROR, strlen(ADRASTEAI_RESPONSE_ERROR)))
+        {
+            AdrasteaI_responseincoming = false;
+            AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Failed;
+        }
+        else if (0 == strncmp(&rxPacket[0], ADRASTEAI_SMS_ERROR, strlen(ADRASTEAI_SMS_ERROR)))
+        {
+            AdrasteaI_responseincoming = false;
+            AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Failed;
+        }
+        else if (0 == strncmp(&rxPacket[0], ADRASTEAI_POWERMODECHANGE_EVENT, strlen(ADRASTEAI_POWERMODECHANGE_EVENT)))
+        {
+            AdrasteaI_responseincoming = false;
+            AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
+        }
+        else if (0 == strncmp(&rxPacket[0], ADRASTEAI_SLEEPSET_EVENT, strlen(ADRASTEAI_SLEEPSET_EVENT)))
+        {
+            AdrasteaI_responseincoming = false;
+            AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Success;
+        }
+        else
+        {
+            if (AdrasteaI_responseincoming)
+            {
+                /* Copy to response text buffer, taking care not to exceed buffer size */
+                uint16_t chunkLength = rxLength;
+                bool isevent = false;
 
-				if (AdrasteaI_currentResponseLength == 0 && rxLength > (AdrasteaI_pendingCommandNameLength + 2) && (0 == strncmp(AdrasteaI_pendingCommandName, rxPacket + 1, AdrasteaI_pendingCommandNameLength)))
-				{
-					isevent = true;
-					chunkLength -= (AdrasteaI_pendingCommandNameLength + 2);
-				}
+                if (AdrasteaI_currentResponseLength == 0 && rxLength > (AdrasteaI_pendingCommandNameLength + 2) && (0 == strncmp(AdrasteaI_pendingCommandName, rxPacket + 1, AdrasteaI_pendingCommandNameLength)))
+                {
+                    isevent = true;
+                    chunkLength -= (AdrasteaI_pendingCommandNameLength + 2);
+                }
 
-				if (AdrasteaI_currentResponseLength + chunkLength >= ADRASTEAI_MAX_RESPONSE_TEXT_LENGTH)
-				{
-					chunkLength = ADRASTEAI_MAX_RESPONSE_TEXT_LENGTH - AdrasteaI_currentResponseLength;
-				}
+                if (AdrasteaI_currentResponseLength + chunkLength >= ADRASTEAI_MAX_RESPONSE_TEXT_LENGTH)
+                {
+                    chunkLength = ADRASTEAI_MAX_RESPONSE_TEXT_LENGTH - AdrasteaI_currentResponseLength;
+                }
 
-				if (AdrasteaI_currentResponseLength == 0)
-				{
-					if (isevent)
-					{
-						memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer + AdrasteaI_pendingCommandNameLength + 2, chunkLength);
-					}
-					else
-					{
-						memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer, chunkLength);
-					}
-				}
-				else
-				{
-					memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer, chunkLength);
-				}
-				AdrasteaI_currentResponseLength += chunkLength;
-			}
-			else if (rxLength < ADRASTEAI_LINE_MAX_SIZE && rxLength > 2 && AdrasteaI_pendingCommandName[0] != '\0' && 'A' == rxPacket[0] && 'T' == rxPacket[1] && ((('+' == rxPacket[2] || '%' == rxPacket[2]) && (0 == strncmp(AdrasteaI_pendingCommandName, AdrasteaI_rxBuffer + 3, AdrasteaI_pendingCommandNameLength))) || (0 == strncmp(AdrasteaI_pendingCommandName, AdrasteaI_rxBuffer + 2, AdrasteaI_pendingCommandNameLength))))
-			{
-				//if true command echo detected store response for lines after
-				AdrasteaI_responseincoming = true;
-			}
-		}
-	}
+                if (AdrasteaI_currentResponseLength == 0)
+                {
+                    if (isevent)
+                    {
+                        memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer + AdrasteaI_pendingCommandNameLength + 2, chunkLength);
+                    }
+                    else
+                    {
+                        memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer, chunkLength);
+                    }
+                }
+                else
+                {
+                    memcpy(&AdrasteaI_currentResponseText[AdrasteaI_currentResponseLength], AdrasteaI_rxBuffer, chunkLength);
+                }
+                AdrasteaI_currentResponseLength += chunkLength;
+            }
+            else if (rxLength < ADRASTEAI_LINE_MAX_SIZE && rxLength > 2 && AdrasteaI_pendingCommandName[0] != '\0' && 'A' == rxPacket[0] && 'T' == rxPacket[1] &&
+                     ((('+' == rxPacket[2] || '%' == rxPacket[2]) && (0 == strncmp(AdrasteaI_pendingCommandName, AdrasteaI_rxBuffer + 3, AdrasteaI_pendingCommandNameLength))) || (0 == strncmp(AdrasteaI_pendingCommandName, AdrasteaI_rxBuffer + 2, AdrasteaI_pendingCommandNameLength))))
+            {
+                //if true command echo detected store response for lines after
+                AdrasteaI_responseincoming = true;
+            }
+        }
+    }
 
-	if (0 == strncmp(&rxPacket[0], ADRASTEAI_MCU_EVENT, strlen(ADRASTEAI_MCU_EVENT)))
-	{
-		AdrasteaI_ATMode = AdrasteaI_ATMode_Off;
-		if (!AdrasteaI_wakingUp)
-		{
-			AdrasteaI_Transparent_Transmit("map\r\n", 5);
-		}
-	}
-	else if (0 == strncmp(&rxPacket[0], ADRASTEAI_MAPCLICLOSE_EVENT, strlen(ADRASTEAI_MAPCLICLOSE_EVENT)))
-	{
-		AdrasteaI_ATMode = AdrasteaI_ATMode_Off;
-	}
-	else if (0 == strncmp(&rxPacket[0], ADRASTEAI_MAPCLIOPEN_EVENT, strlen(ADRASTEAI_MAPCLIOPEN_EVENT)))
-	{
-		AdrasteaI_ATMode = AdrasteaI_ATMode_Map;
-	}
-	else if (('+' == rxPacket[0]) || ('%' == rxPacket[0]))
-	{
-		if (NULL != AdrasteaI_eventCallback)
-		{
-			/* Execute callback (if specified). */
-			AdrasteaI_executingEventCallback = true;
-			AdrasteaI_eventCallback(AdrasteaI_rxBuffer);
-			AdrasteaI_executingEventCallback = false;
-		}
-	}
+    if (0 == strncmp(&rxPacket[0], ADRASTEAI_MCU_EVENT, strlen(ADRASTEAI_MCU_EVENT)))
+    {
+        AdrasteaI_ATMode = AdrasteaI_ATMode_Off;
+        if (!AdrasteaI_wakingUp)
+        {
+            AdrasteaI_Transparent_Transmit("map\r\n", 5);
+        }
+    }
+    else if (0 == strncmp(&rxPacket[0], ADRASTEAI_MAPCLICLOSE_EVENT, strlen(ADRASTEAI_MAPCLICLOSE_EVENT)))
+    {
+        AdrasteaI_ATMode = AdrasteaI_ATMode_Off;
+    }
+    else if (0 == strncmp(&rxPacket[0], ADRASTEAI_MAPCLIOPEN_EVENT, strlen(ADRASTEAI_MAPCLIOPEN_EVENT)))
+    {
+        AdrasteaI_ATMode = AdrasteaI_ATMode_Map;
+    }
+    else if (('+' == rxPacket[0]) || ('%' == rxPacket[0]))
+    {
+        if (NULL != AdrasteaI_eventCallback)
+        {
+            /* Execute callback (if specified). */
+            AdrasteaI_executingEventCallback = true;
+            AdrasteaI_eventCallback(AdrasteaI_rxBuffer);
+            AdrasteaI_executingEventCallback = false;
+        }
+    }
 }
 
 /**
@@ -808,9 +796,9 @@ static void AdrasteaI_HandleRxLine(char *rxPacket, uint16_t rxLength)
  */
 void AdrasteaI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
-	AdrasteaI_eolChar1 = eol1;
-	AdrasteaI_eolChar2 = eol2;
-	AdrasteaI_twoEolCharacters = twoEolCharacters;
+    AdrasteaI_eolChar1 = eol1;
+    AdrasteaI_eolChar2 = eol2;
+    AdrasteaI_twoEolCharacters = twoEolCharacters;
 }
 
 /**
@@ -818,7 +806,4 @@ void AdrasteaI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacter
  *
  * @return boolean to indicate mode.
  */
-AdrasteaI_ATMode_t AdrasteaI_CheckATMode()
-{
-	return AdrasteaI_ATMode;
-}
+AdrasteaI_ATMode_t AdrasteaI_CheckATMode() { return AdrasteaI_ATMode; }

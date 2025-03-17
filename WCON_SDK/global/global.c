@@ -28,91 +28,86 @@
  * @brief Contains global function definitions for the Wireless Connectivity SDK for STM32.
  */
 
+#include "global_platform_types.h"
 #include <global/global.h>
 
 #include <string.h>
-#if defined(STM32L073xx)
-#include "global_L0xx.h"
-#elif defined(STM32F401xE)
-#include "global_F4xx.h"
-#endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-static GPIO_TypeDef *gpioPorts[] = {
-#ifdef 	GPIOA
-		GPIOA,
+    static GPIO_TypeDef* gpioPorts[] = {
+#ifdef GPIOA
+        GPIOA,
 #endif
-#ifdef 	GPIOB
-		GPIOB,
+#ifdef GPIOB
+        GPIOB,
 #endif
-#ifdef 	GPIOC
-		GPIOC,
+#ifdef GPIOC
+        GPIOC,
 #endif
-#ifdef 	GPIOD
-		GPIOD,
+#ifdef GPIOD
+        GPIOD,
 #endif
-#ifdef 	GPIOE
-		GPIOE,
+#ifdef GPIOE
+        GPIOE,
 #endif
-#ifdef 	GPIOF
-		GPIOF,
+#ifdef GPIOF
+        GPIOF,
 #endif
-#ifdef 	GPIOG
-		GPIOG,
+#ifdef GPIOG
+        GPIOG,
 #endif
-#ifdef 	GPIOH
-		GPIOH,
+#ifdef GPIOH
+        GPIOH,
 #endif
-#ifdef 	GPIOI
-		GPIOI,
+#ifdef GPIOI
+        GPIOI,
 #endif
-#ifdef 	GPIOJ
-		GPIOJ,
+#ifdef GPIOJ
+        GPIOJ,
 #endif
-#ifdef 	GPIOK
-		GPIOK,
+#ifdef GPIOK
+        GPIOK,
 #endif
-		};
+    };
 
-#define NUM_GPIO_PORTS (sizeof(gpioPorts)/sizeof(GPIO_TypeDef*))
+#define NUM_GPIO_PORTS (sizeof(gpioPorts) / sizeof(GPIO_TypeDef*))
 
-/* Sort pins by port */
-	uint32_t inputPinsPerPort[NUM_GPIO_PORTS] = {
-			0 };
-	uint32_t outputPinsPerPort[NUM_GPIO_PORTS] = {
-			0 };
+    /* Sort pins by port */
+    uint32_t inputPinsPerPort[NUM_GPIO_PORTS] = {0};
+    uint32_t outputPinsPerPort[NUM_GPIO_PORTS] = {0};
 
-/*              Functions              */
+    /*              Functions              */
 
-/**
+    /**
  * @brief Initialise the microcontroller and setup system clock 
  */
 
-void WE_Platform_Init(void)
-{
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+    void WE_Platform_Init(void)
+    {
+        /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+        HAL_Init();
 
-	/* Configure the system clock */
-	WE_SystemClock_Config();
-}
+        /* Configure the system clock */
+        WE_SystemClock_Config();
+    }
 
-/**
+    /**
  * @brief Disables the interrupts
  */
-void WE_Error_Handler(void)
-{
-	/* User can add his own implementation to report the HAL error return state */
-	__disable_irq();
-	while (1)
-	{
-	}
-}
+    void WE_Error_Handler(void)
+    {
+        /* User can add his own implementation to report the HAL error return state */
+        __disable_irq();
+        while (1)
+        {
+        }
+    }
 
-/**
+    /**
  * @brief Initialises the pins
  *
  * @param[in] pins: pins to be initialised
@@ -121,203 +116,215 @@ void WE_Error_Handler(void)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool WE_InitPins(WE_Pin_t pins[], uint8_t numPins)
-{
-	for (uint8_t i = 0; i < numPins; i++)
-	{
-		if (((uint32_t) 0 == pins[i].pin) || (NULL == pins[i].port) || (!IS_GPIO_ALL_INSTANCE(pins[i].port)))
-		{
-			/* Unused */
-			continue;
-		}
+    bool WE_InitPins(WE_Pin_t pins[], uint8_t numPins)
+    {
+        for (uint8_t i = 0; i < numPins; i++)
+        {
+            if (IS_WE_PIN_UNDEFINED(pins[i]))
+            {
+                /* Unused */
+                continue;
+            }
 
-		if (WE_Pin_Type_Output == pins[i].type)
-		{
-			/* Configure GPIO pin output level */
-			HAL_GPIO_WritePin((GPIO_TypeDef*) pins[i].port, pins[i].pin, GPIO_PIN_RESET);
-		}
+            WE_STM32_Pin_t stm32_pin = (*(WE_STM32_Pin_t*)pins[i].pin_def);
 
-		for (uint8_t j = 0; j < NUM_GPIO_PORTS; j++)
-		{
-			if (gpioPorts[j] == (GPIO_TypeDef*) pins[i].port)
-			{
-				if (pins[i].type == WE_Pin_Type_Output)
-				{
-					outputPinsPerPort[j] |= pins[i].pin;
-				}
-				else
-				{
-					inputPinsPerPort[j] |= pins[i].pin;
-				}
-				break;
-			}
-		}
-	}
+            if (((uint32_t)0 == stm32_pin.pin) || (NULL == stm32_pin.port) || (!IS_GPIO_ALL_INSTANCE(stm32_pin.port)))
+            {
+                /* Since the pin was checked to be defined it should not have invalid port/pin */
+                return false;
+            }
 
-	for (uint8_t i = 0; i < NUM_GPIO_PORTS; i++)
-	{
-		if (((uint32_t) 0 == outputPinsPerPort[i]) && ((uint32_t) 0 == inputPinsPerPort[i]))
-		{
-			/* Unused */
-			continue;
-		}
+            if (WE_Pin_Type_Output == pins[i].type)
+            {
+                /* Configure GPIO pin output level */
+                HAL_GPIO_WritePin(stm32_pin.port, stm32_pin.pin, GPIO_PIN_RESET);
+            }
 
-		/* GPIO Ports Clock Enable */
-		switch ((int) gpioPorts[i])
-		{
+            for (uint8_t j = 0; j < NUM_GPIO_PORTS; j++)
+            {
+                if (gpioPorts[j] == stm32_pin.port)
+                {
+                    if (pins[i].type == WE_Pin_Type_Output)
+                    {
+                        outputPinsPerPort[j] |= stm32_pin.pin;
+                    }
+                    else
+                    {
+                        inputPinsPerPort[j] |= stm32_pin.pin;
+                    }
+                    break;
+                }
+            }
+        }
+
+        for (uint8_t i = 0; i < NUM_GPIO_PORTS; i++)
+        {
+            if (((uint32_t)0 == outputPinsPerPort[i]) && ((uint32_t)0 == inputPinsPerPort[i]))
+            {
+                /* Unused */
+                continue;
+            }
+
+            /* GPIO Ports Clock Enable */
+            switch ((int)gpioPorts[i])
+            {
 #ifdef GPIOA
-		case (int) GPIOA:
-		{
-			__HAL_RCC_GPIOA_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOA:
+                {
+                    __HAL_RCC_GPIOA_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOB
-		case (int) GPIOB:
-		{
-			__HAL_RCC_GPIOB_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOB:
+                {
+                    __HAL_RCC_GPIOB_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOC
-		case (int) GPIOC:
-		{
-			__HAL_RCC_GPIOC_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOC:
+                {
+                    __HAL_RCC_GPIOC_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOD
-		case (int) GPIOD:
-		{
-			__HAL_RCC_GPIOD_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOD:
+                {
+                    __HAL_RCC_GPIOD_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOE
-		case (int) GPIOE:
-		{
-			__HAL_RCC_GPIOE_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOE:
+                {
+                    __HAL_RCC_GPIOE_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOF
-        case (int)GPIOF:
-        	{
-        	__HAL_RCC_GPIOF_CLK_ENABLE();
-        	}
-        break;
+                case (int)GPIOF:
+                {
+                    __HAL_RCC_GPIOF_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOH
-		case (int) GPIOH:
-		{
-			__HAL_RCC_GPIOH_CLK_ENABLE();
-		}
-			break;
+                case (int)GPIOH:
+                {
+                    __HAL_RCC_GPIOH_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOI
-        case (int)GPIOI:
-        	{
-        	__HAL_RCC_GPIOI_CLK_ENABLE();
-        	}
-        break;
+                case (int)GPIOI:
+                {
+                    __HAL_RCC_GPIOI_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOJ
-        case (int)GPIOJ:
-        	{
-        	__HAL_RCC_GPIOJ_CLK_ENABLE();
-        	}
-        break;
+                case (int)GPIOJ:
+                {
+                    __HAL_RCC_GPIOJ_CLK_ENABLE();
+                }
+                break;
 #endif
 #ifdef GPIOK
-        case (int)GPIOK:
-        	{
-        	__HAL_RCC_GPIOA_CLK_ENABLE();
-        	}
-        break;
+                case (int)GPIOK:
+                {
+                    __HAL_RCC_GPIOA_CLK_ENABLE();
+                }
+                break;
 #endif
-		default:
-		{
-			/* error: port not implemented */
-			return false;
-		}
-		}
+                default:
+                {
+                    /* error: port not implemented */
+                    return false;
+                }
+            }
 
-		if (0 != outputPinsPerPort[i])
-		{
-			GPIO_InitTypeDef GPIO_InitStruct = {
-					0 };
-			GPIO_InitStruct.Pin = outputPinsPerPort[i];
-			GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-			GPIO_InitStruct.Pull = GPIO_NOPULL;
-			GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-			HAL_GPIO_Init(gpioPorts[i], &GPIO_InitStruct);
-		}
-		if (0 != inputPinsPerPort[i])
-		{
-			GPIO_InitTypeDef GPIO_InitStruct = {
-					0 };
-			GPIO_InitStruct.Pin = inputPinsPerPort[i];
-			GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-			GPIO_InitStruct.Pull = GPIO_NOPULL;
-			GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-			HAL_GPIO_Init(gpioPorts[i], &GPIO_InitStruct);
-		}
-	}
+            if (0 != outputPinsPerPort[i])
+            {
+                GPIO_InitTypeDef GPIO_InitStruct = {0};
+                GPIO_InitStruct.Pin = outputPinsPerPort[i];
+                GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+                GPIO_InitStruct.Pull = GPIO_NOPULL;
+                GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                HAL_GPIO_Init(gpioPorts[i], &GPIO_InitStruct);
+            }
+            if (0 != inputPinsPerPort[i])
+            {
+                GPIO_InitTypeDef GPIO_InitStruct = {0};
+                GPIO_InitStruct.Pin = inputPinsPerPort[i];
+                GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+                GPIO_InitStruct.Pull = GPIO_NOPULL;
+                GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                HAL_GPIO_Init(gpioPorts[i], &GPIO_InitStruct);
+            }
+        }
 
-	return true;
-}
+        return true;
+    }
 
-bool WE_Reconfigure(WE_Pin_t pin)
-{
-	if (((uint32_t) 0 == pin.pin) || (NULL == pin.port) || (!IS_GPIO_ALL_INSTANCE(pin.port)))
-	{
-		/* Unused */
-		return false;
-	}
+    bool WE_Reconfigure(WE_Pin_t pin)
+    {
+        if (IS_WE_PIN_UNDEFINED(pin))
+        {
+            return false;
+        }
 
-	if (WE_Pin_Type_Output == pin.type)
-	{
-		/* Configure GPIO pin output level */
-		HAL_GPIO_WritePin((GPIO_TypeDef*) pin.port, pin.pin, GPIO_PIN_RESET);
-	}
+        WE_STM32_Pin_t stm32_pin = (*(WE_STM32_Pin_t*)pin.pin_def);
 
-	for (uint8_t j = 0; j < NUM_GPIO_PORTS; j++)
-	{
-		if (gpioPorts[j] == (GPIO_TypeDef*) pin.port)
-		{
-			if (pin.type == WE_Pin_Type_Output)
-			{
-				outputPinsPerPort[j] |= pin.pin;
-				inputPinsPerPort[j] &= ~pin.pin;
-			}
-			else
-			{
-				inputPinsPerPort[j] |= pin.pin;
-				outputPinsPerPort[j] &= ~pin.pin;
-			}
+        if (((uint32_t)0 == stm32_pin.pin) || (NULL == stm32_pin.port) || (!IS_GPIO_ALL_INSTANCE(stm32_pin.port)))
+        {
+            /* Unused */
+            return false;
+        }
 
-			GPIO_InitTypeDef GPIO_InitStruct = {0};
-			GPIO_InitStruct.Pin = outputPinsPerPort[j];
-			GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-			GPIO_InitStruct.Pull = GPIO_NOPULL;
-			GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-			HAL_GPIO_Init(gpioPorts[j], &GPIO_InitStruct);
+        if (WE_Pin_Type_Output == pin.type)
+        {
+            /* Configure GPIO pin output level */
+            HAL_GPIO_WritePin(stm32_pin.port, stm32_pin.pin, GPIO_PIN_RESET);
+        }
 
-			GPIO_InitStruct.Pin = inputPinsPerPort[j];
-			GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-			GPIO_InitStruct.Pull = GPIO_NOPULL;
-			GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-			HAL_GPIO_Init(gpioPorts[j], &GPIO_InitStruct);
+        for (uint8_t j = 0; j < NUM_GPIO_PORTS; j++)
+        {
+            if (gpioPorts[j] == stm32_pin.port)
+            {
+                if (pin.type == WE_Pin_Type_Output)
+                {
+                    outputPinsPerPort[j] |= stm32_pin.pin;
+                    inputPinsPerPort[j] &= ~stm32_pin.pin;
+                }
+                else
+                {
+                    inputPinsPerPort[j] |= stm32_pin.pin;
+                    outputPinsPerPort[j] &= ~stm32_pin.pin;
+                }
 
-			return true;
-		}
-	}
+                GPIO_InitTypeDef GPIO_InitStruct = {0};
+                GPIO_InitStruct.Pin = outputPinsPerPort[j];
+                GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+                GPIO_InitStruct.Pull = GPIO_NOPULL;
+                GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                HAL_GPIO_Init(gpioPorts[j], &GPIO_InitStruct);
 
-	return false;
-}
+                GPIO_InitStruct.Pin = inputPinsPerPort[j];
+                GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+                GPIO_InitStruct.Pull = GPIO_NOPULL;
+                GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                HAL_GPIO_Init(gpioPorts[j], &GPIO_InitStruct);
 
+                return true;
+            }
+        }
 
-/**
+        return false;
+    }
+
+    /**
  * @brief Deinitialises the pin to their default reset values
  *
  * @param[in] pin: pin to be deinitialised
@@ -325,119 +332,140 @@ bool WE_Reconfigure(WE_Pin_t pin)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool WE_DeinitPin(WE_Pin_t pin)
-{
-	HAL_GPIO_DeInit((GPIO_TypeDef*) pin.port, pin.pin);
-	return true;
-}
+    bool WE_DeinitPin(WE_Pin_t pin)
+    {
+        if (IS_WE_PIN_UNDEFINED(pin))
+        {
+            return false;
+        }
 
-/**
- * @brief Sets the pin to high or low
+        WE_STM32_Pin_t stm32_pin = (*(WE_STM32_Pin_t*)pin.pin_def);
+
+        HAL_GPIO_DeInit(stm32_pin.port, stm32_pin.pin);
+        return true;
+    }
+
+    /**
+ * @brief Switch pin to output high/low
  *
- * @param[in] pin: pin to be set
- * @param[in] out: checks the pin level
- *
- * @return true if request succeeded,
- *         false otherwise
+ * @param[in] pin Output pin to be set
+ * @param[in] out Output level to be set
+ * @return true if request succeeded, false otherwise
  */
 
-bool WE_SetPin(WE_Pin_t pin, WE_Pin_Level_t out)
-{
-	if (0 == pin.pin || NULL == pin.port || pin.type != WE_Pin_Type_Output)
-	{
-		return false;
-	}
+    bool WE_SetPin(WE_Pin_t pin, WE_Pin_Level_t out)
+    {
+        if (IS_WE_PIN_UNDEFINED(pin))
+        {
+            return false;
+        }
 
-	switch (out)
-	{
-	case WE_Pin_Level_High:
-		HAL_GPIO_WritePin((GPIO_TypeDef*) pin.port, pin.pin, GPIO_PIN_SET);
-		break;
+        WE_STM32_Pin_t stm32_pin = (*(WE_STM32_Pin_t*)pin.pin_def);
 
-	case WE_Pin_Level_Low:
-		HAL_GPIO_WritePin((GPIO_TypeDef*) pin.port, pin.pin, GPIO_PIN_RESET);
-		break;
+        if (0 == stm32_pin.pin || NULL == stm32_pin.port || pin.type != WE_Pin_Type_Output)
+        {
+            return false;
+        }
 
-	default:
-		return false;
-	}
+        switch (out)
+        {
+            case WE_Pin_Level_High:
+                HAL_GPIO_WritePin(stm32_pin.port, stm32_pin.pin, GPIO_PIN_SET);
+                break;
 
-	return true;
-}
+            case WE_Pin_Level_Low:
+                HAL_GPIO_WritePin(stm32_pin.port, stm32_pin.pin, GPIO_PIN_RESET);
+                break;
 
-/**
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
  * @brief Gets the pin level
  *
  * @param[in] pin: the pin to be checked
  *
- * @return returns the pin value
+ * @param[out] pin_levelP: the pin level
+ *
+ * @return true if request succeeded,
+ *         false otherwise
  *         
  */
-WE_Pin_Level_t WE_GetPinLevel(WE_Pin_t pin)
-{
-	switch (HAL_GPIO_ReadPin((GPIO_TypeDef*) pin.port, pin.pin))
-	{
-	case GPIO_PIN_RESET:
-		return WE_Pin_Level_Low;
+    bool WE_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP)
+    {
+        if (IS_WE_PIN_UNDEFINED(pin) || (pin_levelP == NULL))
+        {
+            return false;
+        }
 
-	case GPIO_PIN_SET:
-		return WE_Pin_Level_High;
+        WE_STM32_Pin_t stm32_pin = (*(WE_STM32_Pin_t*)pin.pin_def);
 
-	default:
-		return WE_Pin_Level_Low;
-	}
-}
+        switch (HAL_GPIO_ReadPin(stm32_pin.port, stm32_pin.pin))
+        {
+            case GPIO_PIN_RESET:
+                *pin_levelP = WE_Pin_Level_Low;
+                break;
+            case GPIO_PIN_SET:
+                *pin_levelP = WE_Pin_Level_High;
+                break;
+            default:
+                return false;
+        }
 
-/**
+        return true;
+    }
+
+    /**
  * @brief Delays the microcontoller for the specified time.
  *
  * @param[in] sleepForMs: time in milliseconds.
  *         
  */
-void WE_Delay(uint16_t sleepForMs)
-{
-	if (sleepForMs > 0)
-	{
-		HAL_Delay((uint32_t) sleepForMs);
-	}
-}
+    void WE_Delay(uint16_t sleepForMs)
+    {
+        if (sleepForMs > 0)
+        {
+            HAL_Delay((uint32_t)sleepForMs);
+        }
+    }
 
-/**
+    /**
  * @brief Gets the elapsed time since startup
  *
  * @return returns elapsed in ms
  *         
  */
-uint32_t WE_GetTick()
-{
-	return HAL_GetTick();
-}
+    uint32_t WE_GetTick() { return HAL_GetTick(); }
 
-/**
+    /**
  * @brief Delays the microcontoller for the specified time.
  *
  * @param[in] sleepForMs: time in microseconds.
  *         
  */
-__weak void WE_DelayMicroseconds(uint32_t sleepForUsec)
-{
-	/* Microsecond tick is disabled: round to ms */
-	WE_Delay(((sleepForUsec + 500) / 1000));
-}
+    __weak void WE_DelayMicroseconds(uint32_t sleepForUsec)
+    {
+        /* Microsecond tick is disabled: round to ms */
+        WE_Delay(((sleepForUsec + 500) / 1000));
+    }
 
-/**
+    /**
  * @brief Gets the elapsed time since startup
  *
  * @return returns elapsed in microseconds
  *         
  */
-__weak uint32_t WE_GetTickMicroseconds()
-{
-	/* Microsecond tick is disabled: return ms tick * 1000 */
-	return WE_GetTick() * 1000;
-}
+    __weak uint32_t WE_GetTickMicroseconds()
+    {
+        /* Microsecond tick is disabled: return ms tick * 1000 */
+        return WE_GetTick() * 1000;
+    }
 
-/**
+    /**
  * @brief Gets the Driver version
  *
  * @param[out] version: will contain the version value
@@ -445,13 +473,12 @@ __weak uint32_t WE_GetTickMicroseconds()
  * @return true if request succeeded,
  *         false otherwise        
  */
-bool WE_GetDriverVersion(uint8_t *version)
-{
-	uint8_t help[3] = WE_WIRELESS_CONNECTIVITY_SDK_VERSION
-	;
-	memcpy(version, help, 3);
-	return true;
-}
+    bool WE_GetDriverVersion(uint8_t* version)
+    {
+        uint8_t help[3] = WE_WIRELESS_CONNECTIVITY_SDK_VERSION;
+        memcpy(version, help, 3);
+        return true;
+    }
 
 #ifdef __cplusplus
 }

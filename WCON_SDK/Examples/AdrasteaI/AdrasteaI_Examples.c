@@ -22,29 +22,28 @@
  *
  ***************************************************************************************************
  */
-#include <stdio.h>
-#include <AdrasteaI/AdrasteaI_Examples.h>
 #include <AdrasteaI/ATDeviceExamples.h>
-#include <AdrasteaI/ATSocketExamples.h>
-#include <AdrasteaI/ATNetServiceExamples.h>
-#include <AdrasteaI/ATSIMExamples.h>
-#include <AdrasteaI/ATProprietaryExamples.h>
-#include <AdrasteaI/ATPacketDomainExamples.h>
 #include <AdrasteaI/ATGNSSExamples.h>
-#include <AdrasteaI/ATMQTTExamples.h>
 #include <AdrasteaI/ATHTTPExamples.h>
-#include <AdrasteaI/ATSMSExamples.h>
+#include <AdrasteaI/ATMQTTExamples.h>
+#include <AdrasteaI/ATNetServiceExamples.h>
+#include <AdrasteaI/ATPacketDomainExamples.h>
 #include <AdrasteaI/ATPowerExamples.h>
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
+#include <AdrasteaI/ATProprietaryExamples.h>
+#include <AdrasteaI/ATSIMExamples.h>
+#include <AdrasteaI/ATSMSExamples.h>
+#include <AdrasteaI/ATSocketExamples.h>
+#include <AdrasteaI/AdrasteaI_Examples.h>
+#include <global_platform_types.h>
+#include <stdio.h>
 
 /**
  * @brief Definition of the control pins
  */
-AdrasteaI_Pins_t AdrasteaI_pins;
+AdrasteaI_Pins_t AdrasteaI_pins = {
+    .AdrasteaI_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+    .AdrasteaI_Pin_WakeUp = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_9)),
+};
 
 /**
  * @brief Definition of the uart
@@ -58,31 +57,26 @@ WE_UART_t AdrasteaI_uart;
  */
 void AdrasteaI_Examples()
 {
-	AdrasteaI_uart.baudrate = 115200;
-	AdrasteaI_uart.flowControl = WE_FlowControl_NoFlowControl;
-	AdrasteaI_uart.parity = WE_Parity_None;
-	AdrasteaI_uart.uartInit = WE_UART1_Init;
-	AdrasteaI_uart.uartDeinit = WE_UART1_DeInit;
-	AdrasteaI_uart.uartTransmit = WE_UART1_Transmit;
+    AdrasteaI_uart.baudrate = 115200;
+    AdrasteaI_uart.flowControl = WE_FlowControl_NoFlowControl;
+    AdrasteaI_uart.parity = WE_Parity_None;
+    AdrasteaI_uart.uartInit = WE_UART1_Init;
+    AdrasteaI_uart.uartDeinit = WE_UART1_DeInit;
+    AdrasteaI_uart.uartTransmit = WE_UART1_Transmit;
 
-	AdrasteaI_pins.AdrasteaI_Pin_Reset.port = (void*) GPIOA;
-	AdrasteaI_pins.AdrasteaI_Pin_Reset.pin = GPIO_PIN_10;
-	AdrasteaI_pins.AdrasteaI_Pin_WakeUp.port = (void*) GPIOA;
-	AdrasteaI_pins.AdrasteaI_Pin_WakeUp.pin = GPIO_PIN_9;
+    ATDeviceExample();
+    //    ATGNSSExample();
+    //    ATHTTPExample();
+    //    ATMQTTExample();
+    //    ATNetServiceExample();
+    //    ATPacketDomainExample();
+    //    ATPowerExample();
+    //    ATProprietaryExample();
+    //    ATSIMExample();
+    //    ATSMSExample();
+    //	ATSocketExample();
 
-	ATDeviceExample();
-//    ATGNSSExample();
-//    ATHTTPExample();
-//    ATMQTTExample();
-//    ATNetServiceExample();
-//    ATPacketDomainExample();
-//    ATPowerExample();
-//    ATProprietaryExample();
-//    ATSIMExample();
-//    ATSMSExample();
-//	ATSocketExample();
-
-	return;
+    return;
 }
 
 /**
@@ -91,7 +85,4 @@ void AdrasteaI_Examples()
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void AdrasteaI_ExamplesPrint(char *str, bool success)
-{
-	WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+void AdrasteaI_ExamplesPrint(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

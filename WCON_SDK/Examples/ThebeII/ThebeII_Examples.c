@@ -30,18 +30,19 @@
 
 #include <ThebeII/ThebeII.h>
 #include <global/global.h>
+#include <global_platform_types.h>
 #include <stdio.h>
 #include <string.h>
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
 
 /**
  * @brief Definition of the pins
  */
-static ThebeII_Pins_t ThebeII_pins;
+static ThebeII_Pins_t ThebeII_pins = {
+    .ThebeII_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+    .ThebeII_Pin_SleepWakeUp = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_9)),
+    .ThebeII_Pin_Boot = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_7)),
+    .ThebeII_Pin_Mode = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_8)),
+};
 
 /**
  * @brief Definition of the uart
@@ -57,29 +58,26 @@ static void CommandModeExample();
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char *str, bool success)
-{
-	WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Callback called when data has been received via radio
  */
-static void RxCallback(uint8_t *payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
 {
-	uint8_t i = 0;
-	WE_DEBUG_PRINT("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
-	WE_DEBUG_PRINT("0x");
-	for (i = 0; i < payload_length; i++)
-	{
-		WE_DEBUG_PRINT("%02x", *(payload + i));
-	}
-	WE_DEBUG_PRINT(" (");
-	for (i = 0; i < payload_length; i++)
-	{
-		WE_DEBUG_PRINT("%c", *(payload + i));
-	}
-	WE_DEBUG_PRINT(")\r\n");
+    uint8_t i = 0;
+    WE_DEBUG_PRINT("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
+    WE_DEBUG_PRINT("0x");
+    for (i = 0; i < payload_length; i++)
+    {
+        WE_DEBUG_PRINT("%02x", *(payload + i));
+    }
+    WE_DEBUG_PRINT(" (");
+    for (i = 0; i < payload_length; i++)
+    {
+        WE_DEBUG_PRINT("%c", *(payload + i));
+    }
+    WE_DEBUG_PRINT(")\r\n");
 }
 
 /**
@@ -87,23 +85,15 @@ static void RxCallback(uint8_t *payload, uint8_t payload_length, uint8_t dest_ne
  */
 void ThebeII_Examples(void)
 {
-	ThebeII_pins.ThebeII_Pin_Reset.port = (void*) GPIOA;
-	ThebeII_pins.ThebeII_Pin_Reset.pin = GPIO_PIN_10;
-	ThebeII_pins.ThebeII_Pin_SleepWakeUp.port = (void*) GPIOA;
-	ThebeII_pins.ThebeII_Pin_SleepWakeUp.pin = GPIO_PIN_9;
-	ThebeII_pins.ThebeII_Pin_Boot.port = (void*) GPIOA;
-	ThebeII_pins.ThebeII_Pin_Boot.pin = GPIO_PIN_7;
-	ThebeII_pins.ThebeII_Pin_Mode.port = (void*) GPIOA;
-	ThebeII_pins.ThebeII_Pin_Mode.pin = GPIO_PIN_8;
 
-	ThebeII_uart.baudrate = THEBEII_DEFAULT_BAUDRATE;
-	ThebeII_uart.flowControl = WE_FlowControl_NoFlowControl;
-	ThebeII_uart.parity = WE_Parity_None;
-	ThebeII_uart.uartInit = WE_UART1_Init;
-	ThebeII_uart.uartDeinit = WE_UART1_DeInit;
-	ThebeII_uart.uartTransmit = WE_UART1_Transmit;
+    ThebeII_uart.baudrate = THEBEII_DEFAULT_BAUDRATE;
+    ThebeII_uart.flowControl = WE_FlowControl_NoFlowControl;
+    ThebeII_uart.parity = WE_Parity_None;
+    ThebeII_uart.uartInit = WE_UART1_Init;
+    ThebeII_uart.uartDeinit = WE_UART1_DeInit;
+    ThebeII_uart.uartTransmit = WE_UART1_Transmit;
 
-	CommandModeExample();
+    CommandModeExample();
 }
 
 /**
@@ -111,36 +101,36 @@ void ThebeII_Examples(void)
  */
 void CommandModeExample(void)
 {
-	if (false == ThebeII_Init(&ThebeII_uart, &ThebeII_pins, ThebeII_AddressMode_0, RxCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (false == ThebeII_Init(&ThebeII_uart, &ThebeII_pins, ThebeII_AddressMode_0, RxCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	uint8_t serialNr[4];
-	Examples_Print("Read serial number", ThebeII_GetSerialNumber(serialNr));
-	WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
-	WE_Delay(500);
+    uint8_t serialNr[4];
+    Examples_Print("Read serial number", ThebeII_GetSerialNumber(serialNr));
+    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
+    WE_Delay(500);
 
-	uint8_t fwVersion[3];
-	Examples_Print("Read firmware version", ThebeII_GetFirmwareVersion(fwVersion));
-	WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
-	WE_Delay(500);
+    uint8_t fwVersion[3];
+    Examples_Print("Read firmware version", ThebeII_GetFirmwareVersion(fwVersion));
+    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
+    WE_Delay(500);
 
-	uint8_t data[4 * 16];
-	for (uint16_t i = 0; i < sizeof(data); i++)
-	{
-		data[i] = (uint8_t) i;
-	}
+    uint8_t data[4 * 16];
+    for (uint16_t i = 0; i < sizeof(data); i++)
+    {
+        data[i] = (uint8_t)i;
+    }
 
-	while (1)
-	{
-		if (false == ThebeII_Transmit(data, sizeof(data)))
-		{
-			WE_DEBUG_PRINT("Transmission error\r\n");
-		}
-		WE_Delay(500);
-	}
+    while (1)
+    {
+        if (false == ThebeII_Transmit(data, sizeof(data)))
+        {
+            WE_DEBUG_PRINT("Transmission error\r\n");
+        }
+        WE_Delay(500);
+    }
 
-	return;
+    return;
 }

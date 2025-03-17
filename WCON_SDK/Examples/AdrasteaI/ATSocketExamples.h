@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATSOCKETEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATSocketExample();
+    extern void ATSocketExample();
 
 #ifdef __cplusplus
 }

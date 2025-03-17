@@ -31,8 +31,8 @@
 #ifndef STEPHANOI_BLUETOOTHLE_EXAMPLE_H_INCLUDED
 #define STEPHANOI_BLUETOOTHLE_EXAMPLE_H_INCLUDED
 
-#include <StephanoI/StephanoI.h>
 #include <StephanoI/ATCommands/ATBluetoothLE.h>
+#include <StephanoI/StephanoI.h>
 
 extern StephanoI_ATBluetoothLE_Peripheral_DiscoverService_t StephanoI_Examples_Peripheral_DiscoverService;
 extern StephanoI_ATBluetoothLE_Connection_t StephanoI_Examples_Connection;

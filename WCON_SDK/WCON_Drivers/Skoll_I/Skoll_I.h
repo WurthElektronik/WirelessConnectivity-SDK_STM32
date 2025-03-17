@@ -29,14 +29,15 @@
  */
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #ifndef SKOLL_I_H_INCLUDED
 #define SKOLL_I_H_INCLUDED
 
-#include <global/global_types.h>
 #include "EZSerial_Host/ezsapi.h"
+#include <global/global_types.h>
 #include <stdbool.h>
 
 /* timings */
@@ -48,30 +49,30 @@ extern "C" {
 
 #define WE_BLUETOOTH_COMPANY_IDENTIFIER 0x031A
 
-/*  Skoll-I pins */
-typedef struct Skoll_I_Pins_t
-{
-	WE_Pin_t Skoll_I_Pin_Reset;
-	WE_Pin_t Skoll_I_Pin_SPP;
-	WE_Pin_t Skoll_I_Pin_Connection;
-	WE_Pin_t Skoll_I_Pin_Role;
-} Skoll_I_Pins_t;
+    /*  Skoll-I pins */
+    typedef struct Skoll_I_Pins_t
+    {
+        WE_Pin_t Skoll_I_Pin_Reset;
+        WE_Pin_t Skoll_I_Pin_SPP;
+        WE_Pin_t Skoll_I_Pin_Connection;
+        WE_Pin_t Skoll_I_Pin_Role;
+    } Skoll_I_Pins_t;
 
-/* Bluetooth Classic roles */
-typedef enum
-{
-	Skoll_I_BluetoothClassic_Role_Master,
-	Skoll_I_BluetoothClassic_Role_Slave,
-} Skoll_I_BluetoothClassic_Role_t;
+    /* Bluetooth Classic roles */
+    typedef enum
+    {
+        Skoll_I_BluetoothClassic_Role_Master,
+        Skoll_I_BluetoothClassic_Role_Slave,
+    } Skoll_I_BluetoothClassic_Role_t;
 
-/* Bluetooth LE roles */
-typedef enum
-{
-	Skoll_I_BluetoothLE_Role_Peripheral,
-	Skoll_I_BluetoothLE_Role_Central,
-} Skoll_I_BluetoothLE_Role_t;
+    /* Bluetooth LE roles */
+    typedef enum
+    {
+        Skoll_I_BluetoothLE_Role_Peripheral,
+        Skoll_I_BluetoothLE_Role_Central,
+    } Skoll_I_BluetoothLE_Role_t;
 
-/**
+    /**
  * @brief Initialize the Skoll_I interface for serial interface
  *
  * @param[in] uartP:                      definition of the uart connected to the module
@@ -82,17 +83,17 @@ typedef enum
  * @return true if initialization succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_Init(WE_UART_t *uartP, Skoll_I_Pins_t *pinoutP, void (*event_handler_in)(ezs_packet_t *packet), void (*transparentdata_handler_in)(uint8_t *payload, uint16_t payloadLength));
+    extern bool Skoll_I_Init(WE_UART_t* uartP, Skoll_I_Pins_t* pinoutP, void (*event_handler_in)(ezs_packet_t* packet), void (*transparentdata_handler_in)(uint8_t* payload, uint16_t payloadLength));
 
-/**
+    /**
  * @brief Deinitialize the Skoll_I interface
  *
  * @return true if deinitialization succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_Deinit(void);
+    extern bool Skoll_I_Deinit(void);
 
-/**
+    /**
  * @brief Configures the Skoll_I UART interface
  *
  * @details: Disables echo and sets the mode to binary. Furthermore it defines whether the module
@@ -102,33 +103,37 @@ extern bool Skoll_I_Deinit(void);
  * @return true if configuration succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_Configure(void);
+    extern bool Skoll_I_Configure(void);
 
-/**
+    /**
  * @brief Reset the Skoll_I by pin
  *
  * @return true if reset succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_PinReset(void);
+    extern bool Skoll_I_PinReset(void);
 
-/**
+    /**
  * @brief Check pin if Bluetooth connection is open
  *
- * @return true if connection is open,
+ * @param[out] connectionOpenStateP: Bluetooth connection open state
+ *
+ * @return true if request is successful,
  *         false otherwise
  */
-extern bool Skoll_I_PinIsConnectionOpen(void);
+    extern bool Skoll_I_PinIsConnectionOpen(bool* connectionOpenStateP);
 
-/**
+    /**
  * @brief Check pin if Bluetooth channel is open
  *
- * @return true if channel is open,
+ * @param[out] channelOpenStateP: Bluetooth channel open state
+ *
+ * @return true if request is successful,
  *         false otherwise
  */
-extern bool Skoll_I_PinIsChannelOpen(void);
+    extern bool Skoll_I_PinIsChannelOpen(bool* channelOpenStateP);
 
-/**
+    /**
  * @brief Set role of Bluetooth LE interface via module pin
  *
  * @param[in] role: Role
@@ -136,9 +141,9 @@ extern bool Skoll_I_PinIsChannelOpen(void);
  * @return true if succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_BluetoothLE_PinSetRole(Skoll_I_BluetoothLE_Role_t role);
+    extern bool Skoll_I_BluetoothLE_PinSetRole(Skoll_I_BluetoothLE_Role_t role);
 
-/**
+    /**
  * @brief Disconnects the Bluetooth LE connection via commands
  *
  * @details: Pin is used to switch to command mode, before disconnecting
@@ -148,9 +153,9 @@ extern bool Skoll_I_BluetoothLE_PinSetRole(Skoll_I_BluetoothLE_Role_t role);
  * @return true if succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_BluetoothLE_PinDisconnect(uint8_t conn_handle);
+    extern bool Skoll_I_BluetoothLE_PinDisconnect(uint8_t conn_handle);
 
-/**
+    /**
  * @brief Transmit data in case the module entered the transparent Bluetooth LE CYSPP data mode
  *
  * @param[in] length: Length of the data
@@ -159,17 +164,17 @@ extern bool Skoll_I_BluetoothLE_PinDisconnect(uint8_t conn_handle);
  * @return true if succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_BluetoothLE_CYSPPTransparentTransmit(uint16_t length, const uint8_t *data);
+    extern bool Skoll_I_BluetoothLE_CYSPPTransparentTransmit(uint16_t length, const uint8_t* data);
 
-/**
+    /**
  * @brief Disconnects the Bluetooth Classic connection via pin
  *
  * @return true if succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_BluetoothClassic_PinDisconnect(void);
+    extern bool Skoll_I_BluetoothClassic_PinDisconnect(void);
 
-/**
+    /**
  * @brief Transmit data in case the module entered the transparent Bluetooth Classic SPP data mode
  *
  * @param[in] length: Length of the data
@@ -178,12 +183,11 @@ extern bool Skoll_I_BluetoothClassic_PinDisconnect(void);
  * @return true if succeeded,
  *         false otherwise
  */
-extern bool Skoll_I_BluetoothClassic_SPPTransparentTransmit(uint16_t length, const uint8_t *data);
+    extern bool Skoll_I_BluetoothClassic_SPPTransparentTransmit(uint16_t length, const uint8_t* data);
 
-extern ezs_packet_t* Skoll_I_Wait4CNF(ezs_packet_type_t type, uint32_t max_time_ms);
+    extern ezs_packet_t* Skoll_I_Wait4CNF(ezs_packet_type_t type, uint32_t max_time_ms);
 #endif // SKOLL_I_H_INCLUDED
 
 #ifdef __cplusplus
 }
 #endif
-

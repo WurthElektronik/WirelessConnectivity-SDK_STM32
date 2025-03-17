@@ -32,13 +32,14 @@
 #ifndef DAPHNISI_P2P_EXAMPLE_H_INCLUDED
 #define DAPHNISI_P2P_EXAMPLE_H_INCLUDED
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void DaphnisI_P2P_Send();
+    extern void DaphnisI_P2P_Send();
 
 #ifdef __cplusplus
 }

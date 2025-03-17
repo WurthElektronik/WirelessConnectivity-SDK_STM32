@@ -30,19 +30,19 @@
 
 #include <TarvosE/TarvosE.h>
 #include <global/global.h>
+#include <global_platform_types.h>
 #include <stdio.h>
 #include <string.h>
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
-
 
 /**
  * @brief Definition of the pins
  */
-static TarvosE_Pins_t TarvosE_pins;
+static TarvosE_Pins_t TarvosE_pins = {
+    .TarvosE_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+    .TarvosE_Pin_SleepWakeUp = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_9)),
+    .TarvosE_Pin_Boot = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_7)),
+    .TarvosE_Pin_Mode = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_8)),
+};
 
 /**
  * @brief Definition of the uart
@@ -58,51 +58,40 @@ static void CommandModeExample();
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char *str, bool success)
-{
-	printf("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+static void Examples_Print(char* str, bool success) { printf("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Callback called when data has been received via radio
  */
-static void RxCallback(uint8_t *payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
 {
-	uint8_t i = 0;
-	printf("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
-	printf("0x");
-	for (i = 0; i < payload_length; i++)
-	{
-		printf("%02x", *(payload + i));
-	}
-	printf(" (");
-	for (i = 0; i < payload_length; i++)
-	{
-		printf("%c", *(payload + i));
-	}
-	printf(")\r\n");
-	fflush(stdout);
+    uint8_t i = 0;
+    printf("Received data from address (NetID:0x%02x,Addr:0x%02x%02x) with %d dBm:\n-> ", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
+    printf("0x");
+    for (i = 0; i < payload_length; i++)
+    {
+        printf("%02x", *(payload + i));
+    }
+    printf(" (");
+    for (i = 0; i < payload_length; i++)
+    {
+        printf("%c", *(payload + i));
+    }
+    printf(")\r\n");
+    fflush(stdout);
 }
 
 void TarvosE_Examples(void)
 {
-	TarvosE_pins.TarvosE_Pin_Reset.port = (void*) GPIOA;
-	TarvosE_pins.TarvosE_Pin_Reset.pin = GPIO_PIN_10;
-	TarvosE_pins.TarvosE_Pin_SleepWakeUp.port = (void*) GPIOA;
-	TarvosE_pins.TarvosE_Pin_SleepWakeUp.pin = GPIO_PIN_9;
-	TarvosE_pins.TarvosE_Pin_Boot.port = (void*) GPIOA;
-	TarvosE_pins.TarvosE_Pin_Boot.pin = GPIO_PIN_7;
-	TarvosE_pins.TarvosE_Pin_Mode.port = (void*) GPIOA;
-	TarvosE_pins.TarvosE_Pin_Mode.pin = GPIO_PIN_8;
 
-	TarvosE_uart.baudrate = TARVOSE_DEFAULT_BAUDRATE;
-	TarvosE_uart.flowControl = WE_FlowControl_NoFlowControl;
-	TarvosE_uart.parity = WE_Parity_None;
-	TarvosE_uart.uartInit = WE_UART1_Init;
-	TarvosE_uart.uartDeinit = WE_UART1_DeInit;
-	TarvosE_uart.uartTransmit = WE_UART1_Transmit;
+    TarvosE_uart.baudrate = TARVOSE_DEFAULT_BAUDRATE;
+    TarvosE_uart.flowControl = WE_FlowControl_NoFlowControl;
+    TarvosE_uart.parity = WE_Parity_None;
+    TarvosE_uart.uartInit = WE_UART1_Init;
+    TarvosE_uart.uartDeinit = WE_UART1_DeInit;
+    TarvosE_uart.uartTransmit = WE_UART1_Transmit;
 
-	CommandModeExample();
+    CommandModeExample();
 }
 
 /**
@@ -110,36 +99,36 @@ void TarvosE_Examples(void)
  */
 void CommandModeExample(void)
 {
-	if (false == TarvosE_Init(&TarvosE_uart, &TarvosE_pins, TarvosE_AddressMode_0, RxCallback))
-	{
-		printf("Initialization error\r\n");
-		return;
-	}
+    if (false == TarvosE_Init(&TarvosE_uart, &TarvosE_pins, TarvosE_AddressMode_0, RxCallback))
+    {
+        printf("Initialization error\r\n");
+        return;
+    }
 
-	uint8_t serialNr[4];
-	Examples_Print("Read serial number", TarvosE_GetSerialNumber(serialNr));
-	printf("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
-	WE_Delay(500);
+    uint8_t serialNr[4];
+    Examples_Print("Read serial number", TarvosE_GetSerialNumber(serialNr));
+    printf("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
+    WE_Delay(500);
 
-	uint8_t fwVersion[3];
-	Examples_Print("Read firmware version", TarvosE_GetFirmwareVersion(fwVersion));
-	printf("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
-	WE_Delay(500);
+    uint8_t fwVersion[3];
+    Examples_Print("Read firmware version", TarvosE_GetFirmwareVersion(fwVersion));
+    printf("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
+    WE_Delay(500);
 
-	uint8_t data[4 * 16];
-	for (uint16_t i = 0; i < sizeof(data); i++)
-	{
-		data[i] = (uint8_t) i;
-	}
+    uint8_t data[4 * 16];
+    for (uint16_t i = 0; i < sizeof(data); i++)
+    {
+        data[i] = (uint8_t)i;
+    }
 
-	while (1)
-	{
-		if (false == TarvosE_Transmit(data, sizeof(data)))
-		{
-			printf("Transmission error\r\n");
-		}
-		WE_Delay(500);
-	}
+    while (1)
+    {
+        if (false == TarvosE_Transmit(data, sizeof(data)))
+        {
+            printf("Transmission error\r\n");
+        }
+        WE_Delay(500);
+    }
 
-	return;
+    return;
 }

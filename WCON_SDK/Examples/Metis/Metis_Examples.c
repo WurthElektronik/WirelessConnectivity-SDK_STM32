@@ -30,13 +30,9 @@
 
 #include <Metis/Metis.h>
 #include <global/global.h>
+#include <global_platform_types.h>
 #include <stdio.h>
 #include <string.h>
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
 
 /* Pick the example to be executed in the main function. */
 static void CommandModeExample();
@@ -44,98 +40,58 @@ static void CommandModeExample();
 /**
  * @brief Example wMBUS frame
  */
-static uint8_t APP_Data[140] = {
-		0x48, /* Length Field */
+static uint8_t APP_Data[140] = {0x48, /* Length Field */
 
-		/*0*/
-		0x44, /* C-Feld */
-		0xA2,
-		0x05, /* M-Feld (AMB) */
-		0x11,
-		0x47,
-		0x15,
-		0x08, /* ID (Funkmodul) */
-		0x01, /* Version (2) */
-		0x37, /* Radio Converter (meter side) */
+                                /*0*/
+                                0x44,                   /* C-Feld */
+                                0xA2, 0x05,             /* M-Feld (AMB) */
+                                0x11, 0x47, 0x15, 0x08, /* ID (Funkmodul) */
+                                0x01,                   /* Version (2) */
+                                0x37,                   /* Radio Converter (meter side) */
 
-		/*9*/
-		0x72, /* CI-Feld (12 Byte Header) */
-		0x78,
-		0x56,
-		0x34,
-		0x12, /* ID (Zähler) */
-		0xA2,
-		0x05, /* M-Feld (AMB) */
-		0x01, /* Version (1) */
-		0x37, /* Radio Converter (meter side) */
-		0x00, /* AccCounter */
-		0x00, /* Statusbyte */
-		0x00, /* Signaturwort, hier: encryption mode 5 ohne verlüsselte blöcke */
-		0x05,
+                                /*9*/
+                                0x72,                   /* CI-Feld (12 Byte Header) */
+                                0x78, 0x56, 0x34, 0x12, /* ID (Zähler) */
+                                0xA2, 0x05,             /* M-Feld (AMB) */
+                                0x01,                   /* Version (1) */
+                                0x37,                   /* Radio Converter (meter side) */
+                                0x00,                   /* AccCounter */
+                                0x00,                   /* Statusbyte */
+                                0x00,                   /* Signaturwort, hier: encryption mode 5 ohne verlüsselte blöcke */
+                                0x05,
 
-		/*22*/
-		/*-*/
-		0x2F, /* AES Verification / Idle Filler */
-		0x2F, /* AES Verification / Idle Filler */
+                                /*22*/
+                                /*-*/
+                                0x2F, /* AES Verification / Idle Filler */
+                                0x2F, /* AES Verification / Idle Filler */
 
-		/*24*/
-		0x0E, /* DIV 12Stellige BCD Zahl */
-		0x13, /* VIF Volumen in l */
-		0x00,
-		0x00,
-		0x00,
-		0x00,
-		0x00,
-		0x00,
+                                /*24*/
+                                0x0E, /* DIV 12Stellige BCD Zahl */
+                                0x13, /* VIF Volumen in l */
+                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 
-		/*32*/
-		0x0D, /* DIV Variable Datenlänge */
-		0xFD, /* VIF Zweite Erweiterungstabelle */
-		0x11, /* VIFE Abnehmer */
-		0x20, /* 23 Stellen ASCII String */
-		'e',
-		'd',
-		/*-*/
-		'o',
-		'M',
-		' ',
-		'S', /* = index 41 */
-		' ',
-		' ',
-		'A',/* = index 44 */
-		' ',
-		'F',
-		'F',
-		' ',
-		'H',
-		'b',
-		'm',
-		'G',
-		' ',
-		/*-*/
-		's',
-		's',
-		'e',
-		'l',
-		'e',
-		'r',
-		'i',
-		'w',
-		' ',
-		'R',
-		'E',
-		'B',
-		'M',
-		'A',
-		/*70*/
+                                /*32*/
+                                0x0D, /* DIV Variable Datenlänge */
+                                0xFD, /* VIF Zweite Erweiterungstabelle */
+                                0x11, /* VIFE Abnehmer */
+                                0x20, /* 23 Stellen ASCII String */
+                                'e', 'd',
+                                /*-*/
+                                'o', 'M', ' ', 'S', /* = index 41 */
+                                ' ', ' ', 'A',      /* = index 44 */
+                                ' ', 'F', 'F', ' ', 'H', 'b', 'm', 'G', ' ',
+                                /*-*/
+                                's', 's', 'e', 'l', 'e', 'r', 'i', 'w', ' ', 'R', 'E', 'B', 'M', 'A',
+                                /*70*/
 
-		0x2F,
-		0x2F };
+                                0x2F, 0x2F};
 
 /**
  * @brief Definition of the pins
  */
-Metis_Pins_t Metis_pins;
+Metis_Pins_t Metis_pins = {
+    .Metis_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+};
 
 /**
  * @brief Definition of the uart
@@ -148,44 +104,39 @@ WE_UART_t Metis_uart;
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char *str, bool success)
-{
-	WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Callback for data reception
  */
-static void RxCallback(uint8_t *payload, uint8_t payload_length, int8_t rssi)
+static void RxCallback(uint8_t* payload, uint8_t payload_length, int8_t rssi)
 {
-	uint8_t i = 0;
-	WE_DEBUG_PRINT("Received data with %d dBm:\n-> ", rssi);
-	WE_DEBUG_PRINT("0x");
-	for (i = 0; i < payload_length; i++)
-	{
-		WE_DEBUG_PRINT("%02x", *(payload + i));
-	}
-	WE_DEBUG_PRINT(" (");
-	for (i = 0; i < payload_length; i++)
-	{
-		WE_DEBUG_PRINT("%c", *(payload + i));
-	}
-	WE_DEBUG_PRINT(")\r\n");
+    uint8_t i = 0;
+    WE_DEBUG_PRINT("Received data with %d dBm:\n-> ", rssi);
+    WE_DEBUG_PRINT("0x");
+    for (i = 0; i < payload_length; i++)
+    {
+        WE_DEBUG_PRINT("%02x", *(payload + i));
+    }
+    WE_DEBUG_PRINT(" (");
+    for (i = 0; i < payload_length; i++)
+    {
+        WE_DEBUG_PRINT("%c", *(payload + i));
+    }
+    WE_DEBUG_PRINT(")\r\n");
 }
 
 void Metis_Examples(void)
 {
-	Metis_pins.Metis_Pin_Reset.port = (void*) GPIOA;
-	Metis_pins.Metis_Pin_Reset.pin = GPIO_PIN_10;
 
-	Metis_uart.baudrate = METIS_DEFAULT_BAUDRATE;
-	Metis_uart.flowControl = WE_FlowControl_NoFlowControl;
-	Metis_uart.parity = WE_Parity_None;
-	Metis_uart.uartInit = WE_UART1_Init;
-	Metis_uart.uartDeinit = WE_UART1_DeInit;
-	Metis_uart.uartTransmit = WE_UART1_Transmit;
+    Metis_uart.baudrate = METIS_DEFAULT_BAUDRATE;
+    Metis_uart.flowControl = WE_FlowControl_NoFlowControl;
+    Metis_uart.parity = WE_Parity_None;
+    Metis_uart.uartInit = WE_UART1_Init;
+    Metis_uart.uartDeinit = WE_UART1_DeInit;
+    Metis_uart.uartTransmit = WE_UART1_Transmit;
 
-	CommandModeExample();
+    CommandModeExample();
 }
 
 /**
@@ -193,30 +144,30 @@ void Metis_Examples(void)
  */
 static void CommandModeExample()
 {
-	if (false == Metis_Init(&Metis_uart, &Metis_pins, Metis_Frequency_868, Metis_Mode_Preselect_868_S2, true, RxCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (false == Metis_Init(&Metis_uart, &Metis_pins, Metis_Frequency_868, Metis_Mode_Preselect_868_S2, true, RxCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	uint8_t serialNr[4];
-	Examples_Print("Read serial number", Metis_GetSerialNumber(serialNr));
-	WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
-	WE_Delay(500);
+    uint8_t serialNr[4];
+    Examples_Print("Read serial number", Metis_GetSerialNumber(serialNr));
+    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
+    WE_Delay(500);
 
-	uint8_t fwVersion[3];
-	Examples_Print("Read firmware version", Metis_GetFirmwareVersion(fwVersion));
-	WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
-	WE_Delay(500);
+    uint8_t fwVersion[3];
+    Examples_Print("Read firmware version", Metis_GetFirmwareVersion(fwVersion));
+    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
+    WE_Delay(500);
 
-	while (1)
-	{
-		if (!Metis_Transmit(APP_Data))
-		{
-			WE_DEBUG_PRINT("Transmission failed\r\n");
-		}
-		WE_Delay(500);
-	}
+    while (1)
+    {
+        if (!Metis_Transmit(APP_Data))
+        {
+            WE_DEBUG_PRINT("Transmission failed\r\n");
+        }
+        WE_Delay(500);
+    }
 
-	return;
+    return;
 }

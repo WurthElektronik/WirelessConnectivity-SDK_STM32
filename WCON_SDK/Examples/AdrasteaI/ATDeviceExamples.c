@@ -22,11 +22,11 @@
  *
  ***************************************************************************************************
  */
-#include <stdio.h>
-#include <AdrasteaI/ATDeviceExamples.h>
 #include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/ATDeviceExamples.h>
 #include <AdrasteaI/AdrasteaI.h>
 #include <AdrasteaI/AdrasteaI_Examples.h>
+#include <stdio.h>
 
 /**
  * @brief Running device specific commands (read out configuration values)
@@ -34,64 +34,64 @@
  */
 void ATDeviceExample()
 {
-	WE_DEBUG_PRINT("*** Start of Adrastea-I ATDevice example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of Adrastea-I ATDevice example ***\r\n");
 
-	if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, NULL))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, NULL))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	WE_Delay(1000);
+    WE_Delay(1000);
 
-	AdrasteaI_ATDevice_Manufacturer_Identity_t manufacturerIdentity;
+    AdrasteaI_ATDevice_Manufacturer_Identity_t manufacturerIdentity;
 
-	bool ret = AdrasteaI_ATDevice_RequestManufacturerIdentity(&manufacturerIdentity);
-	AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
-	WE_DEBUG_PRINT("Manufacturer Identity: %s\r\n", manufacturerIdentity);
+    bool ret = AdrasteaI_ATDevice_RequestManufacturerIdentity(&manufacturerIdentity);
+    AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
+    WE_DEBUG_PRINT("Manufacturer Identity: %s\r\n", manufacturerIdentity);
 
-	AdrasteaI_ATDevice_Model_Identity_t modelIdentity;
-	ret = AdrasteaI_ATDevice_RequestModelIdentity(&modelIdentity);
-	AdrasteaI_ExamplesPrint("Request Model Identity", ret);
-	WE_DEBUG_PRINT("Model Identity: %s\r\n", modelIdentity);
+    AdrasteaI_ATDevice_Model_Identity_t modelIdentity;
+    ret = AdrasteaI_ATDevice_RequestModelIdentity(&modelIdentity);
+    AdrasteaI_ExamplesPrint("Request Model Identity", ret);
+    WE_DEBUG_PRINT("Model Identity: %s\r\n", modelIdentity);
 
-	AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
-	ret = AdrasteaI_ATDevice_RequestRevisionIdentity(&revisionIdentity);
-	AdrasteaI_ExamplesPrint("Request Revision Identity", ret);
-	WE_DEBUG_PRINT("Revision Identity Major: %d Minor: %d \r\n", revisionIdentity.major, revisionIdentity.minor);
+    AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
+    ret = AdrasteaI_ATDevice_RequestRevisionIdentity(&revisionIdentity);
+    AdrasteaI_ExamplesPrint("Request Revision Identity", ret);
+    WE_DEBUG_PRINT("Revision Identity Major: %d Minor: %d \r\n", revisionIdentity.major, revisionIdentity.minor);
 
-	AdrasteaI_ATDevice_IMEI_t imei;
-	ret = AdrasteaI_ATDevice_RequestIMEI(&imei);
-	AdrasteaI_ExamplesPrint("Request IMEI", ret);
-	WE_DEBUG_PRINT("IMEI: %s\r\n", imei);
+    AdrasteaI_ATDevice_IMEI_t imei;
+    ret = AdrasteaI_ATDevice_RequestIMEI(&imei);
+    AdrasteaI_ExamplesPrint("Request IMEI", ret);
+    WE_DEBUG_PRINT("IMEI: %s\r\n", imei);
 
-	AdrasteaI_ATDevice_IMEISV_t imeisv;
-	ret = AdrasteaI_ATDevice_RequestIMEISV(&imeisv);
-	AdrasteaI_ExamplesPrint("Request IMEISV", ret);
-	WE_DEBUG_PRINT("IMEISV: %s\r\n", imeisv);
+    AdrasteaI_ATDevice_IMEISV_t imeisv;
+    ret = AdrasteaI_ATDevice_RequestIMEISV(&imeisv);
+    AdrasteaI_ExamplesPrint("Request IMEISV", ret);
+    WE_DEBUG_PRINT("IMEISV: %s\r\n", imeisv);
 
-	AdrasteaI_ATDevice_SVN_t svn;
-	ret = AdrasteaI_ATDevice_RequestSVN(&svn);
-	AdrasteaI_ExamplesPrint("Request SVN", ret);
-	WE_DEBUG_PRINT("SVN: %s\r\n", svn);
+    AdrasteaI_ATDevice_SVN_t svn;
+    ret = AdrasteaI_ATDevice_RequestSVN(&svn);
+    AdrasteaI_ExamplesPrint("Request SVN", ret);
+    WE_DEBUG_PRINT("SVN: %s\r\n", svn);
 
-	AdrasteaI_ATDevice_Serial_Number_t serialNumber;
-	ret = AdrasteaI_ATDevice_RequestSerialNumber(&serialNumber);
-	AdrasteaI_ExamplesPrint("Request Serial Number", ret);
-	WE_DEBUG_PRINT("Serial Number: %s\r\n", serialNumber);
+    AdrasteaI_ATDevice_Serial_Number_t serialNumber;
+    ret = AdrasteaI_ATDevice_RequestSerialNumber(&serialNumber);
+    AdrasteaI_ExamplesPrint("Request Serial Number", ret);
+    WE_DEBUG_PRINT("Serial Number: %s\r\n", serialNumber);
 
-	AdrasteaI_ATDevice_Character_Set_t charset;
-	ret = AdrasteaI_ATDevice_GetTECharacterSet(&charset);
-	AdrasteaI_ExamplesPrint("Request Charset", ret);
-	WE_DEBUG_PRINT("Charset: %d\r\n", charset);
+    AdrasteaI_ATDevice_Character_Set_t charset;
+    ret = AdrasteaI_ATDevice_GetTECharacterSet(&charset);
+    AdrasteaI_ExamplesPrint("Request Charset", ret);
+    WE_DEBUG_PRINT("Charset: %d\r\n", charset);
 
-	char capList[64];
-	ret = AdrasteaI_ATDevice_GetCapabilitiesList(capList, sizeof(capList));
-	AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
-	WE_DEBUG_PRINT("Manufacturer Identity: %s\r\n", capList);
+    char capList[64];
+    ret = AdrasteaI_ATDevice_GetCapabilitiesList(capList, sizeof(capList));
+    AdrasteaI_ExamplesPrint("Request Manufacturer Identity", ret);
+    WE_DEBUG_PRINT("Manufacturer Identity: %s\r\n", capList);
 
-	AdrasteaI_ATDevice_Phone_Functionality_t phoneFun;
-	ret = AdrasteaI_ATDevice_GetPhoneFunctionality(&phoneFun);
-	AdrasteaI_ExamplesPrint("Request Phone Functionality", ret);
-	WE_DEBUG_PRINT("Phone Functionality: %d\r\n", phoneFun);
+    AdrasteaI_ATDevice_Phone_Functionality_t phoneFun;
+    ret = AdrasteaI_ATDevice_GetPhoneFunctionality(&phoneFun);
+    AdrasteaI_ExamplesPrint("Request Phone Functionality", ret);
+    WE_DEBUG_PRINT("Phone Functionality: %d\r\n", phoneFun);
 }

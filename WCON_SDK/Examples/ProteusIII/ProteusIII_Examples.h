@@ -34,10 +34,11 @@
 #define PROTEUSIII_EXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ProteusIII_Examples(void);
+    extern void ProteusIII_Examples(void);
 
 #ifdef __cplusplus
 }

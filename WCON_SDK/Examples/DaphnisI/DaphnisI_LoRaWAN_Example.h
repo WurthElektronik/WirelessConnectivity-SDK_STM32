@@ -33,10 +33,11 @@
 #define DAPHNISI_LORAWAN_EXAMPLE_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void DaphnisI_OTAA_JoinExample();
+    extern void DaphnisI_OTAA_JoinExample();
 
 #ifdef __cplusplus
 }

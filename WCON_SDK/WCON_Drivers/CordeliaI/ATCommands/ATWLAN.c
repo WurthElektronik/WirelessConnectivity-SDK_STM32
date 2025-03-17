@@ -27,109 +27,49 @@
  * @file
  * @brief AT commands for WLAN functionality.
  */
-#include <global/ATCommands.h>
 #include <CordeliaI/ATCommands/ATWLAN.h>
 #include <CordeliaI/CordeliaI.h>
+#include <global/ATCommands.h>
 
+static const char* CordeliaI_ATWLAN_SetIDStrings[CordeliaI_ATWLAN_SetID_NumberOfValues] = {"general"};
 
-static const char *CordeliaI_ATWLAN_SetIDStrings[CordeliaI_ATWLAN_SetID_NumberOfValues] = {
-		"general" };
+static const char* CordeliaI_ATWLAN_SetGetGeneralStrings[CordeliaI_ATWLAN_SetGeneral_NumberOfValues] = {"COUNTRY_CODE", "STA_TX_POWER", "SCAN_PARAMS", "SUSPEND_PROFILES", "DISABLE_ENT_SERVER_AUTH"};
 
-static const char *CordeliaI_ATWLAN_SetGetGeneralStrings[CordeliaI_ATWLAN_SetGeneral_NumberOfValues] = {
-		"COUNTRY_CODE",
-		"STA_TX_POWER",
-		"SCAN_PARAMS",
-		"SUSPEND_PROFILES",
-		"DISABLE_ENT_SERVER_AUTH" };
+static const char* CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_NumberOfValues] = {"connection", "scan", "PM", "P2P"};
 
-static const char *CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_NumberOfValues] = {
-		"connection",
-		"scan",
-		"PM",
-		"P2P" };
+static const char* CordeliaI_ATWLAN_PolicyConnectionStrings[CordeliaI_ATWLAN_PolicyConnection_NumberOfValues] = {"auto", "fast", "P2P"};
 
-static const char *CordeliaI_ATWLAN_PolicyConnectionStrings[CordeliaI_ATWLAN_PolicyConnection_NumberOfValues] = {
-		"auto",
-		"fast",
-		"P2P" };
+static const char* CordeliaI_ATWLAN_PolicyScanStrings[CordeliaI_ATWLAN_PolicyScan_NumberOfValues] = {"Hidden_SSID", "No_Hidden_SSID", "Disable_Scan"};
 
-static const char *CordeliaI_ATWLAN_PolicyScanStrings[CordeliaI_ATWLAN_PolicyScan_NumberOfValues] = {
-		"Hidden_SSID",
-		"No_Hidden_SSID",
-		"Disable_Scan" };
+static const char* CordeliaI_ATWLAN_PolicyPMStrings[CordeliaI_ATWLAN_PolicyPM_NumberOfValues] = {"normal", "low_latency", "low_power", "long_sleep"};
 
-static const char *CordeliaI_ATWLAN_PolicyPMStrings[CordeliaI_ATWLAN_PolicyPM_NumberOfValues] = {
-		"normal",
-		"low_latency",
-		"low_power",
-		"long_sleep" };
+static const char* CordeliaI_ATWLAN_PolicyP2PStrings[CordeliaI_ATWLAN_PolicyP2P_NumberOfValues] = {"CLIENT", "GROUP_OWNER", "NEGOTIATE"};
 
-static const char *CordeliaI_ATWLAN_PolicyP2PStrings[CordeliaI_ATWLAN_PolicyP2P_NumberOfValues] = {
-		"CLIENT",
-		"GROUP_OWNER",
-		"NEGOTIATE" };
+static const char* CordeliaI_ATWLAN_PolicyP2PValue_Strings[CordeliaI_ATWLAN_PolicyP2PValue_NumberOfValues] = {"ACTIVE", "PASSIVE", "RAND_BACKOFF"};
 
-static const char *CordeliaI_ATWLAN_PolicyP2PValue_Strings[CordeliaI_ATWLAN_PolicyP2PValue_NumberOfValues] = {
-		"ACTIVE",
-		"PASSIVE",
-		"RAND_BACKOFF" };
+static const char* CordeliaI_ATWLAN_SecurityTypeStrings[CordeliaI_ATWLAN_SecurityType_NumberOfValues] = {"OPEN", "WEP", "WEP_SHARED", "WPA_WPA2", "WPA2_PLUS", "WPA3", "WPA_ENT", "WPS_PBC", "WPS_PIN"};
 
-static const char *CordeliaI_ATWLAN_SecurityTypeStrings[CordeliaI_ATWLAN_SecurityType_NumberOfValues] = {
-		"OPEN",
-		"WEP",
-		"WEP_SHARED",
-		"WPA_WPA2",
-		"WPA2_PLUS",
-		"WPA3",
-		"WPA_ENT",
-		"WPS_PBC",
-		"WPS_PIN" };
+static const char* CordeliaI_ATWLAN_ScanSecurityTypeStrings[CordeliaI_ATWLAN_ScanSecurityType_NumberOfValues] = {"OPEN", "WEP", "WPA", "WPA2", "WPA_WPA2"};
 
-static const char *CordeliaI_ATWLAN_ScanSecurityTypeStrings[CordeliaI_ATWLAN_ScanSecurityType_NumberOfValues] = {
-		"OPEN",
-		"WEP",
-		"WPA",
-		"WPA2",
-		"WPA_WPA2" };
+static const char* CordeliaI_ATWLAN_ScanCipherStrings[CordeliaI_ATWLAN_ScanCipherType_NumberOfValues] = {"NONE", "WEP40", "WEP104", "TKIP", "CCMP"};
 
-static const char *CordeliaI_ATWLAN_ScanCipherStrings[CordeliaI_ATWLAN_ScanCipherType_NumberOfValues] = {
-		"NONE",
-		"WEP40",
-		"WEP104",
-		"TKIP",
-		"CCMP" };
+static const char* CordeliaI_ATWLAN_ScanKeyMgmntStrings[CordeliaI_ATWLAN_ScanKeyManagementType_NumberOfValues] = {"NONE", "802_1_x", "PSK"};
 
-static const char *CordeliaI_ATWLAN_ScanKeyMgmntStrings[CordeliaI_ATWLAN_ScanKeyManagementType_NumberOfValues] = {
-		"NONE",
-		"802_1_x",
-		"PSK" };
-
-static const char *CordeliaI_ATWLAN_SecurityEAPStrings[CordeliaI_ATWLAN_SecurityEAP_NumberOfValues] = {
-		"",
-		"TLS",
-		"TTLS_TLS",
-		"TTLS_MSCHAPv2",
-		"TTLS_PSK",
-		"PEAP0_TLS",
-		"PEAP0_MSCHAPv2",
-		"PEAP0_PSK",
-		"PEAP1_TLS",
-		"PEAP1_PSK" };
-
+static const char* CordeliaI_ATWLAN_SecurityEAPStrings[CordeliaI_ATWLAN_SecurityEAP_NumberOfValues] = {"", "TLS", "TTLS_TLS", "TTLS_MSCHAPv2", "TTLS_PSK", "PEAP0_TLS", "PEAP0_MSCHAPv2", "PEAP0_PSK", "PEAP1_TLS", "PEAP1_PSK"};
 
 static bool CordeliaI_ATWLAN_IsInputValidWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option);
 static bool CordeliaI_ATWLAN_IsInputValidWlanSet(CordeliaI_ATWLAN_SetID_t id, uint8_t option);
 
-static bool CordeliaI_ATWLAN_AddConnectionArguments(char *pOutString, CordeliaI_ATWLAN_ConnectionArguments_t connectionArgs, char lastDelim);
-static bool CordeliaI_ATWLAN_AddArgumentsWlanGet(char *pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option);
-static bool CordeliaI_ATWLAN_AddArgumentsWlanSet(char *pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t *pValues);
+static bool CordeliaI_ATWLAN_AddConnectionArguments(char* pOutString, CordeliaI_ATWLAN_ConnectionArguments_t connectionArgs, char lastDelim);
+static bool CordeliaI_ATWLAN_AddArgumentsWlanGet(char* pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option);
+static bool CordeliaI_ATWLAN_AddArgumentsWlanSet(char* pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues);
 
-static bool CordeliaI_ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, CordeliaI_ATWLAN_ScanEntry_t *pOutScanEntry);
-static bool CordeliaI_ATWLAN_ParseResponseWlanAddProfile(char **pAtCommand, uint8_t *pOutIndex);
-static bool CordeliaI_ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, CordeliaI_ATWLAN_Profile_t *pOutProfile);
-static bool CordeliaI_ATWLAN_ParseResponseWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option, char **pAtCommand, CordeliaI_ATWLAN_Settings_t *pValues);
+static bool CordeliaI_ATWLAN_ParseResponseWlanScanEntry(char** pAtCommand, CordeliaI_ATWLAN_ScanEntry_t* pOutScanEntry);
+static bool CordeliaI_ATWLAN_ParseResponseWlanAddProfile(char** pAtCommand, uint8_t* pOutIndex);
+static bool CordeliaI_ATWLAN_ParseResponseWlanGetProfile(char** pAtCommand, CordeliaI_ATWLAN_Profile_t* pOutProfile);
+static bool CordeliaI_ATWLAN_ParseResponseWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option, char** pAtCommand, CordeliaI_ATWLAN_Settings_t* pValues);
 
-static bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char **pRespondCommand);
+static bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char** pRespondCommand);
 
 /**
  * @brief Initiates a WLAN scan (using the AT+wlanScan command).
@@ -144,53 +84,53 @@ static bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char 
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, CordeliaI_ATWLAN_ScanEntry_t *pOutValues, uint8_t *pOutNumEntries)
+bool CordeliaI_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, CordeliaI_ATWLAN_ScanEntry_t* pOutValues, uint8_t* pOutNumEntries)
 {
 
-	if ((index >= 30) || (deviceCount >= 30))
-	{
-		return false;
-	}
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    if ((index >= 30) || (deviceCount >= 30))
+    {
+        return false;
+    }
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanScan=");
+    strcpy(pRequestCommand, "AT+wlanScan=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, deviceCount, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, deviceCount, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_WlanScan), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_WlanScan), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	uint8_t numEntries = 0;
-	for (uint8_t i = 0; i < deviceCount; i++)
-	{
-		if (CordeliaI_ATWLAN_ParseResponseWlanScanEntry(&pRespondCommand, &pOutValues[numEntries]))
-		{
-			numEntries++;
-		}
-	}
-	*pOutNumEntries = numEntries;
+    uint8_t numEntries = 0;
+    for (uint8_t i = 0; i < deviceCount; i++)
+    {
+        if (CordeliaI_ATWLAN_ParseResponseWlanScanEntry(&pRespondCommand, &pOutValues[numEntries]))
+        {
+            numEntries++;
+        }
+    }
+    *pOutNumEntries = numEntries;
 
-	return true;
+    return true;
 }
 
 /**
@@ -203,26 +143,26 @@ bool CordeliaI_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, CordeliaI_ATWLAN_
 bool CordeliaI_ATWLAN_Connect(CordeliaI_ATWLAN_ConnectionArguments_t connectArgs)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanConnect=");
+    strcpy(pRequestCommand, "AT+wlanConnect=");
 
-	if (!CordeliaI_ATWLAN_AddConnectionArguments(pRequestCommand, connectArgs, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_AddConnectionArguments(pRequestCommand, connectArgs, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -232,11 +172,11 @@ bool CordeliaI_ATWLAN_Connect(CordeliaI_ATWLAN_ConnectionArguments_t connectArgs
  */
 bool CordeliaI_ATWLAN_Disconnect()
 {
-	if (!CordeliaI_SendRequest("AT+wlanDisconnect\r\n"))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest("AT+wlanDisconnect\r\n"))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -249,45 +189,45 @@ bool CordeliaI_ATWLAN_Disconnect()
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_AddProfile(CordeliaI_ATWLAN_Profile_t profile, uint8_t *pOutIndex)
+bool CordeliaI_ATWLAN_AddProfile(CordeliaI_ATWLAN_Profile_t profile, uint8_t* pOutIndex)
 {
 
-	if ((pOutIndex == NULL) || (profile.priority >= 16))
-	{
-		return false;
-	}
+    if ((pOutIndex == NULL) || (profile.priority >= 16))
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanProfileAdd=");
+    strcpy(pRequestCommand, "AT+wlanProfileAdd=");
 
-	if (!CordeliaI_ATWLAN_AddConnectionArguments(pRequestCommand, profile.connection, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_AddConnectionArguments(pRequestCommand, profile.connection, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, profile.priority, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, profile.priority, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_WlanAddProfile), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_WlanAddProfile), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_ATWLAN_ParseResponseWlanAddProfile(&pRespondCommand, pOutIndex);
+    return CordeliaI_ATWLAN_ParseResponseWlanAddProfile(&pRespondCommand, pOutIndex);
 }
 
 /**
@@ -298,39 +238,39 @@ bool CordeliaI_ATWLAN_AddProfile(CordeliaI_ATWLAN_Profile_t profile, uint8_t *pO
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_GetProfile(uint8_t index, CordeliaI_ATWLAN_Profile_t *pOutProfile)
+bool CordeliaI_ATWLAN_GetProfile(uint8_t index, CordeliaI_ATWLAN_Profile_t* pOutProfile)
 {
 
-	if (NULL == pOutProfile)
-	{
-		return false;
-	}
+    if (NULL == pOutProfile)
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanProfileGet=");
+    strcpy(pRequestCommand, "AT+wlanProfileGet=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_ATWLAN_ParseResponseWlanGetProfile(&pRespondCommand, pOutProfile);
+    return CordeliaI_ATWLAN_ParseResponseWlanGetProfile(&pRespondCommand, pOutProfile);
 }
 
 /**
@@ -343,27 +283,26 @@ bool CordeliaI_ATWLAN_GetProfile(uint8_t index, CordeliaI_ATWLAN_Profile_t *pOut
 bool CordeliaI_ATWLAN_DeleteProfile(uint8_t index)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanProfileDel=");
+    strcpy(pRequestCommand, "AT+wlanProfileDel=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
-
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -375,36 +314,36 @@ bool CordeliaI_ATWLAN_DeleteProfile(uint8_t index)
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_Get(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t *pValues)
+bool CordeliaI_ATWLAN_Get(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
-	memset(pValues, 0, sizeof(*pValues));
+    memset(pValues, 0, sizeof(*pValues));
 
-	if (!CordeliaI_ATWLAN_IsInputValidWlanGet(id, option))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_IsInputValidWlanGet(id, option))
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanGet=");
+    strcpy(pRequestCommand, "AT+wlanGet=");
 
-	if (!CordeliaI_ATWLAN_AddArgumentsWlanGet(pRequestCommand, id, option))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_AddArgumentsWlanGet(pRequestCommand, id, option))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_ATWLAN_ParseResponseWlanGet(id, option, &pRespondCommand, pValues);
+    return CordeliaI_ATWLAN_ParseResponseWlanGet(id, option, &pRespondCommand, pValues);
 }
 
 /**
@@ -416,30 +355,29 @@ bool CordeliaI_ATWLAN_Get(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_Set(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t *pValues)
+bool CordeliaI_ATWLAN_Set(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
-	if (!CordeliaI_ATWLAN_IsInputValidWlanSet(id, option))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_IsInputValidWlanSet(id, option))
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanSet=");
+    strcpy(pRequestCommand, "AT+wlanSet=");
 
-	if (!CordeliaI_ATWLAN_AddArgumentsWlanSet(pRequestCommand, id, option, pValues))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATWLAN_AddArgumentsWlanSet(pRequestCommand, id, option, pValues))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
-
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -454,32 +392,30 @@ bool CordeliaI_ATWLAN_Set(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI
  */
 bool CordeliaI_ATWLAN_SetConnectionPolicy(uint8_t policy)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanPolicySet=");
+    strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_Connection], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_Connection], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentBitmask(pRequestCommand, CordeliaI_ATWLAN_PolicyConnectionStrings, CordeliaI_ATWLAN_PolicyConnection_NumberOfValues, policy,
-	ATCOMMAND_ARGUMENT_DELIM,
-	AT_MAX_COMMAND_BUFFER_SIZE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentBitmask(pRequestCommand, CordeliaI_ATWLAN_PolicyConnectionStrings, CordeliaI_ATWLAN_PolicyConnection_NumberOfValues, policy, ATCOMMAND_ARGUMENT_DELIM, AT_MAX_COMMAND_BUFFER_SIZE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -489,25 +425,24 @@ bool CordeliaI_ATWLAN_SetConnectionPolicy(uint8_t policy)
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_GetConnectionPolicy(uint8_t *policy)
+bool CordeliaI_ATWLAN_GetConnectionPolicy(uint8_t* policy)
 {
-	*policy = 0;
+    *policy = 0;
 
-	char *pRespondCommand = NULL;
-	if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_Connection, &pRespondCommand))
-	{
-		return false;
-	}
+    char* pRespondCommand = NULL;
+    if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_Connection, &pRespondCommand))
+    {
+        return false;
+    }
 
-	uint32_t bitmask;
-	if (ATCommand_GetNextArgumentBitmask(&pRespondCommand, CordeliaI_ATWLAN_PolicyConnectionStrings, CordeliaI_ATWLAN_PolicyConnection_NumberOfValues, 5, &bitmask,
-	ATCOMMAND_STRING_TERMINATE))
-	{
-		*policy = (uint8_t) bitmask;
-		return true;
-	}
+    uint32_t bitmask;
+    if (ATCommand_GetNextArgumentBitmask(&pRespondCommand, CordeliaI_ATWLAN_PolicyConnectionStrings, CordeliaI_ATWLAN_PolicyConnection_NumberOfValues, 5, &bitmask, ATCOMMAND_STRING_TERMINATE))
+    {
+        *policy = (uint8_t)bitmask;
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -520,32 +455,32 @@ bool CordeliaI_ATWLAN_GetConnectionPolicy(uint8_t *policy)
  */
 bool CordeliaI_ATWLAN_SetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t policy, uint32_t scanIntervalSeconds)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanPolicySet=");
+    strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_Scan], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyScanStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_Scan], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyScanStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -556,31 +491,31 @@ bool CordeliaI_ATWLAN_SetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t policy, uint32
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_GetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t *policy, uint32_t *scanIntervalSeconds)
+bool CordeliaI_ATWLAN_GetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t* policy, uint32_t* scanIntervalSeconds)
 {
-	*policy = CordeliaI_ATWLAN_PolicyScan_DisableScan;
-	*scanIntervalSeconds = 0;
+    *policy = CordeliaI_ATWLAN_PolicyScan_DisableScan;
+    *scanIntervalSeconds = 0;
 
-	char *pRespondCommand = NULL;
-	if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_Scan, &pRespondCommand))
-	{
-		return false;
-	}
+    char* pRespondCommand = NULL;
+    if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_Scan, &pRespondCommand))
+    {
+        return false;
+    }
 
-	char temp[15];
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
-	{
-		return false;
-	}
+    char temp[15];
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    {
+        return false;
+    }
 
-	bool ok;
-	*policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyScanStrings, CordeliaI_ATWLAN_PolicyScan_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyScan_DisableScan, &ok);
-	if (!ok)
-	{
-		return false;
-	}
+    bool ok;
+    *policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyScanStrings, CordeliaI_ATWLAN_PolicyScan_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyScan_DisableScan, &ok);
+    if (!ok)
+    {
+        return false;
+    }
 
-	return ATCommand_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -593,32 +528,32 @@ bool CordeliaI_ATWLAN_GetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t *policy, uint3
  */
 bool CordeliaI_ATWLAN_SetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t policy, uint32_t maxSleepTimeMs)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanPolicySet=");
+    strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_PowerManagement], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyPMStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_PowerManagement], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyPMStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -629,31 +564,31 @@ bool CordeliaI_ATWLAN_SetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t policy, uint32_t m
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_GetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t *policy, uint32_t *maxSleepTimeMs)
+bool CordeliaI_ATWLAN_GetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t* policy, uint32_t* maxSleepTimeMs)
 {
-	*policy = CordeliaI_ATWLAN_PolicyPM_Normal;
-	*maxSleepTimeMs = 0;
+    *policy = CordeliaI_ATWLAN_PolicyPM_Normal;
+    *maxSleepTimeMs = 0;
 
-	char *pRespondCommand = NULL;
-	if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_PowerManagement, &pRespondCommand))
-	{
-		return false;
-	}
+    char* pRespondCommand = NULL;
+    if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_PowerManagement, &pRespondCommand))
+    {
+        return false;
+    }
 
-	char temp[15];
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
-	{
-		return false;
-	}
+    char temp[15];
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    {
+        return false;
+    }
 
-	bool ok;
-	*policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyPMStrings, CordeliaI_ATWLAN_PolicyPM_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyPM_Normal, &ok);
-	if (!ok)
-	{
-		return false;
-	}
+    bool ok;
+    *policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyPMStrings, CordeliaI_ATWLAN_PolicyPM_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyPM_Normal, &ok);
+    if (!ok)
+    {
+        return false;
+    }
 
-	return ATCommand_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -666,32 +601,32 @@ bool CordeliaI_ATWLAN_GetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t *policy, uint32_t 
  */
 bool CordeliaI_ATWLAN_SetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t policy, CordeliaI_ATWLAN_PolicyP2PValue_t value)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanPolicySet=");
+    strcpy(pRequestCommand, "AT+wlanPolicySet=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_P2P], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyP2PStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyP2PValue_Strings[value], ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[CordeliaI_ATWLAN_PolicyID_P2P], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyP2PStrings[policy], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyP2PValue_Strings[value], ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -702,37 +637,37 @@ bool CordeliaI_ATWLAN_SetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t policy, Cordelia
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATWLAN_GetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t *policy, CordeliaI_ATWLAN_PolicyP2PValue_t *value)
+bool CordeliaI_ATWLAN_GetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t* policy, CordeliaI_ATWLAN_PolicyP2PValue_t* value)
 {
-	*policy = CordeliaI_ATWLAN_PolicyP2P_Negotiate;
-	*value = CordeliaI_ATWLAN_PolicyP2PValue_Active;
+    *policy = CordeliaI_ATWLAN_PolicyP2P_Negotiate;
+    *value = CordeliaI_ATWLAN_PolicyP2PValue_Active;
 
-	char *pRespondCommand = NULL;
-	if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_P2P, &pRespondCommand))
-	{
-		return false;
-	}
+    char* pRespondCommand = NULL;
+    if (!CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_P2P, &pRespondCommand))
+    {
+        return false;
+    }
 
-	char temp[15];
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
-	{
-		return false;
-	}
+    char temp[15];
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    {
+        return false;
+    }
 
-	bool ok;
-	*policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyP2PStrings, CordeliaI_ATWLAN_PolicyP2P_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyP2P_Negotiate, &ok);
-	if (!ok)
-	{
-		return false;
-	}
+    bool ok;
+    *policy = ATCommand_FindString(CordeliaI_ATWLAN_PolicyP2PStrings, CordeliaI_ATWLAN_PolicyP2P_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyP2P_Negotiate, &ok);
+    if (!ok)
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_STRING_TERMINATE, sizeof(temp)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_STRING_TERMINATE, sizeof(temp)))
+    {
+        return false;
+    }
 
-	*value = ATCommand_FindString(CordeliaI_ATWLAN_PolicyP2PValue_Strings, CordeliaI_ATWLAN_PolicyP2PValue_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyP2PValue_Active, &ok);
-	return ok;
+    *value = ATCommand_FindString(CordeliaI_ATWLAN_PolicyP2PValue_Strings, CordeliaI_ATWLAN_PolicyP2PValue_NumberOfValues, temp, CordeliaI_ATWLAN_PolicyP2PValue_Active, &ok);
+    return ok;
 }
 
 /**
@@ -746,49 +681,49 @@ bool CordeliaI_ATWLAN_GetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t *policy, Cordeli
  *
  * @return true if ID and option are valid, false otherwise
  */
-bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char **pRespondCommand)
+bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char** pRespondCommand)
 {
-	if (id >= CordeliaI_ATWLAN_PolicyID_NumberOfValues)
-	{
-		return false;
-	}
+    if (id >= CordeliaI_ATWLAN_PolicyID_NumberOfValues)
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
-	*pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    *pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+wlanPolicyGet=");
+    strcpy(pRequestCommand, "AT+wlanPolicyGet=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[id], ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, CordeliaI_ATWLAN_PolicyStrings[id], ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, *pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, *pRespondCommand))
+    {
+        return false;
+    }
 
-	const char *expectedCmd = "+wlanpolicyget:";
-	const size_t cmdLength = strlen(expectedCmd);
+    const char* expectedCmd = "+wlanpolicyget:";
+    const size_t cmdLength = strlen(expectedCmd);
 
-	/* Check if response is for wlanPolicyGet */
-	if (0 != strncmp(*pRespondCommand, expectedCmd, cmdLength))
-	{
-		return false;
-	}
+    /* Check if response is for wlanPolicyGet */
+    if (0 != strncmp(*pRespondCommand, expectedCmd, cmdLength))
+    {
+        return false;
+    }
 
-	*pRespondCommand += cmdLength;
+    *pRespondCommand += cmdLength;
 
-	return true;
+    return true;
 }
 
 /**
@@ -801,22 +736,22 @@ bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char **pResp
  */
 static bool CordeliaI_ATWLAN_IsInputValidWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option)
 {
-	if (id >= CordeliaI_ATWLAN_SetID_NumberOfValues)
-	{
-		return false;
-	}
+    if (id >= CordeliaI_ATWLAN_SetID_NumberOfValues)
+    {
+        return false;
+    }
 
-	switch (id)
-	{
-	case CordeliaI_ATWLAN_SetID_General:
-		/* Only countrycode, sta_tx_power, and scan_params are valid */
-		return (option == CordeliaI_ATWLAN_SetGeneral_CountryCode) || (option == CordeliaI_ATWLAN_SetGeneral_StationTxPower) || (option == CordeliaI_ATWLAN_SetGeneral_ScanParams);
+    switch (id)
+    {
+        case CordeliaI_ATWLAN_SetID_General:
+            /* Only countrycode, sta_tx_power, and scan_params are valid */
+            return (option == CordeliaI_ATWLAN_SetGeneral_CountryCode) || (option == CordeliaI_ATWLAN_SetGeneral_StationTxPower) || (option == CordeliaI_ATWLAN_SetGeneral_ScanParams);
 
-	default:
-		return false;
-	}
+        default:
+            return false;
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -829,19 +764,19 @@ static bool CordeliaI_ATWLAN_IsInputValidWlanGet(CordeliaI_ATWLAN_SetID_t id, ui
  */
 static bool CordeliaI_ATWLAN_IsInputValidWlanSet(CordeliaI_ATWLAN_SetID_t id, uint8_t option)
 {
-	if (id < CordeliaI_ATWLAN_SetID_NumberOfValues)
-	{
-		switch (id)
-		{
-		case CordeliaI_ATWLAN_SetID_General:
-			/* All options valid */
-			return (option < CordeliaI_ATWLAN_SetGeneral_NumberOfValues);
+    if (id < CordeliaI_ATWLAN_SetID_NumberOfValues)
+    {
+        switch (id)
+        {
+            case CordeliaI_ATWLAN_SetID_General:
+                /* All options valid */
+                return (option < CordeliaI_ATWLAN_SetGeneral_NumberOfValues);
 
-		default:
-			return false;
-		}
-	}
-	return false;
+            default:
+                return false;
+        }
+    }
+    return false;
 }
 
 /**
@@ -853,41 +788,40 @@ static bool CordeliaI_ATWLAN_IsInputValidWlanSet(CordeliaI_ATWLAN_SetID_t id, ui
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_AddConnectionArguments(char *pOutString, CordeliaI_ATWLAN_ConnectionArguments_t connectionArgs, char lastDelim)
+static bool CordeliaI_ATWLAN_AddConnectionArguments(char* pOutString, CordeliaI_ATWLAN_ConnectionArguments_t connectionArgs, char lastDelim)
 {
 
-	if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.SSID, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.SSID, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.BSSID, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.BSSID, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pOutString, CordeliaI_ATWLAN_SecurityTypeStrings[connectionArgs.securityParams.securityType], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, CordeliaI_ATWLAN_SecurityTypeStrings[connectionArgs.securityParams.securityType], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pOutString, connectionArgs.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pOutString, CordeliaI_ATWLAN_SecurityEAPStrings[connectionArgs.securityExtParams.eapMethod], lastDelim);
-
+    return ATCommand_AppendArgumentString(pOutString, CordeliaI_ATWLAN_SecurityEAPStrings[connectionArgs.securityExtParams.eapMethod], lastDelim);
 }
 
 /**
@@ -899,29 +833,28 @@ static bool CordeliaI_ATWLAN_AddConnectionArguments(char *pOutString, CordeliaI_
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_AddArgumentsWlanGet(char *pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option)
+static bool CordeliaI_ATWLAN_AddArgumentsWlanGet(char* pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option)
 {
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	switch (id)
-	{
-	case CordeliaI_ATWLAN_SetID_General:
-		if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		break;
+    switch (id)
+    {
+        case CordeliaI_ATWLAN_SetID_General:
+            if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_STRING_TERMINATE))
+            {
+                return false;
+            }
+            break;
 
-	default:
-		return false;
-	}
+        default:
+            return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -934,81 +867,80 @@ static bool CordeliaI_ATWLAN_AddArgumentsWlanGet(char *pAtCommand, CordeliaI_ATW
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_AddArgumentsWlanSet(char *pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t *pValues)
+static bool CordeliaI_ATWLAN_AddArgumentsWlanSet(char* pAtCommand, CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetIDStrings[id], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	switch (id)
-	{
-	case CordeliaI_ATWLAN_SetID_General:
-	{
-		if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
+    switch (id)
+    {
+        case CordeliaI_ATWLAN_SetID_General:
+        {
+            if (!ATCommand_AppendArgumentString(pAtCommand, CordeliaI_ATWLAN_SetGetGeneralStrings[option], ATCOMMAND_ARGUMENT_DELIM))
+            {
+                return false;
+            }
 
-		switch (option)
-		{
-		case CordeliaI_ATWLAN_SetGeneral_CountryCode:
-			if (!ATCommand_AppendArgumentString(pAtCommand, pValues->general.countryCode, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+            switch (option)
+            {
+                case CordeliaI_ATWLAN_SetGeneral_CountryCode:
+                    if (!ATCommand_AppendArgumentString(pAtCommand, pValues->general.countryCode, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_StationTxPower:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.staTxPower, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case CordeliaI_ATWLAN_SetGeneral_StationTxPower:
+                    if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.staTxPower, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_ScanParams:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.channelMask, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX ), ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.rssiTreshold, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case CordeliaI_ATWLAN_SetGeneral_ScanParams:
+                    if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.channelMask, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_ARGUMENT_DELIM))
+                    {
+                        return false;
+                    }
+                    if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.scanParams.rssiTreshold, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_SuspendProfiles:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.suspendProfiles, (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case CordeliaI_ATWLAN_SetGeneral_SuspendProfiles:
+                    if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.suspendProfiles, (ATCOMMAND_INTFLAGS_NOTATION_HEX | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_DisableEntServerAuth:
-			if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.disableEntServerAuth, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case CordeliaI_ATWLAN_SetGeneral_DisableEntServerAuth:
+                    if (!ATCommand_AppendArgumentInt(pAtCommand, pValues->general.disableEntServerAuth, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		default:
-		{
-			return false;
-		}
-		}
+                default:
+                {
+                    return false;
+                }
+            }
 
-		break;
-	}
+            break;
+        }
 
-	default:
-	{
-		return false;
-	}
-	}
+        default:
+        {
+            return false;
+        }
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -1019,80 +951,79 @@ static bool CordeliaI_ATWLAN_AddArgumentsWlanSet(char *pAtCommand, CordeliaI_ATW
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, CordeliaI_ATWLAN_ScanEntry_t *pOutScanEntry)
+static bool CordeliaI_ATWLAN_ParseResponseWlanScanEntry(char** pAtCommand, CordeliaI_ATWLAN_ScanEntry_t* pOutScanEntry)
 {
-	bool ret;
-	if ((NULL == pAtCommand) || (NULL == pOutScanEntry))
-	{
-		return false;
-	}
+    bool ret;
+    if ((NULL == pAtCommand) || (NULL == pOutScanEntry))
+    {
+        return false;
+    }
 
-	const char *expectedCmd = "+wlanscan:";
-	const size_t cmdLength = strlen(expectedCmd);
-	char tempString[32];
+    const char* expectedCmd = "+wlanscan:";
+    const size_t cmdLength = strlen(expectedCmd);
+    char tempString[32];
 
-	/* Check if response is for wlanscan */
-	if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
-	{
-		return false;
-	}
+    /* Check if response is for wlanscan */
+    if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
+    {
+        return false;
+    }
 
-	*pAtCommand += cmdLength;
+    *pAtCommand += cmdLength;
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->SSID)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->SSID)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->BSSID)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutScanEntry->BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutScanEntry->BSSID)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->RSSI), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->RSSI), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->channel), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->channel), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
+    {
+        return false;
+    }
 
-	pOutScanEntry->securityType = ATCommand_FindString(CordeliaI_ATWLAN_ScanSecurityTypeStrings, CordeliaI_ATWLAN_ScanSecurityType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanSecurityType_Open, &ret);
-	if (!ret)
-	{
-		return false;
-	}
+    pOutScanEntry->securityType = ATCommand_FindString(CordeliaI_ATWLAN_ScanSecurityTypeStrings, CordeliaI_ATWLAN_ScanSecurityType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanSecurityType_Open, &ret);
+    if (!ret)
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->hiddenSsidEnabled), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, &(pOutScanEntry->hiddenSsidEnabled), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
+    {
+        return false;
+    }
 
-	pOutScanEntry->cipher = ATCommand_FindString(CordeliaI_ATWLAN_ScanCipherStrings, CordeliaI_ATWLAN_ScanCipherType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanCipherType_None, &ret);
-	if (!ret)
-	{
-		return false;
-	}
+    pOutScanEntry->cipher = ATCommand_FindString(CordeliaI_ATWLAN_ScanCipherStrings, CordeliaI_ATWLAN_ScanCipherType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanCipherType_None, &ret);
+    if (!ret)
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString)))
-	{
-		return false;
-	}
-	pOutScanEntry->keyManagementMethod = ATCommand_FindString(CordeliaI_ATWLAN_ScanKeyMgmntStrings, CordeliaI_ATWLAN_ScanKeyManagementType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanKeyManagementType_None, &ret);
-	return ret;
-
+    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_STRING_TERMINATE, sizeof(tempString)))
+    {
+        return false;
+    }
+    pOutScanEntry->keyManagementMethod = ATCommand_FindString(CordeliaI_ATWLAN_ScanKeyMgmntStrings, CordeliaI_ATWLAN_ScanKeyManagementType_NumberOfValues, tempString, CordeliaI_ATWLAN_ScanKeyManagementType_None, &ret);
+    return ret;
 }
 
 /**
@@ -1103,20 +1034,19 @@ static bool CordeliaI_ATWLAN_ParseResponseWlanScanEntry(char **pAtCommand, Corde
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_ParseResponseWlanAddProfile(char **pAtCommand, uint8_t *pOutIndex)
+static bool CordeliaI_ATWLAN_ParseResponseWlanAddProfile(char** pAtCommand, uint8_t* pOutIndex)
 {
-	const char *cmd = "+wlanprofileadd:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+wlanprofileadd:";
+    const size_t cmdLength = strlen(cmd);
 
-	/* Check if response is for add profile */
-	if (0 != strncmp(*pAtCommand, cmd, cmdLength))
-	{
-		return false;
-	}
-	*pAtCommand += cmdLength;
+    /* Check if response is for add profile */
+    if (0 != strncmp(*pAtCommand, cmd, cmdLength))
+    {
+        return false;
+    }
+    *pAtCommand += cmdLength;
 
-	return ATCommand_GetNextArgumentInt(pAtCommand, pOutIndex, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_GetNextArgumentInt(pAtCommand, pOutIndex, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -1127,84 +1057,84 @@ static bool CordeliaI_ATWLAN_ParseResponseWlanAddProfile(char **pAtCommand, uint
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, CordeliaI_ATWLAN_Profile_t *pOutProfile)
+static bool CordeliaI_ATWLAN_ParseResponseWlanGetProfile(char** pAtCommand, CordeliaI_ATWLAN_Profile_t* pOutProfile)
 {
 
-	const char *expectedCmd = "+wlanprofileget:";
-	const size_t cmdLength = strlen(expectedCmd);
+    const char* expectedCmd = "+wlanprofileget:";
+    const size_t cmdLength = strlen(expectedCmd);
 
-	char tempString[32];
+    char tempString[32];
 
-	/* Check if response is for get profile */
-	if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
-	{
-		return false;
-	}
+    /* Check if response is for get profile */
+    if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
+    {
+        return false;
+    }
 
-	*pAtCommand += cmdLength;
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.SSID)))
-	{
-		return false;
-	}
+    *pAtCommand += cmdLength;
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.SSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.SSID)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.BSSID)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.BSSID, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.BSSID)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
+    {
+        return false;
+    }
 
-	if (tempString[0] == '\0')
-	{
-		pOutProfile->connection.securityParams.securityType = CordeliaI_ATWLAN_SecurityType_Open;
-	}
-	else
-	{
-		bool ret;
-		pOutProfile->connection.securityParams.securityType = ATCommand_FindString(CordeliaI_ATWLAN_SecurityTypeStrings, CordeliaI_ATWLAN_SecurityType_NumberOfValues, tempString, CordeliaI_ATWLAN_SecurityType_Open, &ret);
-		if (!ret)
-		{
-			return false;
-		}
-	}
+    if (tempString[0] == '\0')
+    {
+        pOutProfile->connection.securityParams.securityType = CordeliaI_ATWLAN_SecurityType_Open;
+    }
+    else
+    {
+        bool ret;
+        pOutProfile->connection.securityParams.securityType = ATCommand_FindString(CordeliaI_ATWLAN_SecurityTypeStrings, CordeliaI_ATWLAN_SecurityType_NumberOfValues, tempString, CordeliaI_ATWLAN_SecurityType_Open, &ret);
+        if (!ret)
+        {
+            return false;
+        }
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityParams.securityKey)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityParams.securityKey, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityParams.securityKey)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extUser)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extUser)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extAnonUser)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, pOutProfile->connection.securityExtParams.extAnonUser, ATCOMMAND_ARGUMENT_DELIM, sizeof(pOutProfile->connection.securityExtParams.extAnonUser)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
-	{
-		return false;
-	}
-	if (tempString[0] == '\0')
-	{
-		pOutProfile->connection.securityExtParams.eapMethod = CordeliaI_ATWLAN_SecurityEAP_None;
-	}
-	else
-	{
-		bool ret;
-		pOutProfile->connection.securityExtParams.eapMethod = ATCommand_FindString(CordeliaI_ATWLAN_SecurityEAPStrings, CordeliaI_ATWLAN_SecurityEAP_NumberOfValues, tempString, CordeliaI_ATWLAN_SecurityEAP_None, &ret);
-		if (!ret)
-		{
-			return false;
-		}
-	}
+    if (!ATCommand_GetNextArgumentString(pAtCommand, tempString, ATCOMMAND_ARGUMENT_DELIM, sizeof(tempString)))
+    {
+        return false;
+    }
+    if (tempString[0] == '\0')
+    {
+        pOutProfile->connection.securityExtParams.eapMethod = CordeliaI_ATWLAN_SecurityEAP_None;
+    }
+    else
+    {
+        bool ret;
+        pOutProfile->connection.securityExtParams.eapMethod = ATCommand_FindString(CordeliaI_ATWLAN_SecurityEAPStrings, CordeliaI_ATWLAN_SecurityEAP_NumberOfValues, tempString, CordeliaI_ATWLAN_SecurityEAP_None, &ret);
+        if (!ret)
+        {
+            return false;
+        }
+    }
 
-	return ATCommand_GetNextArgumentInt(pAtCommand, &(pOutProfile->priority), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(pAtCommand, &(pOutProfile->priority), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -1217,65 +1147,65 @@ static bool CordeliaI_ATWLAN_ParseResponseWlanGetProfile(char **pAtCommand, Cord
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATWLAN_ParseResponseWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option, char **pAtCommand, CordeliaI_ATWLAN_Settings_t *pValues)
+static bool CordeliaI_ATWLAN_ParseResponseWlanGet(CordeliaI_ATWLAN_SetID_t id, uint8_t option, char** pAtCommand, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
-	const char *expectedCmd = "+wlanget:";
-	const size_t cmdLength = strlen(expectedCmd);
+    const char* expectedCmd = "+wlanget:";
+    const size_t cmdLength = strlen(expectedCmd);
 
-	/* Check if response is for wlanget */
-	if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
-	{
-		return false;
-	}
+    /* Check if response is for wlanget */
+    if (0 != strncmp(*pAtCommand, expectedCmd, cmdLength))
+    {
+        return false;
+    }
 
-	*pAtCommand += cmdLength;
-	switch (id)
-	{
-	case CordeliaI_ATWLAN_SetID_General:
-	{
-		CordeliaI_ATWLAN_SettingsGeneral_t *general = &pValues->general;
+    *pAtCommand += cmdLength;
+    switch (id)
+    {
+        case CordeliaI_ATWLAN_SetID_General:
+        {
+            CordeliaI_ATWLAN_SettingsGeneral_t* general = &pValues->general;
 
-		switch (option)
-		{
-		case CordeliaI_ATWLAN_SetGeneral_CountryCode:
-			if (!ATCommand_GetNextArgumentString(pAtCommand, general->countryCode, ATCOMMAND_STRING_TERMINATE, sizeof(general->countryCode)))
-			{
-				return false;
-			}
-			break;
+            switch (option)
+            {
+                case CordeliaI_ATWLAN_SetGeneral_CountryCode:
+                    if (!ATCommand_GetNextArgumentString(pAtCommand, general->countryCode, ATCOMMAND_STRING_TERMINATE, sizeof(general->countryCode)))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_StationTxPower:
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &general->staTxPower, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
+                case CordeliaI_ATWLAN_SetGeneral_StationTxPower:
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &general->staTxPower, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
 
-		case CordeliaI_ATWLAN_SetGeneral_ScanParams:
-		{
-			CordeliaI_ATWLAN_ScanParams_t *scanParams = &general->scanParams;
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->channelMask), (ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX ), ATCOMMAND_ARGUMENT_DELIM))
-			{
-				return false;
-			}
+                case CordeliaI_ATWLAN_SetGeneral_ScanParams:
+                {
+                    CordeliaI_ATWLAN_ScanParams_t* scanParams = &general->scanParams;
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->channelMask), (ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_ARGUMENT_DELIM))
+                    {
+                        return false;
+                    }
 
-			if (!ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->rssiTreshold), (ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX ), ATCOMMAND_STRING_TERMINATE))
-			{
-				return false;
-			}
-			break;
-		}
+                    if (!ATCommand_GetNextArgumentInt(pAtCommand, &(scanParams->rssiTreshold), (ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_HEX), ATCOMMAND_STRING_TERMINATE))
+                    {
+                        return false;
+                    }
+                    break;
+                }
 
-		default:
-			return false;
-		}
+                default:
+                    return false;
+            }
 
-		break;
-	}
+            break;
+        }
 
-	default:
-		return false;
-	}
-	return true;
+        default:
+            return false;
+    }
+    return true;
 }

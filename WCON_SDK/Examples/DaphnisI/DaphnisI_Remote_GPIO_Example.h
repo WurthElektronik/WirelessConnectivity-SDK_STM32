@@ -32,13 +32,14 @@
 #ifndef DAPHNISI_REMOTE_GPIO_EXAMPLE_H_INCLUDED
 #define DAPHNISI_REMOTE_GPIO_EXAMPLE_H_INCLUDED
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void DaphnisI_Remote_GPIO_Example();
+    extern void DaphnisI_Remote_GPIO_Example();
 
 #ifdef __cplusplus
 }

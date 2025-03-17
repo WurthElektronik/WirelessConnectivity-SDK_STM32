@@ -53,7 +53,8 @@
 #define MODEL_ID "dtmi:wurthelektronik:module:calypso;1"
 
 /*Root CA certificate to connect to Azure IoT central*/
-#define DIGICERT_GLOBAL_G2_ROOT_CERT "-----BEGIN CERTIFICATE-----\r\n\
+#define DIGICERT_GLOBAL_G2_ROOT_CERT                                                                                                                                                                                                                                                                                                                                                                           \
+    "-----BEGIN CERTIFICATE-----\r\n\
 MIIDjjCCAnagAwIBAgIQAzrx5qcRqaC7KGSxHQn65TANBgkqhkiG9w0BAQsFADBh\r\n\
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\r\n\
 d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBH\r\n\
@@ -77,13 +78,15 @@ MrY=\r\n\
 -----END CERTIFICATE-----"
 
 /*Device certificate chain*/
-#define DEVICE_CERT "-----BEGIN CERTIFICATE-----\r\n\
+#define DEVICE_CERT                                                                                                                                                                                                                                                                                                                                                                                            \
+    "-----BEGIN CERTIFICATE-----\r\n\
 -----END CERTIFICATE-----\r\n\
 -----BEGIN CERTIFICATE-----\r\n\
 -----END CERTIFICATE-----"
 
 /*Device key*/
-#define DEVICE_KEY "-----BEGIN EC PRIVATE KEY-----\r\n\
+#define DEVICE_KEY                                                                                                                                                                                                                                                                                                                                                                                             \
+    "-----BEGIN EC PRIVATE KEY-----\r\n\
 -----END EC PRIVATE KEY-----"
 
 /************************************************************************************************************/

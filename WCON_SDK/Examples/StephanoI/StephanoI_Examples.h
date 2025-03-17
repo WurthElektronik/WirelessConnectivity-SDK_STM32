@@ -39,18 +39,19 @@
 #include <stdio.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern StephanoI_Pins_t StephanoI_pins;
-extern WE_UART_t StephanoI_uart;
+    extern StephanoI_Pins_t StephanoI_pins;
+    extern WE_UART_t StephanoI_uart;
 
-extern bool StephanoI_Examples_startupEventReceived;
+    extern bool StephanoI_Examples_startupEventReceived;
 
-extern void StephanoI_Examples(void);
-extern void StephanoI_Examples_Print(char *str, bool success);
-extern bool StephanoI_Examples_WaitForStartup(uint32_t timeoutMs);
-extern void StephanoI_Examples_EventCallback(char *eventText);
+    extern void StephanoI_Examples(void);
+    extern void StephanoI_Examples_Print(char* str, bool success);
+    extern bool StephanoI_Examples_WaitForStartup(uint32_t timeoutMs);
+    extern void StephanoI_Examples_EventCallback(char* eventText);
 
 #ifdef __cplusplus
 }

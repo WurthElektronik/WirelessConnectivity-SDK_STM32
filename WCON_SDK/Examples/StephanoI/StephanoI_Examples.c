@@ -30,20 +30,15 @@
  * Comment/uncomment lines in StephanoI_Examples() to start the desired example.
  */
 
-#include <StephanoI/StephanoI_Examples.h>
 #include <StephanoI/StephanoI.h>
-#include <StephanoI/StephanoI_Device_Example.h>
 #include <StephanoI/StephanoI_BluetoothLE_Example.h>
+#include <StephanoI/StephanoI_Device_Example.h>
+#include <StephanoI/StephanoI_Examples.h>
 #include <StephanoI/StephanoI_Wifi_Example.h>
 
 #include <StephanoI/ATCommands/ATEvent.h>
 
-#if defined(STM32L073xx)
-#include <global_L0xx.h>
-#elif defined(STM32F401xE)
-#include <global_F4xx.h>
-#endif
-
+#include <global_platform_types.h>
 /**
  * @brief Is set to true when a startup event is received
  */
@@ -57,19 +52,22 @@ WE_UART_t StephanoI_uart;
 /**
  * @brief Definition of the control pins
  */
-StephanoI_Pins_t StephanoI_pins;
+StephanoI_Pins_t StephanoI_pins = {
+    .StephanoI_Pin_Reset = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_10)),
+    .StephanoI_Pin_Wakeup = WE_PIN((void*)&WE_STM32_PIN(GPIOA, GPIO_PIN_5)),
+};
 
 /**
  * @brief Waits for the startup event to be received.
  */
 bool StephanoI_Examples_WaitForStartup(uint32_t timeoutMs)
 {
-	uint32_t t0 = WE_GetTick();
-	StephanoI_Examples_startupEventReceived = false;
-	while (false == StephanoI_Examples_startupEventReceived && (WE_GetTick() - t0) < timeoutMs)
-	{
-	}
-	return StephanoI_Examples_startupEventReceived;
+    uint32_t t0 = WE_GetTick();
+    StephanoI_Examples_startupEventReceived = false;
+    while (false == StephanoI_Examples_startupEventReceived && (WE_GetTick() - t0) < timeoutMs)
+    {
+    }
+    return StephanoI_Examples_startupEventReceived;
 }
 
 /**
@@ -79,42 +77,37 @@ bool StephanoI_Examples_WaitForStartup(uint32_t timeoutMs)
  */
 void StephanoI_Examples(void)
 {
-	StephanoI_pins.StephanoI_Pin_Reset.port = (void*) GPIOA;
-	StephanoI_pins.StephanoI_Pin_Reset.pin = GPIO_PIN_10;
-	StephanoI_pins.StephanoI_Pin_Wakeup.port = (void*) GPIOA;
-	StephanoI_pins.StephanoI_Pin_Wakeup.pin = GPIO_PIN_5;
+    StephanoI_uart.baudrate = STEPHANOI_DEFAULT_BAUDRATE;
+    StephanoI_uart.flowControl = WE_FlowControl_NoFlowControl;
+    StephanoI_uart.parity = WE_Parity_None;
+    StephanoI_uart.uartInit = WE_UART1_Init;
+    StephanoI_uart.uartDeinit = WE_UART1_DeInit;
+    StephanoI_uart.uartTransmit = WE_UART1_Transmit;
 
-	StephanoI_uart.baudrate = STEPHANOI_DEFAULT_BAUDRATE;
-	StephanoI_uart.flowControl = WE_FlowControl_NoFlowControl;
-	StephanoI_uart.parity = WE_Parity_None;
-	StephanoI_uart.uartInit = WE_UART1_Init;
-	StephanoI_uart.uartDeinit = WE_UART1_DeInit;
-	StephanoI_uart.uartTransmit = WE_UART1_Transmit;
+    /* The example to be started can be picked from the list below by calling the corresponding function. */
 
-	/* The example to be started can be picked from the list below by calling the corresponding function. */
+    StephanoI_Device_Example();
+    //StephanoI_DeviceSleep_Example();
+    //StephanoI_BluetoothLE_Peripheral_Advertising_Example();
+    //StephanoI_BluetoothLE_Peripheral_Data_Example();
+    //StephanoI_BluetoothLE_Central_Data_Example();
+    //StephanoI_BluetoothLE_Central_ThroughputData_Example();
 
-	StephanoI_Device_Example();
-	//StephanoI_DeviceSleep_Example();
-	//StephanoI_BluetoothLE_Peripheral_Advertising_Example();
-	//StephanoI_BluetoothLE_Peripheral_Data_Example();
-	//StephanoI_BluetoothLE_Central_Data_Example();
-	//StephanoI_BluetoothLE_Central_ThroughputData_Example();
+    //StephanoI_Wifi_AP_Example();
+    //StephanoI_Wifi_Station_Example();
+    //StephanoI_Wifi_MQTT_Example();
+    //StephanoI_Wifi_HTTP_Example();
+    //StephanoI_Wifi_Provisioning_Example();
+    //StephanoI_Wifi_OTA_Example();
 
-	//StephanoI_Wifi_AP_Example();
-	//StephanoI_Wifi_Station_Example();
-	//StephanoI_Wifi_MQTT_Example();
-	//StephanoI_Wifi_HTTP_Example();
-	//StephanoI_Wifi_Provisioning_Example();
-	//StephanoI_Wifi_OTA_Example();
+    //StephanoI_TCP_ClientThroughput_Example();
+    //StephanoI_TCP_Client_Example();
+    //StephanoI_UDP_Client_Example();
+    //StephanoI_UDP_ClientThroughput_Example();
+    //StephanoI_TCP_Server_Example();
+    //StephanoI_SSL_Server_Example();
 
-	//StephanoI_TCP_ClientThroughput_Example();
-	//StephanoI_TCP_Client_Example();
-	//StephanoI_UDP_Client_Example();
-	//StephanoI_UDP_ClientThroughput_Example();
-	//StephanoI_TCP_Server_Example();
-	//StephanoI_SSL_Server_Example();
-
-	return;
+    return;
 }
 
 /**
@@ -130,22 +123,22 @@ void StephanoI_Examples(void)
  * events (i.e. events from StephanoI_ATEvent_t). Some events might in fact be responses
  * to AT commands that are not included in StephanoI_ATEvent_t.
  */
-void StephanoI_Examples_EventCallback(char *eventText)
+void StephanoI_Examples_EventCallback(char* eventText)
 {
-	StephanoI_ATEvent_t event;
-	if (false == StephanoI_ATEvent_ParseEventType(&eventText, &event))
-	{
-		return;
-	}
+    StephanoI_ATEvent_t event;
+    if (false == StephanoI_ATEvent_ParseEventType(&eventText, &event))
+    {
+        return;
+    }
 
-	switch (event)
-	{
-	case StephanoI_ATEvent_Startup:
-		StephanoI_Examples_startupEventReceived = true;
-		break;
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case StephanoI_ATEvent_Startup:
+            StephanoI_Examples_startupEventReceived = true;
+            break;
+        default:
+            break;
+    }
 }
 
 /**
@@ -154,7 +147,4 @@ void StephanoI_Examples_EventCallback(char *eventText)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void StephanoI_Examples_Print(char *str, bool success)
-{
-	WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str);
-}
+void StephanoI_Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

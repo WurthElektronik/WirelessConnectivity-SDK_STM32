@@ -28,9 +28,9 @@
  * @brief AT commands for MQTT functionality.
  */
 
-#include <global/ATCommands.h>
 #include <StephanoI/ATCommands/ATMQTT.h>
 #include <StephanoI/StephanoI.h>
+#include <global/ATCommands.h>
 
 /**
  * @brief MQTT User config
@@ -46,54 +46,54 @@
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_Userconfig(uint8_t link_ID, StephanoI_ATMQTT_Scheme_t scheme, char *client_ID, char *username, char *password, uint8_t cert_key_ID, uint8_t CA_ID, char *path)
+bool StephanoI_ATMQTT_Userconfig(uint8_t link_ID, StephanoI_ATMQTT_Scheme_t scheme, char* client_ID, char* username, char* password, uint8_t cert_key_ID, uint8_t CA_ID, char* path)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTUSERCFG=");
+    strcpy(pRequestCommand, "AT+MQTTUSERCFG=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) scheme, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, client_ID, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, password, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, cert_key_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, CA_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, path, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)scheme, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, client_ID, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, password, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, cert_key_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, CA_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, path, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -104,30 +104,30 @@ bool StephanoI_ATMQTT_Userconfig(uint8_t link_ID, StephanoI_ATMQTT_Scheme_t sche
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_SetClientID(uint8_t link_ID, char *client_ID)
+bool StephanoI_ATMQTT_SetClientID(uint8_t link_ID, char* client_ID)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTCLIENTID=");
+    strcpy(pRequestCommand, "AT+MQTTCLIENTID=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, client_ID, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, client_ID, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -138,30 +138,30 @@ bool StephanoI_ATMQTT_SetClientID(uint8_t link_ID, char *client_ID)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_SetUsername(uint8_t link_ID, char *username)
+bool StephanoI_ATMQTT_SetUsername(uint8_t link_ID, char* username)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTUSERNAME=");
+    strcpy(pRequestCommand, "AT+MQTTUSERNAME=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, username, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -172,30 +172,30 @@ bool StephanoI_ATMQTT_SetUsername(uint8_t link_ID, char *username)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_SetPassword(uint8_t link_ID, char *password)
+bool StephanoI_ATMQTT_SetPassword(uint8_t link_ID, char* password)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTPASSWORD=");
+    strcpy(pRequestCommand, "AT+MQTTPASSWORD=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, password, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, password, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -211,50 +211,50 @@ bool StephanoI_ATMQTT_SetPassword(uint8_t link_ID, char *password)
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_ConnectionConfig(uint8_t link_ID, uint16_t keep_alive, bool disable_clean_session, char *lwt_topics, char *lwt_msg, StephanoI_ATMQTT_QOS_t qos, bool lwt_retain)
+bool StephanoI_ATMQTT_ConnectionConfig(uint8_t link_ID, uint16_t keep_alive, bool disable_clean_session, char* lwt_topics, char* lwt_msg, StephanoI_ATMQTT_QOS_t qos, bool lwt_retain)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTUSERCFG=");
+    strcpy(pRequestCommand, "AT+MQTTUSERCFG=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, keep_alive, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) (disable_clean_session ? 1 : 0), (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, lwt_topics, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, lwt_msg, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) (lwt_retain ? 1 : 0), (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, keep_alive, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)(disable_clean_session ? 1 : 0), (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, lwt_topics, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, lwt_msg, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)(lwt_retain ? 1 : 0), (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -267,38 +267,38 @@ bool StephanoI_ATMQTT_ConnectionConfig(uint8_t link_ID, uint16_t keep_alive, boo
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_Connect(uint8_t link_ID, char *host, uint16_t port, bool reconnect)
+bool StephanoI_ATMQTT_Connect(uint8_t link_ID, char* host, uint16_t port, bool reconnect)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTCONN=");
+    strcpy(pRequestCommand, "AT+MQTTCONN=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, host, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, reconnect ? (uint8_t) 1 : (uint8_t) 0, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, host, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, port, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, reconnect ? (uint8_t)1 : (uint8_t)0, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTConnect), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTConnect), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -308,15 +308,15 @@ bool StephanoI_ATMQTT_Connect(uint8_t link_ID, char *host, uint16_t port, bool r
  */
 bool StephanoI_ATMQTT_GetConnectionInfo()
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTCONN?\r\n");
+    strcpy(pRequestCommand, "AT+MQTTCONN?\r\n");
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -330,42 +330,42 @@ bool StephanoI_ATMQTT_GetConnectionInfo()
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_Publish(uint8_t link_ID, char *topic, char *data, StephanoI_ATMQTT_QOS_t qos, uint8_t retain)
+bool StephanoI_ATMQTT_Publish(uint8_t link_ID, char* topic, char* data, StephanoI_ATMQTT_QOS_t qos, uint8_t retain)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTPUB=");
+    strcpy(pRequestCommand, "AT+MQTTPUB=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, data, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, retain, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, data, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, retain, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -377,34 +377,34 @@ bool StephanoI_ATMQTT_Publish(uint8_t link_ID, char *topic, char *data, Stephano
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_Subscribe(uint8_t link_ID, char *topic, StephanoI_ATMQTT_QOS_t qos)
+bool StephanoI_ATMQTT_Subscribe(uint8_t link_ID, char* topic, StephanoI_ATMQTT_QOS_t qos)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTSUB=");
+    strcpy(pRequestCommand, "AT+MQTTSUB=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t) qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, (uint32_t)qos, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -414,15 +414,15 @@ bool StephanoI_ATMQTT_Subscribe(uint8_t link_ID, char *topic, StephanoI_ATMQTT_Q
  */
 bool StephanoI_ATMQTT_GetSubscriptions()
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTSUB?\r\n");
+    strcpy(pRequestCommand, "AT+MQTTSUB?\r\n");
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -433,31 +433,31 @@ bool StephanoI_ATMQTT_GetSubscriptions()
  *
  * @return true if successful, false otherwise
  */
-bool StephanoI_ATMQTT_Unsubscribe(uint8_t link_ID, char *topic)
+bool StephanoI_ATMQTT_Unsubscribe(uint8_t link_ID, char* topic)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTUNSUB=");
+    strcpy(pRequestCommand, "AT+MQTTUNSUB=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, topic, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -469,25 +469,25 @@ bool StephanoI_ATMQTT_Unsubscribe(uint8_t link_ID, char *topic)
  */
 bool StephanoI_ATMQTT_Clean(uint8_t link_ID)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+MQTTCLEAN=");
+    strcpy(pRequestCommand, "AT+MQTTCLEAN=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, link_ID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!StephanoI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
+    if (!StephanoI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
 /**
@@ -498,40 +498,40 @@ bool StephanoI_ATMQTT_Clean(uint8_t link_ID)
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATMQTT_ParseConnectionInfo(char *EventArgumentsP, StephanoI_ATMQTT_ConnectionInfo_t *t)
+bool StephanoI_ATMQTT_ParseConnectionInfo(char* EventArgumentsP, StephanoI_ATMQTT_ConnectionInfo_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    char* argumentsP = EventArgumentsP;
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->state), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->scheme), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentString(&argumentsP, t->host, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->host)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->port), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentString(&argumentsP, t->path, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->path)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->reconnect), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->state), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->scheme), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentString(&argumentsP, t->host, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->host)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->port), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentString(&argumentsP, t->path, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->path)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->reconnect), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -542,28 +542,28 @@ bool StephanoI_ATMQTT_ParseConnectionInfo(char *EventArgumentsP, StephanoI_ATMQT
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATMQTT_ParseGetSubscriptions(char *EventArgumentsP, StephanoI_ATMQTT_GetSubscriptions_t *t)
+bool StephanoI_ATMQTT_ParseGetSubscriptions(char* EventArgumentsP, StephanoI_ATMQTT_GetSubscriptions_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    char* argumentsP = EventArgumentsP;
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->state), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentString(&argumentsP, t->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->topic)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->qos), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->state), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentString(&argumentsP, t->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->topic)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->qos), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -574,26 +574,26 @@ bool StephanoI_ATMQTT_ParseGetSubscriptions(char *EventArgumentsP, StephanoI_ATM
  *
  * @return true if parsed successfully, false otherwise
  */
-bool StephanoI_ATMQTT_ParseReceiveSubscriptions(char *EventArgumentsP, StephanoI_ATMQTT_ReceiveSubscriptions_t *t)
+bool StephanoI_ATMQTT_ParseReceiveSubscriptions(char* EventArgumentsP, StephanoI_ATMQTT_ReceiveSubscriptions_t* t)
 {
-	char *argumentsP = EventArgumentsP;
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentString(&argumentsP, t->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->topic)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	t->data = malloc(t->length);
-	if (!ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length))
-	{
-		return false;
-	}
+    char* argumentsP = EventArgumentsP;
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->link_ID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentString(&argumentsP, t->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(t->topic)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &(t->length), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    t->data = malloc(t->length);
+    if (!ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }

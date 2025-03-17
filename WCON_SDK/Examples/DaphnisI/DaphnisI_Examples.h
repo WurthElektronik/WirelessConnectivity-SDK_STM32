@@ -36,14 +36,15 @@
 #include <DaphnisI/DaphnisI.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern DaphnisI_Pins_t DaphnisI_pins;
+    extern DaphnisI_Pins_t DaphnisI_pins;
 
-extern WE_UART_t DaphnisI_uart;
+    extern WE_UART_t DaphnisI_uart;
 
-extern void DaphnisI_Examples(void);
+    extern void DaphnisI_Examples(void);
 
 #ifdef __cplusplus
 }

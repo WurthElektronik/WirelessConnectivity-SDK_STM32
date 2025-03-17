@@ -27,45 +27,45 @@
  * @file
  * @brief Calypso provisioning example.
  */
-#include <Calypso/Calypso_Device_Example.h>
-#include <stdio.h>
 #include <Calypso/ATCommands/ATDevice.h>
+#include <Calypso/Calypso_Device_Example.h>
 #include <Calypso/Calypso_Examples.h>
+#include <stdio.h>
 
 /**
  * @brief Calypso provisioning example.
  */
 void Calypso_Provisioning_Example()
 {
-	WE_DEBUG_PRINT("*** Start of Calypso provisioning example ***\r\n");
+    WE_DEBUG_PRINT("*** Start of Calypso provisioning example ***\r\n");
 
-	if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	Calypso_PinReset();
+    Calypso_PinReset();
 
-	Calypso_Examples_WaitForStartup(10000);
+    Calypso_Examples_WaitForStartup(10000);
 
-	WE_Delay(1000);
+    WE_Delay(1000);
 
-	bool ret = false;
+    bool ret = false;
 
-	/* Uncomment the following lines to activate factory reset (takes up to 90s) */
-//    ret = Calypso_ATDevice_FactoryReset();
-//    Calypso_Examples_Print("Factory reset", ret);
-//    /* Must wait for startup event before sending commands */
-//    ret = Calypso_Examples_WaitForStartup(10000);
-//    Calypso_Examples_Print("Wait for startup message", ret);
-	/* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
+    /* Uncomment the following lines to activate factory reset (takes up to 90s) */
+    //    ret = Calypso_ATDevice_FactoryReset();
+    //    Calypso_Examples_Print("Factory reset", ret);
+    //    /* Must wait for startup event before sending commands */
+    //    ret = Calypso_Examples_WaitForStartup(10000);
+    //    Calypso_Examples_Print("Wait for startup message", ret);
+    /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
 	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
 	 * Calypso_firmwareVersionPatch for later use. */
-	Calypso_ATDevice_Value_t deviceValue;
-	ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
-	Calypso_Examples_Print("Get device version", ret);
+    Calypso_ATDevice_Value_t deviceValue;
+    ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
+    Calypso_Examples_Print("Get device version", ret);
 
-	ret = Calypso_ATDevice_StartProvisioning();
-	Calypso_Examples_Print("Start provisioning", ret);
+    ret = Calypso_ATDevice_StartProvisioning();
+    Calypso_Examples_Print("Start provisioning", ret);
 }

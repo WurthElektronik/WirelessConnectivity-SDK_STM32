@@ -28,103 +28,102 @@
  * @brief Main file for DaphnisI driver examples.
  *
  */
-#include <global/global.h>
-#include <DaphnisI/DaphnisI.h>
-#include <DaphnisI/ATCommands/P2P.h>
 #include <DaphnisI/ATCommands/ATUserSettings.h>
-#include <stdio.h>
+#include <DaphnisI/ATCommands/P2P.h>
+#include <DaphnisI/DaphnisI.h>
 #include <DaphnisI/DaphnisI_Examples.h>
 #include <DaphnisI/DaphnisI_P2P_Throughput_Test.h>
-#include <string.h>
+#include <global/global.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
-#define RF_PROFILE				7
-#define PACKET_TX_COUNT			100
+#define RF_PROFILE 7
+#define PACKET_TX_COUNT 100
 
 static bool DaphnisI_P2P_RF_Profile_Check();
 static bool DaphnisI_P2P_DC_Enforce_Check();
 
 void DaphnisI_P2P_Throughput_Test()
 {
-	//Make sure to build the project using the "Release" build configuration
+    //Make sure to build the project using the "Release" build configuration
 
-	DaphnisI_uart.baudrate = 115200;
+    DaphnisI_uart.baudrate = 115200;
 
-	if (!DaphnisI_Init(&DaphnisI_uart, &DaphnisI_pins, NULL))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (!DaphnisI_Init(&DaphnisI_uart, &DaphnisI_pins, NULL))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	if(!DaphnisI_P2P_RF_Profile_Check())
-	{
-		if(!DaphnisI_SetP2PRFProfileUS(RF_PROFILE))
-		{
-			WE_DEBUG_PRINT("Failed to set rf profile user setting.\r\n");
-			return;
-		}
-	}
+    if (!DaphnisI_P2P_RF_Profile_Check())
+    {
+        if (!DaphnisI_SetP2PRFProfileUS(RF_PROFILE))
+        {
+            WE_DEBUG_PRINT("Failed to set rf profile user setting.\r\n");
+            return;
+        }
+    }
 
-	if(!DaphnisI_P2P_DC_Enforce_Check())
-	{
-		if(!DaphnisI_SetP2PDutyCycleEnforceUS(false))
-		{
-			WE_DEBUG_PRINT("Failed to set dc enforce user setting.\r\n");
-			return;
-		}
-	}
+    if (!DaphnisI_P2P_DC_Enforce_Check())
+    {
+        if (!DaphnisI_SetP2PDutyCycleEnforceUS(false))
+        {
+            WE_DEBUG_PRINT("Failed to set dc enforce user setting.\r\n");
+            return;
+        }
+    }
 
-	if(!DaphnisI_PinReset())
-	{
-		WE_DEBUG_PRINT("Failed to reset module.\r\n");
-		return;
-	}
+    if (!DaphnisI_PinReset())
+    {
+        WE_DEBUG_PRINT("Failed to reset module.\r\n");
+        return;
+    }
 
-	uint8_t payload[DAPHNISI_P2P_MAX_PAYLOAD_SIZE];
+    uint8_t payload[DAPHNISI_P2P_MAX_PAYLOAD_SIZE];
 
-	uint32_t total_time = 0;
+    uint32_t total_time = 0;
 
-	for(uint8_t i=0;i<PACKET_TX_COUNT;i++)
-	{
-		uint32_t current_time = WE_GetTick();
-		if(!DaphnisI_P2P_TransmitBroadcast(payload, DAPHNISI_P2P_MAX_PAYLOAD_SIZE))
-		{
-			WE_DEBUG_PRINT("Failed to send payload.\r\n");
-			return;
-		}
-		total_time += (WE_GetTick() - current_time);
-	}
+    for (uint8_t i = 0; i < PACKET_TX_COUNT; i++)
+    {
+        uint32_t current_time = WE_GetTick();
+        if (!DaphnisI_P2P_TransmitBroadcast(payload, DAPHNISI_P2P_MAX_PAYLOAD_SIZE))
+        {
+            WE_DEBUG_PRINT("Failed to send payload.\r\n");
+            return;
+        }
+        total_time += (WE_GetTick() - current_time);
+    }
 
-	WE_DEBUG_PRINT("Throughput of average %d packets in profile %d is %lf kb/s\r\n", PACKET_TX_COUNT, RF_PROFILE,
-			(PACKET_TX_COUNT*DAPHNISI_P2P_MAX_PAYLOAD_SIZE*8.0)/total_time);
+    WE_DEBUG_PRINT("Throughput of average %d packets in profile %d is %lf kb/s\r\n", PACKET_TX_COUNT, RF_PROFILE, (PACKET_TX_COUNT * DAPHNISI_P2P_MAX_PAYLOAD_SIZE * 8.0) / total_time);
 }
 
 static bool DaphnisI_P2P_RF_Profile_Check()
 {
-	uint8_t rf_profile;
+    uint8_t rf_profile;
 
-	if(!DaphnisI_GetP2PRFProfileRS(&rf_profile))
-	{
-		WE_DEBUG_PRINT("Failed to get rf profile runtime setting.\r\n");
-		exit(-1);
-	}
+    if (!DaphnisI_GetP2PRFProfileRS(&rf_profile))
+    {
+        WE_DEBUG_PRINT("Failed to get rf profile runtime setting.\r\n");
+        exit(-1);
+    }
 
-	return (rf_profile == RF_PROFILE);
+    return (rf_profile == RF_PROFILE);
 }
 
 static bool DaphnisI_P2P_DC_Enforce_Check()
 {
-	bool dc_enforce;
+    bool dc_enforce;
 
-	if(!DaphnisI_GetP2PDutyCycleEnforceRS(&dc_enforce))
-	{
-		WE_DEBUG_PRINT("Failed to get dc enforce runtime setting.\r\n");
-		exit(-1);
-	}
+    if (!DaphnisI_GetP2PDutyCycleEnforceRS(&dc_enforce))
+    {
+        WE_DEBUG_PRINT("Failed to get dc enforce runtime setting.\r\n");
+        exit(-1);
+    }
 
-	return (dc_enforce == false);
+    return (dc_enforce == false);
 }
 
 #endif

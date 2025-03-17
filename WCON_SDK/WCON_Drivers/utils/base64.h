@@ -31,21 +31,22 @@
 #ifndef BASE64_H_INCLUDED
 #define BASE64_H_INCLUDED
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern bool Base64_GetDecBufSize(uint8_t *inputData, uint32_t inputLength, uint32_t *outputLengthP);
+    extern bool Base64_GetDecBufSize(uint8_t* inputData, uint32_t inputLength, uint32_t* outputLengthP);
 
-extern bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t *outputLengthP);
+    extern bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t* outputLengthP);
 
-extern bool Base64_Decode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
+    extern bool Base64_Decode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength);
 
-extern bool Base64_Encode(uint8_t *inputData, uint32_t inputLength, uint8_t *outputData, uint32_t *outputLength);
+    extern bool Base64_Encode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength);
 
 #ifdef __cplusplus
 }

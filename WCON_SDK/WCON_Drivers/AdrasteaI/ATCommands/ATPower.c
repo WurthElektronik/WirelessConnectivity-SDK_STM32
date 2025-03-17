@@ -27,16 +27,17 @@
  * @file
  * @brief MCU commands for Power functionality.
  */
-#include <stdio.h>
-#include <global/ATCommands.h>
-#include <AdrasteaI/ATCommands/ATPower.h>
 #include <AdrasteaI/ATCommands/ATDevice.h>
+#include <AdrasteaI/ATCommands/ATPower.h>
 #include <AdrasteaI/AdrasteaI.h>
+#include <global/ATCommands.h>
+#include <stdio.h>
 
-static const char *AdrasteaI_ATPower_Mode_Strings[AdrasteaI_ATPower_Mode_NumberOfValues] = {
-		"stop",
-		"standby",
-		"shutdown", };
+static const char* AdrasteaI_ATPower_Mode_Strings[AdrasteaI_ATPower_Mode_NumberOfValues] = {
+    "stop",
+    "standby",
+    "shutdown",
+};
 
 /**
  * @brief Set MCU Power Mode (using the pwrMode command).
@@ -49,57 +50,57 @@ static const char *AdrasteaI_ATPower_Mode_Strings[AdrasteaI_ATPower_Mode_NumberO
  */
 bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration)
 {
-	AdrasteaI_Transparent_Transmit("\x04", 1);
+    AdrasteaI_Transparent_Transmit("\x04", 1);
 
-	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
-	{
-	}
+    while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
+    {
+    }
 
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "pwrMode ");
+    strcpy(pRequestCommand, "pwrMode ");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, AdrasteaI_ATPower_Mode_Strings[mode], ' '))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, AdrasteaI_ATPower_Mode_Strings[mode], ' '))
+    {
+        return false;
+    }
 
-	if (duration != AdrasteaI_ATPower_Mode_Duration_Invalid)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, duration, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
+    if (duration != AdrasteaI_ATPower_Mode_Duration_Invalid)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, duration, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
 
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	AdrasteaI_Transparent_Transmit("map\r\n", 5);
+    AdrasteaI_Transparent_Transmit("map\r\n", 5);
 
-	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
-	{
-	}
+    while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
+    {
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -111,21 +112,21 @@ bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATP
  */
 bool AdrasteaI_ATPower_EnableSleep()
 {
-	AdrasteaI_Transparent_Transmit("\x04", 1);
+    AdrasteaI_Transparent_Transmit("\x04", 1);
 
-	while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
-	{
-	}
+    while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Off)
+    {
+    }
 
-	if (!AdrasteaI_SendRequest("sleepSet enable\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("sleepSet enable\r\n"))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Power), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }

@@ -34,11 +34,12 @@
 #if defined(WE_DEBUG) || defined(WE_DEBUG_INIT)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void WE_Debug_Init();
-void WE_Debug_Flush();
+    void WE_Debug_Init();
+    void WE_Debug_Flush();
 
 #ifdef __cplusplus
 }

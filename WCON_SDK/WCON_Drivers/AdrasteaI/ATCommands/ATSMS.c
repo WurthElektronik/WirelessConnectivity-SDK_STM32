@@ -27,25 +27,16 @@
  * @file
  * @brief AT commands for SMS functionality.
  */
-#include <stdio.h>
-#include <global/ATCommands.h>
 #include <AdrasteaI/ATCommands/ATSMS.h>
 #include <AdrasteaI/AdrasteaI.h>
+#include <global/ATCommands.h>
+#include <stdio.h>
 
-static const char *AdrasteaI_ATSMS_Message_State_Strings[AdrasteaI_ATSMS_Message_State_NumberOfValues] = {
-		"REC UNREAD",
-		"REC READ",
-		"STO UNSENT",
-		"STO SENT",
-		"ALL" };
+static const char* AdrasteaI_ATSMS_Message_State_Strings[AdrasteaI_ATSMS_Message_State_NumberOfValues] = {"REC UNREAD", "REC READ", "STO UNSENT", "STO SENT", "ALL"};
 
-static const char *AdrasteaI_ATSMS_Storage_Location_Strings[AdrasteaI_ATSMS_Storage_Location_NumberOfValues] = {
-		"BM",
-		"ME",
-		"MT",
-		"SM",
-		"TA",
-		"SR", };
+static const char* AdrasteaI_ATSMS_Storage_Location_Strings[AdrasteaI_ATSMS_Storage_Location_NumberOfValues] = {
+    "BM", "ME", "MT", "SM", "TA", "SR",
+};
 
 /**
  * @brief Delete Message (using the AT+CMGD command).
@@ -56,31 +47,31 @@ static const char *AdrasteaI_ATSMS_Storage_Location_Strings[AdrasteaI_ATSMS_Stor
  */
 bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMGD=");
+    strcpy(pRequestCommand, "AT+CMGD=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -90,17 +81,17 @@ bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index)
  */
 bool AdrasteaI_ATSMS_DeleteAllMessages()
 {
-	if (!AdrasteaI_SendRequest("AT+CMGD=0,4\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CMGD=0,4\r\n"))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -112,31 +103,31 @@ bool AdrasteaI_ATSMS_DeleteAllMessages()
  */
 bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMGL=");
+    strcpy(pRequestCommand, "AT+CMGL=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Message_State_Strings[listType], ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Message_State_Strings[listType], ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -148,31 +139,31 @@ bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType)
  */
 bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMGR=");
+    strcpy(pRequestCommand, "AT+CMGR=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -188,61 +179,61 @@ bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index)
  */
 bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location_t readDeleteStorage, AdrasteaI_ATSMS_Storage_Location_t writeSendStorage, AdrasteaI_ATSMS_Storage_Location_t receiveStorage)
 {
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CPMS=");
+    strcpy(pRequestCommand, "AT+CPMS=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[readDeleteStorage], ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[readDeleteStorage], ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (writeSendStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[writeSendStorage], ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 1;
-	}
-	else
-	{
-		if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount++;
-	}
+    if (writeSendStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[writeSendStorage], ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 1;
+    }
+    else
+    {
+        if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_STRING_EMPTY, ATCOMMAND_ARGUMENT_DELIM))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount++;
+    }
 
-	if (receiveStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
-	{
-		if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[receiveStorage], ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (receiveStorage != AdrasteaI_ATSMS_Storage_Location_Invalid)
+    {
+        if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, AdrasteaI_ATSMS_Storage_Location_Strings[receiveStorage], ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -252,76 +243,73 @@ bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usage_t *storageUsageP)
+bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usage_t* storageUsageP)
 {
-	if (storageUsageP == NULL)
-	{
-		return false;
-	}
+    if (storageUsageP == NULL)
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("AT+CPMS?\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CPMS?\r\n"))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->readDeleteStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*)&storageUsageP->readDeleteStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->readDeleteStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->readDeleteStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->readDeleteStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->readDeleteStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->writeSendStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*)&storageUsageP->writeSendStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->writeSendStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->writeSendStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->writeSendStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->writeSendStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*) &storageUsageP->receiveStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&pResponseCommand, (uint8_t*)&storageUsageP->receiveStorageUsage.storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->receiveStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->receiveStorageUsage.usedMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->receiveStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &storageUsageP->receiveStorageUsage.maxMessages, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -333,44 +321,44 @@ bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usa
  */
 bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t serviceCenterAddress)
 {
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CSCA=");
+    strcpy(pRequestCommand, "AT+CSCA=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, serviceCenterAddress.address, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, serviceCenterAddress.address, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (serviceCenterAddress.addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, serviceCenterAddress.addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (serviceCenterAddress.addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, serviceCenterAddress.addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -380,38 +368,38 @@ bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Addr
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t *serviceCenterAddressP)
+bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t* serviceCenterAddressP)
 {
-	if (serviceCenterAddressP == NULL)
-	{
-		return false;
-	}
+    if (serviceCenterAddressP == NULL)
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest("AT+CSCA?\r\n"))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest("AT+CSCA?\r\n"))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, serviceCenterAddressP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(serviceCenterAddressP->address)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&pResponseCommand, serviceCenterAddressP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(serviceCenterAddressP->address)))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &serviceCenterAddressP->addressType, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, &serviceCenterAddressP->addressType, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -427,75 +415,75 @@ bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Add
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
-	if (messageReferenceP == NULL)
-	{
-		return false;
-	}
+    if (messageReferenceP == NULL)
+    {
+        return false;
+    }
 
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMGS=");
+    strcpy(pRequestCommand, "AT+CMGS=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
-	{
-		pResponseCommand += 1;
-	}
+    while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
+    {
+        pResponseCommand += 1;
+    }
 
-	pResponseCommand += 8;
+    pResponseCommand += 8;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -511,75 +499,75 @@ bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_AT
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
-	if (messageReferenceP == NULL)
-	{
-		return false;
-	}
+    if (messageReferenceP == NULL)
+    {
+        return false;
+    }
 
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT%CMGSC=");
+    strcpy(pRequestCommand, "AT%CMGSC=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
-	{
-		pResponseCommand += 1;
-	}
+    while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
+    {
+        pResponseCommand += 1;
+    }
 
-	pResponseCommand += 8;
+    pResponseCommand += 8;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -595,75 +583,75 @@ bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, Adraste
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Index_t *messageIndexP)
+bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Index_t* messageIndexP)
 {
-	if (messageIndexP == NULL)
-	{
-		return false;
-	}
+    if (messageIndexP == NULL)
+    {
+        return false;
+    }
 
-	AdrasteaI_optionalParamsDelimCount = 1;
+    AdrasteaI_optionalParamsDelimCount = 1;
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMGW=");
+    strcpy(pRequestCommand, "AT+CMGW=");
 
-	if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentStringQuotationMarks(pRequestCommand, address, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
-	{
-		if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-		{
-			return false;
-		}
-		AdrasteaI_optionalParamsDelimCount = 0;
-	}
+    if (addressType != AdrasteaI_ATSMS_Address_Type_Invalid)
+    {
+        if (!ATCommand_AppendArgumentInt(pRequestCommand, addressType, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+        {
+            return false;
+        }
+        AdrasteaI_optionalParamsDelimCount = 0;
+    }
 
-	pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
+    pRequestCommand[strlen(pRequestCommand) - AdrasteaI_optionalParamsDelimCount] = ATCOMMAND_STRING_TERMINATE;
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\r", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, message, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, "\x1A", ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
-	{
-		pResponseCommand += 1;
-	}
+    while (*pResponseCommand != '\0' && *(pResponseCommand + 1) != '+')
+    {
+        pResponseCommand += 1;
+    }
 
-	pResponseCommand += 8;
+    pResponseCommand += 8;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageIndexP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageIndexP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -675,47 +663,47 @@ bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, Ad
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t index, AdrasteaI_ATSMS_Message_Reference_t *messageReferenceP)
+bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t index, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
-	if (messageReferenceP == NULL)
-	{
-		return false;
-	}
+    if (messageReferenceP == NULL)
+    {
+        return false;
+    }
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+CMSS=");
+    strcpy(pRequestCommand, "AT+CMSS=");
 
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, index, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!AdrasteaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	char *pResponseCommand = AT_commandBuffer;
+    char* pResponseCommand = AT_commandBuffer;
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, pResponseCommand))
+    {
+        return false;
+    }
 
-	pResponseCommand += 1;
+    pResponseCommand += 1;
 
-	if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&pResponseCommand, messageReferenceP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -727,34 +715,34 @@ bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t inde
  */
 bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Event_State_t eventState)
 {
-	switch (eventState)
-	{
-	case AdrasteaI_ATCommon_Event_State_Enable:
-	{
-		if (!AdrasteaI_SendRequest("AT+CNMI=2,1\r\n"))
-		{
-			return false;
-		}
-		break;
-	}
-	case AdrasteaI_ATCommon_Event_State_Disable:
-	{
-		if (!AdrasteaI_SendRequest("AT+CNMI=1,0\r\n"))
-		{
-			return false;
-		}
-		break;
-	}
-	default:
-		return false;
-	}
+    switch (eventState)
+    {
+        case AdrasteaI_ATCommon_Event_State_Enable:
+        {
+            if (!AdrasteaI_SendRequest("AT+CNMI=2,1\r\n"))
+            {
+                return false;
+            }
+            break;
+        }
+        case AdrasteaI_ATCommon_Event_State_Disable:
+        {
+            if (!AdrasteaI_SendRequest("AT+CNMI=1,0\r\n"))
+            {
+                return false;
+            }
+            break;
+        }
+        default:
+            return false;
+    }
 
-	if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
-	{
-		return false;
-	}
+    if (!AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_SMS), AdrasteaI_CNFStatus_Success, NULL))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -765,51 +753,50 @@ bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Even
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ParseReadMessageEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP)
+bool AdrasteaI_ATSMS_ParseReadMessageEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_t* dataP)
 {
-	if (dataP == NULL || pEventArguments == NULL)
-	{
-		return false;
-	}
+    if (dataP == NULL || pEventArguments == NULL)
+    {
+        return false;
+    }
 
-	char *argumentsP = pEventArguments;
+    char* argumentsP = pEventArguments;
 
-	argumentsP += 1;
+    argumentsP += 1;
 
-	dataP->messageIndex = 0;
+    dataP->messageIndex = 0;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*)&dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->address)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->address)))
+    {
+        return false;
+    }
 
-	if (ATCommand_CountArgs(argumentsP) == 3)
-	{
-		char extraData[40];
+    if (ATCommand_CountArgs(argumentsP) == 3)
+    {
+        char extraData[40];
 
-		if (!ATCommand_GetNextArgumentString(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
-		{
-			return false;
-		}
+        if (!ATCommand_GetNextArgumentString(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
+        {
+            return false;
+        }
 
-		if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
-		{
-			return false;
-		}
-	}
+        if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
+        {
+            return false;
+        }
+    }
 
-	if (!ATCommand_GetNextArgumentString(&argumentsP, dataP->payload, ATCOMMAND_STRING_TERMINATE, sizeof(dataP->payload)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&argumentsP, dataP->payload, ATCOMMAND_STRING_TERMINATE, sizeof(dataP->payload)))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -820,54 +807,53 @@ bool AdrasteaI_ATSMS_ParseReadMessageEvent(char *pEventArguments, AdrasteaI_ATSM
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ParseListMessagesEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_t *dataP)
+bool AdrasteaI_ATSMS_ParseListMessagesEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_t* dataP)
 {
-	if (dataP == NULL || pEventArguments == NULL)
-	{
-		return false;
-	}
+    if (dataP == NULL || pEventArguments == NULL)
+    {
+        return false;
+    }
 
-	char *argumentsP = pEventArguments;
+    char* argumentsP = pEventArguments;
 
-	argumentsP += 1;
+    argumentsP += 1;
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->messageIndex, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->messageIndex, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*)&dataP->messageState, AdrasteaI_ATSMS_Message_State_Strings, AdrasteaI_ATSMS_Message_State_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->address)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, dataP->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(dataP->address)))
+    {
+        return false;
+    }
 
-	if (ATCommand_CountArgs(argumentsP) == 3)
-	{
-		char extraData[40];
+    if (ATCommand_CountArgs(argumentsP) == 3)
+    {
+        char extraData[40];
 
-		if (!ATCommand_GetNextArgumentString(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
-		{
-			return false;
-		}
+        if (!ATCommand_GetNextArgumentString(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
+        {
+            return false;
+        }
 
-		if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
-		{
-			return false;
-		}
-	}
+        if (!ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, extraData, ATCOMMAND_ARGUMENT_DELIM, sizeof(extraData)))
+        {
+            return false;
+        }
+    }
 
-	if (!ATCommand_GetNextArgumentString(&argumentsP, dataP->payload, ATCOMMAND_STRING_TERMINATE, sizeof(dataP->payload)))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentString(&argumentsP, dataP->payload, ATCOMMAND_STRING_TERMINATE, sizeof(dataP->payload)))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -878,29 +864,28 @@ bool AdrasteaI_ATSMS_ParseListMessagesEvent(char *pEventArguments, AdrasteaI_ATS
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char *pEventArguments, AdrasteaI_ATSMS_Message_Received_Result_t *dataP)
+bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_Received_Result_t* dataP)
 {
-	if (dataP == NULL || pEventArguments == NULL)
-	{
-		return false;
-	}
+    if (dataP == NULL || pEventArguments == NULL)
+    {
+        return false;
+    }
 
-	char *argumentsP = pEventArguments;
+    char* argumentsP = pEventArguments;
 
-	argumentsP += 1;
+    argumentsP += 1;
 
-	if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*) &dataP->storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentEnumWithoutQuotationMarks(&argumentsP, (uint8_t*)&dataP->storageLocation, AdrasteaI_ATSMS_Storage_Location_Strings, AdrasteaI_ATSMS_Storage_Location_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->messageIndex, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, &dataP->messageIndex, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -911,21 +896,21 @@ bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char *pEventArguments, AdrasteaI_
  *
  * @return true if successful, false otherwise
  */
-bool AdrasteaI_ATSMS_ParseSMSErrorEvent(char *pEventArguments, AdrasteaI_ATSMS_Error_t *dataP)
+bool AdrasteaI_ATSMS_ParseSMSErrorEvent(char* pEventArguments, AdrasteaI_ATSMS_Error_t* dataP)
 {
-	if (dataP == NULL || pEventArguments == NULL)
-	{
-		return false;
-	}
+    if (dataP == NULL || pEventArguments == NULL)
+    {
+        return false;
+    }
 
-	char *argumentsP = pEventArguments;
+    char* argumentsP = pEventArguments;
 
-	argumentsP += 1;
+    argumentsP += 1;
 
-	if (!ATCommand_GetNextArgumentInt(&argumentsP, dataP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE16 ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(&argumentsP, dataP, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE16), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }

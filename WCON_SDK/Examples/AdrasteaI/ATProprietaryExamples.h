@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATPROPRIETARYEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATProprietaryExample();
+    extern void ATProprietaryExample();
 
 #ifdef __cplusplus
 }

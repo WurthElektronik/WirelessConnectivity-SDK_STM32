@@ -112,7 +112,7 @@
 #define THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE 0x0001
 #define THEMISTOI_RPFLAGS_REPEATERENABLE 0X0001
 
-void ThemistoI_HandleRxByte(uint8_t *dataP, size_t size);
+void ThemistoI_HandleRxByte(uint8_t* dataP, size_t size);
 static WE_UART_HandleRxByte_t byteRxCallback = ThemistoI_HandleRxByte;
 
 /**
@@ -120,58 +120,56 @@ static WE_UART_HandleRxByte_t byteRxCallback = ThemistoI_HandleRxByte;
  */
 typedef enum ThemistoI_CMD_Status_t
 {
-	CMD_Status_Success = 0x00,
-	CMD_Status_Failed = 0x01,
-	CMD_Status_Invalid_Channel = 0x02,
-	CMD_Status_LBT_Channel_Busy = 0x03,
-	CMD_Status_Busy = 0x04,
-	CMD_Status_Invalid = 0xFF,
+    CMD_Status_Success = 0x00,
+    CMD_Status_Failed = 0x01,
+    CMD_Status_Invalid_Channel = 0x02,
+    CMD_Status_LBT_Channel_Busy = 0x03,
+    CMD_Status_Busy = 0x04,
+    CMD_Status_Invalid = 0xFF,
 } ThemistoI_CMD_Status_t;
 
-#define LENGTH_CMD_OVERHEAD             (uint16_t)4
+#define LENGTH_CMD_OVERHEAD (uint16_t)4
 #define LENGTH_CMD_OVERHEAD_WITHOUT_CRC (uint16_t)(LENGTH_CMD_OVERHEAD - 1)
-#define MAX_CMD_LENGTH                  (uint16_t)(MAX_DATA_BUFFER + LENGTH_CMD_OVERHEAD)
+#define MAX_CMD_LENGTH (uint16_t)(MAX_DATA_BUFFER + LENGTH_CMD_OVERHEAD)
 typedef struct
 {
-	const uint8_t Stx;
-	uint8_t Cmd;
-	uint8_t Length;
-	uint8_t Data[MAX_DATA_BUFFER + 1]; /* +1 for the CS */
+    const uint8_t Stx;
+    uint8_t Cmd;
+    uint8_t Length;
+    uint8_t Data[MAX_DATA_BUFFER + 1]; /* +1 for the CS */
 } ThemistoI_CMD_Frame_t;
 
 typedef struct
 {
-	uint8_t cmd; /* variable to check if correct CMD has been confirmed */
-	ThemistoI_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThemistoI */
+    uint8_t cmd;                   /* variable to check if correct CMD has been confirmed */
+    ThemistoI_CMD_Status_t status; /* variable used to check the response (*_CNF), when a request (*_REQ) was sent to the ThemistoI */
 } ThemistoI_CMD_Confirmation_t;
 
 /**************************************
  *          Static variables          *
  **************************************/
 
-static ThemistoI_CMD_Frame_t rxPacket; /* data buffer for RX */
-static ThemistoI_CMD_Frame_t txPacket = {
-		.Stx = CMD_STX,
-		.Length = 0 }; /* request to be sent to the module */
+static ThemistoI_CMD_Frame_t rxPacket;                                 /* data buffer for RX */
+static ThemistoI_CMD_Frame_t txPacket = {.Stx = CMD_STX, .Length = 0}; /* request to be sent to the module */
 
 #define CMDCONFIRMATIONARRAY_LENGTH 2
 static ThemistoI_CMD_Confirmation_t cmdConfirmation_array[CMDCONFIRMATIONARRAY_LENGTH];
-static uint8_t channelVolatile = CHANNELINVALID; /* variable used to check if setting the channel was successful */
-static uint8_t powerVolatile = TXPOWERINVALID; /* variable used to check if setting the TXPower was successful */
+static uint8_t channelVolatile = CHANNELINVALID;                      /* variable used to check if setting the channel was successful */
+static uint8_t powerVolatile = TXPOWERINVALID;                        /* variable used to check if setting the TXPower was successful */
 static ThemistoI_AddressMode_t addressmode = ThemistoI_AddressMode_0; /* initial address mode */
 /**
  * @brief Pin configuration struct pointer.
  */
-static ThemistoI_Pins_t *ThemistoI_pinsP = NULL;
+static ThemistoI_Pins_t* ThemistoI_pinsP = NULL;
 
 /**
  * @brief Uart configuration struct pointer.
  */
-static WE_UART_t *ThemistoI_uartP = NULL;
+static WE_UART_t* ThemistoI_uartP = NULL;
 static uint8_t checksum = 0;
 static uint16_t rxByteCounter = 0;
 static uint8_t bytesToReceive = 0;
-static uint8_t rxBuffer[sizeof(ThemistoI_CMD_Frame_t)]; /* data buffer for RX */
+static uint8_t rxBuffer[sizeof(ThemistoI_CMD_Frame_t)];                          /* data buffer for RX */
 static void (*RxCallback)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t); /* callback function */
 
 /**************************************
@@ -181,115 +179,115 @@ static void (*RxCallback)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t);
 /**
  * @brief Interpret the valid received UART data packet
  */
-static void HandleRxPacket(uint8_t *rxBuffer)
+static void HandleRxPacket(uint8_t* rxBuffer)
 {
-	ThemistoI_CMD_Confirmation_t cmdConfirmation;
-	cmdConfirmation.cmd = CNFINVALID;
-	cmdConfirmation.status = CMD_Status_Invalid;
+    ThemistoI_CMD_Confirmation_t cmdConfirmation;
+    cmdConfirmation.cmd = CNFINVALID;
+    cmdConfirmation.status = CMD_Status_Invalid;
 
-	uint8_t cmd_length = rxBuffer[2];
-	memcpy((uint8_t*) &rxPacket, rxBuffer, cmd_length + 4);
+    uint8_t cmd_length = rxBuffer[2];
+    memcpy((uint8_t*)&rxPacket, rxBuffer, cmd_length + 4);
 
-	switch (rxPacket.Cmd)
-	{
-	case THEMISTOI_CMD_RESET_IND:
-	case THEMISTOI_CMD_STANDBY_IND:
-	{
-		cmdConfirmation.status = CMD_Status_Success;
-		cmdConfirmation.cmd = rxPacket.Cmd;
-	}
-		break;
+    switch (rxPacket.Cmd)
+    {
+        case THEMISTOI_CMD_RESET_IND:
+        case THEMISTOI_CMD_STANDBY_IND:
+        {
+            cmdConfirmation.status = CMD_Status_Success;
+            cmdConfirmation.cmd = rxPacket.Cmd;
+        }
+        break;
 
-	case THEMISTOI_CMD_SET_DESTADDR_CNF:
-	case THEMISTOI_CMD_SET_DESTNETID_CNF:
-	case THEMISTOI_CMD_FACTORY_RESET_CNF:
-	case THEMISTOI_CMD_RESET_CNF:
-	case THEMISTOI_CMD_SHUTDOWN_CNF:
-	case THEMISTOI_CMD_STANDBY_CNF:
-	case THEMISTOI_CMD_DATA_CNF:
-	case THEMISTOI_CMD_GET_CNF:
-	case THEMISTOI_CMD_SET_CNF:
-	{
-		cmdConfirmation.status = (rxPacket.Data[0] == 0x00) ? CMD_Status_Success : CMD_Status_Failed;
-		cmdConfirmation.cmd = rxPacket.Cmd;
-	}
-		break;
+        case THEMISTOI_CMD_SET_DESTADDR_CNF:
+        case THEMISTOI_CMD_SET_DESTNETID_CNF:
+        case THEMISTOI_CMD_FACTORY_RESET_CNF:
+        case THEMISTOI_CMD_RESET_CNF:
+        case THEMISTOI_CMD_SHUTDOWN_CNF:
+        case THEMISTOI_CMD_STANDBY_CNF:
+        case THEMISTOI_CMD_DATA_CNF:
+        case THEMISTOI_CMD_GET_CNF:
+        case THEMISTOI_CMD_SET_CNF:
+        {
+            cmdConfirmation.status = (rxPacket.Data[0] == 0x00) ? CMD_Status_Success : CMD_Status_Failed;
+            cmdConfirmation.cmd = rxPacket.Cmd;
+        }
+        break;
 
-	case THEMISTOI_CMD_DATAEX_IND:
-	{
-		/* data received, give it to the RxCallback function */
-		if (RxCallback != NULL)
-		{
-			switch (addressmode)
-			{
-			case ThemistoI_AddressMode_0:
-			{
-				RxCallback(&rxPacket.Data[0], rxPacket.Length - 1, THEMISTOI_BROADCASTADDRESS, THEMISTOI_BROADCASTADDRESS, THEMISTOI_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
-			}
-				break;
+        case THEMISTOI_CMD_DATAEX_IND:
+        {
+            /* data received, give it to the RxCallback function */
+            if (RxCallback != NULL)
+            {
+                switch (addressmode)
+                {
+                    case ThemistoI_AddressMode_0:
+                    {
+                        RxCallback(&rxPacket.Data[0], rxPacket.Length - 1, THEMISTOI_BROADCASTADDRESS, THEMISTOI_BROADCASTADDRESS, THEMISTOI_BROADCASTADDRESS, (int8_t)rxPacket.Data[rxPacket.Length - 1]);
+                    }
+                    break;
 
-			case ThemistoI_AddressMode_1:
-			{
-				RxCallback(&rxPacket.Data[1], rxPacket.Length - 2, THEMISTOI_BROADCASTADDRESS, rxPacket.Data[0], THEMISTOI_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
-			}
-				break;
+                    case ThemistoI_AddressMode_1:
+                    {
+                        RxCallback(&rxPacket.Data[1], rxPacket.Length - 2, THEMISTOI_BROADCASTADDRESS, rxPacket.Data[0], THEMISTOI_BROADCASTADDRESS, (int8_t)rxPacket.Data[rxPacket.Length - 1]);
+                    }
+                    break;
 
-			case ThemistoI_AddressMode_2:
-			{
-				RxCallback(&rxPacket.Data[2], rxPacket.Length - 3, rxPacket.Data[0], rxPacket.Data[1], THEMISTOI_BROADCASTADDRESS, (int8_t) rxPacket.Data[rxPacket.Length - 1]);
-			}
-				break;
+                    case ThemistoI_AddressMode_2:
+                    {
+                        RxCallback(&rxPacket.Data[2], rxPacket.Length - 3, rxPacket.Data[0], rxPacket.Data[1], THEMISTOI_BROADCASTADDRESS, (int8_t)rxPacket.Data[rxPacket.Length - 1]);
+                    }
+                    break;
 
-			case ThemistoI_AddressMode_3:
-			{
-				RxCallback(&rxPacket.Data[3], rxPacket.Length - 4, rxPacket.Data[0], rxPacket.Data[1], rxPacket.Data[2], (int8_t) rxPacket.Data[rxPacket.Length - 1]);
-			}
-				break;
+                    case ThemistoI_AddressMode_3:
+                    {
+                        RxCallback(&rxPacket.Data[3], rxPacket.Length - 4, rxPacket.Data[0], rxPacket.Data[1], rxPacket.Data[2], (int8_t)rxPacket.Data[rxPacket.Length - 1]);
+                    }
+                    break;
 
-			default:
-				/* wrong address mode */
-				break;
-			}
-		}
-	}
-		break;
+                    default:
+                        /* wrong address mode */
+                        break;
+                }
+            }
+        }
+        break;
 
-	case THEMISTOI_CMD_SET_CHANNEL_CNF:
-	{
-		cmdConfirmation.status = (rxPacket.Data[0] == channelVolatile) ? CMD_Status_Success : CMD_Status_Failed;
-		cmdConfirmation.cmd = rxPacket.Cmd;
-	}
-		break;
+        case THEMISTOI_CMD_SET_CHANNEL_CNF:
+        {
+            cmdConfirmation.status = (rxPacket.Data[0] == channelVolatile) ? CMD_Status_Success : CMD_Status_Failed;
+            cmdConfirmation.cmd = rxPacket.Cmd;
+        }
+        break;
 
-	case THEMISTOI_CMD_SET_PAPOWER_CNF:
-	{
+        case THEMISTOI_CMD_SET_PAPOWER_CNF:
+        {
 
-		cmdConfirmation.status = (rxPacket.Data[0] == powerVolatile) ? CMD_Status_Success : CMD_Status_Failed;
-		cmdConfirmation.cmd = rxPacket.Cmd;
-	}
-		break;
+            cmdConfirmation.status = (rxPacket.Data[0] == powerVolatile) ? CMD_Status_Success : CMD_Status_Failed;
+            cmdConfirmation.cmd = rxPacket.Cmd;
+        }
+        break;
 
-		/* for internal use only */
-	case THEMISTOI_CMD_PINGDUT_CNF:
-	{
-		cmdConfirmation.status = (rxPacket.Data[4] == 0x0A) ? CMD_Status_Success : CMD_Status_Failed;
-		cmdConfirmation.cmd = rxPacket.Cmd;
-	}
-		break;
+            /* for internal use only */
+        case THEMISTOI_CMD_PINGDUT_CNF:
+        {
+            cmdConfirmation.status = (rxPacket.Data[4] == 0x0A) ? CMD_Status_Success : CMD_Status_Failed;
+            cmdConfirmation.cmd = rxPacket.Cmd;
+        }
+        break;
 
-	default:
-		break;
-	}
+        default:
+            break;
+    }
 
-	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-	{
-		if (cmdConfirmation_array[i].cmd == CNFINVALID)
-		{
-			cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
-			cmdConfirmation_array[i].status = cmdConfirmation.status;
-			break;
-		}
-	}
+    for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+    {
+        if (cmdConfirmation_array[i].cmd == CNFINVALID)
+        {
+            cmdConfirmation_array[i].cmd = cmdConfirmation.cmd;
+            cmdConfirmation_array[i].status = cmdConfirmation.status;
+            break;
+        }
+    }
 }
 
 /**
@@ -297,111 +295,111 @@ static void HandleRxPacket(uint8_t *rxBuffer)
  */
 static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, ThemistoI_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
-	int count = 0;
-	int time_step_ms = 5; /* 5ms */
-	int max_count = max_time_ms / time_step_ms;
+    int count = 0;
+    int time_step_ms = 5; /* 5ms */
+    int max_count = max_time_ms / time_step_ms;
 
-	if (reset_confirmstate)
-	{
-		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-		{
-			cmdConfirmation_array[i].cmd = CNFINVALID;
-		}
-	}
-	while (1)
-	{
-		for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-		{
-			if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
-			{
-				return (cmdConfirmation_array[i].status == expectedStatus);
-			}
-		}
+    if (reset_confirmstate)
+    {
+        for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+        {
+            cmdConfirmation_array[i].cmd = CNFINVALID;
+        }
+    }
+    while (1)
+    {
+        for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+        {
+            if (expectedCmdConfirmation == cmdConfirmation_array[i].cmd)
+            {
+                return (cmdConfirmation_array[i].status == expectedStatus);
+            }
+        }
 
-		if (count >= max_count)
-		{
-			/* received no correct response within timeout */
-			return false;
-		}
+        if (count >= max_count)
+        {
+            /* received no correct response within timeout */
+            return false;
+        }
 
-		/* wait */
-		count++;
-		WE_Delay(time_step_ms);
-	}
-	return true;
+        /* wait */
+        count++;
+        WE_Delay(time_step_ms);
+    }
+    return true;
 }
 
 /**
  * @brief Function to add the checksum at the end of the data packet.
  */
-static void FillChecksum(ThemistoI_CMD_Frame_t *cmd)
+static void FillChecksum(ThemistoI_CMD_Frame_t* cmd)
 {
-	uint8_t checksum = (uint8_t) cmd->Stx;
-	uint8_t *pArray = (uint8_t*) cmd;
+    uint8_t checksum = (uint8_t)cmd->Stx;
+    uint8_t* pArray = (uint8_t*)cmd;
 
-	for (uint8_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC ); i++)
-	{
-		checksum ^= pArray[i];
-	}
+    for (uint8_t i = 1; i < (cmd->Length + LENGTH_CMD_OVERHEAD_WITHOUT_CRC); i++)
+    {
+        checksum ^= pArray[i];
+    }
 
-	cmd->Data[cmd->Length] = checksum;
+    cmd->Data[cmd->Length] = checksum;
 }
 
-void ThemistoI_HandleRxByte(uint8_t *dataP, size_t size)
+void ThemistoI_HandleRxByte(uint8_t* dataP, size_t size)
 {
-	for (; size > 0; size--, dataP++)
-	{
-		if (rxByteCounter < sizeof(rxBuffer))
-		{
-			rxBuffer[rxByteCounter] = *dataP;
-		}
+    for (; size > 0; size--, dataP++)
+    {
+        if (rxByteCounter < sizeof(rxBuffer))
+        {
+            rxBuffer[rxByteCounter] = *dataP;
+        }
 
-		switch (rxByteCounter)
-		{
-		case 0:
-			/* wait for start byte of frame */
-			if (rxBuffer[rxByteCounter] == CMD_STX)
-			{
-				bytesToReceive = 0;
-				rxByteCounter = 1;
-			}
-			break;
+        switch (rxByteCounter)
+        {
+            case 0:
+                /* wait for start byte of frame */
+                if (rxBuffer[rxByteCounter] == CMD_STX)
+                {
+                    bytesToReceive = 0;
+                    rxByteCounter = 1;
+                }
+                break;
 
-		case 1:
-			/* CMD */
-			rxByteCounter++;
-			break;
+            case 1:
+                /* CMD */
+                rxByteCounter++;
+                break;
 
-		case 2:
-			/* length field */
-			rxByteCounter++;
-			bytesToReceive = (rxBuffer[rxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
-			break;
+            case 2:
+                /* length field */
+                rxByteCounter++;
+                bytesToReceive = (rxBuffer[rxByteCounter - 1] + 4); /* len + crc + sfd + cmd */
+                break;
 
-		default:
-			/* data field */
-			rxByteCounter++;
-			if (rxByteCounter >= bytesToReceive)
-			{
-				/* check CRC */
-				checksum = 0;
-				for (uint8_t i = 0; i < (bytesToReceive - 1); i++)
-				{
-					checksum ^= rxBuffer[i];
-				}
+            default:
+                /* data field */
+                rxByteCounter++;
+                if (rxByteCounter >= bytesToReceive)
+                {
+                    /* check CRC */
+                    checksum = 0;
+                    for (uint8_t i = 0; i < (bytesToReceive - 1); i++)
+                    {
+                        checksum ^= rxBuffer[i];
+                    }
 
-				if (checksum == rxBuffer[bytesToReceive - 1])
-				{
-					/* received frame ok, interpret it now */
-					HandleRxPacket(rxBuffer);
-				}
+                    if (checksum == rxBuffer[bytesToReceive - 1])
+                    {
+                        /* received frame ok, interpret it now */
+                        HandleRxPacket(rxBuffer);
+                    }
 
-				rxByteCounter = 0;
-				bytesToReceive = 0;
-			}
-			break;
-		}
-	}
+                    rxByteCounter = 0;
+                    bytesToReceive = 0;
+                }
+                break;
+        }
+    }
 }
 
 /**************************************
@@ -416,14 +414,14 @@ void ThemistoI_HandleRxByte(uint8_t *dataP, size_t size)
  * @return true if transmission succeeded,
  *         false otherwise
  */
-bool ThemistoI_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
+bool ThemistoI_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
 {
-	if ((data == NULL) || (dataLength == 0))
-	{
-		return false;
-	}
+    if ((data == NULL) || (dataLength == 0))
+    {
+        return false;
+    }
 
-	return ThemistoI_uartP->uartTransmit((uint8_t*) data, dataLength);
+    return ThemistoI_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
 /**
@@ -443,63 +441,63 @@ bool ThemistoI_Transparent_Transmit(const uint8_t *data, uint16_t dataLength)
  * @return true if initialization succeeded,
  *         false otherwise
  */
-bool ThemistoI_Init(WE_UART_t *uartP, ThemistoI_Pins_t *pinoutP, ThemistoI_AddressMode_t addrmode, void (*RXcb)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t))
+bool ThemistoI_Init(WE_UART_t* uartP, ThemistoI_Pins_t* pinoutP, ThemistoI_AddressMode_t addrmode, void (*RXcb)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t))
 {
-	/* set address mode */
-	addressmode = addrmode;
+    /* set address mode */
+    addressmode = addrmode;
 
-	/* set RX callback function */
-	RxCallback = RXcb;
+    /* set RX callback function */
+    RxCallback = RXcb;
 
-	if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
-	{
-		return false;
-	}
+    if ((pinoutP == NULL) || (uartP == NULL) || (uartP->uartInit == NULL) || (uartP->uartDeinit == NULL) || (uartP->uartTransmit == NULL))
+    {
+        return false;
+    }
 
-	ThemistoI_pinsP = pinoutP;
-	ThemistoI_pinsP->ThemistoI_Pin_Reset.type = WE_Pin_Type_Output;
-	ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
-	ThemistoI_pinsP->ThemistoI_Pin_Boot.type = WE_Pin_Type_Output;
-	ThemistoI_pinsP->ThemistoI_Pin_Mode.type = WE_Pin_Type_Output;
+    ThemistoI_pinsP = pinoutP;
+    ThemistoI_pinsP->ThemistoI_Pin_Reset.type = WE_Pin_Type_Output;
+    ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+    ThemistoI_pinsP->ThemistoI_Pin_Boot.type = WE_Pin_Type_Output;
+    ThemistoI_pinsP->ThemistoI_Pin_Mode.type = WE_Pin_Type_Output;
 
-	WE_Pin_t pins[sizeof(ThemistoI_Pins_t) / sizeof(WE_Pin_t)];
-	uint8_t pin_count = 0;
-	memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Reset, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Boot, sizeof(WE_Pin_t));
-	memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Mode, sizeof(WE_Pin_t));
+    WE_Pin_t pins[sizeof(ThemistoI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ThemistoI_pinsP->ThemistoI_Pin_Mode, sizeof(WE_Pin_t));
 
-	if (!WE_InitPins(pins, pin_count))
-	{
-		/* error */
-		return false;
-	}
+    if (!WE_InitPins(pins, pin_count))
+    {
+        /* error */
+        return false;
+    }
 
-	if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_Low) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Mode, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_Low) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Mode, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	ThemistoI_uartP = uartP;
-	if (!ThemistoI_uartP->uartInit(ThemistoI_uartP->baudrate, ThemistoI_uartP->flowControl, ThemistoI_uartP->parity, &byteRxCallback))
-	{
-		return false;
-	}
-	WE_Delay(10);
+    ThemistoI_uartP = uartP;
+    if (!ThemistoI_uartP->uartInit(ThemistoI_uartP->baudrate, ThemistoI_uartP->flowControl, ThemistoI_uartP->parity, &byteRxCallback))
+    {
+        return false;
+    }
+    WE_Delay(10);
 
-	/* reset module */
-	if (ThemistoI_PinReset())
-	{
-		WE_Delay(300);
-	}
-	else
-	{
-		WE_DEBUG_PRINT("Pin reset failed\n");
-		ThemistoI_Deinit();
-		return false;
-	}
+    /* reset module */
+    if (ThemistoI_PinReset())
+    {
+        WE_Delay(300);
+    }
+    else
+    {
+        WE_DEBUG_PRINT("Pin reset failed\n");
+        ThemistoI_Deinit();
+        return false;
+    }
 
-	return true;
+    return true;
 }
 /**
  * @brief Deinitialize the ThemistoI interface
@@ -509,16 +507,16 @@ bool ThemistoI_Init(WE_UART_t *uartP, ThemistoI_Pins_t *pinoutP, ThemistoI_Addre
  */
 bool ThemistoI_Deinit()
 {
-	/* deinit pins */
-	if (!WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Reset) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Boot) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Mode))
-	{
-		return false;
-	}
+    /* deinit pins */
+    if (!WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Reset) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Boot) || !WE_DeinitPin(ThemistoI_pinsP->ThemistoI_Pin_Mode))
+    {
+        return false;
+    }
 
-	addressmode = ThemistoI_AddressMode_0;
-	RxCallback = NULL;
+    addressmode = ThemistoI_AddressMode_0;
+    RxCallback = NULL;
 
-	return ThemistoI_uartP->uartDeinit();
+    return ThemistoI_uartP->uartDeinit();
 }
 
 /**
@@ -532,26 +530,26 @@ bool ThemistoI_Deinit()
  */
 bool ThemistoI_PinWakeup(bool standby)
 {
-	if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_High))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_High))
+    {
+        return false;
+    }
 
-	WE_Delay(5);
+    WE_Delay(5);
 
-	for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
-	{
-		cmdConfirmation_array[i].status = CMD_Status_Invalid;
-		cmdConfirmation_array[i].cmd = CNFINVALID;
-	}
+    for (uint8_t i = 0; i < CMDCONFIRMATIONARRAY_LENGTH; i++)
+    {
+        cmdConfirmation_array[i].status = CMD_Status_Invalid;
+        cmdConfirmation_array[i].cmd = CNFINVALID;
+    }
 
-	if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_SleepWakeUp, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, standby?THEMISTOI_CMD_STANDBY_IND:THEMISTOI_CMD_RESET_IND, CMD_Status_Success, false);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, standby ? THEMISTOI_CMD_STANDBY_IND : THEMISTOI_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
 /**
@@ -562,20 +560,20 @@ bool ThemistoI_PinWakeup(bool standby)
  */
 bool ThemistoI_PinReset()
 {
-	if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_Low))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_Low))
+    {
+        return false;
+    }
 
-	WE_Delay(5);
+    WE_Delay(5);
 
-	if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_High))
-	{
-		return false;
-	}
+    if (!WE_SetPin(ThemistoI_pinsP->ThemistoI_Pin_Reset, WE_Pin_Level_High))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_RESET_IND, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
 /**
@@ -586,18 +584,18 @@ bool ThemistoI_PinReset()
  */
 bool ThemistoI_Reset()
 {
-	txPacket.Cmd = THEMISTOI_CMD_RESET_REQ;
-	txPacket.Length = 0x00;
+    txPacket.Cmd = THEMISTOI_CMD_RESET_REQ;
+    txPacket.Length = 0x00;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_RESET_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_RESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -610,18 +608,18 @@ bool ThemistoI_Reset()
  */
 bool ThemistoI_FactoryReset()
 {
-	txPacket.Cmd = THEMISTOI_CMD_FACTORY_RESET_REQ;
-	txPacket.Length = 0x00;
+    txPacket.Cmd = THEMISTOI_CMD_FACTORY_RESET_REQ;
+    txPacket.Length = 0x00;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(1500, THEMISTOI_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(1500, THEMISTOI_CMD_FACTORY_RESET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -632,18 +630,18 @@ bool ThemistoI_FactoryReset()
  */
 bool ThemistoI_Standby()
 {
-	txPacket.Cmd = THEMISTOI_CMD_STANDBY_REQ;
-	txPacket.Length = 0x00;
+    txPacket.Cmd = THEMISTOI_CMD_STANDBY_REQ;
+    txPacket.Length = 0x00;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_STANDBY_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_STANDBY_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -654,18 +652,18 @@ bool ThemistoI_Standby()
  */
 bool ThemistoI_Shutdown()
 {
-	txPacket.Cmd = THEMISTOI_CMD_SHUTDOWN_REQ;
-	txPacket.Length = 0x00;
+    txPacket.Cmd = THEMISTOI_CMD_SHUTDOWN_REQ;
+    txPacket.Length = 0x00;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -678,35 +676,35 @@ bool ThemistoI_Shutdown()
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_Get(ThemistoI_UserSettings_t us, uint8_t *response, uint8_t *response_length)
+bool ThemistoI_Get(ThemistoI_UserSettings_t us, uint8_t* response, uint8_t* response_length)
 {
-	if (response == NULL || response_length == NULL)
-	{
-		return false;
-	}
+    if (response == NULL || response_length == NULL)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_GET_REQ;
-	txPacket.Length = 0x01;
-	txPacket.Data[0] = us;
+    txPacket.Cmd = THEMISTOI_CMD_GET_REQ;
+    txPacket.Length = 0x01;
+    txPacket.Data[0] = us;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	if (!Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_GET_CNF, CMD_Status_Success, true))
-	{
-		return false;
-	}
+    /* wait for cnf */
+    if (!Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_GET_CNF, CMD_Status_Success, true))
+    {
+        return false;
+    }
 
-	int length = rxPacket.Length - 1;
-	memcpy(response, &rxPacket.Data[1], length);
-	*response_length = length;
+    int length = rxPacket.Length - 1;
+    memcpy(response, &rxPacket.Data[1], length);
+    *response_length = length;
 
-	return true;
+    return true;
 }
 
 /**
@@ -722,29 +720,29 @@ bool ThemistoI_Get(ThemistoI_UserSettings_t us, uint8_t *response, uint8_t *resp
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_CheckNSet(ThemistoI_UserSettings_t userSetting, uint8_t *valueP, uint8_t length)
+bool ThemistoI_CheckNSet(ThemistoI_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
-	if (valueP == NULL)
-	{
-		return false;
-	}
+    if (valueP == NULL)
+    {
+        return false;
+    }
 
-	uint8_t current_value[length];
-	uint8_t current_length = length;
+    uint8_t current_value[length];
+    uint8_t current_length = length;
 
-	if (!ThemistoI_Get(userSetting, current_value, &current_length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(userSetting, current_value, &current_length))
+    {
+        return false;
+    }
 
-	if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
-	{
-		/* value is already set, no need to set it again */
-		return true;
-	}
+    if ((length == current_length) && (0 == memcmp(valueP, current_value, length)))
+    {
+        /* value is already set, no need to set it again */
+        return true;
+    }
 
-	/* value differs, and thus must be set */
-	return ThemistoI_Set(userSetting, valueP, length);
+    /* value differs, and thus must be set */
+    return ThemistoI_Set(userSetting, valueP, length);
 }
 
 /**
@@ -760,27 +758,27 @@ bool ThemistoI_CheckNSet(ThemistoI_UserSettings_t userSetting, uint8_t *valueP, 
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_Set(ThemistoI_UserSettings_t us, uint8_t *value, uint8_t length)
+bool ThemistoI_Set(ThemistoI_UserSettings_t us, uint8_t* value, uint8_t length)
 {
-	if (value == NULL)
-	{
-		return false;
-	}
+    if (value == NULL)
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_SET_REQ;
-	txPacket.Length = (1 + length);
-	txPacket.Data[0] = us;
-	memcpy(&txPacket.Data[1], value, length);
+    txPacket.Cmd = THEMISTOI_CMD_SET_REQ;
+    txPacket.Length = (1 + length);
+    txPacket.Data[0] = us;
+    memcpy(&txPacket.Data[1], value, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -791,26 +789,26 @@ bool ThemistoI_Set(ThemistoI_UserSettings_t us, uint8_t *value, uint8_t length)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetFirmwareVersion(uint8_t *fw)
+bool ThemistoI_GetFirmwareVersion(uint8_t* fw)
 {
-	if (fw == NULL)
-	{
-		return false;
-	}
+    if (fw == NULL)
+    {
+        return false;
+    }
 
-	uint8_t help[3];
-	uint8_t help_length;
+    uint8_t help[3];
+    uint8_t help_length;
 
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_FWVERSION, help, &help_length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_FWVERSION, help, &help_length))
+    {
+        return false;
+    }
 
-	fw[0] = help[2];
-	fw[1] = help[1];
-	fw[2] = help[0];
+    fw[0] = help[2];
+    fw[1] = help[1];
+    fw[2] = help[0];
 
-	return true;
+    return true;
 }
 
 /**
@@ -821,27 +819,27 @@ bool ThemistoI_GetFirmwareVersion(uint8_t *fw)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetSerialNumber(uint8_t *sn)
+bool ThemistoI_GetSerialNumber(uint8_t* sn)
 {
-	if (sn == NULL)
-	{
-		return false;
-	}
+    if (sn == NULL)
+    {
+        return false;
+    }
 
-	uint8_t help[8];
-	uint8_t help_length;
+    uint8_t help[8];
+    uint8_t help_length;
 
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_FACTORYSETTINGS, help, &help_length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_FACTORYSETTINGS, help, &help_length))
+    {
+        return false;
+    }
 
-	sn[0] = help[3];
-	sn[1] = help[2];
-	sn[2] = help[1];
-	sn[3] = help[0];
+    sn[0] = help[3];
+    sn[1] = help[2];
+    sn[2] = help[1];
+    sn[3] = help[0];
 
-	return true;
+    return true;
 }
 
 /**
@@ -852,18 +850,17 @@ bool ThemistoI_GetSerialNumber(uint8_t *sn)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetDefaultTXPower(uint8_t *txpower)
+bool ThemistoI_GetDefaultTXPower(uint8_t* txpower)
 {
-	if (txpower == NULL)
-	{
-		return false;
-	}
+    if (txpower == NULL)
+    {
+        return false;
+    }
 
-	*txpower = TXPOWERINVALID;
-	uint8_t length;
+    *txpower = TXPOWERINVALID;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, txpower, &length);
-
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, txpower, &length);
 }
 
 /**
@@ -875,26 +872,26 @@ bool ThemistoI_GetDefaultTXPower(uint8_t *txpower)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *destaddr_msb)
+bool ThemistoI_GetDefaultDestAddr(uint8_t* destaddr_lsb, uint8_t* destaddr_msb)
 {
-	if (destaddr_lsb == NULL || destaddr_msb == NULL)
-	{
-		return false;
-	}
+    if (destaddr_lsb == NULL || destaddr_msb == NULL)
+    {
+        return false;
+    }
 
-	/* helper array */
-	uint8_t help[2];
-	uint8_t length;
+    /* helper array */
+    uint8_t help[2];
+    uint8_t length;
 
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, &length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, &length))
+    {
+        return false;
+    }
 
-	*destaddr_lsb = help[0];
-	*destaddr_msb = help[1];
+    *destaddr_lsb = help[0];
+    *destaddr_msb = help[1];
 
-	return true;
+    return true;
 }
 
 /**
@@ -905,12 +902,11 @@ bool ThemistoI_GetDefaultDestAddr(uint8_t *destaddr_lsb, uint8_t *destaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetDefaultDestNetID(uint8_t *destnetid)
+bool ThemistoI_GetDefaultDestNetID(uint8_t* destnetid)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTNETID, destnetid, &length);
-
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTNETID, destnetid, &length);
 }
 
 /**
@@ -922,26 +918,26 @@ bool ThemistoI_GetDefaultDestNetID(uint8_t *destnetid)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetSourceAddr(uint8_t *srcaddr_lsb, uint8_t *srcaddr_msb)
+bool ThemistoI_GetSourceAddr(uint8_t* srcaddr_lsb, uint8_t* srcaddr_msb)
 {
-	if (srcaddr_lsb == NULL || srcaddr_msb == NULL)
-	{
-		return false;
-	}
+    if (srcaddr_lsb == NULL || srcaddr_msb == NULL)
+    {
+        return false;
+    }
 
-	/* helper array */
-	uint8_t help[2];
-	uint8_t length;
+    /* helper array */
+    uint8_t help[2];
+    uint8_t length;
 
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_SOURCEADDR, help, &length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_SOURCEADDR, help, &length))
+    {
+        return false;
+    }
 
-	*srcaddr_lsb = help[0];
-	*srcaddr_msb = help[1];
+    *srcaddr_lsb = help[0];
+    *srcaddr_msb = help[1];
 
-	return true;
+    return true;
 }
 
 /**
@@ -952,11 +948,11 @@ bool ThemistoI_GetSourceAddr(uint8_t *srcaddr_lsb, uint8_t *srcaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetSourceNetID(uint8_t *srcnetid)
+bool ThemistoI_GetSourceNetID(uint8_t* srcnetid)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_SOURCENETID, srcnetid, &length);
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_SOURCENETID, srcnetid, &length);
 }
 
 /**
@@ -967,11 +963,11 @@ bool ThemistoI_GetSourceNetID(uint8_t *srcnetid)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetDefaultRFChannel(uint8_t *channel)
+bool ThemistoI_GetDefaultRFChannel(uint8_t* channel)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, channel, &length);
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, channel, &length);
 }
 
 /**
@@ -982,11 +978,11 @@ bool ThemistoI_GetDefaultRFChannel(uint8_t *channel)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetDefaultRFProfile(uint8_t *profile)
+bool ThemistoI_GetDefaultRFProfile(uint8_t* profile)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFPROFILE, profile, &length);
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFPROFILE, profile, &length);
 }
 
 /**
@@ -997,11 +993,11 @@ bool ThemistoI_GetDefaultRFProfile(uint8_t *profile)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetLBTObservationPeriod(uint8_t *period)
+bool ThemistoI_GetLBTObservationPeriod(uint8_t* period)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, period, &length);
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, period, &length);
 }
 
 /**
@@ -1012,11 +1008,11 @@ bool ThemistoI_GetLBTObservationPeriod(uint8_t *period)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_GetLBTThreshold(int8_t *threshold)
+bool ThemistoI_GetLBTThreshold(int8_t* threshold)
 {
-	uint8_t length;
+    uint8_t length;
 
-	return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*) threshold, &length);
+    return ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*)threshold, &length);
 }
 
 /**
@@ -1033,14 +1029,14 @@ bool ThemistoI_GetLBTThreshold(int8_t *threshold)
  */
 bool ThemistoI_SetDefaultTXPower(uint8_t txpower)
 {
-	/* check for invalid power */
-	if ((txpower != 12) && (txpower != 18) && (txpower != 21) && (txpower != 23) && (txpower != 24) && (txpower != 25))
-	{
-		/*invalid power*/
-		return false;
-	}
+    /* check for invalid power */
+    if ((txpower != 12) && (txpower != 18) && (txpower != 21) && (txpower != 23) && (txpower != 24) && (txpower != 25))
+    {
+        /*invalid power*/
+        return false;
+    }
 
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, &txpower, 1);
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, &txpower, 1);
 }
 
 /**
@@ -1058,11 +1054,11 @@ bool ThemistoI_SetDefaultTXPower(uint8_t txpower)
  */
 bool ThemistoI_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
-	/* fill array */
-	uint8_t help[2];
-	help[0] = destaddr_lsb;
-	help[1] = destaddr_msb;
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, 2);
+    /* fill array */
+    uint8_t help[2];
+    help[0] = destaddr_lsb;
+    help[1] = destaddr_msb;
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, 2);
 }
 
 /**
@@ -1077,10 +1073,7 @@ bool ThemistoI_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_SetDefaultDestNetID(uint8_t destnetid)
-{
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTNETID, &destnetid, 1);
-}
+bool ThemistoI_SetDefaultDestNetID(uint8_t destnetid) { return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTDESTNETID, &destnetid, 1); }
 
 /**
  * @brief Set the default source address
@@ -1096,11 +1089,11 @@ bool ThemistoI_SetDefaultDestNetID(uint8_t destnetid)
  */
 bool ThemistoI_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
 {
-	/* fill array */
-	uint8_t help[2];
-	help[0] = srcaddr_lsb;
-	help[1] = srcaddr_msb;
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_SOURCEADDR, help, 2);
+    /* fill array */
+    uint8_t help[2];
+    help[0] = srcaddr_lsb;
+    help[1] = srcaddr_msb;
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_SOURCEADDR, help, 2);
 }
 
 /**
@@ -1114,10 +1107,7 @@ bool ThemistoI_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_SetSourceNetID(uint8_t srcnetid)
-{
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_SOURCENETID, &srcnetid, 1);
-}
+bool ThemistoI_SetSourceNetID(uint8_t srcnetid) { return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_SOURCENETID, &srcnetid, 1); }
 
 /**
  * @brief Set the default RF channel
@@ -1134,13 +1124,13 @@ bool ThemistoI_SetSourceNetID(uint8_t srcnetid)
 bool ThemistoI_SetDefaultRFChannel(uint8_t channel)
 {
 
-	/* check for valid channel */
-	if ((channel < THEMISTOI_MIN_RFCHANNEL) || (channel > THEMISTOI_MAX_RFCHANNEL))
-	{
-		/* invalid channel */
-		return false;
-	}
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, &channel, 1);
+    /* check for valid channel */
+    if ((channel < THEMISTOI_MIN_RFCHANNEL) || (channel > THEMISTOI_MAX_RFCHANNEL))
+    {
+        /* invalid channel */
+        return false;
+    }
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, &channel, 1);
 }
 
 /**
@@ -1154,10 +1144,7 @@ bool ThemistoI_SetDefaultRFChannel(uint8_t channel)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_SetDefaultRFProfile(uint8_t profile)
-{
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1);
-}
+bool ThemistoI_SetDefaultRFProfile(uint8_t profile) { return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1); }
 
 /**
  * @brief Set the LBT observation period
@@ -1172,12 +1159,12 @@ bool ThemistoI_SetDefaultRFProfile(uint8_t profile)
  */
 bool ThemistoI_SetLBTObservationPeriod(uint8_t period)
 {
-	if (period > 15)
-	{
-		return false;
-	}
+    if (period > 15)
+    {
+        return false;
+    }
 
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, &period, 1);
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, &period, 1);
 }
 
 /**
@@ -1193,12 +1180,12 @@ bool ThemistoI_SetLBTObservationPeriod(uint8_t period)
  */
 bool ThemistoI_SetLBTThreshold(int8_t threshold)
 {
-	if ((threshold < -100) || (threshold > -45))
-	{
-		return false;
-	}
+    if ((threshold < -100) || (threshold > -45))
+    {
+        return false;
+    }
 
-	return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*) &threshold, 1);
+    return ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*)&threshold, 1);
 }
 
 /**
@@ -1212,41 +1199,41 @@ bool ThemistoI_SetLBTThreshold(int8_t threshold)
  */
 bool ThemistoI_EnableSnifferMode()
 {
-	uint16_t rpFlags;
-	uint16_t cfgFlags;
-	uint8_t length;
+    uint16_t rpFlags;
+    uint16_t cfgFlags;
+    uint8_t length;
 
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*) &cfgFlags, &length))
-	{
-		return false;
-	}
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, &length))
+    {
+        return false;
+    }
 
-	/* set sniffer mode if not set already */
-	if (THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE))
-	{
-		cfgFlags |= THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE;
-		if (!ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*) &cfgFlags, 2))
-		{
-			return false;
-		}
-	}
+    /* set sniffer mode if not set already */
+    if (THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE != (cfgFlags & THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE))
+    {
+        cfgFlags |= THEMISTOI_CFGFLAGS_SNIFFERMODEENABLE;
+        if (!ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_CFG_FLAGS, (uint8_t*)&cfgFlags, 2))
+        {
+            return false;
+        }
+    }
 
-	/* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
-	if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*) &rpFlags, &length))
-	{
-		return false;
-	}
+    /* Make sure repeater mode is disabled once sniffer mode is active. Sniffer mode and repeater mode can not be used simultaneously */
+    if (!ThemistoI_Get(ThemistoI_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, &length))
+    {
+        return false;
+    }
 
-	if (THEMISTOI_RPFLAGS_REPEATERENABLE == (rpFlags & THEMISTOI_RPFLAGS_REPEATERENABLE))
-	{
-		rpFlags &= ~THEMISTOI_RPFLAGS_REPEATERENABLE;
-		if (!ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*) &rpFlags, 2))
-		{
-			return false;
-		}
-	}
+    if (THEMISTOI_RPFLAGS_REPEATERENABLE == (rpFlags & THEMISTOI_RPFLAGS_REPEATERENABLE))
+    {
+        rpFlags &= ~THEMISTOI_RPFLAGS_REPEATERENABLE;
+        if (!ThemistoI_Set(ThemistoI_CMD_SETGET_OPTION_RP_FLAGS, (uint8_t*)&rpFlags, 2))
+        {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -1259,31 +1246,31 @@ bool ThemistoI_EnableSnifferMode()
  */
 bool ThemistoI_SetVolatile_TXPower(uint8_t power)
 {
-	/* check for invalid power */
-	if ((power != 12) && (power != 18) && (power != 21) && (power != 23) && (power != 24) && (power != 25))
-	{
-		return false;
-	}
+    /* check for invalid power */
+    if ((power != 12) && (power != 18) && (power != 21) && (power != 23) && (power != 24) && (power != 25))
+    {
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_SET_PAPOWER_REQ;
-	txPacket.Length = 0x01;
-	txPacket.Data[0] = power;
+    txPacket.Cmd = THEMISTOI_CMD_SET_PAPOWER_REQ;
+    txPacket.Length = 0x01;
+    txPacket.Data[0] = power;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	powerVolatile = power;
+    powerVolatile = power;
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	bool ret = Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    bool ret = Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_PAPOWER_CNF, CMD_Status_Success, true);
 
-	powerVolatile = TXPOWERINVALID;
+    powerVolatile = TXPOWERINVALID;
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -1296,32 +1283,32 @@ bool ThemistoI_SetVolatile_TXPower(uint8_t power)
  */
 bool ThemistoI_SetVolatile_Channel(uint8_t channel)
 {
-	/* check for valid channel */
-	if ((channel < THEMISTOI_MIN_RFCHANNEL) || (channel > THEMISTOI_MAX_RFCHANNEL))
-	{
-		/* invalid channel */
-		return false;
-	}
+    /* check for valid channel */
+    if ((channel < THEMISTOI_MIN_RFCHANNEL) || (channel > THEMISTOI_MAX_RFCHANNEL))
+    {
+        /* invalid channel */
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_SET_CHANNEL_REQ;
-	txPacket.Length = 0x01;
-	txPacket.Data[0] = channel;
+    txPacket.Cmd = THEMISTOI_CMD_SET_CHANNEL_REQ;
+    txPacket.Length = 0x01;
+    txPacket.Data[0] = channel;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	channelVolatile = channel;
+    channelVolatile = channel;
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	bool ret = Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    bool ret = Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_CHANNEL_CNF, CMD_Status_Success, true);
 
-	channelVolatile = CHANNELINVALID;
+    channelVolatile = CHANNELINVALID;
 
-	return ret;
+    return ret;
 }
 
 /**
@@ -1335,19 +1322,19 @@ bool ThemistoI_SetVolatile_Channel(uint8_t channel)
 bool ThemistoI_SetVolatile_DestNetID(uint8_t destnetid)
 {
 
-	txPacket.Cmd = THEMISTOI_CMD_SET_DESTNETID_REQ;
-	txPacket.Length = 0x01;
-	txPacket.Data[0] = destnetid;
+    txPacket.Cmd = THEMISTOI_CMD_SET_DESTNETID_REQ;
+    txPacket.Length = 0x01;
+    txPacket.Data[0] = destnetid;
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1362,38 +1349,38 @@ bool ThemistoI_SetVolatile_DestNetID(uint8_t destnetid)
 bool ThemistoI_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
 
-	switch (addressmode)
-	{
-	case ThemistoI_AddressMode_0:
-	case ThemistoI_AddressMode_1:
-	case ThemistoI_AddressMode_2:
-	{
-		txPacket.Cmd = THEMISTOI_CMD_SET_DESTADDR_REQ;
-		txPacket.Length = 0x01;
-		txPacket.Data[0] = destaddr_lsb;
-	}
-		break;
-	case ThemistoI_AddressMode_3:
-	{
-		txPacket.Cmd = THEMISTOI_CMD_SET_DESTADDR_REQ;
-		txPacket.Length = 0x02;
-		txPacket.Data[0] = destaddr_lsb;
-		txPacket.Data[1] = destaddr_msb;
-	}
-		break;
-	default:
-		return false;
-	}
+    switch (addressmode)
+    {
+        case ThemistoI_AddressMode_0:
+        case ThemistoI_AddressMode_1:
+        case ThemistoI_AddressMode_2:
+        {
+            txPacket.Cmd = THEMISTOI_CMD_SET_DESTADDR_REQ;
+            txPacket.Length = 0x01;
+            txPacket.Data[0] = destaddr_lsb;
+        }
+        break;
+        case ThemistoI_AddressMode_3:
+        {
+            txPacket.Cmd = THEMISTOI_CMD_SET_DESTADDR_REQ;
+            txPacket.Length = 0x02;
+            txPacket.Data[0] = destaddr_lsb;
+            txPacket.Data[1] = destaddr_msb;
+        }
+        break;
+        default:
+            return false;
+    }
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1405,32 +1392,32 @@ bool ThemistoI_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_Transmit(uint8_t *payload, uint8_t length)
+bool ThemistoI_Transmit(uint8_t* payload, uint8_t length)
 {
-	if ((payload == NULL) || (length == 0))
-	{
-		return false;
-	}
+    if ((payload == NULL) || (length == 0))
+    {
+        return false;
+    }
 
-	if (length > MAX_PAYLOAD_LENGTH)
-	{
-		WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
-		return false;
-	}
+    if (length > MAX_PAYLOAD_LENGTH)
+    {
+        WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_DATA_REQ;
-	txPacket.Length = length;
-	memcpy(&txPacket.Data[0], payload, length);
+    txPacket.Cmd = THEMISTOI_CMD_DATA_REQ;
+    txPacket.Length = length;
+    memcpy(&txPacket.Data[0], payload, length);
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_DATA_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1446,75 +1433,75 @@ bool ThemistoI_Transmit(uint8_t *payload, uint8_t length)
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_Transmit_Extended(uint8_t *payload, uint8_t length, uint8_t channel, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb)
+bool ThemistoI_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb)
 {
-	if ((payload == NULL) || (length == 0))
-	{
-		return false;
-	}
+    if ((payload == NULL) || (length == 0))
+    {
+        return false;
+    }
 
-	if (length > MAX_PAYLOAD_LENGTH)
-	{
-		WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
-		return false;
-	}
+    if (length > MAX_PAYLOAD_LENGTH)
+    {
+        WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
+        return false;
+    }
 
-	txPacket.Cmd = THEMISTOI_CMD_DATAEX_REQ;
+    txPacket.Cmd = THEMISTOI_CMD_DATAEX_REQ;
 
-	switch (addressmode)
-	{
-	case ThemistoI_AddressMode_0:
-	{
-		txPacket.Length = (length + 1);
-		txPacket.Data[0] = channel;
-		memcpy(&txPacket.Data[1], payload, length);
-	}
-		break;
+    switch (addressmode)
+    {
+        case ThemistoI_AddressMode_0:
+        {
+            txPacket.Length = (length + 1);
+            txPacket.Data[0] = channel;
+            memcpy(&txPacket.Data[1], payload, length);
+        }
+        break;
 
-	case ThemistoI_AddressMode_1:
-	{
-		txPacket.Length = (length + 2);
-		txPacket.Data[0] = channel;
-		txPacket.Data[1] = dest_address_lsb;
-		memcpy(&txPacket.Data[2], payload, length);
-	}
-		break;
+        case ThemistoI_AddressMode_1:
+        {
+            txPacket.Length = (length + 2);
+            txPacket.Data[0] = channel;
+            txPacket.Data[1] = dest_address_lsb;
+            memcpy(&txPacket.Data[2], payload, length);
+        }
+        break;
 
-	case ThemistoI_AddressMode_2:
-	{
-		txPacket.Length = (length + 3);
-		txPacket.Data[0] = channel;
-		txPacket.Data[1] = dest_network_id;
-		txPacket.Data[2] = dest_address_lsb;
-		memcpy(&txPacket.Data[3], payload, length);
-	}
-		break;
+        case ThemistoI_AddressMode_2:
+        {
+            txPacket.Length = (length + 3);
+            txPacket.Data[0] = channel;
+            txPacket.Data[1] = dest_network_id;
+            txPacket.Data[2] = dest_address_lsb;
+            memcpy(&txPacket.Data[3], payload, length);
+        }
+        break;
 
-	case ThemistoI_AddressMode_3:
-	{
-		txPacket.Length = (length + 4);
-		txPacket.Data[0] = channel;
-		txPacket.Data[1] = dest_network_id;
-		txPacket.Data[2] = dest_address_lsb;
-		txPacket.Data[3] = dest_address_msb;
-		memcpy(&txPacket.Data[4], payload, length);
-	}
-		break;
+        case ThemistoI_AddressMode_3:
+        {
+            txPacket.Length = (length + 4);
+            txPacket.Data[0] = channel;
+            txPacket.Data[1] = dest_network_id;
+            txPacket.Data[2] = dest_address_lsb;
+            txPacket.Data[3] = dest_address_msb;
+            memcpy(&txPacket.Data[4], payload, length);
+        }
+        break;
 
-	default:
-		/* wrong address mode */
-		return false;
-	}
+        default:
+            /* wrong address mode */
+            return false;
+    }
 
-	FillChecksum(&txPacket);
+    FillChecksum(&txPacket);
 
-	if (!ThemistoI_Transparent_Transmit((uint8_t*) &txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
-	{
-		return false;
-	}
+    if (!ThemistoI_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_DATA_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(CMD_WAIT_TIME, THEMISTOI_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1527,29 +1514,17 @@ bool ThemistoI_Transmit_Extended(uint8_t *payload, uint8_t length, uint8_t chann
  */
 bool ThemistoI_Ping()
 {
-	/* rf-Profil=6, ch201, +14dBm, 100 packets*/
-	uint8_t ping_command[] = {
-			0x02,
-			0x1F,
-			0x08,
-			0x20,
-			0x06,
-			0xC9,
-			0x0E,
-			0x64,
-			0xFF,
-			0xFF,
-			0xFF,
-			0x6F };
+    /* rf-Profil=6, ch201, +14dBm, 100 packets*/
+    uint8_t ping_command[] = {0x02, 0x1F, 0x08, 0x20, 0x06, 0xC9, 0x0E, 0x64, 0xFF, 0xFF, 0xFF, 0x6F};
 
-	/* now send the data */
-	if (!ThemistoI_Transparent_Transmit(ping_command, sizeof(ping_command)))
-	{
-		return false;
-	}
+    /* now send the data */
+    if (!ThemistoI_Transparent_Transmit(ping_command, sizeof(ping_command)))
+    {
+        return false;
+    }
 
-	/* wait for cnf */
-	return Wait4CNF(10000 /*10s*/, THEMISTOI_CMD_PINGDUT_CNF, CMD_Status_Success, true);
+    /* wait for cnf */
+    return Wait4CNF(10000 /*10s*/, THEMISTOI_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
 /**
@@ -1562,56 +1537,56 @@ bool ThemistoI_Ping()
  * @return true if request succeeded,
  *         false otherwise
  */
-bool ThemistoI_Configure(ThemistoI_Configuration_t *config, uint8_t config_length, bool factory_reset)
+bool ThemistoI_Configure(ThemistoI_Configuration_t* config, uint8_t config_length, bool factory_reset)
 {
-	if ((config == NULL) || (config_length == 0))
-	{
-		return false;
-	}
+    if ((config == NULL) || (config_length == 0))
+    {
+        return false;
+    }
 
-	uint8_t help_length;
-	uint8_t help[THEMISTOI_MAX_USERSETTING_LENGTH];
+    uint8_t help_length;
+    uint8_t help[THEMISTOI_MAX_USERSETTING_LENGTH];
 
-	if (factory_reset)
-	{
-		/* perform a factory reset */
-		if (!ThemistoI_FactoryReset())
-		{
-			/* error */
-			return false;
-		}
-	}
-	WE_Delay(500);
+    if (factory_reset)
+    {
+        /* perform a factory reset */
+        if (!ThemistoI_FactoryReset())
+        {
+            /* error */
+            return false;
+        }
+    }
+    WE_Delay(500);
 
-	/* now check all settings and update them if necessary */
-	for (uint8_t i = 0; i < config_length; i++)
-	{
-		/* read current value */
-		if (!ThemistoI_Get(config[i].usersetting, help, &help_length))
-		{
-			/* error */
-			return false;
-		}
-		WE_Delay(200);
+    /* now check all settings and update them if necessary */
+    for (uint8_t i = 0; i < config_length; i++)
+    {
+        /* read current value */
+        if (!ThemistoI_Get(config[i].usersetting, help, &help_length))
+        {
+            /* error */
+            return false;
+        }
+        WE_Delay(200);
 
-		/* check the value read out */
-		if (help_length != config[i].value_length)
-		{
-			/* error, length does not match */
-			return false;
-		}
-		if (memcmp(help, config[i].value, config[i].value_length) != 0)
-		{
-			/* read value is not up to date, thus write the new value */
-			if (!ThemistoI_Set(config[i].usersetting, config[i].value, config[i].value_length))
-			{
-				/* error */
-				return false;
-			}
-		}
-		WE_Delay(200);
-	}
+        /* check the value read out */
+        if (help_length != config[i].value_length)
+        {
+            /* error, length does not match */
+            return false;
+        }
+        if (memcmp(help, config[i].value, config[i].value_length) != 0)
+        {
+            /* read value is not up to date, thus write the new value */
+            if (!ThemistoI_Set(config[i].usersetting, config[i].value, config[i].value_length))
+            {
+                /* error */
+                return false;
+            }
+        }
+        WE_Delay(200);
+    }
 
-	/* reset to take effect of the updated parameters */
-	return ThemistoI_PinReset();
+    /* reset to take effect of the updated parameters */
+    return ThemistoI_PinReset();
 }

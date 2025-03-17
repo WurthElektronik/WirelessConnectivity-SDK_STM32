@@ -27,48 +27,23 @@
  * @file
  * @brief AT commands for file I/O functionality.
  */
-#include <global/ATCommands.h>
 #include <CordeliaI/ATCommands/ATFile.h>
+#include <global/ATCommands.h>
 #include <global/global.h>
 
-static const char *CordeliaI_ATFile_OpenFlags_Strings[CordeliaI_ATFile_OpenFlags_NumberOfValues] = {
-		"CREATE",
-		"READ",
-		"WRITE",
-		"OVERWRITE",
-		"CREATE_FAILSAFE",
-		"CREATE_SECURE",
-		"CREATE_NOSIGNATURE",
-		"CREATE_STATIC_TOKEN",
-		"CREATE_VENDOR_TOKEN",
-		"CREATE_PUBLIC_WRITE",
-		"CREATE_PUBLIC_READ" };
+static const char* CordeliaI_ATFile_OpenFlags_Strings[CordeliaI_ATFile_OpenFlags_NumberOfValues] = {"CREATE", "READ", "WRITE", "OVERWRITE", "CREATE_FAILSAFE", "CREATE_SECURE", "CREATE_NOSIGNATURE", "CREATE_STATIC_TOKEN", "CREATE_VENDOR_TOKEN", "CREATE_PUBLIC_WRITE", "CREATE_PUBLIC_READ"};
 
-static const char *CordeliaI_ATFile_FileProperties_Strings[CordeliaI_ATFile_FileProperties_NumberOfValues] = {
-		"open_write",
-		"open_read",
-		"must_commit",
-		"bundle_file",
-		"pending_commit",
-		"pending_bundle_commit",
-		"not_failsafe",
-		"not_valid",
-		"sys_file",
-		"secure",
-		"nosignature",
-		"public_write",
-		"public_read" };
+static const char* CordeliaI_ATFile_FileProperties_Strings[CordeliaI_ATFile_FileProperties_NumberOfValues] = {"open_write", "open_read", "must_commit", "bundle_file", "pending_commit", "pending_bundle_commit", "not_failsafe", "not_valid", "sys_file", "secure", "nosignature", "public_write", "public_read"};
 
-static bool CordeliaI_ATFile_AddArgumentsFileOpen(char *pAtCommand, const char *fileName, uint32_t options, uint16_t fileSize);
-static bool CordeliaI_ATFile_AddArgumentsFileClose(char *pAtCommand, uint32_t fileID, const char *certName, const char *signature);
-static bool CordeliaI_ATFile_AddArgumentsFileDel(char *pAtCommand, const char *fileName, uint32_t secureToken);
-static bool CordeliaI_ATFile_AddArgumentsFileRead(char *pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToRead);
-static bool CordeliaI_ATFile_AddArgumentsFileWrite(char *pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToWrite, const char *data);
+static bool CordeliaI_ATFile_AddArgumentsFileOpen(char* pAtCommand, const char* fileName, uint32_t options, uint16_t fileSize);
+static bool CordeliaI_ATFile_AddArgumentsFileClose(char* pAtCommand, uint32_t fileID, const char* certName, const char* signature);
+static bool CordeliaI_ATFile_AddArgumentsFileDel(char* pAtCommand, const char* fileName, uint32_t secureToken);
+static bool CordeliaI_ATFile_AddArgumentsFileRead(char* pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToRead);
+static bool CordeliaI_ATFile_AddArgumentsFileWrite(char* pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToWrite, const char* data);
 
-static bool CordeliaI_ATFile_ParseResponseFileOpen(char **pAtCommand, uint32_t *fileID, uint32_t *secureToken);
-static bool CordeliaI_ATFile_ParseResponseFileRead(char **pAtCommand, uint16_t bytesToRead,
-bool decodeBase64, uint16_t *bytesRead, char *data);
-static bool CordeliaI_ATFile_ParseResponseFileWrite(char **pAtCommand, uint16_t *bytesWritten);
+static bool CordeliaI_ATFile_ParseResponseFileOpen(char** pAtCommand, uint32_t* fileID, uint32_t* secureToken);
+static bool CordeliaI_ATFile_ParseResponseFileRead(char** pAtCommand, uint16_t bytesToRead, bool decodeBase64, uint16_t* bytesRead, char* data);
+static bool CordeliaI_ATFile_ParseResponseFileWrite(char** pAtCommand, uint16_t* bytesWritten);
 
 /**
  * @brief Opens a file (using the AT+FileOpen command).
@@ -81,30 +56,29 @@ static bool CordeliaI_ATFile_ParseResponseFileWrite(char **pAtCommand, uint16_t 
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_Open(const char *fileName, uint32_t options, uint16_t fileSize, uint32_t *fileID, uint32_t *secureToken)
+bool CordeliaI_ATFile_Open(const char* fileName, uint32_t options, uint16_t fileSize, uint32_t* fileID, uint32_t* secureToken)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+fileOpen=");
+    strcpy(pRequestCommand, "AT+fileOpen=");
 
-	if (!CordeliaI_ATFile_AddArgumentsFileOpen(pRequestCommand, fileName, options, fileSize))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATFile_AddArgumentsFileOpen(pRequestCommand, fileName, options, fileSize))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_ATFile_ParseResponseFileOpen(&pRespondCommand, fileID, secureToken);
-
+    return CordeliaI_ATFile_ParseResponseFileOpen(&pRespondCommand, fileID, secureToken);
 }
 
 /**
@@ -116,25 +90,24 @@ bool CordeliaI_ATFile_Open(const char *fileName, uint32_t options, uint16_t file
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_Close(uint32_t fileID, char *certFileName, char *signature)
+bool CordeliaI_ATFile_Close(uint32_t fileID, char* certFileName, char* signature)
 {
 
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+fileClose=");
+    strcpy(pRequestCommand, "AT+fileClose=");
 
-	if (!CordeliaI_ATFile_AddArgumentsFileClose(pRequestCommand, fileID, certFileName, signature))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATFile_AddArgumentsFileClose(pRequestCommand, fileID, certFileName, signature))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
 
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
-
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -145,23 +118,22 @@ bool CordeliaI_ATFile_Close(uint32_t fileID, char *certFileName, char *signature
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_Delete(const char *fileName, uint32_t secureToken)
+bool CordeliaI_ATFile_Delete(const char* fileName, uint32_t secureToken)
 {
-	char *pRequestCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
 
-	strcpy(pRequestCommand, "AT+fileDel=");
+    strcpy(pRequestCommand, "AT+fileDel=");
 
-	if (!CordeliaI_ATFile_AddArgumentsFileDel(pRequestCommand, fileName, secureToken))
-	{
-		return false;
-	}
+    if (!CordeliaI_ATFile_AddArgumentsFileDel(pRequestCommand, fileName, secureToken))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
-
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -182,54 +154,53 @@ bool CordeliaI_ATFile_Delete(const char *fileName, uint32_t secureToken)
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_Read(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format,
-bool decodeBase64, uint16_t bytesToRead, char *data, uint16_t *bytesRead)
+bool CordeliaI_ATFile_Read(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, bool decodeBase64, uint16_t bytesToRead, char* data, uint16_t* bytesRead)
 {
-	*bytesRead = 0;
+    *bytesRead = 0;
 
-	uint16_t chunkSize = 0;
-	for (uint16_t chunkOffset = 0; chunkOffset < bytesToRead; chunkOffset += chunkSize)
-	{
-		chunkSize = bytesToRead - chunkOffset;
-		if (chunkSize > ATFILE_FILE_MAX_CHUNK_SIZE)
-		{
-			chunkSize = ATFILE_FILE_MAX_CHUNK_SIZE;
-		}
+    uint16_t chunkSize = 0;
+    for (uint16_t chunkOffset = 0; chunkOffset < bytesToRead; chunkOffset += chunkSize)
+    {
+        chunkSize = bytesToRead - chunkOffset;
+        if (chunkSize > ATFILE_FILE_MAX_CHUNK_SIZE)
+        {
+            chunkSize = ATFILE_FILE_MAX_CHUNK_SIZE;
+        }
 
-		char *pRequestCommand = AT_commandBuffer;
-		char *pRespondCommand = AT_commandBuffer;
+        char* pRequestCommand = AT_commandBuffer;
+        char* pRespondCommand = AT_commandBuffer;
 
-		strcpy(pRequestCommand, "AT+fileRead=");
+        strcpy(pRequestCommand, "AT+fileRead=");
 
-		if (!CordeliaI_ATFile_AddArgumentsFileRead(pRequestCommand, fileID, offset + chunkOffset, format, chunkSize))
-		{
-			return false;
-		}
+        if (!CordeliaI_ATFile_AddArgumentsFileRead(pRequestCommand, fileID, offset + chunkOffset, format, chunkSize))
+        {
+            return false;
+        }
 
-		if (!CordeliaI_SendRequest(pRequestCommand))
-		{
-			return false;
-		}
-		if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, pRespondCommand))
-		{
-			return false;
-		}
+        if (!CordeliaI_SendRequest(pRequestCommand))
+        {
+            return false;
+        }
+        if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, pRespondCommand))
+        {
+            return false;
+        }
 
-		uint16_t chunkBytesRead = 0;
-		if (!CordeliaI_ATFile_ParseResponseFileRead(&pRespondCommand, chunkSize, decodeBase64, &chunkBytesRead, data + chunkOffset))
-		{
-			return false;
-		}
+        uint16_t chunkBytesRead = 0;
+        if (!CordeliaI_ATFile_ParseResponseFileRead(&pRespondCommand, chunkSize, decodeBase64, &chunkBytesRead, data + chunkOffset))
+        {
+            return false;
+        }
 
-		*bytesRead += chunkBytesRead;
+        *bytesRead += chunkBytesRead;
 
 #ifdef WE_DEBUG
-		/* Flush debug buffer, as it may have been filled up with the read data */
-		WE_Debug_Flush();
+        /* Flush debug buffer, as it may have been filled up with the read data */
+        WE_Debug_Flush();
 #endif
-	}
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -248,95 +219,93 @@ bool decodeBase64, uint16_t bytesToRead, char *data, uint16_t *bytesRead)
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_Write(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format,
-bool encodeAsBase64, uint16_t bytesToWrite, const char *data, uint16_t *bytesWritten)
+bool CordeliaI_ATFile_Write(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, bool encodeAsBase64, uint16_t bytesToWrite, const char* data, uint16_t* bytesWritten)
 {
-	*bytesWritten = 0;
+    *bytesWritten = 0;
 
-	if (encodeAsBase64)
-	{
-		/* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
+    if (encodeAsBase64)
+    {
+        /* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
 		 * the data is encoded in chunks, if necessary. */
 
-		uint16_t maxChunkSize = (((ATFILE_FILE_MAX_CHUNK_SIZE - 1) * 3) / 4) - 2;
-		uint16_t chunkSize = 0;
-		for (uint16_t chunkOffset = 0; chunkOffset < bytesToWrite; chunkOffset += chunkSize)
-		{
-			chunkSize = bytesToWrite - chunkOffset;
-			if (chunkSize > maxChunkSize)
-			{
-				chunkSize = maxChunkSize;
-			}
+        uint16_t maxChunkSize = (((ATFILE_FILE_MAX_CHUNK_SIZE - 1) * 3) / 4) - 2;
+        uint16_t chunkSize = 0;
+        for (uint16_t chunkOffset = 0; chunkOffset < bytesToWrite; chunkOffset += chunkSize)
+        {
+            chunkSize = bytesToWrite - chunkOffset;
+            if (chunkSize > maxChunkSize)
+            {
+                chunkSize = maxChunkSize;
+            }
 
-			/* Encode as Base64 */
-			uint32_t lengthEncoded;
-			if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
-			{
-				return false;
-			}
+            /* Encode as Base64 */
+            uint32_t lengthEncoded;
+            if (!Base64_GetEncBufSize(chunkSize, &lengthEncoded))
+            {
+                return false;
+            }
 
-			char base64Buffer[lengthEncoded];
-			if (!Base64_Encode((uint8_t*) data + chunkOffset, chunkSize, (uint8_t*) base64Buffer, &lengthEncoded))
-			{
-				return false;
-			}
+            char base64Buffer[lengthEncoded];
+            if (!Base64_Encode((uint8_t*)data + chunkOffset, chunkSize, (uint8_t*)base64Buffer, &lengthEncoded))
+            {
+                return false;
+            }
 
-			/* Recursively call CordeliaI_ATFile_Write() with the encoded binary data */
-			uint16_t chunkBytesWritten = 0;
-			bool ok = CordeliaI_ATFile_Write(fileID, offset + chunkOffset, format,
-			false, lengthEncoded, base64Buffer, &chunkBytesWritten);
-			if (!ok)
-			{
-				return false;
-			}
-			*bytesWritten += chunkSize;
-		}
+            /* Recursively call CordeliaI_ATFile_Write() with the encoded binary data */
+            uint16_t chunkBytesWritten = 0;
+            bool ok = CordeliaI_ATFile_Write(fileID, offset + chunkOffset, format, false, lengthEncoded, base64Buffer, &chunkBytesWritten);
+            if (!ok)
+            {
+                return false;
+            }
+            *bytesWritten += chunkSize;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	uint16_t chunkBytesWritten = 0;
-	for (uint16_t chunkOffset = 0; chunkOffset < bytesToWrite; chunkOffset += chunkBytesWritten)
-	{
-		uint16_t chunkSize = bytesToWrite - chunkOffset;
-		if (chunkSize > ATFILE_FILE_MAX_CHUNK_SIZE)
-		{
-			chunkSize = ATFILE_FILE_MAX_CHUNK_SIZE;
-		}
+    uint16_t chunkBytesWritten = 0;
+    for (uint16_t chunkOffset = 0; chunkOffset < bytesToWrite; chunkOffset += chunkBytesWritten)
+    {
+        uint16_t chunkSize = bytesToWrite - chunkOffset;
+        if (chunkSize > ATFILE_FILE_MAX_CHUNK_SIZE)
+        {
+            chunkSize = ATFILE_FILE_MAX_CHUNK_SIZE;
+        }
 
-		char *pRequestCommand = AT_commandBuffer;
-		char *pRespondCommand = AT_commandBuffer;
+        char* pRequestCommand = AT_commandBuffer;
+        char* pRespondCommand = AT_commandBuffer;
 
-		strcpy(pRequestCommand, "AT+fileWrite=");
+        strcpy(pRequestCommand, "AT+fileWrite=");
 
-		if (!CordeliaI_ATFile_AddArgumentsFileWrite(pRequestCommand, fileID, offset + chunkOffset, format, chunkSize, data + chunkOffset))
-		{
-			return false;
-		}
+        if (!CordeliaI_ATFile_AddArgumentsFileWrite(pRequestCommand, fileID, offset + chunkOffset, format, chunkSize, data + chunkOffset))
+        {
+            return false;
+        }
 
-		if (!CordeliaI_SendRequest(pRequestCommand))
-		{
-			return false;
-		}
-		if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, pRespondCommand))
-		{
-			return false;
-		}
+        if (!CordeliaI_SendRequest(pRequestCommand))
+        {
+            return false;
+        }
+        if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, pRespondCommand))
+        {
+            return false;
+        }
 
-		if (!CordeliaI_ATFile_ParseResponseFileWrite(&pRespondCommand, &chunkBytesWritten))
-		{
-			return false;
-		}
+        if (!CordeliaI_ATFile_ParseResponseFileWrite(&pRespondCommand, &chunkBytesWritten))
+        {
+            return false;
+        }
 
-		*bytesWritten += chunkBytesWritten;
+        *bytesWritten += chunkBytesWritten;
 
 #ifdef WE_DEBUG
-		/* Flush debug buffer, as it may have been filled up with the written data */
-		WE_Debug_Flush();
+        /* Flush debug buffer, as it may have been filled up with the written data */
+        WE_Debug_Flush();
 #endif
-	}
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -348,74 +317,74 @@ bool encodeAsBase64, uint16_t bytesToWrite, const char *data, uint16_t *bytesWri
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_GetInfo(const char *fileName, uint32_t secureToken, CordeliaI_ATFile_FileInfo_t *fileInfo)
+bool CordeliaI_ATFile_GetInfo(const char* fileName, uint32_t secureToken, CordeliaI_ATFile_FileInfo_t* fileInfo)
 {
-	char *pRequestCommand = AT_commandBuffer;
-	char *pRespondCommand = AT_commandBuffer;
+    char* pRequestCommand = AT_commandBuffer;
+    char* pRespondCommand = AT_commandBuffer;
 
-	strcpy(AT_commandBuffer, "AT+fileGetInfo=");
+    strcpy(AT_commandBuffer, "AT+fileGetInfo=");
 
-	if (!ATCommand_AppendArgumentString(pRequestCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentInt(pRequestCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pRequestCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	if (!CordeliaI_SendRequest(pRequestCommand))
-	{
-		return false;
-	}
-	if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
-	{
-		return false;
-	}
+    if (!CordeliaI_SendRequest(pRequestCommand))
+    {
+        return false;
+    }
+    if (!CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, pRespondCommand))
+    {
+        return false;
+    }
 
-	const char *cmd = "+filegetinfo:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+filegetinfo:";
+    const size_t cmdLength = strlen(cmd);
 
-	if (0 != strncmp(pRespondCommand, cmd, cmdLength))
-	{
-		return false;
-	}
-	pRespondCommand += cmdLength;
+    if (0 != strncmp(pRespondCommand, cmd, cmdLength))
+    {
+        return false;
+    }
+    pRespondCommand += cmdLength;
 
-	char temp[128];
+    char temp[128];
 
-	/* Discard flags */
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->size, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->allocatedSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	/* Discard tokens */
-	if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->storageSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->writeCounter, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    /* Discard flags */
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->size, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->allocatedSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    /* Discard tokens */
+    if (!ATCommand_GetNextArgumentString(&pRespondCommand, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->storageSize, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(&pRespondCommand, &fileInfo->writeCounter, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 /**
@@ -430,11 +399,11 @@ bool CordeliaI_ATFile_GetInfo(const char *fileName, uint32_t secureToken, Cordel
  */
 bool CordeliaI_ATFile_GetFileList()
 {
-	if (!CordeliaI_SendRequest("AT+fileGetFileList\r\n"))
-	{
-		return false;
-	}
-	return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, NULL);
+    if (!CordeliaI_SendRequest("AT+fileGetFileList\r\n"))
+    {
+        return false;
+    }
+    return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, NULL);
 }
 
 /**
@@ -445,27 +414,21 @@ bool CordeliaI_ATFile_GetFileList()
  *
  * @return true if parsed successfully, false otherwise
  */
-bool CordeliaI_ATFile_ParseFileListEntry(char **pInArguments, CordeliaI_ATFile_FileListEntry_t *fileListEntry)
+bool CordeliaI_ATFile_ParseFileListEntry(char** pInArguments, CordeliaI_ATFile_FileListEntry_t* fileListEntry)
 {
-	if (!ATCommand_GetNextArgumentString(pInArguments, fileListEntry->fileName,
-	ATCOMMAND_ARGUMENT_DELIM, sizeof(fileListEntry->fileName)))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentInt(pInArguments, &fileListEntry->maxFileSize,
-	ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_GetNextArgumentBitmask(pInArguments, CordeliaI_ATFile_FileProperties_Strings, CordeliaI_ATFile_FileProperties_NumberOfValues, 25, &fileListEntry->properties,
-	ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	return ATCommand_GetNextArgumentInt(pInArguments, &fileListEntry->allocatedBlocks,
-	ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED,
-	ATCOMMAND_STRING_TERMINATE);
+    if (!ATCommand_GetNextArgumentString(pInArguments, fileListEntry->fileName, ATCOMMAND_ARGUMENT_DELIM, sizeof(fileListEntry->fileName)))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentInt(pInArguments, &fileListEntry->maxFileSize, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_GetNextArgumentBitmask(pInArguments, CordeliaI_ATFile_FileProperties_Strings, CordeliaI_ATFile_FileProperties_NumberOfValues, 25, &fileListEntry->properties, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    return ATCommand_GetNextArgumentInt(pInArguments, &fileListEntry->allocatedBlocks, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -477,11 +440,7 @@ bool CordeliaI_ATFile_ParseFileListEntry(char **pInArguments, CordeliaI_ATFile_F
  *
  * @return true if successful, false otherwise
  */
-bool CordeliaI_ATFile_PrintFileProperties(uint32_t properties, char *pOutStr, size_t maxLength)
-{
-	return ATCommand_AppendArgumentBitmask(pOutStr, CordeliaI_ATFile_FileProperties_Strings, CordeliaI_ATFile_FileProperties_NumberOfValues, properties,
-	ATCOMMAND_STRING_TERMINATE, maxLength);
-}
+bool CordeliaI_ATFile_PrintFileProperties(uint32_t properties, char* pOutStr, size_t maxLength) { return ATCommand_AppendArgumentBitmask(pOutStr, CordeliaI_ATFile_FileProperties_Strings, CordeliaI_ATFile_FileProperties_NumberOfValues, properties, ATCOMMAND_STRING_TERMINATE, maxLength); }
 
 /**
  * @brief Adds arguments to the AT+fileOpen command string.
@@ -493,38 +452,35 @@ bool CordeliaI_ATFile_PrintFileProperties(uint32_t properties, char *pOutStr, si
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_AddArgumentsFileOpen(char *pAtCommand, const char *fileName, uint32_t options, uint16_t fileSize)
+static bool CordeliaI_ATFile_AddArgumentsFileOpen(char* pAtCommand, const char* fileName, uint32_t options, uint16_t fileSize)
 {
 
-	if ((NULL == pAtCommand) || (NULL == fileName))
-	{
-		return false;
-	}
+    if ((NULL == pAtCommand) || (NULL == fileName))
+    {
+        return false;
+    }
 
-	if (strlen(fileName) > ATFILE_FILENAME_MAX_LENGTH || (0 != (options & CordeliaI_ATFile_OpenFlags_Create) && ATFILE_FILE_MIN_SIZE > fileSize))
-	{
-		return false;
-	}
+    if (strlen(fileName) > ATFILE_FILENAME_MAX_LENGTH || (0 != (options & CordeliaI_ATFile_OpenFlags_Create) && ATFILE_FILE_MIN_SIZE > fileSize))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentBitmask(pAtCommand, CordeliaI_ATFile_OpenFlags_Strings, CordeliaI_ATFile_OpenFlags_NumberOfValues, options,
-	ATCOMMAND_ARGUMENT_DELIM,
-	AT_MAX_COMMAND_BUFFER_SIZE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentBitmask(pAtCommand, CordeliaI_ATFile_OpenFlags_Strings, CordeliaI_ATFile_OpenFlags_NumberOfValues, options, ATCOMMAND_ARGUMENT_DELIM, AT_MAX_COMMAND_BUFFER_SIZE))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, fileSize, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, fileSize, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -537,30 +493,29 @@ static bool CordeliaI_ATFile_AddArgumentsFileOpen(char *pAtCommand, const char *
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_AddArgumentsFileClose(char *pAtCommand, uint32_t fileID, const char *certName, const char *signature)
+static bool CordeliaI_ATFile_AddArgumentsFileClose(char* pAtCommand, uint32_t fileID, const char* certName, const char* signature)
 {
 
-	if (NULL == pAtCommand)
-	{
-		return false;
-	}
+    if (NULL == pAtCommand)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, certName, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
-	if (!ATCommand_AppendArgumentString(pAtCommand, signature, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, certName, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
+    if (!ATCommand_AppendArgumentString(pAtCommand, signature, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -572,25 +527,25 @@ static bool CordeliaI_ATFile_AddArgumentsFileClose(char *pAtCommand, uint32_t fi
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_AddArgumentsFileDel(char *pAtCommand, const char *fileName, uint32_t secureToken)
+static bool CordeliaI_ATFile_AddArgumentsFileDel(char* pAtCommand, const char* fileName, uint32_t secureToken)
 {
 
-	if (NULL == pAtCommand)
-	{
-		return false;
-	}
+    if (NULL == pAtCommand)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentString(pAtCommand, fileName, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, secureToken, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, secureToken, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -604,36 +559,35 @@ static bool CordeliaI_ATFile_AddArgumentsFileDel(char *pAtCommand, const char *f
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_AddArgumentsFileRead(char *pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToRead)
+static bool CordeliaI_ATFile_AddArgumentsFileRead(char* pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToRead)
 {
 
-	if (NULL == pAtCommand)
-	{
-		return false;
-	}
+    if (NULL == pAtCommand)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, bytesToRead, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, bytesToRead, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -648,41 +602,40 @@ static bool CordeliaI_ATFile_AddArgumentsFileRead(char *pAtCommand, uint32_t fil
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_AddArgumentsFileWrite(char *pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToWrite, const char *data)
+static bool CordeliaI_ATFile_AddArgumentsFileWrite(char* pAtCommand, uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, uint16_t bytesToWrite, const char* data)
 {
 
-	if (NULL == pAtCommand)
-	{
-		return false;
-	}
+    if (NULL == pAtCommand)
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, fileID, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, offset, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, format, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentInt(pAtCommand, bytesToWrite, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED ), ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentInt(pAtCommand, bytesToWrite, (ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED), ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_AppendArgumentBytes(pAtCommand, data, bytesToWrite, ATCOMMAND_STRING_TERMINATE))
-	{
-		return false;
-	}
+    if (!ATCommand_AppendArgumentBytes(pAtCommand, data, bytesToWrite, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
-	return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_AppendArgumentString(pAtCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -694,23 +647,22 @@ static bool CordeliaI_ATFile_AddArgumentsFileWrite(char *pAtCommand, uint32_t fi
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_ParseResponseFileOpen(char **pAtCommand, uint32_t *fileID, uint32_t *secureToken)
+static bool CordeliaI_ATFile_ParseResponseFileOpen(char** pAtCommand, uint32_t* fileID, uint32_t* secureToken)
 {
-	const char *cmd = "+fileopen:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+fileopen:";
+    const size_t cmdLength = strlen(cmd);
 
-	if (0 != strncmp(*pAtCommand, cmd, cmdLength))
-	{
-		return false;
-	}
-	*pAtCommand += cmdLength;
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, fileID, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (0 != strncmp(*pAtCommand, cmd, cmdLength))
+    {
+        return false;
+    }
+    *pAtCommand += cmdLength;
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, fileID, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	return ATCommand_GetNextArgumentInt(pAtCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
-
+    return ATCommand_GetNextArgumentInt(pAtCommand, secureToken, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
 /**
@@ -729,68 +681,67 @@ static bool CordeliaI_ATFile_ParseResponseFileOpen(char **pAtCommand, uint32_t *
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_ParseResponseFileRead(char **pAtCommand, uint16_t bytesToRead,
-bool decodeBase64, uint16_t *bytesRead, char *data)
+static bool CordeliaI_ATFile_ParseResponseFileRead(char** pAtCommand, uint16_t bytesToRead, bool decodeBase64, uint16_t* bytesRead, char* data)
 {
-	const char *cmd = "+fileread:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+fileread:";
+    const size_t cmdLength = strlen(cmd);
 
-	if ((0 != strncmp(*pAtCommand, cmd, cmdLength)) || (bytesRead == NULL) || (data == NULL) )
-	{
-		return false;
-	}
+    if ((0 != strncmp(*pAtCommand, cmd, cmdLength)) || (bytesRead == NULL) || (data == NULL))
+    {
+        return false;
+    }
 
-	*pAtCommand += cmdLength;
+    *pAtCommand += cmdLength;
 
-	uint8_t outFormat;
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, &outFormat, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    uint8_t outFormat;
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, &outFormat, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (!ATCommand_GetNextArgumentInt(pAtCommand, bytesRead, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
-	{
-		return false;
-	}
+    if (!ATCommand_GetNextArgumentInt(pAtCommand, bytesRead, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    {
+        return false;
+    }
 
-	if (*bytesRead > 0)
-	{
-		if (decodeBase64)
-		{
-			uint32_t decodedSize;
-			if (!Base64_GetDecBufSize((uint8_t*) *pAtCommand, *bytesRead, &decodedSize))
-			{
-				return false;
-			}
+    if (*bytesRead > 0)
+    {
+        if (decodeBase64)
+        {
+            uint32_t decodedSize;
+            if (!Base64_GetDecBufSize((uint8_t*)*pAtCommand, *bytesRead, &decodedSize))
+            {
+                return false;
+            }
 
-			/* we are expecting only 'bytesToRead' of decoded data */
-			if (decodedSize > bytesToRead)
-			{
-				return false;
-			}
+            /* we are expecting only 'bytesToRead' of decoded data */
+            if (decodedSize > bytesToRead)
+            {
+                return false;
+            }
 
-			decodedSize = bytesToRead;
-			if (!Base64_Decode((uint8_t*) *pAtCommand, *bytesRead, (uint8_t*) data, &decodedSize))
-			{
-				return false;
-			}
-			/* add string termination character needed by the CordeliaI functions */
-			data[decodedSize] = '\0';
+            decodedSize = bytesToRead;
+            if (!Base64_Decode((uint8_t*)*pAtCommand, *bytesRead, (uint8_t*)data, &decodedSize))
+            {
+                return false;
+            }
+            /* add string termination character needed by the CordeliaI functions */
+            data[decodedSize] = '\0';
 
-			*bytesRead = decodedSize;
-			return true;
-		}
-		else
-		{
-			if (*bytesRead > bytesToRead)
-			{
-				return false;
-			}
-			return ATCommand_GetNextArgumentString(pAtCommand, data, ATCOMMAND_STRING_TERMINATE, *bytesRead + 1);
-		}
-	}
+            *bytesRead = decodedSize;
+            return true;
+        }
+        else
+        {
+            if (*bytesRead > bytesToRead)
+            {
+                return false;
+            }
+            return ATCommand_GetNextArgumentString(pAtCommand, data, ATCOMMAND_STRING_TERMINATE, *bytesRead + 1);
+        }
+    }
 
-	return false;
+    return false;
 }
 
 /**
@@ -801,16 +752,15 @@ bool decodeBase64, uint16_t *bytesRead, char *data)
  *
  * @return true if successful, false otherwise
  */
-static bool CordeliaI_ATFile_ParseResponseFileWrite(char **pAtCommand, uint16_t *bytesWritten)
+static bool CordeliaI_ATFile_ParseResponseFileWrite(char** pAtCommand, uint16_t* bytesWritten)
 {
-	const char *cmd = "+filewrite:";
-	const size_t cmdLength = strlen(cmd);
+    const char* cmd = "+filewrite:";
+    const size_t cmdLength = strlen(cmd);
 
-	if (0 != strncmp(*pAtCommand, cmd, cmdLength))
-	{
-		return false;
-	}
-	*pAtCommand += cmdLength;
-	return ATCommand_GetNextArgumentInt(pAtCommand, bytesWritten, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
-
+    if (0 != strncmp(*pAtCommand, cmd, cmdLength))
+    {
+        return false;
+    }
+    *pAtCommand += cmdLength;
+    return ATCommand_GetNextArgumentInt(pAtCommand, bytesWritten, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }

@@ -34,10 +34,11 @@
 #define THYONEI_EXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ThyoneI_Examples(void);
+    extern void ThyoneI_Examples(void);
 
 #ifdef __cplusplus
 }

@@ -34,10 +34,11 @@
 #define METIS_E_EXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void MetisE_Examples(void);
+    extern void MetisE_Examples(void);
 
 #ifdef __cplusplus
 }

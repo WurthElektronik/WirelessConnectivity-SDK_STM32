@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATNETSERVICEEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATNetServiceExample();
+    extern void ATNetServiceExample();
 
 #ifdef __cplusplus
 }

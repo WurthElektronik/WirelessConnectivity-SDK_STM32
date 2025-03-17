@@ -36,28 +36,29 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/**
+    /**
  * @brief MCU Power Modes
  */
-typedef enum AdrasteaI_ATPower_Mode_t
-{
-	AdrasteaI_ATPower_Mode_Invalid = -1,
-	AdrasteaI_ATPower_Mode_Stop,
-	AdrasteaI_ATPower_Mode_Standby,
-	AdrasteaI_ATPower_Mode_Shutdown,
-	AdrasteaI_ATPower_Mode_NumberOfValues
-} AdrasteaI_ATPower_Mode_t;
+    typedef enum AdrasteaI_ATPower_Mode_t
+    {
+        AdrasteaI_ATPower_Mode_Invalid = -1,
+        AdrasteaI_ATPower_Mode_Stop,
+        AdrasteaI_ATPower_Mode_Standby,
+        AdrasteaI_ATPower_Mode_Shutdown,
+        AdrasteaI_ATPower_Mode_NumberOfValues
+    } AdrasteaI_ATPower_Mode_t;
 
-typedef uint16_t AdrasteaI_ATPower_Mode_Duration_t;
+    typedef uint16_t AdrasteaI_ATPower_Mode_Duration_t;
 
 #define AdrasteaI_ATPower_Mode_Duration_Invalid 0
 
-extern bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration);
+    extern bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration);
 
-extern bool AdrasteaI_ATPower_EnableSleep();
+    extern bool AdrasteaI_ATPower_EnableSleep();
 
 #ifdef __cplusplus
 }

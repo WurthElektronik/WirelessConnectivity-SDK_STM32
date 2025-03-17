@@ -36,14 +36,15 @@
 #include <Skoll_I/Skoll_I.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern Skoll_I_Pins_t Skoll_I_pins;
+    extern Skoll_I_Pins_t Skoll_I_pins;
 
-extern WE_UART_t Skoll_I_uart;
+    extern WE_UART_t Skoll_I_uart;
 
-extern void Skoll_I_Examples(void);
+    extern void Skoll_I_Examples(void);
 
 #ifdef __cplusplus
 }

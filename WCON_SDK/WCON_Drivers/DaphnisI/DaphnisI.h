@@ -31,14 +31,14 @@
 #ifndef DAPHNISI_H_INCLUDED
 #define DAPHNISI_H_INCLUDED
 
-#include <stdbool.h>
 #include <global/global_types.h>
+#include <stdbool.h>
 
 /**
  * @brief Minimum firmware version of the module that is supported by the driver.
  */
 #ifndef DAPHNISI_MIN_FW_VER
-#define DAPHNISI_MIN_FW_VER FW(1,3,0)
+#define DAPHNISI_MIN_FW_VER FW(1, 4, 0)
 #endif
 
 #define DAPHNISI_DEFAULT_BAUDRATE (uint32_t)9600
@@ -48,14 +48,13 @@
 #define DAPHNISI_ADDRESS_LENGTH 4
 typedef uint8_t DaphnisI_Device_Address_t[DAPHNISI_ADDRESS_LENGTH];
 
-
 /**
  * @brief Max. length of sent commands and responses from DaphnisI.
  */
 #define DAPHNISI_LINE_MAX_SIZE 512
 
-#define DAPHNISI_RESPONSE_OK     "OK"                       /**< String sent by module if AT command was successful */
-#define DAPHNISI_RESPONSE_ERROR  "AT_"                      /**< String sent by module if AT command failed */
+#define DAPHNISI_RESPONSE_OK "OK"     /**< String sent by module if AT command was successful */
+#define DAPHNISI_RESPONSE_ERROR "AT_" /**< String sent by module if AT command failed */
 
 /**
  * @brief Max. length of response text (size of buffer storing responses received from DaphnisI).
@@ -64,115 +63,116 @@ typedef uint8_t DaphnisI_Device_Address_t[DAPHNISI_ADDRESS_LENGTH];
 #define DAPHNISI_MAX_RESPONSE_TEXT_LENGTH DAPHNISI_LINE_MAX_SIZE
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-typedef struct DaphnisI_Pins_t
-{
-	WE_Pin_t DaphnisI_Pin_Reset;
-	WE_Pin_t DaphnisI_Pin_WakeUp;
-	WE_Pin_t DaphnisI_Pin_Boot;
-} DaphnisI_Pins_t;
+    typedef struct DaphnisI_Pins_t
+    {
+        WE_Pin_t DaphnisI_Pin_Reset;
+        WE_Pin_t DaphnisI_Pin_WakeUp;
+        WE_Pin_t DaphnisI_Pin_Boot;
+    } DaphnisI_Pins_t;
 
-/**
+    /**
  * @brief AT command confirmation status.
  */
-typedef enum DaphnisI_CNFStatus_t
-{
-	DaphnisI_CNFStatus_Success,
-	DaphnisI_CNFStatus_Failed,
-	DaphnisI_CNFStatus_Invalid,
-	DaphnisI_CNFStatus_NumberOfValues
-} DaphnisI_CNFStatus_t;
+    typedef enum DaphnisI_CNFStatus_t
+    {
+        DaphnisI_CNFStatus_Success,
+        DaphnisI_CNFStatus_Failed,
+        DaphnisI_CNFStatus_Invalid,
+        DaphnisI_CNFStatus_NumberOfValues
+    } DaphnisI_CNFStatus_t;
 
-/**
+    /**
  * @brief AT command error messages.
  */
-typedef enum DaphnisI_ErrorMessage_t
-{
-	DaphnisI_ErrorMessage_ERROR,
-	DaphnisI_ErrorMessage_PARAM_ERROR,
-	DaphnisI_ErrorMessage_BUSY_ERROR,
-	DaphnisI_ErrorMessage_TEST_PARAM_OVERFLOW,
-	DaphnisI_ErrorMessage_NO_NET_JOINED,
-	DaphnisI_ErrorMessage_RX_ERROR,
-	DaphnisI_ErrorMessage_DUTYCYCLE_RESTRICTED,
-	DaphnisI_ErrorMessage_CRYPTO_ERROR,
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
-	DaphnisI_ErrorMessage_INVALID_MODE,
-	DaphnisI_ErrorMessage_INVALID_ROLE,
+    typedef enum DaphnisI_ErrorMessage_t
+    {
+        DaphnisI_ErrorMessage_ERROR,
+        DaphnisI_ErrorMessage_PARAM_ERROR,
+        DaphnisI_ErrorMessage_BUSY_ERROR,
+        DaphnisI_ErrorMessage_TEST_PARAM_OVERFLOW,
+        DaphnisI_ErrorMessage_NO_NET_JOINED,
+        DaphnisI_ErrorMessage_RX_ERROR,
+        DaphnisI_ErrorMessage_DUTYCYCLE_RESTRICTED,
+        DaphnisI_ErrorMessage_CRYPTO_ERROR,
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+        DaphnisI_ErrorMessage_INVALID_MODE,
+        DaphnisI_ErrorMessage_INVALID_ROLE,
 #endif
-	DaphnisI_ErrorMessage_Count,
-	DaphnisI_ErrorMessage_Invalid
-} DaphnisI_ErrorMessage_t;
+        DaphnisI_ErrorMessage_Count,
+        DaphnisI_ErrorMessage_Invalid
+    } DaphnisI_ErrorMessage_t;
 
-/**
+    /**
  * @brief Timeout categories (for responses to AT commands).
  * @see DaphnisI_SetTimeout(), DaphnisI_GetTimeout()
  */
-typedef enum DaphnisI_Timeout_t
-{
-	DaphnisI_Timeout_General,
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
-	DaphnisI_Timeout_P2P_Data,
-	DaphnisI_Timeout_P2P_Remote_GPIO,
+    typedef enum DaphnisI_Timeout_t
+    {
+        DaphnisI_Timeout_General,
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+        DaphnisI_Timeout_P2P_Data,
+        DaphnisI_Timeout_P2P_Remote_GPIO,
 #endif
-	DaphnisI_Timeout_NumberOfValues
-} DaphnisI_Timeout_t;
+        DaphnisI_Timeout_NumberOfValues
+    } DaphnisI_Timeout_t;
 
-/**
+    /**
  * @brief AT event IDs.
  */
-typedef enum DaphnisI_ATEvent_t
-{
-	DaphnisI_ATEvent_Invalid = (uint16_t) 0,
+    typedef enum DaphnisI_ATEvent_t
+    {
+        DaphnisI_ATEvent_Invalid = (uint16_t)0,
 
-	// General events
-	DaphnisI_ATEvent_StartUp,
+        // General events
+        DaphnisI_ATEvent_StartUp,
 
-	// LoRaWAN events
-	DaphnisI_ATEvent_LoRaWAN_RxInfo,
-	DaphnisI_ATEvent_LoRaWAN_RxData,
-	DaphnisI_ATEvent_LoRaWAN_TxConf,
-	DaphnisI_ATEvent_LoRaWAN_Class,
-	DaphnisI_ATEvent_LoRaWAN_BeaconInfo,
-	DaphnisI_ATEvent_LoRaWAN_BeaconLost,
-	DaphnisI_ATEvent_LoRaWAN_BeaconNotReceived,
-	DaphnisI_ATEvent_LoRaWAN_ContextState_Stored,
-	DaphnisI_ATEvent_LoRaWAN_ContextState_Restored,
-	DaphnisI_ATEvent_LoRaWAN_JoinState_Success,
-	DaphnisI_ATEvent_LoRaWAN_JoinState_Fail,
+        // LoRaWAN events
+        DaphnisI_ATEvent_LoRaWAN_RxInfo,
+        DaphnisI_ATEvent_LoRaWAN_RxData,
+        DaphnisI_ATEvent_LoRaWAN_TxConf,
+        DaphnisI_ATEvent_LoRaWAN_Class,
+        DaphnisI_ATEvent_LoRaWAN_BeaconInfo,
+        DaphnisI_ATEvent_LoRaWAN_BeaconLost,
+        DaphnisI_ATEvent_LoRaWAN_BeaconNotReceived,
+        DaphnisI_ATEvent_LoRaWAN_ContextState_Stored,
+        DaphnisI_ATEvent_LoRaWAN_ContextState_Restored,
+        DaphnisI_ATEvent_LoRaWAN_JoinState_Success,
+        DaphnisI_ATEvent_LoRaWAN_JoinState_Fail,
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
-	// P2P events
-	DaphnisI_ATEvent_P2P_TxConf_Success,
-	DaphnisI_ATEvent_P2P_TxConf_Error,
-	DaphnisI_ATEvent_P2P_TxConf_Busy,
-	DaphnisI_ATEvent_P2P_TxTime,
-	DaphnisI_ATEvent_P2P_TxResp_Success,
-	DaphnisI_ATEvent_P2P_TxResp_Fail_Timeout,
-	DaphnisI_ATEvent_P2P_TxResp_Fail_NACK_Received,
-	DaphnisI_ATEvent_P2P_TxResp_Fail_Internal_Error,
-	DaphnisI_ATEvent_P2P_RxData,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Set_Response,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Get_Response,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Set_Response,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Get_Response,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Changed,
-	DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Changed,
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+        // P2P events
+        DaphnisI_ATEvent_P2P_TxConf_Success,
+        DaphnisI_ATEvent_P2P_TxConf_Error,
+        DaphnisI_ATEvent_P2P_TxConf_Busy,
+        DaphnisI_ATEvent_P2P_TxTime,
+        DaphnisI_ATEvent_P2P_TxResp_Success,
+        DaphnisI_ATEvent_P2P_TxResp_Fail_Timeout,
+        DaphnisI_ATEvent_P2P_TxResp_Fail_NACK_Received,
+        DaphnisI_ATEvent_P2P_TxResp_Fail_Internal_Error,
+        DaphnisI_ATEvent_P2P_RxData,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Set_Response,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Get_Response,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Set_Response,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Get_Response,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Changed,
+        DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Changed,
 #endif
 
-	DaphnisI_ATEvent_NumberOfValues,
-	DaphnisI_ATEvent_Max = UINT16_MAX
-} DaphnisI_ATEvent_t;
+        DaphnisI_ATEvent_NumberOfValues,
+        DaphnisI_ATEvent_Max = UINT16_MAX
+    } DaphnisI_ATEvent_t;
 
-/**
+    /**
  * @brief DaphnisI event callback.
  * Arguments: Event text
  */
-typedef void (*DaphnisI_EventCallback_t)(DaphnisI_ATEvent_t event_type, char* event_data);
+    typedef void (*DaphnisI_EventCallback_t)(DaphnisI_ATEvent_t event_type, char* event_data);
 
-/**
+    /**
  * @brief Initializes the serial communication with the module
  *
  * @param[in] uartP:          definition of the uart connected to the module
@@ -181,30 +181,30 @@ typedef void (*DaphnisI_EventCallback_t)(DaphnisI_ATEvent_t event_type, char* ev
 
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_Init(WE_UART_t *uartP, DaphnisI_Pins_t *pinoutP, DaphnisI_EventCallback_t eventCallback);
+    extern bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCallback_t eventCallback);
 
-/**
+    /**
  * @brief Deinitializes the serial communication with the module.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_Deinit(void);
+    extern bool DaphnisI_Deinit(void);
 
-/**
+    /**
  * @brief Performs a reset of the module using the reset pin.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_PinReset(void);
+    extern bool DaphnisI_PinReset(void);
 
-/**
+    /**
  * @brief Wakes the module up from power save mode using the wake up pin.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_PinWakeUp(void);
+    extern bool DaphnisI_PinWakeUp(void);
 
-/**
+    /**
  * @brief Sets pin level to high or low.
  *
  * @param[in] pin Output pin to be set
@@ -212,27 +212,18 @@ extern bool DaphnisI_PinWakeUp(void);
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_SetPin(WE_Pin_t pin, WE_Pin_Level_t level);
+    extern bool DaphnisI_SetPin(WE_Pin_t pin, WE_Pin_Level_t level);
 
-/**
- * @brief Read current pin level.
- *
- * @param[in] pin Pin to be read
- *
- * @return Current level of pin
- */
-extern WE_Pin_Level_t DaphnisI_GetPinLevel(WE_Pin_t pin);
-
-/**
+    /**
  * @brief Sends the supplied AT command to the module
  *
  * @param[in] data AT command to send. Note that the command has to end with "\r\n\0".
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_SendRequest(char *data);
+    extern bool DaphnisI_SendRequest(char* data);
 
-/**
+    /**
  * @brief Waits for the response from the module after a request.
  *
  * @param[in] maxTimeMs Maximum wait time in milliseconds
@@ -241,9 +232,9 @@ extern bool DaphnisI_SendRequest(char *data);
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_WaitForConfirm(uint32_t maxTimeMs, DaphnisI_CNFStatus_t expectedStatus, char *pOutResponse);
+    extern bool DaphnisI_WaitForConfirm(uint32_t maxTimeMs, DaphnisI_CNFStatus_t expectedStatus, char* pOutResponse);
 
-/**
+    /**
  * @brief Waits for an event from the module.
  *
  * @param[in] maxTimeMs Maximum wait time in milliseconds
@@ -253,18 +244,18 @@ extern bool DaphnisI_WaitForConfirm(uint32_t maxTimeMs, DaphnisI_CNFStatus_t exp
  *
  * @return the event if successful, DaphnisI_ATEvent_Invalid otherwise
  */
-extern DaphnisI_ATEvent_t DaphnisI_WaitForEvents(uint32_t maxTimeMs, DaphnisI_ATEvent_t *expectedEvents, uint8_t eventsLength, bool resetEventsBuffer);
+    extern DaphnisI_ATEvent_t DaphnisI_WaitForEvents(uint32_t maxTimeMs, DaphnisI_ATEvent_t* expectedEvents, uint8_t eventsLength, bool resetEventsBuffer);
 
-/**
+    /**
  * @brief Returns the code of the last error (if any).
  *
  * @param[out] lastError value of last error (if any). See DaphnisI_ErrorMessage_t.
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_GetLastError(DaphnisI_ErrorMessage_t *lastError);
+    extern bool DaphnisI_GetLastError(DaphnisI_ErrorMessage_t* lastError);
 
-/**
+    /**
  * @brief Set timing parameters used by the DaphnisI driver.
  *
  * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
@@ -274,24 +265,24 @@ extern bool DaphnisI_GetLastError(DaphnisI_ErrorMessage_t *lastError);
  *
  * @return true if successful, false otherwise
  */
-extern bool DaphnisI_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
+    extern bool DaphnisI_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
 
-/**
+    /**
  * @brief Sets the timeout for responses to AT commands of the given type.
  *
  * @param[in] type Timeout (i.e. command) type
  * @param[in] timeout Timeout in milliseconds
  */
-extern void DaphnisI_SetTimeout(DaphnisI_Timeout_t type, uint32_t timeout);
+    extern void DaphnisI_SetTimeout(DaphnisI_Timeout_t type, uint32_t timeout);
 
-/**
+    /**
  * @brief Gets the timeout for responses to AT commands of the given type.
  *
  * @param[in] type Timeout (i.e. command) type
  *
  * @return Timeout in milliseconds
  */
-extern uint32_t DaphnisI_GetTimeout(DaphnisI_Timeout_t type);
+    extern uint32_t DaphnisI_GetTimeout(DaphnisI_Timeout_t type);
 
 #ifdef __cplusplus
 }

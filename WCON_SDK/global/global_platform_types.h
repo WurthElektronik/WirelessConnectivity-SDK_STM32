@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -25,23 +25,27 @@
 
 /**
  * @file
- * @brief ThebeII examples.
- *
- * Comment/uncomment lines in ThebeII_Examples() to start the desired example.
+ * @brief Contains type definitions used in the Wireless Connectivity SDK.
  */
 
-#ifndef THEBEII_EXAMPLES_H_INCLUDED
-#define THEBEII_EXAMPLES_H_INCLUDED
+#ifndef GLOBAL_PLATFORM_TYPES_H_
+#define GLOBAL_PLATFORM_TYPES_H_
 
-#ifdef __cplusplus
-extern "C"
+#if defined(STM32L073xx)
+#include "global_L0xx.h"
+#elif defined(STM32F401xE)
+#include "global_F4xx.h"
+#endif
+
+/**
+ * @brief Configuration of a STM32 pin.
+ */
+typedef struct WE_STM32_Pin_t
 {
-#endif
+    GPIO_TypeDef* port;
+    uint32_t pin;
+} WE_STM32_Pin_t;
 
-    extern void ThebeII_Examples(void);
+#define WE_STM32_PIN(PORT_ID, PIN_ID) ((WE_STM32_Pin_t){.port = PORT_ID, .pin = PIN_ID})
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* THEBEII_EXAMPLES_H_INCLUDED */
+#endif /* GLOBAL_PLATFORM_TYPES_H_ */

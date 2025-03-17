@@ -54,6 +54,7 @@
 									<listOptionValue builtIn="false" value="../Drivers"/>
 									<listOptionValue builtIn="false" value="../../WCON_Drivers"/>
 									<listOptionValue builtIn="false" value="../../Examples"/>
+									<listOptionValue builtIn="false" value="../../global"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags.1180487063" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList"/>
 								<option id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.warnings.extra.1784479206" name="Enable extra warning flags (-Wextra)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.warnings.extra" useByScannerDiscovery="false" value="false" valueType="boolean"/>
@@ -237,6 +238,7 @@
 									<listOptionValue builtIn="false" value="../Drivers"/>
 									<listOptionValue builtIn="false" value="../../WCON_Drivers"/>
 									<listOptionValue builtIn="false" value="../../Examples"/>
+									<listOptionValue builtIn="false" value="../../global"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags.2101373416" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList">
 									<listOptionValue builtIn="false" value="-u _printf_float"/>

@@ -32,10 +32,11 @@
 #define ADRASTEAI_ATSIMEXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ATSIMExample();
+    extern void ATSIMExample();
 
 #ifdef __cplusplus
 }

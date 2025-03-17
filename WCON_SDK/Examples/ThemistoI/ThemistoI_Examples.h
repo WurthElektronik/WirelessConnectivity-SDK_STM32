@@ -34,10 +34,11 @@
 #define THEMISTOI_EXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void ThemistoI_Examples(void);
+    extern void ThemistoI_Examples(void);
 
 #ifdef __cplusplus
 }

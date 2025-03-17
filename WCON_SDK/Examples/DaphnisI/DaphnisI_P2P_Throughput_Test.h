@@ -32,13 +32,14 @@
 #ifndef DAPHNISI_P2P_RF_PROFILES_THROUGHPUT_TESTS_H_INCLUDED
 #define DAPHNISI_P2P_RF_PROFILES_THROUGHPUT_TESTS_H_INCLUDED
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void DaphnisI_P2P_Throughput_Test();
+    extern void DaphnisI_P2P_Throughput_Test();
 
 #ifdef __cplusplus
 }

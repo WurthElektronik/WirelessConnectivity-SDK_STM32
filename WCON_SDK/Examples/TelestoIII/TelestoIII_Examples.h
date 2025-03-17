@@ -34,10 +34,11 @@
 #define TELESTOIII_EXAMPLES_H_INCLUDED
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-extern void TelestoIII_Examples(void);
+    extern void TelestoIII_Examples(void);
 
 #ifdef __cplusplus
 }

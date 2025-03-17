@@ -28,18 +28,18 @@
  * @brief Main file for DaphnisI driver examples.
  *
  */
-#include <global/global.h>
-#include <DaphnisI/DaphnisI.h>
 #include <DaphnisI/ATCommands/ATDevice.h>
-#include <DaphnisI/ATCommands/P2P.h>
 #include <DaphnisI/ATCommands/ATUserSettings.h>
-#include <stdio.h>
+#include <DaphnisI/ATCommands/P2P.h>
+#include <DaphnisI/DaphnisI.h>
 #include <DaphnisI/DaphnisI_Examples.h>
 #include <DaphnisI/DaphnisI_P2P_Example.h>
+#include <global/global.h>
+#include <stdio.h>
 
-#if DAPHNISI_MIN_FW_VER >= FW(1,4,0)
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
-static void DaphnisI_P2P_EventCallback(DaphnisI_ATEvent_t event, char *eventText);
+static void DaphnisI_P2P_EventCallback(DaphnisI_ATEvent_t event, char* eventText);
 
 static uint8_t rxDataBuffer[DAPHNISI_P2P_MAX_PAYLOAD_SIZE];
 static DaphnisI_P2P_RxData_t rxData;
@@ -51,30 +51,28 @@ static DaphnisI_P2P_RxData_t rxData;
  */
 void DaphnisI_P2P_Send()
 {
-	bool ret = false;
+    rxData.data = rxDataBuffer;
 
-	rxData.data = rxDataBuffer;
+    if (!DaphnisI_Init(&DaphnisI_uart, &DaphnisI_pins, DaphnisI_P2P_EventCallback))
+    {
+        WE_DEBUG_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	if (!DaphnisI_Init(&DaphnisI_uart, &DaphnisI_pins, DaphnisI_P2P_EventCallback))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    DaphnisI_Device_Address_t dest_address = {0x05, 0x2e, 0x7d, 0xb1};
 
-	DaphnisI_Device_Address_t dest_address = {0x05, 0x2e, 0x7d, 0xb1};
+    uint8_t payload[] = {0x12, 0x34};
 
-	uint8_t payload[] = {0x12,0x34};
+    while (1)
+    {
+        if (!DaphnisI_P2P_TransmitUnicastExtended(dest_address, payload, sizeof(payload)))
+        {
+            WE_DEBUG_PRINT("Data transmission failed\r\n");
+            return;
+        }
 
-	while(1)
-	{
-		if(!DaphnisI_P2P_TransmitUnicastExtended(dest_address, payload, sizeof(payload)))
-		{
-			WE_DEBUG_PRINT("Data transmission failed\r\n");
-			return;
-		}
-
-		WE_Delay(500);
-	}
+        WE_Delay(500);
+    }
 }
 
 /**
@@ -90,30 +88,30 @@ void DaphnisI_P2P_Send()
  * events (i.e. events from DaphnisI_ATEvent_t). Some events might in fact be responses
  * to AT commands that are not included in DaphnisI_ATEvent_t.
  */
-static void DaphnisI_P2P_EventCallback(DaphnisI_ATEvent_t event, char *eventText)
+static void DaphnisI_P2P_EventCallback(DaphnisI_ATEvent_t event, char* eventText)
 {
-	switch (event)
-	{
-	case DaphnisI_ATEvent_P2P_TxTime:
-	{
-		uint32_t toa;
-		if(!DaphnisI_P2P_ParseTXTimeEvent(&eventText, &toa))
-		{
-			return;
-		}
-		break;
-	}
-	case DaphnisI_ATEvent_P2P_RxData:
-	{
-		if(!DaphnisI_P2P_ParseRXDataEvent(&eventText, &rxData))
-		{
-			return;
-		}
-		break;
-	}
-	default:
-		break;
-	}
+    switch (event)
+    {
+        case DaphnisI_ATEvent_P2P_TxTime:
+        {
+            uint32_t toa;
+            if (!DaphnisI_P2P_ParseTXTimeEvent(&eventText, &toa))
+            {
+                return;
+            }
+            break;
+        }
+        case DaphnisI_ATEvent_P2P_RxData:
+        {
+            if (!DaphnisI_P2P_ParseRXDataEvent(&eventText, &rxData))
+            {
+                return;
+            }
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 #endif
