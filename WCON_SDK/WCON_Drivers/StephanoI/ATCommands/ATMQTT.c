@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATMQTT.c
  * @brief AT commands for MQTT functionality.
  */
 
@@ -32,20 +32,6 @@
 #include <StephanoI/StephanoI.h>
 #include <global/ATCommands.h>
 
-/**
- * @brief MQTT User config
- *
- * @param[in] link_ID     Link ID
- * @param[in] scheme      Connection scheme
- * @param[in] client_ID   Client ID
- * @param[in] username    User name
- * @param[in] password    Password
- * @param[in] cert_key_ID ID of the certificate
- * @param[in] CA_ID       ID of the CA
- * @param[in] path 	      Path to the resource
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Userconfig(uint8_t link_ID, StephanoI_ATMQTT_Scheme_t scheme, char* client_ID, char* username, char* password, uint8_t cert_key_ID, uint8_t CA_ID, char* path)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -96,14 +82,6 @@ bool StephanoI_ATMQTT_Userconfig(uint8_t link_ID, StephanoI_ATMQTT_Scheme_t sche
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Set client ID
- *
- * @param[in] link_ID     Link ID
- * @param[in] client_ID   Client ID
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_SetClientID(uint8_t link_ID, char* client_ID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -130,14 +108,6 @@ bool StephanoI_ATMQTT_SetClientID(uint8_t link_ID, char* client_ID)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Set user name
- *
- * @param[in] link_ID     Link ID
- * @param[in] username    User name
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_SetUsername(uint8_t link_ID, char* username)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -164,14 +134,6 @@ bool StephanoI_ATMQTT_SetUsername(uint8_t link_ID, char* username)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Set pass word
- *
- * @param[in] link_ID     Link ID
- * @param[in] password    Pass word
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_SetPassword(uint8_t link_ID, char* password)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -198,19 +160,6 @@ bool StephanoI_ATMQTT_SetPassword(uint8_t link_ID, char* password)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT connection config
- *
- * @param[in] link_ID      Link ID
- * @param[in] keep_alive   Keep alive time
- * @param[in] disable_clean_session   Clean session
- * @param[in] lwt_topics    LWT topic
- * @param[in] lwt_msg    	LWT message
- * @param[in] qos           QOS
- * @param[in] lwt_retain   LWT retain
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_ConnectionConfig(uint8_t link_ID, uint16_t keep_alive, bool disable_clean_session, char* lwt_topics, char* lwt_msg, StephanoI_ATMQTT_QOS_t qos, bool lwt_retain)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -257,16 +206,6 @@ bool StephanoI_ATMQTT_ConnectionConfig(uint8_t link_ID, uint16_t keep_alive, boo
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Connection setup
- *
- * @param[in] link_ID   Link ID
- * @param[in] host      URL of the host
- * @param[in] port      Port
- * @param[in] reconnect Reconnect
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Connect(uint8_t link_ID, char* host, uint16_t port, bool reconnect)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -301,11 +240,6 @@ bool StephanoI_ATMQTT_Connect(uint8_t link_ID, char* host, uint16_t port, bool r
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTConnect), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Get connection Info
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_GetConnectionInfo()
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -319,17 +253,6 @@ bool StephanoI_ATMQTT_GetConnectionInfo()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Publish
- *
- * @param[in] link_ID   Link ID
- * @param[in] topic     Topic
- * @param[in] data      Data
- * @param[in] qos       Quality of service
- * @param[in] retain    Retain
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Publish(uint8_t link_ID, char* topic, char* data, StephanoI_ATMQTT_QOS_t qos, uint8_t retain)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -368,15 +291,6 @@ bool StephanoI_ATMQTT_Publish(uint8_t link_ID, char* topic, char* data, Stephano
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Subscribe
- *
- * @param[in] link_ID   Link ID
- * @param[in] topic     Topic
- * @param[in] qos       Quality of service
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Subscribe(uint8_t link_ID, char* topic, StephanoI_ATMQTT_QOS_t qos)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -407,11 +321,6 @@ bool StephanoI_ATMQTT_Subscribe(uint8_t link_ID, char* topic, StephanoI_ATMQTT_Q
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Get subscriptions
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_GetSubscriptions()
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -425,14 +334,6 @@ bool StephanoI_ATMQTT_GetSubscriptions()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Unsubscribe
- *
- * @param[in] link_ID   Link ID
- * @param[in] topic     Topic
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Unsubscribe(uint8_t link_ID, char* topic)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -460,13 +361,6 @@ bool StephanoI_ATMQTT_Unsubscribe(uint8_t link_ID, char* topic)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief MQTT Clean
- *
- * @param[in] link_ID   Link ID
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATMQTT_Clean(uint8_t link_ID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -490,14 +384,6 @@ bool StephanoI_ATMQTT_Clean(uint8_t link_ID)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_MQTTGeneral), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Parses the values of the MQTT connection info event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATMQTT_ParseConnectionInfo(char* EventArgumentsP, StephanoI_ATMQTT_ConnectionInfo_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -534,14 +420,6 @@ bool StephanoI_ATMQTT_ParseConnectionInfo(char* EventArgumentsP, StephanoI_ATMQT
     return true;
 }
 
-/**
- * @brief Parses the values of the MQTT get subscriptions event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATMQTT_ParseGetSubscriptions(char* EventArgumentsP, StephanoI_ATMQTT_GetSubscriptions_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -566,14 +444,6 @@ bool StephanoI_ATMQTT_ParseGetSubscriptions(char* EventArgumentsP, StephanoI_ATM
     return true;
 }
 
-/**
- * @brief Parses the values of the MQTT receive subscriptions event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATMQTT_ParseReceiveSubscriptions(char* EventArgumentsP, StephanoI_ATMQTT_ReceiveSubscriptions_t* t)
 {
     char* argumentsP = EventArgumentsP;

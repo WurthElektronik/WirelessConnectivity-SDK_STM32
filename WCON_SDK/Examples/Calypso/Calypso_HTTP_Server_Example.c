@@ -55,13 +55,13 @@ static char getRequestId[64];
 
 void Calypso_HTTP_Server_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso HTTP server example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso HTTP server example ***\r\n");
 
     bool ret = false;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_HTTP_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -72,8 +72,8 @@ void Calypso_HTTP_Server_Example(void)
     WE_Delay(1000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -111,7 +111,7 @@ void Calypso_HTTP_Server_Example(void)
 
     WE_Delay(2000);
 
-    WE_DEBUG_PRINT("Will now wait for asynchronous events until receiving HTTP POST request with id=\"quit\".\r\n");
+    WE_APP_PRINT("Will now wait for asynchronous events until receiving HTTP POST request with id=\"quit\".\r\n");
     while (!quitRequested)
     {
         if (getRequestReceived)
@@ -125,7 +125,7 @@ void Calypso_HTTP_Server_Example(void)
         }
     }
 
-    WE_DEBUG_PRINT("Quit command received, will now halt.\r\n");
+    WE_APP_PRINT("Quit command received, will now halt.\r\n");
 
     Calypso_Deinit();
 }
@@ -161,7 +161,7 @@ void Calypso_HTTP_Example_EventCallback(char* eventText)
             {
                 if (Calypso_ATEvent_ParseHttpGetEvent(&eventText, getRequestId, sizeof(getRequestId)))
                 {
-                    WE_DEBUG_PRINT("Received HTTP GET request with id=\"%s\"\r\n", getRequestId);
+                    WE_APP_PRINT("Received HTTP GET request with id=\"%s\"\r\n", getRequestId);
 
                     getRequestReceived = true;
                 }
@@ -174,7 +174,7 @@ void Calypso_HTTP_Example_EventCallback(char* eventText)
             uint8_t gpioId;
             if (Calypso_ATEvent_ParseCustomGPIOEvent(&eventText, &gpioId))
             {
-                WE_DEBUG_PRINT("GPIO %d has been remotely configured\r\n", gpioId);
+                WE_APP_PRINT("GPIO %d has been remotely configured\r\n", gpioId);
             }
             break;
         }
@@ -185,7 +185,7 @@ void Calypso_HTTP_Example_EventCallback(char* eventText)
             char value[1024];
             if (Calypso_ATEvent_ParseCustomHTTPPostEvent(&eventText, id, value, sizeof(id), sizeof(value)))
             {
-                WE_DEBUG_PRINT("Received HTTP POST event containing id=\"%s\" and value=\"%s\"\r\n", id, value);
+                WE_APP_PRINT("Received HTTP POST event containing id=\"%s\" and value=\"%s\"\r\n", id, value);
 
                 if (0 == strcmp(id, "quit"))
                 {

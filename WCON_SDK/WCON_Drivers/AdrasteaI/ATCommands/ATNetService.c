@@ -24,20 +24,14 @@
  */
 
 /**
- * @file
+ * @file ATNetService.c
  * @brief AT commands for Net Service functionality.
  */
 #include <AdrasteaI/ATCommands/ATNetService.h>
 #include <AdrasteaI/AdrasteaI.h>
-#include <Math.h>
 #include <global/ATCommands.h>
 #include <stdio.h>
 
-/**
- * @brief Read Operators from memory (using the AT+COPN command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadOperators()
 {
     if (!AdrasteaI_SendRequest("AT+COPN\r\n"))
@@ -53,14 +47,6 @@ bool AdrasteaI_ATNetService_ReadOperators()
     return true;
 }
 
-/**
- * @brief Parses the value of Operator Read event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP the operator is returned in this argument. See AdrasteaI_ATNetService_Operator_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ParseOperatorReadEvent(char* pEventArguments, AdrasteaI_ATNetService_Operator_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -87,13 +73,6 @@ bool AdrasteaI_ATNetService_ParseOperatorReadEvent(char* pEventArguments, Adrast
     return true;
 }
 
-/**
- * @brief Set Public Land Mobile Network read format (using the AT+COPS command).
- *
- * @param[in] format PLMN format. See AdrasteaI_ATNetService_PLMN_Format_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_SetPLMNReadFormat(AdrasteaI_ATNetService_PLMN_Format_t format)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -123,13 +102,6 @@ bool AdrasteaI_ATNetService_SetPLMNReadFormat(AdrasteaI_ATNetService_PLMN_Format
     return true;
 }
 
-/**
- * @brief Set Public Land Mobile Network (using the AT+COPS command).
- *
- * @param[in] plmn either choose a specific plmn or automatic. See AdrasteaI_ATNetService_PLMN_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_SetPLMN(AdrasteaI_ATNetService_PLMN_t plmn)
 {
     switch (plmn.selectionMode)
@@ -227,13 +199,6 @@ bool AdrasteaI_ATNetService_SetPLMN(AdrasteaI_ATNetService_PLMN_t plmn)
     return true;
 }
 
-/**
- * @brief Read currently selected plmn (using the AT+COPS command).
- *
- * @param[in] plmnP Currently selected plmn is returned in this argument. See AdrasteaI_ATNetService_PLMN_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadPLMN(AdrasteaI_ATNetService_PLMN_t* plmnP)
 {
     if (plmnP == NULL)
@@ -323,13 +288,6 @@ bool AdrasteaI_ATNetService_ReadPLMN(AdrasteaI_ATNetService_PLMN_t* plmnP)
     return true;
 }
 
-/**
- * @brief Read Signal Quality (using the AT+CSQ command).
- *
- * @param[out] sq Signal Quality is returned in this argument. See AdrasteaI_ATNetService_Signal_Quality_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadSignalQuality(AdrasteaI_ATNetService_Signal_Quality_t* sq)
 {
     if (sq == NULL)
@@ -364,13 +322,6 @@ bool AdrasteaI_ATNetService_ReadSignalQuality(AdrasteaI_ATNetService_Signal_Qual
     return true;
 }
 
-/**
- * @brief Read Extended Signal Quality (using the AT+CESQ command).
- *
- * @param[out] esq Extended Signal Quality is returned in this argument. See AdrasteaI_ATNetService_Extended_Signal_Quality_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadExtendedSignalQuality(AdrasteaI_ATNetService_Extended_Signal_Quality_t* esq)
 {
     if (esq == NULL)
@@ -425,13 +376,6 @@ bool AdrasteaI_ATNetService_ReadExtendedSignalQuality(AdrasteaI_ATNetService_Ext
     return true;
 }
 
-/**
- * @brief Read Power Saving Mode (using the AT+CPSMS command).
- *
- * @param[out] psmP Power Saving Mode state and timers are returned in this argument. See AdrasteaI_ATNetService_Power_Saving_Mode_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadPowerSavingMode(AdrasteaI_ATNetService_Power_Saving_Mode_t* psmP)
 {
     if (psmP == NULL)
@@ -483,13 +427,6 @@ bool AdrasteaI_ATNetService_ReadPowerSavingMode(AdrasteaI_ATNetService_Power_Sav
     return true;
 }
 
-/**
- * @brief Set Power Saving Mode (using the AT+CPSMS command).
- *
- * @param[in] psm Power Saving Mode state and timers. See AdrasteaI_ATNetService_Power_Saving_Mode_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_SetPowerSavingMode(AdrasteaI_ATNetService_Power_Saving_Mode_t psm)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -559,15 +496,6 @@ bool AdrasteaI_ATNetService_SetPowerSavingMode(AdrasteaI_ATNetService_Power_Savi
     return true;
 }
 
-/**
- * @brief Set eDRX Settings (using the AT+CEDRXS command).
- *
- * @param[in] mode eDRX State. See AdrasteaI_ATNetService_eDRX_Mode_t.
- *
- * @param[in] eDRX Configuration. See AdrasteaI_ATNetService_eDRX_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_SeteDRXDynamicParameters(AdrasteaI_ATNetService_eDRX_Mode_t mode, AdrasteaI_ATNetService_eDRX_t edrx)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -650,13 +578,6 @@ bool AdrasteaI_ATNetService_SeteDRXDynamicParameters(AdrasteaI_ATNetService_eDRX
     return true;
 }
 
-/**
- * @brief Set eDRX Settings (using the AT+CEDRXRDP command).
- *
- * @param[out] edrxP eDRX Configuration is returned in this argument. See AdrasteaI_ATNetService_eDRX_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadeDRXDynamicParameters(AdrasteaI_ATNetService_eDRX_t* edrxP)
 {
     if (edrxP == NULL)
@@ -724,13 +645,6 @@ bool AdrasteaI_ATNetService_ReadeDRXDynamicParameters(AdrasteaI_ATNetService_eDR
     return true;
 }
 
-/**
- * @brief Read Coverage Enhancement Status (using the AT+CRCES command).
- *
- * @param[out] cesP Coverage Enhancement Status is returned in this argument. See AdrasteaI_ATNetService_CES_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATNetService_ReadCoverageEnhancementStatus(AdrasteaI_ATNetService_CES_t* cesP)
 {
     if (cesP == NULL)

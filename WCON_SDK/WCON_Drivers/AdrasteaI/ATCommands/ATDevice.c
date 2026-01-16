@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATDevice.c
  * @brief AT commands for basic device functionality.
  */
 #include <AdrasteaI/ATCommands/ATDevice.h>
@@ -37,11 +37,6 @@ static const char* AdrasteaI_ATDevice_Character_Set_Strings[AdrasteaI_ATDevice_C
     "UCS2", "8859-1", "IRA", "HEX", "PCCP437",
 };
 
-/**
- * @brief Tests the connection to the wireless module (using the AT command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_Test()
 {
     if (!AdrasteaI_SendRequest("AT\r\n"))
@@ -57,13 +52,6 @@ bool AdrasteaI_ATDevice_Test()
     return true;
 }
 
-/**
- * @brief Request Manufacturer Identity (using the AT+CGMI command).
- *
- * @param[out] manufacturerIdentityP Manufacturer Identity is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestManufacturerIdentity(AdrasteaI_ATDevice_Manufacturer_Identity_t* manufacturerIdentityP)
 {
     if (manufacturerIdentityP == NULL)
@@ -91,13 +79,6 @@ bool AdrasteaI_ATDevice_RequestManufacturerIdentity(AdrasteaI_ATDevice_Manufactu
     return true;
 }
 
-/**
- * @brief Request Model Identity (using the AT+CGMM command).
- *
- * @param[out] modelIdentityP Model Identity is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestModelIdentity(AdrasteaI_ATDevice_Model_Identity_t* modelIdentityP)
 {
     if (modelIdentityP == NULL)
@@ -125,13 +106,6 @@ bool AdrasteaI_ATDevice_RequestModelIdentity(AdrasteaI_ATDevice_Model_Identity_t
     return true;
 }
 
-/**
- * @brief Request Revision Identity (using the AT+CGMR command).
- *
- * @param[out] revisionIdentityP Revision Identity is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestRevisionIdentity(AdrasteaI_ATDevice_Revision_Identity_t* revisionIdentityP)
 {
     if (revisionIdentityP == NULL)
@@ -169,13 +143,6 @@ bool AdrasteaI_ATDevice_RequestRevisionIdentity(AdrasteaI_ATDevice_Revision_Iden
     return true;
 }
 
-/**
- * @brief Request IMEI (using the AT+CGSN command).
- *
- * @param[out] imeiP IMEI is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestIMEI(AdrasteaI_ATDevice_IMEI_t* imeiP)
 {
     if (imeiP == NULL)
@@ -203,13 +170,6 @@ bool AdrasteaI_ATDevice_RequestIMEI(AdrasteaI_ATDevice_IMEI_t* imeiP)
     return true;
 }
 
-/**
- * @brief Request IMEISV (using the AT+CGSN command).
- *
- * @param[out] imeisvP IMEISV is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestIMEISV(AdrasteaI_ATDevice_IMEISV_t* imeisvP)
 {
     if (imeisvP == NULL)
@@ -237,13 +197,6 @@ bool AdrasteaI_ATDevice_RequestIMEISV(AdrasteaI_ATDevice_IMEISV_t* imeisvP)
     return true;
 }
 
-/**
- * @brief Request SVN (using the AT+CGSN command).
- *
- * @param[out] svnP SVN is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestSVN(AdrasteaI_ATDevice_SVN_t* svnP)
 {
     if (svnP == NULL)
@@ -271,13 +224,6 @@ bool AdrasteaI_ATDevice_RequestSVN(AdrasteaI_ATDevice_SVN_t* svnP)
     return true;
 }
 
-/**
- * @brief Request Serial Number (using the AT+GSN command).
- *
- * @param[out] serialNumberP Serial Number is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_RequestSerialNumber(AdrasteaI_ATDevice_Serial_Number_t* serialNumberP)
 {
     if (serialNumberP == NULL)
@@ -305,13 +251,6 @@ bool AdrasteaI_ATDevice_RequestSerialNumber(AdrasteaI_ATDevice_Serial_Number_t* 
     return true;
 }
 
-/**
- * @brief Read TE Character Set (using the AT+CSCS command).
- *
- * @param[out] charsetP TE Character Set is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_GetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t* charsetP)
 {
     if (charsetP == NULL)
@@ -341,13 +280,6 @@ bool AdrasteaI_ATDevice_GetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t* ch
     return true;
 }
 
-/**
- * @brief Set TE Character Set (using the AT+CSCS command).
- *
- * @param[in] charset TE Character Set. See AdrasteaI_ATDevice_Character_Set_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_SetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t charset)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -377,15 +309,6 @@ bool AdrasteaI_ATDevice_SetTECharacterSet(AdrasteaI_ATDevice_Character_Set_t cha
     return true;
 }
 
-/**
- * @brief Read Capabilities List (using the AT+GCAP command).
- *
- * @param[out] capListP Capabilities List is returned in this argument.
- *
- * @param[in] maxBuffer Maximum size of buffer to hold data.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_GetCapabilitiesList(char* capListP, uint8_t maxBufferSize)
 {
     if (capListP == NULL)
@@ -415,13 +338,6 @@ bool AdrasteaI_ATDevice_GetCapabilitiesList(char* capListP, uint8_t maxBufferSiz
     return true;
 }
 
-/**
- * @brief Read Phone Functionality (using the AT+CFUN command).
- *
- * @param[out] phoneFunP Phone Functionality is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_GetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_t* phoneFunP)
 {
     if (phoneFunP == NULL)
@@ -451,15 +367,6 @@ bool AdrasteaI_ATDevice_GetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functiona
     return true;
 }
 
-/**
- * @brief Set Phone Functionality (using the AT+CFUN command).
- *
- * @param[in] phoneFun Phone Functionality. See AdrasteaI_ATDevice_Phone_Functionality_t.
- *
- * @param[in] resetType Reset type when changing phone functionality (optional pass AdrasteaI_ATDevice_Phone_Functionality_Reset_Invalid to skip). See AdrasteaI_ATDevice_Phone_Functionality_Reset_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_t phoneFun, AdrasteaI_ATDevice_Phone_Functionality_Reset_t resetType)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -502,11 +409,6 @@ bool AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functiona
     return true;
 }
 
-/**
- * @brief Resets the device. (using the ATZ command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_Reset()
 {
     if (!AdrasteaI_SendRequest("ATZ\r\n"))
@@ -522,11 +424,6 @@ bool AdrasteaI_ATDevice_Reset()
     return true;
 }
 
-/**
- * @brief Performs a factory reset of the device (using the AT&F0 command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_FactoryReset()
 {
     if (!AdrasteaI_SendRequest("AT&F0\r\n"))
@@ -551,13 +448,6 @@ bool AdrasteaI_ATDevice_FactoryReset()
     return true;
 }
 
-/**
- * @brief Set Result Code Format (using the ATV command).
- *
- * @param[in] format Result Code Format. See AdrasteaI_ATDevice_Result_Code_Format_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATDevice_SetResultCodeFormat(AdrasteaI_ATDevice_Result_Code_Format_t format)
 {
     char* pRequestCommand = AT_commandBuffer;

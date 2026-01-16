@@ -24,7 +24,7 @@
  **/
 
 /**
- * @file
+ * @file ATEvent.c
  * @brief AT event definitions.
  */
 #include <AdrasteaI/ATCommands/ATEvent.h>
@@ -49,23 +49,19 @@ static const ATCommand_Event_t moduleMainEvents[] = {EVENTENTRY("+COPN", Adraste
                                                                  EVENTENTRY("%IGNSSCEP", AdrasteaI_ATEvent_GNSS_DataFileSaved) PARENTEVENTENTRY("%IGNSSEVU", GNSSSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("%MQTTEVU", MQTTSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("%AWSIOTEVU", MQTT_AWSIOTSubEvents, ATCOMMAND_ARGUMENT_DELIM)
                                                                      PARENTEVENTENTRY("%HTTPEVU", HTTPSubEvents, ATCOMMAND_ARGUMENT_DELIM) LASTPARENTEVENTENTRY("%SOCKETEV", SocketSubEvents, ATCOMMAND_ARGUMENT_DELIM)};
 
-/**
- * @brief Parses the received AT command and returns the corresponding AdrasteaI_ATEvent_t.
- *
- * @param[in,out] pAtCommand AT command starting with '+' or '%'
- * @param[out] pEvent AdrasteaI_ATEvent_t representing the event
- *
- * @return true if parsed successfully, false otherwise
- */
 bool AdrasteaI_ATEvent_ParseEventType(char** pAtCommand, AdrasteaI_ATEvent_t* pEvent)
 {
     char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE};
 
-    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*)pEvent))
+    uint16_t event;
+
+    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), &event))
     {
         *pEvent = AdrasteaI_ATEvent_Invalid;
         return false;
     }
+
+    *pEvent = (AdrasteaI_ATEvent_t)event;
 
     return true;
 }

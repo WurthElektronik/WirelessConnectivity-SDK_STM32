@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void MetisE_Examples(void);
+extern void MetisE_Examples(void);
 
 #ifdef __cplusplus
 }

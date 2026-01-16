@@ -30,14 +30,18 @@
 #include <DaphnisI/ATCommands/LoRaWAN.h>
 #include <DaphnisI/DaphnisI.h>
 #include <global/ATCommands.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 static char* DaphnisI_Delay_GetRequestStrings[DaphnisI_Delay_Count] = {"AT+JN1DL=?\r\n", "AT+JN2DL=?\r\n", "AT+RX1DL=?\r\n", "AT+RX2DL=?\r\n"};
 static char* DaphnisI_Delay_SetRequestStrings[DaphnisI_Delay_Count] = {"AT+JN1DL=", "AT+JN2DL=", "AT+RX1DL=", "AT+RX2DL="};
 static char* DaphnisI_Delay_CmdStrings[DaphnisI_Delay_Count] = {"+JN1DL:", "+JN2DL:", "+RX1DL:", "+RX2DL:"};
 
 static char* DaphnisI_Key_SetRequestStrings[DaphnisI_KeyType_Count] = {"AT+APPKEY=", "AT+NWKSKEY=", "AT+APPSKEY="};
+
+static const char* DaphnisI_RX_Window_Slot_Strings[DaphnisI_SlotWindow_Count] = {"RX_1", "RX_2", "RX_P", "RX_C"};
 
 bool DaphnisI_LoRaWAN_SetAPPEUI(DaphnisI_EUI_t app_eui)
 {
@@ -298,7 +302,7 @@ bool DaphnisI_LoRaWAN_SetNetworkID(uint8_t network_id)
     char* pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+NWKID=");
 
-    if (!ATCommand_AppendArgumentInt(pRequestCommand, network_id, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8, ATCOMMAND_STRING_TERMINATE))
+    if (!ATCommand_AppendArgumentInt(pRequestCommand, network_id, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE8, ATCOMMAND_STRING_TERMINATE))
     {
         return false;
     }
@@ -370,10 +374,13 @@ bool DaphnisI_LoRaWAN_SetDeviceClass(DaphnisI_DeviceClass_t device_class)
     char* pRequestCommand = AT_commandBuffer;
     strcpy(pRequestCommand, "AT+CLASS=");
 
-    *pRequestCommand = "ABC"[device_class];
-    pRequestCommand++;
-    *pRequestCommand = '\0';
-    pRequestCommand++;
+    char device_class_string[2] = "A";
+    device_class_string[0] += device_class;
+
+    if (!ATCommand_AppendArgumentString(pRequestCommand, device_class_string, ATCOMMAND_STRING_TERMINATE))
+    {
+        return false;
+    }
 
     if (!ATCommand_AppendArgumentString(pRequestCommand, ATCOMMAND_CRLF, ATCOMMAND_STRING_TERMINATE))
     {
@@ -416,7 +423,9 @@ bool DaphnisI_LoRaWAN_GetDeviceClass(DaphnisI_DeviceClass_t* device_classP)
 
     pRespondCommand += cmdLength;
 
-    return ATCommand_GetNextArgumentInt(&pRespondCommand, device_classP, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8, ATCOMMAND_STRING_TERMINATE);
+    *device_classP = *pRespondCommand - 'A';
+
+    return true;
 }
 
 bool DaphnisI_LoRaWAN_Join(DaphnisI_JoinMode_t join_Mode)
@@ -474,7 +483,7 @@ bool DaphnisI_LoRaWAN_Send(uint8_t port, const uint8_t* payload, uint16_t length
 
     for (uint16_t i = 0; i < length; i++)
     {
-        sprintf(&pRequestCommand[pRequestCommandLength], "%02X", payload[i]);
+        sprintf(&pRequestCommand[pRequestCommandLength], "%02" PRIX32, (uint32_t)payload[i]);
         pRequestCommandLength += 2;
     }
 
@@ -994,7 +1003,7 @@ bool DaphnisI_LoRaWAN_GetLinkLayerVersion(DaphnisI_LoRaWAN_LL_Version_t* ll_Vers
     return ATCommand_GetNextArgumentInt(&pRespondCommand, &ll_VersionP->Patch, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-bool DaphnisI_LoRaWAN_GetRegionalParametersrVersion(DaphnisI_LoRaWAN_RP_Version_t* rp_VersionP)
+bool DaphnisI_LoRaWAN_GetRegionalParametersVersion(DaphnisI_LoRaWAN_RP_Version_t* rp_VersionP)
 {
     if (NULL == rp_VersionP)
     {
@@ -1058,37 +1067,16 @@ bool DaphnisI_LoRaWAN_ParseClassEvent(char** pEventArguments, DaphnisI_DeviceCla
 
 bool DaphnisI_LoRaWAN_ParseRxInfoEvent(char** pEventArguments, DaphnisI_RxInfo_t* pRxInfo)
 {
-    char temp[5];
     int argumentsCount = ATCommand_CountArgs(*pEventArguments);
 
-    if (ATCommand_GetNextArgumentString(pEventArguments, temp, ATCOMMAND_ARGUMENT_DELIM, sizeof(temp)))
+    uint8_t window_index;
+
+    if (!ATCommand_GetNextArgumentEnum(pEventArguments, &window_index, DaphnisI_RX_Window_Slot_Strings, DaphnisI_SlotWindow_Count, 5, ATCOMMAND_ARGUMENT_DELIM))
     {
-        switch (temp[3])
-        {
-            case '1':
-            {
-                pRxInfo->window = DaphnisI_SlotWindow_1;
-                break;
-            }
-            case '2':
-            {
-                pRxInfo->window = DaphnisI_SlotWindow_2;
-                break;
-            }
-            case 'B':
-            {
-                pRxInfo->window = DaphnisI_SlotWindow_B;
-                break;
-            }
-            case 'C':
-            {
-                pRxInfo->window = DaphnisI_SlotWindow_C;
-                break;
-            }
-            default:
-                break;
-        }
+        return false;
     }
+
+    pRxInfo->window = (DaphnisI_SlotWindow_t)window_index;
 
     if (!ATCommand_GetNextArgumentInt(pEventArguments, &(pRxInfo->port), ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE8, ATCOMMAND_ARGUMENT_DELIM))
     {
@@ -1201,12 +1189,24 @@ bool DaphnisI_LoRaWAN_ParseBeaconInfoEvent(char** pEventArguments, DaphnisI_Beac
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentString(pEventArguments, pBeaconInfo->info, ATCOMMAND_ARGUMENT_DELIM, 7))
+    char info_string[7];
+
+    if (!ATCommand_GetNextArgumentString(pEventArguments, info_string, ATCOMMAND_ARGUMENT_DELIM, 7))
     {
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentString(pEventArguments, &(pBeaconInfo->info[7]), ATCOMMAND_STRING_TERMINATE, 7))
+    if (!DaphnisI_HexStringToByteArray(info_string, 6, &pBeaconInfo->info[0]))
+    {
+        return false;
+    }
+
+    if (!ATCommand_GetNextArgumentString(pEventArguments, info_string, ATCOMMAND_STRING_TERMINATE, 7))
+    {
+        return false;
+    }
+
+    if (!DaphnisI_HexStringToByteArray(info_string, 6, &pBeaconInfo->info[3]))
     {
         return false;
     }

@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATSMS.c
  * @brief AT commands for SMS functionality.
  */
 #include <AdrasteaI/ATCommands/ATSMS.h>
@@ -38,13 +38,6 @@ static const char* AdrasteaI_ATSMS_Storage_Location_Strings[AdrasteaI_ATSMS_Stor
     "BM", "ME", "MT", "SM", "TA", "SR",
 };
 
-/**
- * @brief Delete Message (using the AT+CMGD command).
- *
- * @param[in] index Message Index.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -74,11 +67,6 @@ bool AdrasteaI_ATSMS_DeleteMessage(AdrasteaI_ATSMS_Message_Index_t index)
     return true;
 }
 
-/**
- * @brief Delete All Message (using the AT+CMGD command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_DeleteAllMessages()
 {
     if (!AdrasteaI_SendRequest("AT+CMGD=0,4\r\n"))
@@ -94,13 +82,6 @@ bool AdrasteaI_ATSMS_DeleteAllMessages()
     return true;
 }
 
-/**
- * @brief List Messages (using the AT+CMGL command).
- *
- * @param[in] listType State of the messages to list.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -130,13 +111,6 @@ bool AdrasteaI_ATSMS_ListMessages(AdrasteaI_ATSMS_Message_State_t listType)
     return true;
 }
 
-/**
- * @brief Read Message (using the AT+CMGR command).
- *
- * @param[in] index Message Index.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -166,17 +140,6 @@ bool AdrasteaI_ATSMS_ReadMessage(AdrasteaI_ATSMS_Message_Index_t index)
     return true;
 }
 
-/**
- * @brief Set Message Storage Locations (using the AT+CPMS command).
- *
- * @param[in] readDeleteStorage Storage for Read and Deleted Messages. See AdrasteaI_ATSMS_Storage_Location_t.
- *
- * @param[in] writeSendStorage Storage for Write and Send Messages (optional pass AdrasteaI_ATSMS_Storage_Location_Invalid to skip). See AdrasteaI_ATSMS_Storage_Location_t.
- *
- * @param[in] receiveStorage Storage for Received Messages (optional pass AdrasteaI_ATSMS_Storage_Location_Invalid to skip). See AdrasteaI_ATSMS_Storage_Location_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location_t readDeleteStorage, AdrasteaI_ATSMS_Storage_Location_t writeSendStorage, AdrasteaI_ATSMS_Storage_Location_t receiveStorage)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -236,13 +199,6 @@ bool AdrasteaI_ATSMS_SetMessageStorageLocations(AdrasteaI_ATSMS_Storage_Location
     return true;
 }
 
-/**
- * @brief Read Message Storage Usage (using the AT+CPMS command).
- *
- * @param[out] storageUsageP Storage Usage is returned in this argument. See AdrasteaI_ATSMS_Message_Storage_Usage_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usage_t* storageUsageP)
 {
     if (storageUsageP == NULL)
@@ -312,13 +268,6 @@ bool AdrasteaI_ATSMS_ReadMessageStorageUsage(AdrasteaI_ATSMS_Message_Storage_Usa
     return true;
 }
 
-/**
- * @brief Set Service Center Address (using the AT+CSCA command).
- *
- * @param[in] serviceCenterAddress Service Center Address.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t serviceCenterAddress)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -361,13 +310,6 @@ bool AdrasteaI_ATSMS_SetServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Addr
     return true;
 }
 
-/**
- * @brief Read Service Center Address (using the AT+CSCA command).
- *
- * @param[out] serviceCenterAddressP Service Center Address is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Address_t* serviceCenterAddressP)
 {
     if (serviceCenterAddressP == NULL)
@@ -402,19 +344,6 @@ bool AdrasteaI_ATSMS_ReadServiceCenterAddress(AdrasteaI_ATSMS_Service_Center_Add
     return true;
 }
 
-/**
- * @brief Send Message (using the AT+CMGS command).
- *
- * @param[in] address Address.
- *
- * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
- *
- * @param[in] message Message Payload.
- *
- * @param[out] messageReferenceP Message Reference is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
     if (messageReferenceP == NULL)
@@ -486,19 +415,6 @@ bool AdrasteaI_ATSMS_SendMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_AT
     return true;
 }
 
-/**
- * @brief Send Message (using the AT+CMGSC command).
- *
- * @param[in] address Address.
- *
- * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
- *
- * @param[in] message Message Payload.
- *
- * @param[out] messageReferenceP Message Reference is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
     if (messageReferenceP == NULL)
@@ -570,19 +486,6 @@ bool AdrasteaI_ATSMS_SendLargeMessage(AdrasteaI_ATSMS_Address_t address, Adraste
     return true;
 }
 
-/**
- * @brief Write Message to Storage (using the AT+CMGW command).
- *
- * @param[in] address Address.
- *
- * @param[in] addressType Address Type (optional pass AdrasteaI_ATSMS_Address_Type_Invalid to skip). See AdrasteaI_ATSMS_Address_Type_t.
- *
- * @param[in] message Message Payload.
- *
- * @param[out] messageIndexP Message Index is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, AdrasteaI_ATSMS_Address_Type_t addressType, AdrasteaI_ATSMS_Message_Payload_t message, AdrasteaI_ATSMS_Message_Index_t* messageIndexP)
 {
     if (messageIndexP == NULL)
@@ -654,15 +557,6 @@ bool AdrasteaI_ATSMS_WriteMessageToStorage(AdrasteaI_ATSMS_Address_t address, Ad
     return true;
 }
 
-/**
- * @brief Write Message to Storage (using the AT+CMGW command).
- *
- * @param[in] index Message Index.
- *
- * @param[out] messageReferenceP Message Index is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t index, AdrasteaI_ATSMS_Message_Reference_t* messageReferenceP)
 {
     if (messageReferenceP == NULL)
@@ -706,13 +600,6 @@ bool AdrasteaI_ATSMS_SendMessageFromStorage(AdrasteaI_ATSMS_Message_Index_t inde
     return true;
 }
 
-/**
- * @brief Set SMS Notification Events (using the AT+CNMI command).
- *
- * @param[in] eventState Event State
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Event_State_t eventState)
 {
     switch (eventState)
@@ -745,14 +632,6 @@ bool AdrasteaI_ATSMS_SetSMSUnsolicitedNotificationEvents(AdrasteaI_ATCommon_Even
     return true;
 }
 
-/**
- * @brief Parses the value of Read Message event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP SMS Message is returned in this argument. See AdrasteaI_ATSMS_Message_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ParseReadMessageEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -799,14 +678,6 @@ bool AdrasteaI_ATSMS_ParseReadMessageEvent(char* pEventArguments, AdrasteaI_ATSM
     return true;
 }
 
-/**
- * @brief Parses the value of List Message event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP SMS Message is returned in this argument. See AdrasteaI_ATSMS_Message_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ParseListMessagesEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -856,14 +727,6 @@ bool AdrasteaI_ATSMS_ParseListMessagesEvent(char* pEventArguments, AdrasteaI_ATS
     return true;
 }
 
-/**
- * @brief Parses the value of Message Received event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP SMS Message Received Result is returned in this argument. See AdrasteaI_ATSMS_Message_Received_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char* pEventArguments, AdrasteaI_ATSMS_Message_Received_Result_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -888,14 +751,6 @@ bool AdrasteaI_ATSMS_ParseMessageReceivedEvent(char* pEventArguments, AdrasteaI_
     return true;
 }
 
-/**
- * @brief Parses the value of SMS Error event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP SMS Error is returned in this argument. See AdrasteaI_ATSMS_Error_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSMS_ParseSMSErrorEvent(char* pEventArguments, AdrasteaI_ATSMS_Error_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)

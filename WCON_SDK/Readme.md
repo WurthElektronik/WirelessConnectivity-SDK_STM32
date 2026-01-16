@@ -1,10 +1,3 @@
-# Description
-
-This project contains drivers of various wireless connectivity radio modules for the STM32L0 and STM32F4 microcontrollers.
-It implements the UART communication (UART1, DMA-based and/or interrupt-based) with the radio module without underlying RTOS and threads.
-
-For more details, please refer to the application note [ANR008_WirelessConnectivity_Software_Development_Kit_SDK](http://www.we-online.com/ANR008).
-
 # Module pinout
 
 The following sections contain wiring instructions for each radio module. Note that some connections are optional and may not be required depending on the application.
@@ -97,10 +90,6 @@ The following sections contain wiring instructions for each radio module. Note t
 |       UART1 TX (PB6)|-------->|LPUART1 RX            |
 |                     |         |                      |
 |       UART1 RX (PB7)|<--------|LPUART1 TX            |
-|                     |         |                      |
-|   STATUS_IND_0 (PB8)|<--------|LED_0                 |
-|                     |         |                      |
-|   STATUS_IND_1 (PB9)|<--------|LED_1                 |
 |_____________________|         |______________________|
 ```
 
@@ -185,6 +174,31 @@ The following sections contain wiring instructions for each radio module. Note t
 |           Busy (PB8)|<--------|Busy                  |
 |                     |         |                      |
 | STATUS (LED 2) (PB9)|<--------|LED_2                 |
+|                     |         |                      |
+|       UART1 TX (PB6)|-------->|UART RX               |
+|                     |         |                      |
+|       UART1 RX (PB7)|<--------|UART TX               |
+|                     |         |                      |
+|     UART1 RTS (PA12)|-------->|UART CTS              |
+|                     |         |                      |
+|     UART1 CTS (PA11)|<--------|UART RTS              |
+|_____________________|         |______________________|
+```
+
+## Proteus-IV pinout
+```
+ _____________________           ______________________
+|        STM32        |         |     Proteus-IV       |
+|                     |         |                      |
+|         Reset (PA10)|-------->|Reset                 |
+|                     |         |                      |
+|          Mode0 (PA7)|-------->|Mode0                 |
+|                     |         |                      |
+|          Mode1 (PA8)|-------->|Mode1                 |
+|                     |         |                      |
+|          LED_1 (PB9)|<--------|LED_1                 |
+|                     |         |                      |
+|    UART_ENABLE (PA0)|<--------|UART_ENABLE           |
 |                     |         |                      |
 |       UART1 TX (PB6)|-------->|UART RX               |
 |                     |         |                      |

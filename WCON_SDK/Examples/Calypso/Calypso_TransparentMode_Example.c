@@ -32,6 +32,7 @@
 #include <Calypso/ATCommands/ATWLAN.h>
 #include <Calypso/Calypso_Examples.h>
 #include <Calypso/Calypso_TransparentMode_Example.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 /**
@@ -133,13 +134,13 @@ static void Calypso_TransparentModeExampleByteHandler(uint8_t* dataP, size_t siz
  */
 void Calypso_TransparentMode_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso transparent mode example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso transparent mode example ***\r\n");
 
     bool ret = false;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -150,8 +151,8 @@ void Calypso_TransparentMode_Example(void)
     WE_Delay(1000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -176,9 +177,9 @@ void Calypso_TransparentMode_Example(void)
     Calypso_Examples_Print("Set WLAN connection policy to AUTO|FAST", ret);
 
     /* Connect to WLAN.
-	 * When starting in transparent mode later on, Calypso will connect to the last used WLAN.
-	 * Alternatively, one or more WLAN profiles containing connection credentials (of
-	 * networks to be used in transparent mode) can be added. */
+     * When starting in transparent mode later on, Calypso will connect to the last used WLAN.
+     * Alternatively, one or more WLAN profiles containing connection credentials (of
+     * networks to be used in transparent mode) can be added. */
     Calypso_ATWLAN_ConnectionArguments_t connectArgs;
     memset(&connectArgs, 0, sizeof(connectArgs));
     strcpy(connectArgs.SSID, Calypso_Examples_wlanSSID);
@@ -197,11 +198,11 @@ void Calypso_TransparentMode_Example(void)
     Calypso_Examples_Print("AT+netCfgGet=IPV4_STA_ADDR", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Set transparent mode parameters */
@@ -264,14 +265,14 @@ void Calypso_TransparentMode_Example(void)
     Calypso_Examples_WaitForStartup(2000);
 
     /* Wait for connection of WLAN and socket (wait for status pins to turn high) */
-    WE_DEBUG_PRINT("Will now wait for STATUS_IND_0 pin to turn high (WLAN connected)...\r\n");
+    WE_APP_PRINT("Will now wait for STATUS_IND_0 pin to turn high (WLAN connected)...\r\n");
     WE_Pin_Level_t status_ind_0_pin_level;
     while (Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_0_pin_level) && (status_ind_0_pin_level == WE_Pin_Level_Low))
     {
     }
     Calypso_Examples_Print("Wait for STATUS_IND_0 pin to turn high", true);
 
-    WE_DEBUG_PRINT("Will now wait for STATUS_IND_1 pin to turn high (socket connected)...\r\n");
+    WE_APP_PRINT("Will now wait for STATUS_IND_1 pin to turn high (socket connected)...\r\n");
     WE_Pin_Level_t status_ind_1_pin_level;
     while (Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_1_pin_level) && (status_ind_1_pin_level == WE_Pin_Level_Low))
     {
@@ -283,20 +284,20 @@ void Calypso_TransparentMode_Example(void)
     transparentModeExampleLineReceived = false;
 
     /* Set byte received callback. This circumvents the SDK's regular processing of
-	 * incoming data (which the SDK would interpret as AT commands / responses) and
-	 * instead calls the custom callback for every byte received. */
+     * incoming data (which the SDK would interpret as AT commands / responses) and
+     * instead calls the custom callback for every byte received. */
     Calypso_SetByteRxCallback(Calypso_TransparentModeExampleByteHandler);
 
-    uint16_t counter = 0;
+    uint32_t counter = 0;
 
     /* Start data transmission. In this example, it is assumed that the peer will
-	 * send a response for each line sent by this device. Additionally, it is assumed
-	 * that the response is terminated the same way as the request (i.e. one or two
-	 * ETX characters). If the response is not terminated using the ETX character(s),
-	 * it is assumed that all data has been received if a timeout is reached. */
+     * send a response for each line sent by this device. Additionally, it is assumed
+     * that the response is terminated the same way as the request (i.e. one or two
+     * ETX characters). If the response is not terminated using the ETX character(s),
+     * it is assumed that all data has been received if a timeout is reached. */
     while (true)
     {
-        sprintf(payload, "Hello Calypso (%u)!", counter++);
+        sprintf(payload, "Hello Calypso (%" PRIu32 ")!", counter++);
 
         /* Reset tick value to check for rx timeout */
         transparentModeExampleLastByteReceivedTimestamp = WE_GetTick();
@@ -324,8 +325,8 @@ void Calypso_TransparentMode_Example(void)
         }
 
         /* Wait until either a complete line has been received (ETX character(s) have been
-		 * detected) or no bytes have been received for transparentModeExampleRxTimeoutMs
-		 * milliseconds. */
+         * detected) or no bytes have been received for transparentModeExampleRxTimeoutMs
+         * milliseconds. */
         while (!transparentModeExampleLineReceived && (WE_GetTick() - transparentModeExampleLastByteReceivedTimestamp) < transparentModeExampleRxTimeoutMs)
         {
         }
@@ -334,7 +335,7 @@ void Calypso_TransparentMode_Example(void)
         if (transparentModeExampleBytesReceived > 0)
         {
             transparentModeExampleRxBuffer[transparentModeExampleBytesReceived] = '\0';
-            WE_DEBUG_PRINT("Received \"%s\"\r\n", transparentModeExampleRxBuffer);
+            WE_APP_PRINT("Received \"%s\"\r\n", transparentModeExampleRxBuffer);
         }
 
         transparentModeExampleBytesReceived = 0;
@@ -346,11 +347,11 @@ void Calypso_TransparentMode_Example(void)
         /* Check if still connected */
         if ((Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_0_pin_level) && (status_ind_0_pin_level == WE_Pin_Level_Low)) || (Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_1_pin_level) && (status_ind_1_pin_level == WE_Pin_Level_Low)))
         {
-            WE_DEBUG_PRINT("ERROR: Connection to peer lost (WLAN or socket disconnected). Will now wait for reconnect.\r\n");
+            WE_APP_PRINT("ERROR: Connection to peer lost (WLAN or socket disconnected). Will now wait for reconnect.\r\n");
             while ((Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_0_pin_level) && (status_ind_0_pin_level == WE_Pin_Level_Low)) || (Calypso_GetPinLevel(Calypso_pins.Calypso_Pin_StatusInd0, &status_ind_1_pin_level) && (status_ind_1_pin_level == WE_Pin_Level_Low)))
             {
             }
-            WE_DEBUG_PRINT("Reconnected!\r\n");
+            WE_APP_PRINT("Reconnected!\r\n");
 
             /* Guard interval (required especially when power save mode is active) */
             WE_Delay(5);

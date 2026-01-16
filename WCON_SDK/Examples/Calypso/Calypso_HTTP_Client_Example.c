@@ -39,7 +39,7 @@
 void Calypso_HTTP_Client_Example(void)
 {
     /* Host for testing HTTP clients (httpbin has various testing features - e.g. returns sent
-	 * payload data or header fields in JSON string) */
+     * payload data or header fields in JSON string) */
     const char host[] = "httpbin.org/";
 
     /* Payload data that will be sent to HTTP server */
@@ -49,7 +49,7 @@ void Calypso_HTTP_Client_Example(void)
     bool secure = true;
 
     /* Name of file (on Calypso module) used for storing certificate of the root CA that
-	 * signed the HTTP server's certificate (required for encrypted connection). */
+     * signed the HTTP server's certificate (required for encrypted connection). */
     const char* serverRootCertFile = "http_example_root_ca.pem";
 
     /* Size of HTTP response chunks fetched from the Calypso module */
@@ -58,13 +58,13 @@ void Calypso_HTTP_Client_Example(void)
     /* Enables encoding of data transferred to/from Calypso in Base64 format */
     bool base64 = false;
 
-    WE_DEBUG_PRINT("*** Start of Calypso HTTP client example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso HTTP client example ***\r\n");
 
     bool ret = false;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -75,8 +75,8 @@ void Calypso_HTTP_Client_Example(void)
     WE_Delay(1000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -122,7 +122,7 @@ void Calypso_HTTP_Client_Example(void)
         strcat(hostWithPrefix, host);
 
         /* Root CA certificate for HTTPS communication with the above server.
-		 * Note that the certificate may change in the future and might thus become invalid. */
+         * Note that the certificate may change in the future and might thus become invalid. */
         const char* serverRootCert = "-----BEGIN CERTIFICATE-----\r\n"
                                      "MIIEDzCCAvegAwIBAgIBADANBgkqhkiG9w0BAQUFADBoMQswCQYDVQQGEwJVUzEl\r\n"
                                      "MCMGA1UEChMcU3RhcmZpZWxkIFRlY2hub2xvZ2llcywgSW5jLjEyMDAGA1UECxMp\r\n"
@@ -177,17 +177,17 @@ void Calypso_HTTP_Client_Example(void)
     Calypso_Examples_Print("HTTP connect", ret);
 
     /* Using URL http(s)://host/anything - if using the httpbin service,
-	 * this returns a JSON string containing, among other things, the payload
-	 * sent to the server. */
+     * this returns a JSON string containing, among other things, the payload
+     * sent to the server. */
     char url[128] = "";
     strcat(url, hostWithPrefix);
     strcat(url, "anything");
     uint32_t status;
     Calypso_DataFormat_t dataFormat = base64 ? Calypso_DataFormat_Base64 : Calypso_DataFormat_Binary;
-    WE_DEBUG_PRINT("Sending \"%s\" to HTTP server...\r\n", payload);
+    WE_APP_PRINT("Sending \"%s\" to HTTP server...\r\n", payload);
     ret = Calypso_ATHTTP_SendRequest(clientHandle, Calypso_ATHTTP_Method_Get, url, Calypso_ATHTTP_RequestFlags_None, dataFormat, base64, strlen(payload), payload, &status);
     Calypso_Examples_Print("Send HTTP request", ret);
-    WE_DEBUG_PRINT("HTTP status code is %ld (%s)\r\n", status, status == 200 ? "OK" : "NOK");
+    WE_APP_PRINT("HTTP status code is %ld (%s)\r\n", status, status == 200 ? "OK" : "NOK");
 
     /* Read HTTP response body in chunks of length up to rxChunksize */
     Calypso_ATHTTP_ResponseBody_t body;
@@ -198,7 +198,7 @@ void Calypso_HTTP_Client_Example(void)
         Calypso_Examples_Print("Read HTTP response", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("Received HTTP response body chunk %d: \"%s\"\r\n", chunkIndex++, body.body);
+            WE_APP_PRINT("Received HTTP response body chunk %d: \"%s\"\r\n", chunkIndex++, body.body);
         }
     } while (ret && body.hasMoreData);
 

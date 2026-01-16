@@ -29,18 +29,31 @@
  *
  */
 
-#ifndef DAPHNISI_LORAWAN_EXAMPLE_H_INCLUDED
-#define DAPHNISI_LORAWAN_EXAMPLE_H_INCLUDED
+#ifndef DAPHNISI_P2P_EXAMPLES_HELPER_H_INCLUDED
+#define DAPHNISI_P2P_EXAMPLES_HELPER_H_INCLUDED
+
+#include <DaphnisI/ATCommands/ATUserSettings.h>
+#include <DaphnisI/DaphnisI_Examples.h>
+
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern void DaphnisI_OTAA_JoinExample();
+extern DaphnisI_Setting_Status_t DaphnisI_P2P_Role_Check_and_Set(DaphnisI_P2P_Role_t new_p2p_role);
+
+extern DaphnisI_Setting_Status_t DaphnisI_P2P_RF_Profile_Check_and_Set(uint8_t new_rf_profile);
+
+extern DaphnisI_Setting_Status_t DaphnisI_P2P_DC_Enforce_Check_and_Set(bool new_dc_enforce);
+
+extern DaphnisI_Setting_Status_t DaphnisI_P2P_GPIO_Remote_Config_Check_and_Set(bool new_gpio_remote_cfg);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* DAPHNISI_LORAWAN_EXAMPLE_H_INCLUDED */
+#endif
+
+#endif /* DAPHNISI_P2P_EXAMPLES_HELPER_H_INCLUDED */

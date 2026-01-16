@@ -38,11 +38,11 @@
  */
 void Calypso_WLAN_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATWLAN example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATWLAN example ***\r\n");
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -53,8 +53,8 @@ void Calypso_WLAN_Example(void)
     bool ret = false;
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -71,7 +71,7 @@ void Calypso_WLAN_Example(void)
     uint8_t numEntries;
 
     /* Scan for WLAN networks - the first scan always returns an error - the
-	 * second scan should return the discovered networks */
+     * second scan should return the discovered networks */
     Calypso_ATWLAN_Scan(0, 15, scanEntries, &numEntries);
 
     WE_Delay(200);
@@ -141,7 +141,7 @@ void Calypso_WLAN_Example(void)
 
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_General, Calypso_ATWLAN_SetGeneral_CountryCode, &settings);
     Calypso_Examples_Print("Get country code", ret);
-    WE_DEBUG_PRINT("Country code: %s\r\n", settings.general.countryCode);
+    WE_APP_PRINT("Country code: %s\r\n", settings.general.countryCode);
 
     /* Get scan parameters */
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_General, Calypso_ATWLAN_SetGeneral_ScanParams, &settings);
@@ -149,7 +149,7 @@ void Calypso_WLAN_Example(void)
 
     /* Get/set station TX power */
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_General, Calypso_ATWLAN_SetGeneral_StationTxPower, &settings);
-    WE_DEBUG_PRINT("STA TX POW: %d\r\n", settings.general.staTxPower);
+    WE_APP_PRINT("STA TX POW: %d\r\n", settings.general.staTxPower);
     Calypso_Examples_Print("Get station TX power", ret);
 
     settings.general.staTxPower = 2;
@@ -157,12 +157,12 @@ void Calypso_WLAN_Example(void)
     Calypso_Examples_Print("Set station TX power", ret);
 
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_General, Calypso_ATWLAN_SetGeneral_StationTxPower, &settings);
-    WE_DEBUG_PRINT("STA TX POW: %d\r\n", settings.general.staTxPower);
+    WE_APP_PRINT("STA TX POW: %d\r\n", settings.general.staTxPower);
     Calypso_Examples_Print("Get station TX power", ret);
 
     /* Get/set access point SSID */
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_SSID, &settings);
-    WE_DEBUG_PRINT("AP SSID: %s\r\n", settings.ap.ssidConfig.ssid);
+    WE_APP_PRINT("AP SSID: %s\r\n", settings.ap.ssidConfig.ssid);
     Calypso_Examples_Print("Get AP SSID", ret);
 
     strcpy(settings.ap.ssidConfig.ssid, "Calypso-42");
@@ -171,12 +171,12 @@ void Calypso_WLAN_Example(void)
     Calypso_Examples_Print("Set AP SSID", ret);
 
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_SSID, &settings);
-    WE_DEBUG_PRINT("AP SSID: %s\r\n", settings.ap.ssidConfig.ssid);
+    WE_APP_PRINT("AP SSID: %s\r\n", settings.ap.ssidConfig.ssid);
     Calypso_Examples_Print("Get AP SSID", ret);
 
     /* Get/set access point maximum number of stations */
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_MaxStations, &settings);
-    WE_DEBUG_PRINT("AP MAX stations: %d\r\n", settings.ap.maxStations);
+    WE_APP_PRINT("AP MAX stations: %d\r\n", settings.ap.maxStations);
     Calypso_Examples_Print("Get AP max. number of stations", ret);
 
     settings.ap.maxStations = 3;
@@ -184,12 +184,12 @@ void Calypso_WLAN_Example(void)
     Calypso_Examples_Print("Set AP max. number of stations", ret);
 
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_MaxStations, &settings);
-    WE_DEBUG_PRINT("AP MAX stations: %d\r\n", settings.ap.maxStations);
+    WE_APP_PRINT("AP MAX stations: %d\r\n", settings.ap.maxStations);
     Calypso_Examples_Print("Get AP max. number of stations", ret);
 
     /* Get/set access point security parameters */
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_Security, &settings);
-    WE_DEBUG_PRINT("AP Security: %d\r\n", settings.ap.security);
+    WE_APP_PRINT("AP Security: %d\r\n", settings.ap.security);
     Calypso_Examples_Print("Get AP security params", ret);
 
     settings.ap.security = Calypso_ATWLAN_APSecurityType_Open;
@@ -197,7 +197,7 @@ void Calypso_WLAN_Example(void)
     Calypso_Examples_Print("Set AP security params", ret);
 
     ret = Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_AccessPoint, Calypso_ATWLAN_SetAP_Security, &settings);
-    WE_DEBUG_PRINT("AP Security: %d\r\n", settings.ap.security);
+    WE_APP_PRINT("AP Security: %d\r\n", settings.ap.security);
     Calypso_Examples_Print("Get AP security params", ret);
 
     /* Get/set power management policy */
@@ -227,7 +227,7 @@ void Calypso_WLAN_Example(void)
     Calypso_Examples_Print("Get WLAN status", ret);
     char statusStr[256];
     Calypso_ATDevice_PrintStatusFlags(deviceValue.status, statusStr, sizeof(statusStr));
-    WE_DEBUG_PRINT("WLAN status flags: %s\r\n", statusStr);
+    WE_APP_PRINT("WLAN status flags: %s\r\n", statusStr);
 
     Calypso_Deinit();
 }

@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void TarvosIII_Examples(void);
+extern void TarvosIII_Examples(void);
 
 #ifdef __cplusplus
 }

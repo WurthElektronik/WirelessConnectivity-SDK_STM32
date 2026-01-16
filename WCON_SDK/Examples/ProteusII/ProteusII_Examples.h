@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void ProteusII_Examples(void);
+extern void ProteusII_Examples(void);
 
 #ifdef __cplusplus
 }

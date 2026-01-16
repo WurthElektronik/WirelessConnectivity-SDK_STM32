@@ -193,14 +193,6 @@ static void (*RxCallback)(MetisE_ReceivedData_t);    /* callback function */
 /**************************************
  *         Static functions           *
  **************************************/
-/**
- * @brief Get a pointer to the specified option within the command frame
- *
- * @param[in] pCmdFrame : pointer to the command frame to search
- * @param[in] option    : option to look for in the data
- *
- * @return pointer to the requested option if present. Null otherwise
- */
 void MetisE_GetOptionPointer(MetisE_CMD_Frame_t* pCmdFrame, MetisE_Options_t option, MetisE_CMD_Option_t* pOptionOut)
 {
     uint8_t* currentOption = pCmdFrame->Data;
@@ -221,14 +213,11 @@ void MetisE_GetOptionPointer(MetisE_CMD_Frame_t* pCmdFrame, MetisE_Options_t opt
         }
 
         /* move pointer by the the length of the current option which is
-		 * 2 (option name byte, option length byte) plus the option length */
+         * 2 (option name byte, option length byte) plus the option length */
         currentOption += (*(currentOption + 1) + 2);
     }
 }
 
-/**
- * @brief Interpret the valid received UART data packet
- */
 static void HandleRxPacket(uint8_t* rxBuffer)
 {
     MetisE_CMD_Confirmation_t cmdConfirmation;
@@ -323,9 +312,6 @@ static void HandleRxPacket(uint8_t* rxBuffer)
     }
 }
 
-/**
- * @brief Function that waits for the return value of MetisE (*_CNF), when a command (*_REQ) was sent before
- */
 static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, MetisE_CMD_Status_t expectedStatus, bool reset_confirmstate)
 {
     int count = 0;
@@ -365,9 +351,6 @@ static bool Wait4CNF(uint32_t max_time_ms, uint8_t expectedCmdConfirmation, Meti
     return false;
 }
 
-/**
- * @brief Function to add the checksum at the end of the data packet.
- */
 static void FillChecksum(MetisE_CMD_Frame_t* cmd)
 {
     uint8_t checksum = (uint8_t)cmd->Stx;
@@ -447,18 +430,6 @@ void MetisE_HandleRxByte(uint8_t* dataP, size_t size)
     }
 }
 
-/**************************************
- *         Global functions           *
- **************************************/
-/**
- * @brief Transmitting the data via UART.
- *
- * @param[in] data    :  pointer to the data.
- * @param[in] dataLength : length of the data.
- *
- * @return true if transmission succeeded,
- *         false otherwise
- */
 bool MetisE_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
 {
     if ((data == NULL) || (dataLength == 0))
@@ -469,20 +440,6 @@ bool MetisE_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
     return MetisE_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Initialize the MetisE for serial interface.
- *
- * Caution: The parameter baudrate  must match the configured UserSettings of the MetisE.
- *          The baudrate parameter must match to perform a successful UART communication.
- *          Updating this parameter during runtime may lead to communication errors.
- *
- * @param[in] uartP :         definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] RXcb:           RX callback function
- *
- * @return true if initialization succeeded,
- *         false otherwise
- */
 bool MetisE_Init(WE_UART_t* uartP, MetisE_Pins_t* pinoutP, void (*RXcb)(MetisE_ReceivedData_t))
 {
     /* set RX callback function */
@@ -495,8 +452,11 @@ bool MetisE_Init(WE_UART_t* uartP, MetisE_Pins_t* pinoutP, void (*RXcb)(MetisE_R
 
     MetisE_pinsP = pinoutP;
     MetisE_pinsP->MetisE_Pin_Reset.type = WE_Pin_Type_Output;
+    MetisE_pinsP->MetisE_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     MetisE_pinsP->MetisE_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+    MetisE_pinsP->MetisE_Pin_SleepWakeUp.initial_value.output = WE_Pin_Level_Low;
     MetisE_pinsP->MetisE_Pin_Boot.type = WE_Pin_Type_Output;
+    MetisE_pinsP->MetisE_Pin_Boot.initial_value.output = WE_Pin_Level_Low;
 
     WE_Pin_t pins[sizeof(MetisE_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -510,11 +470,6 @@ bool MetisE_Init(WE_UART_t* uartP, MetisE_Pins_t* pinoutP, void (*RXcb)(MetisE_R
         return false;
     }
 
-    if (!WE_SetPin(MetisE_pinsP->MetisE_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(MetisE_pinsP->MetisE_Pin_SleepWakeUp, WE_Pin_Level_Low) || !WE_SetPin(MetisE_pinsP->MetisE_Pin_Reset, WE_Pin_Level_High))
-    {
-        return false;
-    }
-
     MetisE_uartP = uartP;
     if (!MetisE_uartP->uartInit(MetisE_uartP->baudrate, MetisE_uartP->flowControl, MetisE_uartP->parity, &byteRxCallback))
     {
@@ -523,17 +478,16 @@ bool MetisE_Init(WE_UART_t* uartP, MetisE_Pins_t* pinoutP, void (*RXcb)(MetisE_R
 
     return true;
 }
-
-/**
- * @brief Deinitialize the MetisE interface
- *
- * @return true if deinitialization succeeded,
- *         false otherwise
- */
 bool MetisE_Deinit()
 {
+    WE_Pin_t pins[sizeof(MetisE_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &MetisE_pinsP->MetisE_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &MetisE_pinsP->MetisE_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &MetisE_pinsP->MetisE_Pin_Boot, sizeof(WE_Pin_t));
+
     /* deinit pins */
-    if (!WE_DeinitPin(MetisE_pinsP->MetisE_Pin_Reset) || !WE_DeinitPin(MetisE_pinsP->MetisE_Pin_SleepWakeUp) || !WE_DeinitPin(MetisE_pinsP->MetisE_Pin_Boot))
+    if (!WE_DeinitPins(pins, pin_count))
     {
         return false;
     }
@@ -543,12 +497,6 @@ bool MetisE_Deinit()
     return MetisE_uartP->uartDeinit();
 }
 
-/**
- * @brief Wakeup the MetisE from standby or shutdown by pin
- *
- * @return true if wakeup succeeded,
- *         false otherwise
- */
 bool MetisE_PinWakeup()
 {
     if (!WE_SetPin(MetisE_pinsP->MetisE_Pin_SleepWakeUp, WE_Pin_Level_High))
@@ -572,12 +520,6 @@ bool MetisE_PinWakeup()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
-/**
- * @brief Reset the MetisE by pin
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool MetisE_PinReset()
 {
     if (!WE_SetPin(MetisE_pinsP->MetisE_Pin_Reset, WE_Pin_Level_Low))
@@ -596,12 +538,6 @@ bool MetisE_PinReset()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
-/**
- * @brief Reset the MetisE by command
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool MetisE_Reset()
 {
     txPacket.Cmd = METIS_E_CMD_RESET_REQ;
@@ -618,14 +554,6 @@ bool MetisE_Reset()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
-/**
- * @brief Factory reset the MetisE
- *
- * Note: use only in rare cases, since flash can be updated only a limited number of times
- *
- * @return true if factory reset succeeded,
- *         false otherwise
- */
 bool MetisE_FactoryReset()
 {
     txPacket.Cmd = METIS_E_CMD_FACTORY_RESET_REQ;
@@ -643,12 +571,6 @@ bool MetisE_FactoryReset()
     ;
 }
 
-/**
- * @brief Switch the module to standby mode
- *
- * @return true if switching succeeded,
- *         false otherwise
- */
 bool MetisE_Standby()
 {
     txPacket.Cmd = METIS_E_CMD_STANDBY_REQ;
@@ -666,12 +588,6 @@ bool MetisE_Standby()
     ;
 }
 
-/**
- * @brief Switch the module to shutdown mode
- *
- * @return true if switching succeeded,
- *         false otherwise
- */
 bool MetisE_Shutdown()
 {
     txPacket.Cmd = METIS_E_CMD_SHUTDOWN_REQ;
@@ -688,17 +604,6 @@ bool MetisE_Shutdown()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Request the current MetisE settings
- *
- * @param[in] us: user setting to be requested
- * @param[in] getDefault: Determines where default value is read from flash or current value from RAM
- * @param[in/out] response_length: for input, the available size is expected. On success, actual length of the request content will be written as output
- * @param[out] response: pointer of the memory to put the request content
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 static bool MetisE_GetSetting(MetisE_UserSettings_t us, bool getDefault, uint8_t* response, uint8_t* response_length)
 {
     if (response == NULL || response_length == NULL || *response_length == 0)
@@ -745,31 +650,8 @@ static bool MetisE_GetSetting(MetisE_UserSettings_t us, bool getDefault, uint8_t
     return true;
 }
 
-/**
- * @brief Request the current MetisE settings
- *
- * @param[in] us: user setting to be requested
- * @param[out] response: pointer of the memory to put the request content
- * @param[out] response_length: length of the request content
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetDefault(MetisE_UserSettings_t us, uint8_t* response, uint8_t* response_length) { return MetisE_GetSetting(us, true, response, response_length); }
+bool MetisE_GetDefault(MetisE_UserSettings_t us, uint8_t* responseP, uint8_t* response_lengthP) { return MetisE_GetSetting(us, true, responseP, response_lengthP); }
 
-/**
- * @brief Set a special user setting, but checks first if the value is already ok
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] userSetting:  user setting to be updated
- * @param[in] valueP:       pointer to the new settings value
- * @param[in] length:       length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_CheckNSet(MetisE_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
     if ((valueP == NULL) || (length == 0))
@@ -795,20 +677,6 @@ bool MetisE_CheckNSet(MetisE_UserSettings_t userSetting, uint8_t* valueP, uint8_
     return MetisE_SetDefault(userSetting, valueP, length);
 }
 
-/**
- * @brief Set a MetisE setting
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] us:     user setting to be updated
- * @param[in] setDefault: Determines where value is written to - flash or RAM
- * @param[in] value:  pointer to the new settings value
- * @param[in] length: length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 static bool MetisE_SetSetting(MetisE_UserSettings_t us, bool setDefault, uint8_t* valueP, uint8_t length)
 {
     if ((valueP == NULL) || (length == 0))
@@ -834,34 +702,11 @@ static bool MetisE_SetSetting(MetisE_UserSettings_t us, bool setDefault, uint8_t
     ;
 }
 
-/**
- * @brief Set a MetisE default setting
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] us:     user setting to be updated
- * @param[in] value:  pointer to the new settings value
- * @param[in] length: length of the value
- * @param[in] writeToFlash: length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
+bool MetisE_SetDefault(MetisE_UserSettings_t us, uint8_t* valueP, uint8_t length) { return MetisE_SetSetting(us, true, valueP, length); }
 
-bool MetisE_SetDefault(MetisE_UserSettings_t us, uint8_t* value, uint8_t length) { return MetisE_SetSetting(us, true, value, length); }
-
-/**
- * @brief Request the 3 byte firmware version
- *
- * @param[out] fw: pointer to the 3 byte firmware version
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetFirmwareVersion(uint8_t* fw)
+bool MetisE_GetFirmwareVersion(uint8_t* fwP)
 {
-    if (fw == NULL)
+    if (fwP == NULL)
     {
         return false;
     }
@@ -874,24 +719,16 @@ bool MetisE_GetFirmwareVersion(uint8_t* fw)
         return false;
     }
 
-    fw[0] = help[2];
-    fw[1] = help[1];
-    fw[2] = help[0];
+    fwP[0] = help[2];
+    fwP[1] = help[1];
+    fwP[2] = help[0];
 
     return true;
 }
 
-/**
- * @brief Request the 4 byte serial number
- *
- * @param[out] sn: pointer to the 4 byte serial number
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetSerialNumber(uint8_t* sn)
+bool MetisE_GetSerialNumber(uint8_t* snP)
 {
-    if (sn == NULL)
+    if (snP == NULL)
     {
         return false;
     }
@@ -904,110 +741,66 @@ bool MetisE_GetSerialNumber(uint8_t* sn)
         return false;
     }
 
-    sn[0] = help[3];
-    sn[1] = help[2];
-    sn[2] = help[1];
-    sn[3] = help[0];
+    snP[0] = help[3];
+    snP[1] = help[2];
+    snP[2] = help[1];
+    snP[3] = help[0];
 
     return true;
 }
 
-/**
- * @brief Request the default TX power
- *
- * @param[out] txpower: pointer to the TXpower
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetDefault_TXPower(uint8_t* txpower)
+bool MetisE_GetDefault_TXPower(uint8_t* txpowerP)
 {
-    if (txpower == NULL)
+    if (txpowerP == NULL)
     {
         return false;
     }
 
-    *txpower = TXPOWERINVALID;
+    *txpowerP = TXPOWERINVALID;
     uint8_t length = 1;
 
-    return MetisE_GetDefault(MetisE_USERSETTING_TXPOWER, txpower, &length);
+    return MetisE_GetDefault(MetisE_USERSETTING_TXPOWER, txpowerP, &length);
 }
 
-/**
- * @brief Request the default wmBus RX Mode
- *
- * @param[out] wmbusRxMode: pointer to the default wmBus RxMode
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetDefault_wmBusRxMode(uint8_t* wmbusRxMode)
+bool MetisE_GetDefault_wmBusRxMode(MetisE_wmBusMode_t* wmbusRxModeP)
 {
-    if (wmbusRxMode == NULL)
+    if (wmbusRxModeP == NULL)
     {
         return false;
     }
 
-    *wmbusRxMode = MetisE_wmBusMode_Undefined;
+    *wmbusRxModeP = MetisE_wmBusMode_Undefined;
     uint8_t length = 1;
 
-    return MetisE_GetDefault(MetisE_USERSETTING_WMBUS_RXMODE, wmbusRxMode, &length);
+    return MetisE_GetDefault(MetisE_USERSETTING_WMBUS_RXMODE, (uint8_t*)wmbusRxModeP, &length);
 }
 
-/**
- * @brief Request the default wmBus RX role
- *
- * @param[out] wmbusRxRole: pointer to the default wmBus role
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetDefault_wmBusRole(uint8_t* wmbusRole)
+bool MetisE_GetDefault_wmBusRole(MetisE_wmBusRole_t* wmbusRoleP)
 {
-    if (wmbusRole == NULL)
+    if (wmbusRoleP == NULL)
     {
         return false;
     }
 
-    *wmbusRole = MetisE_wmBusRole_Undefined;
+    *wmbusRoleP = MetisE_wmBusRole_Undefined;
     uint8_t length = 1;
 
-    return MetisE_GetDefault(MetisE_USERSETTING_WMBUS_ROLE, wmbusRole, &length);
+    return MetisE_GetDefault(MetisE_USERSETTING_WMBUS_ROLE, (uint8_t*)wmbusRoleP, &length);
 }
 
-/**
- * @brief Request the default CFG flags
- *
- * @param[out] cfgFlags: pointer to the default cfg Flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetDefault_CFGFlags(uint8_t* cfgFlags)
+bool MetisE_GetDefault_CFGFlags(uint8_t* cfgFlagsP)
 {
-    if (cfgFlags == NULL)
+    if (cfgFlagsP == NULL)
     {
         return false;
     }
 
-    *cfgFlags = 0;
+    *cfgFlagsP = 0;
     uint8_t length = 1;
 
-    return MetisE_GetDefault(MetisE_USERSETTING_CFGFLAGS, cfgFlags, &length);
+    return MetisE_GetDefault(MetisE_USERSETTING_CFGFLAGS, cfgFlagsP, &length);
 }
 
-/**
- * @brief Set the default TX power
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use MetisE_SetVolatile_TXPower for frequent adaption of the TX power.
- *
- * @param[in] txpower: TXpower
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_SetDefault_TXPower(uint8_t txpower)
 {
     /* check for invalid power */
@@ -1020,19 +813,7 @@ bool MetisE_SetDefault_TXPower(uint8_t txpower)
     return MetisE_SetDefault(MetisE_USERSETTING_TXPOWER, &txpower, 1);
 }
 
-/**
- * @brief Set the default Rx mode
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use MetisE_SetVolatile_wmBusRxMode for frequent adaption of the Rx mode.
- *
- * @param[in] wmbusRxMode : wmBus Rx Mode
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_SetDefault_wmBusRxMode(uint8_t wmbusRxMode)
+bool MetisE_SetDefault_wmBusRxMode(MetisE_wmBusMode_t wmbusRxMode)
 {
     /* check for invalid mode */
     if (MetisE_wmBusMode_MAX <= wmbusRxMode)
@@ -1041,22 +822,10 @@ bool MetisE_SetDefault_wmBusRxMode(uint8_t wmbusRxMode)
         return false;
     }
 
-    return MetisE_SetDefault(MetisE_USERSETTING_WMBUS_RXMODE, &wmbusRxMode, 1);
+    return MetisE_SetDefault(MetisE_USERSETTING_WMBUS_RXMODE, (uint8_t*)&wmbusRxMode, 1);
 }
 
-/**
- * @brief Set the default Rx Role
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use MetisE_SetVolatile_wmBusRxRole for frequent adaption of the Rx role.
- *
- * @param[in] wmbusRxRole : wmBus Rx role
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_SetDefault_wmBusRole(uint8_t wmbusRxRole)
+bool MetisE_SetDefault_wmBusRole(MetisE_wmBusRole_t wmbusRxRole)
 {
     /* check for invalid role */
     if (MetisE_wmBusRole_MAX <= wmbusRxRole)
@@ -1065,21 +834,9 @@ bool MetisE_SetDefault_wmBusRole(uint8_t wmbusRxRole)
         return false;
     }
 
-    return MetisE_SetDefault(MetisE_USERSETTING_WMBUS_ROLE, &wmbusRxRole, 1);
+    return MetisE_SetDefault(MetisE_USERSETTING_WMBUS_ROLE, (uint8_t*)&wmbusRxRole, 1);
 }
 
-/**
- * @brief Set the default CFG flags
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use MetisE_SetVolatile_CFGFlags for frequent adaption of the CFG flags.
- *
- * @param[in] cfgFlags : configuration flags to set
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_SetDefault_CFGFlags(uint8_t cfgFlags)
 {
     /* check for invalid cfg flags */
@@ -1092,98 +849,58 @@ bool MetisE_SetDefault_CFGFlags(uint8_t cfgFlags)
     return MetisE_SetDefault(MetisE_USERSETTING_CFGFLAGS, &cfgFlags, 1);
 }
 
-/**
- * @brief Request the volatile TX power currently in use
- *
- * @param[out] txpower: pointer to the TXpower
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetVolatile_TXPower(uint8_t* txpower)
+bool MetisE_GetVolatile_TXPower(uint8_t* txpowerP)
 {
-    if (txpower == NULL)
+    if (txpowerP == NULL)
     {
         return false;
     }
 
-    *txpower = TXPOWERINVALID;
+    *txpowerP = TXPOWERINVALID;
     uint8_t length = 1;
 
-    return MetisE_GetSetting(MetisE_USERSETTING_TXPOWER, false, txpower, &length);
+    return MetisE_GetSetting(MetisE_USERSETTING_TXPOWER, false, txpowerP, &length);
 }
 
-/**
- * @brief Request the volatile wmBus RX Mode currently in use
- *
- * @param[out] wmbusRxMode: pointer to the wmBus RxMode
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetVolatile_wmBusRxMode(uint8_t* wmbusRxMode)
+bool MetisE_GetVolatile_wmBusRxMode(MetisE_wmBusMode_t* wmbusRxModeP)
 {
-    if (wmbusRxMode == NULL)
+    if (wmbusRxModeP == NULL)
     {
         return false;
     }
 
-    *wmbusRxMode = MetisE_wmBusMode_Undefined;
+    *wmbusRxModeP = MetisE_wmBusMode_Undefined;
     uint8_t length = 1;
 
-    return MetisE_GetSetting(MetisE_USERSETTING_WMBUS_RXMODE, false, wmbusRxMode, &length);
+    return MetisE_GetSetting(MetisE_USERSETTING_WMBUS_RXMODE, false, (uint8_t*)wmbusRxModeP, &length);
 }
 
-/**
- * @brief Request the volatile wmBus role currently in use
- *
- * @param[out] wmbusRole: pointer to the wmBus role
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetVolatile_wmBusRole(uint8_t* wmbusRole)
+bool MetisE_GetVolatile_wmBusRole(MetisE_wmBusRole_t* wmbusRoleP)
 {
-    if (wmbusRole == NULL)
+    if (wmbusRoleP == NULL)
     {
         return false;
     }
 
-    *wmbusRole = MetisE_wmBusRole_Undefined;
+    *wmbusRoleP = MetisE_wmBusRole_Undefined;
     uint8_t length = 1;
 
-    return MetisE_GetSetting(MetisE_USERSETTING_WMBUS_ROLE, false, wmbusRole, &length);
+    return MetisE_GetSetting(MetisE_USERSETTING_WMBUS_ROLE, false, (uint8_t*)wmbusRoleP, &length);
 }
 
-/**
- * @brief Request the volatile CFG flags currently in use
- *
- * @param[out] cfgFlags: pointer to the cfg Flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_GetVolatile_CFGFlags(uint8_t* cfgFlags)
+bool MetisE_GetVolatile_CFGFlags(uint8_t* cfgFlagsP)
 {
-    if (cfgFlags == NULL)
+    if (cfgFlagsP == NULL)
     {
         return false;
     }
 
-    *cfgFlags = 0;
+    *cfgFlagsP = 0;
     uint8_t length = 1;
 
-    return MetisE_GetSetting(MetisE_USERSETTING_CFGFLAGS, false, cfgFlags, &length);
+    return MetisE_GetSetting(MetisE_USERSETTING_CFGFLAGS, false, cfgFlagsP, &length);
 }
 
-/**
- * @brief Set the volatile TX power to use immediately
- *
- * @param[in] txpower: TXpower to set
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_SetVolatile_TXPower(uint8_t txpower)
 {
     /* check for invalid power */
@@ -1196,15 +913,7 @@ bool MetisE_SetVolatile_TXPower(uint8_t txpower)
     return MetisE_SetSetting(MetisE_USERSETTING_TXPOWER, false, &txpower, 1);
 }
 
-/**
- * @brief Set the volatile Rx mode to use immediately
- *
- * @param[in] wmbusRxMode : wmBus Rx Mode to set
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_SetVolatile_wmBusRxMode(uint8_t wmbusRxMode)
+bool MetisE_SetVolatile_wmBusRxMode(MetisE_wmBusMode_t wmbusRxMode)
 {
     /* check for invalid mode */
     if (MetisE_wmBusMode_MAX <= wmbusRxMode)
@@ -1213,18 +922,10 @@ bool MetisE_SetVolatile_wmBusRxMode(uint8_t wmbusRxMode)
         return false;
     }
 
-    return MetisE_SetSetting(MetisE_USERSETTING_WMBUS_RXMODE, false, &wmbusRxMode, 1);
+    return MetisE_SetSetting(MetisE_USERSETTING_WMBUS_RXMODE, false, (uint8_t*)&wmbusRxMode, 1);
 }
 
-/**
- * @brief Set the volatile Rx Role to use immediately
- *
- * @param[in] wmbusRxRole : wmBus Rx role to set
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool MetisE_SetVolatile_wmBusRole(uint8_t wmbusRxRole)
+bool MetisE_SetVolatile_wmBusRole(MetisE_wmBusRole_t wmbusRxRole)
 {
     /* check for invalid role */
     if (MetisE_wmBusRole_MAX <= wmbusRxRole)
@@ -1233,17 +934,9 @@ bool MetisE_SetVolatile_wmBusRole(uint8_t wmbusRxRole)
         return false;
     }
 
-    return MetisE_SetSetting(MetisE_USERSETTING_WMBUS_ROLE, false, &wmbusRxRole, 1);
+    return MetisE_SetSetting(MetisE_USERSETTING_WMBUS_ROLE, false, (uint8_t*)&wmbusRxRole, 1);
 }
 
-/**
- * @brief Set the volatile CFG flags to use immediately
- *
- * @param[in] cfgFlags : configuration flags to set
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_SetVolatile_CFGFlags(uint8_t cfgFlags)
 {
     /* check for invalid cfg flags */
@@ -1256,12 +949,6 @@ bool MetisE_SetVolatile_CFGFlags(uint8_t cfgFlags)
     return MetisE_SetSetting(MetisE_USERSETTING_CFGFLAGS, false, &cfgFlags, 1);
 }
 
-/**
- * @brief Start rx mode to receive data. Module will stay in rx mode until it is stopped with the ReceiveStop() Command.
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool MetisE_ReceiveStart()
 {
     txPacket.Cmd = METIS_E_CMD_RXSTART_REQ;
@@ -1278,12 +965,6 @@ bool MetisE_ReceiveStart()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_RXSTART_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Stops rx mode so the module will stop receiving data
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool MetisE_ReceiveStop()
 {
     txPacket.Cmd = METIS_E_CMD_RXSTOP_REQ;
@@ -1300,26 +981,16 @@ bool MetisE_ReceiveStop()
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_RXSTOP_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Transmit data using the configured settings
- *
- * @param[in] payload: pointer to the data
- * @param[in] length: length of the data
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-
-bool MetisE_Transmit(MetisE_wmBusMode_t mode, MetisE_wmBusFrameFormat_t frameFormat, uint8_t* payload, uint8_t length)
+bool MetisE_Transmit(MetisE_wmBusMode_t mode, MetisE_wmBusFrameFormat_t frameFormat, uint8_t* payloadP, uint8_t length)
 {
-    if ((payload == NULL) || (length == 0))
+    if ((payloadP == NULL) || (length == 0))
     {
         return false;
     }
 
     if (length > MAX_PAYLOAD_LENGTH)
     {
-        WE_DEBUG_PRINT("Data exceeds maximal payload length\n");
+        WE_DEBUG_PRINT_INFO("Data exceeds maximal payload length\r\n");
         return false;
     }
 
@@ -1336,7 +1007,7 @@ bool MetisE_Transmit(MetisE_wmBusMode_t mode, MetisE_wmBusFrameFormat_t frameFor
 
     txPacket.Data[txPacket.Length++] = MetisE_OPTION_WMBUS_DATA;
     txPacket.Data[txPacket.Length++] = length;
-    memcpy(&txPacket.Data[txPacket.Length], payload, length);
+    memcpy(&txPacket.Data[txPacket.Length], payloadP, length);
     txPacket.Length += length;
 
     FillChecksum(&txPacket);
@@ -1349,16 +1020,6 @@ bool MetisE_Transmit(MetisE_wmBusMode_t mode, MetisE_wmBusFrameFormat_t frameFor
     return Wait4CNF(CMD_WAIT_TIME, METIS_E_CMD_DATAEX_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Configure the MetisE
- *
- * @param[in] config: pointer to the configuration struct
- * @param[in] config_length: length of the configuration struct
- * @param[in] factory_reset: apply a factory reset before or not
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool MetisE_Configure(MetisE_Configuration_t* config, uint8_t config_length, bool factory_reset)
 {
     if ((config == NULL) || (config_length == 0))

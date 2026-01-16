@@ -32,60 +32,61 @@ extern "C"
 #endif
 
 #include <Skoll_I/Skoll_I.h>
+#include <print.h>
 
-    typedef struct Skoll_I_Common_States_t
-    {
-        bool pairing_requested;
-    } Skoll_I_Common_States_t;
+typedef struct Skoll_I_Common_States_t
+{
+    bool pairing_requested;
+} Skoll_I_Common_States_t;
 
-    typedef struct Skoll_I_BluetoothClassic_States_t
-    {
-        uint16_t conn_handle;
-        bool inquiry_running;
-        bool connected;
-        bool pinentry_requested;
-    } Skoll_I_BluetoothClassic_States_t;
+typedef struct Skoll_I_BluetoothClassic_States_t
+{
+    uint16_t conn_handle;
+    bool inquiry_running;
+    bool connected;
+    bool pinentry_requested;
+} Skoll_I_BluetoothClassic_States_t;
 
-    typedef struct Skoll_I_BluetoothLE_States_t
-    {
-        uint16_t conn_handle;
-        bool scan_running;
-        bool connected;
-        bool passkeyentry_requested;
-    } Skoll_I_BluetoothLE_States_t;
+typedef struct Skoll_I_BluetoothLE_States_t
+{
+    uint16_t conn_handle;
+    bool scan_running;
+    bool connected;
+    bool passkeyentry_requested;
+} Skoll_I_BluetoothLE_States_t;
 
-    typedef struct Skoll_I_BluetoothLE_SPPLike_States_t
-    {
-        bool peer_is_subscribed;
-    } Skoll_I_BluetoothLE_SPPLike_States_t;
+typedef struct Skoll_I_BluetoothLE_SPPLike_States_t
+{
+    bool peer_is_subscribed;
+} Skoll_I_BluetoothLE_SPPLike_States_t;
 
-    typedef struct Skoll_I_BluetoothLE_CYSPP_States_t
-    {
-        bool peer_is_subscribed;
-    } Skoll_I_BluetoothLE_CYSPP_States_t;
+typedef struct Skoll_I_BluetoothLE_CYSPP_States_t
+{
+    bool peer_is_subscribed;
+} Skoll_I_BluetoothLE_CYSPP_States_t;
 
-    /* States of the Skoll-I, separated in Bluetooth LE, Bluetooth Classic, CYSPP profile and Bluetooth LE SPPlike profile */
-    typedef struct Skoll_I_States_t
-    {
-        Skoll_I_Common_States_t Common;
-        Skoll_I_BluetoothClassic_States_t Classic;
-        Skoll_I_BluetoothLE_States_t LE;
-        Skoll_I_BluetoothLE_SPPLike_States_t LE_SPPLike;
-        Skoll_I_BluetoothLE_CYSPP_States_t LE_CYSPP;
-    } Skoll_I_States_t;
+/* States of the Skoll-I, separated in Bluetooth LE, Bluetooth Classic, CYSPP profile and Bluetooth LE SPPlike profile */
+typedef struct Skoll_I_States_t
+{
+    Skoll_I_Common_States_t Common;
+    Skoll_I_BluetoothClassic_States_t Classic;
+    Skoll_I_BluetoothLE_States_t LE;
+    Skoll_I_BluetoothLE_SPPLike_States_t LE_SPPLike;
+    Skoll_I_BluetoothLE_CYSPP_States_t LE_CYSPP;
+} Skoll_I_States_t;
 
-    extern Skoll_I_States_t states;
+extern Skoll_I_States_t states;
 
-    /**
+/**
  * @brief Handler dealing with events and response messages received via UART
  *
  * @param packet UART message that has been received
  *
  * @return None
  */
-    extern void eventHandler(ezs_packet_t* packet);
+extern void eventHandler(ezs_packet_t* packet);
 
-    /**
+/**
  * @brief Handler that is used, when we entered the transparent data mode
  *
  * @param payload Received data
@@ -93,9 +94,9 @@ extern "C"
  *
  * @return None
  */
-    extern void transparentDataHandler(uint8_t* payload, uint16_t payloadLength);
+extern void transparentDataHandler(uint8_t* payload, uint16_t payloadLength);
 
-    /**
+/**
  * @brief Prints the supplied string, prefixed with OK or NOK (depending on the success parameter).
  *
  * @param str String to print
@@ -103,9 +104,9 @@ extern "C"
  *
  * @return None
  */
-    extern void Examples_Print(char* str, bool success);
+extern void Examples_Print(char* str, bool success);
 
-    /**
+/**
  * @brief Prints the supplied string as ascii characters
  *
  * @param text Array to print
@@ -113,9 +114,9 @@ extern "C"
  *
  * @return None
  */
-    extern void print_hexstring(const char* text, size_t width);
+extern void print_hexstring(const char* text, size_t width);
 
-    /**
+/**
  * @brief Prints the supplied string as hex values prepended with a "0x"
  *
  * @param text Array to print
@@ -123,7 +124,7 @@ extern "C"
  *
  * @return None
  */
-    extern void print_ascii(const char* text, size_t width);
+extern void print_ascii(const char* text, size_t width);
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file global.h
  * @brief This is the main header file of the WE Wireless Connectivity SDK.
  */
 
@@ -33,7 +33,9 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
+#include "debug.h"
 #include "global_types.h"
 
 #ifdef __cplusplus
@@ -41,140 +43,145 @@ extern "C"
 {
 #endif
 
+/**
+ * @brief Defines a WE_Pin
+ * 
+ * @param[in] PIN_DEF_POINTER: Pointer to platform pin definition
+ */
 #define WE_PIN(PIN_DEF_POINTER)                                                                                                                                                                                                                                                                                                                                                                                \
     ((WE_Pin_t){                                                                                                                                                                                                                                                                                                                                                                                               \
         .pin_def = PIN_DEF_POINTER,                                                                                                                                                                                                                                                                                                                                                                            \
     })
 
+/**
+ * @brief Marks WE_Pin as undefined
+ */
 #define WE_PIN_UNDEFINED()                                                                                                                                                                                                                                                                                                                                                                                     \
     ((WE_Pin_t){                                                                                                                                                                                                                                                                                                                                                                                               \
         .pin_def = NULL,                                                                                                                                                                                                                                                                                                                                                                                       \
     })
 
+/** @cond DOXYGEN_INTERNAL */
+
+/**
+ * @brief Check if the pin is defined
+ * 
+ * @param[in] PIN: pin to be checked if defined
+ * 
+ * @return True if defined, false otherwise 
+ */
 #define IS_WE_PIN_UNDEFINED(PIN) (PIN.pin_def == NULL)
 
 #ifndef UNUSED
-#define UNUSED(X) (void)X /* To avoid gcc/g++ warnings */
+
+/**
+ * @brief Marks argument as explicitly unused to avoid gcc/g++ warnings
+ * 
+ * @param[in] PIN: variable to be marked as unused
+ * 
+ */
+#define UNUSED(X) (void)X
 #endif
+/** @endcond */
 
 /**
  * @brief Driver version
  */
-#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {2, 4, 0}
-
-#if defined(WE_DEBUG) || defined(WE_DEBUG_INIT)
-#include "debug.h"
-#define WE_DEBUG_PRINT(...) printf(__VA_ARGS__)
-#else
-#define WE_DEBUG_PRINT(...)
-#endif /* WE_DEBUG */
+#define WE_WIRELESS_CONNECTIVITY_SDK_VERSION {2, 5, 0}
 
 /**
- * @brief Priority for UART interrupts (used for communicating with radio module)
- */
-#define WE_PRIORITY_UART_RX 0
-
-/**
- * @brief Priority for (asynchronous) processing of data received from radio module.
- */
-#define WE_PRIORITY_RX_DATA_PROCESSING 1
-
-/**
- * @brief Priority for UART interface used for debugging.
- */
-#define WE_PRIORITY_UART_DEBUG 2
-
-    /**
- * @brief Initializes the platform (peripherals, flash interface, Systick, system clock, interrupts etc.)
- */
-    extern void WE_Platform_Init(void);
-
-    /**
- * @brief Is called in case of a critical HAL error.
- */
-    extern void WE_Error_Handler(void);
-
-    /**
  * @brief Request the 3 byte driver version
  *
- * @param[out] version Pointer to the 3 byte driver version.
- * @return true if request succeeded, false otherwise
+ * @param[out] version: Pointer to the 3 byte driver version.
+ * @return True if request succeeded, false otherwise
  */
-    extern bool WE_GetDriverVersion(uint8_t* version);
+static inline bool WE_GetDriverVersion(uint8_t* version)
+{
+    uint8_t help[3] = WE_WIRELESS_CONNECTIVITY_SDK_VERSION;
+    memcpy(version, help, 3);
+    return true;
+}
 
-    /**
+/**
  * @brief Initialize GPIO pins.
  *
- * @param[in] pins Array of pins to configure. Entries that pin definition as NULL are ignored.
- * @param[in] numPins Number of elements in pins array.
- * @return true if request succeeded, false otherwise
+ * @param[in] pins: Array of pins to configure. Entries that pin definition as NULL are ignored.
+ * @param[in] numPins: Number of elements in pins array.
+ * @return True if request succeeded, false otherwise
  */
-    extern bool WE_InitPins(WE_Pin_t pins[], uint8_t numPins);
+extern bool WE_InitPins(WE_Pin_t pins[], uint8_t numPins);
 
-    extern bool WE_Reconfigure(WE_Pin_t pin);
-
-    /**
- * @brief Deinitialize a pin.
+/**
+ * @brief Re-configure a pin.
  *
- * @param[in] pin Pin to be deinitialized
- * @return true if request succeeded, false otherwise
+ * @param[in] pin: Pin to re-configure.
+ * @return True if request succeeded, false otherwise
  */
-    extern bool WE_DeinitPin(WE_Pin_t pin);
+extern bool WE_Reconfigure(WE_Pin_t pin);
 
-    /**
+/**
+ * @brief Deinitialize GPIO pins.
+ *
+ * @param[in] pins: Array of pins to deinitalize. Entries that pin definition as NULL are ignored.
+ * @param[in] numPins: Number of elements in pins array.
+ * @return True if request succeeded, false otherwise
+ */
+extern bool WE_DeinitPins(WE_Pin_t pins[], uint8_t numPins);
+
+/**
  * @brief Switch pin to output high/low
  *
- * @param[in] pin Output pin to be set
- * @param[in] out Output level to be set
- * @return true if request succeeded, false otherwise
+ * @param[in] pin: Output pin to be set
+ * @param[in] out: Output level to be set
+ * @return True if request succeeded, false otherwise
  */
 
-    extern bool WE_SetPin(WE_Pin_t pin, WE_Pin_Level_t out);
+extern bool WE_SetPin(WE_Pin_t pin, WE_Pin_Level_t out);
 
-    /**
+/**
  * @brief Gets the pin level
  *
  * @param[in] pin: the pin to be checked
  *
  * @param[out] pin_levelP: the pin level
  *
- * @return true if request succeeded,
+ * @return True if request succeeded,
  *         false otherwise
  *
  */
-    extern bool WE_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP);
+extern bool WE_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP);
 
-    /**
- * @brief Sleep function.
+/**
+ * @brief Milliseconds delay function.
  *
- * @param[in] sleepForMs Delay in milliseconds
+ * @param[in] delay: Delay in milliseconds
  */
-    extern void WE_Delay(uint16_t sleepForMs);
+extern void WE_Delay(uint32_t delay);
 
-    /**
- * @brief Sleep function.
+/**
+ * @brief Microseconds delay function.
  *
  * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
  *
- * @param[in] sleepForUsec Delay in microseconds
+ * @param[in] delay: Delay in microseconds
  */
-    extern void WE_DelayMicroseconds(uint32_t sleepForUsec);
+extern void WE_DelayMicroseconds(uint32_t delay);
 
-    /**
+/**
  * @brief Returns current tick value (in milliseconds).
  *
  * @return Current tick value (in milliseconds)
  */
-    extern uint32_t WE_GetTick();
+extern uint32_t WE_GetTick();
 
-    /**
+/**
  * @brief Returns current tick value (in microseconds).
  *
  * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
  *
  * @return Current tick value (in microseconds)
  */
-    extern uint32_t WE_GetTickMicroseconds();
+extern uint32_t WE_GetTickMicroseconds();
 
 #ifdef __cplusplus
 }

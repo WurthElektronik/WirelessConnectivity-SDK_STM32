@@ -110,14 +110,14 @@ static char* Calypso_Azure_PnP_Serialize_Prov_Req();
  */
 void Calypso_Azure_PnP_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso Azure PnP example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso Azure PnP example ***\r\n");
 
     bool ret = false;
     uint8_t mqttIndex;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Azure_PnP_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -285,7 +285,7 @@ bool Calypso_Azure_PnP_Publish_MAC_Adr(uint8_t mqttIndex)
     json_object_push(payload, "MACAddress", json_string_new(macAdrString));
 
     reqID++;
-    sprintf(topic, "%s%u", DEVICE_TWIN_MESSAGE_PATCH, reqID);
+    sprintf(topic, "%s%" PRIu32, DEVICE_TWIN_MESSAGE_PATCH, (uint32_t)reqID);
     char* buf = malloc(json_measure(payload));
     json_serialize(buf, payload);
     json_builder_free(payload);
@@ -317,7 +317,7 @@ bool Calypso_Azure_PnP_Publish_Version(uint8_t mqttIndex)
     json_object_push(payload, "swVersion", json_string_new(deviceValue.general.version.calypsoFirmwareVersion));
 
     reqID++;
-    sprintf(topic, "%s%u", DEVICE_TWIN_MESSAGE_PATCH, reqID);
+    sprintf(topic, "%s%" PRIu32, DEVICE_TWIN_MESSAGE_PATCH, (uint32_t)reqID);
     char* buf = malloc(json_measure(payload));
     json_serialize(buf, payload);
     json_builder_free(payload);
@@ -349,12 +349,12 @@ bool Calypso_Azure_PnP_Publish_UDID(uint8_t mqttIndex)
     json_object_push(payload, "UDID", json_string_new(deviceValue.iot.udid));
 
     reqID++;
-    sprintf(topic, "%s%u", DEVICE_TWIN_MESSAGE_PATCH, reqID);
+    sprintf(topic, "%s%" PRIu32, DEVICE_TWIN_MESSAGE_PATCH, (uint32_t)reqID);
     char* buf = malloc(json_measure(payload));
     json_serialize(buf, payload);
     json_builder_free(payload);
 
-    WE_DEBUG_PRINT("%s\r\n", buf);
+    WE_APP_PRINT("%s\r\n", buf);
     if (!Calypso_Azure_PnP_MQTT_Publish(mqttIndex, topic, 1, buf, strlen(buf), true))
     {
         free(buf);
@@ -429,7 +429,7 @@ bool Calypso_Azure_PnP_SNTP_Setup()
     Calypso_Azure_PnP_Print("Get device time", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u\r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+        WE_APP_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u\r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
     }
     return ret;
 }
@@ -508,7 +508,7 @@ bool Calypso_Azure_PnP_Provision()
                 {
                     provDone = true;
                     strcpy(iotHubAddress, status->u.object.values[2].value->u.object.values[3].value->u.string.ptr);
-                    WE_DEBUG_PRINT("IoT hub address to connect: %s\r\n", iotHubAddress);
+                    WE_APP_PRINT("IoT hub address to connect: %s\r\n", iotHubAddress);
                     if (!Calypso_Azure_PnP_Write_File(DEVICE_IOT_HUB_ADDRESS, iotHubAddress, strlen(iotHubAddress)))
                     {
                         Calypso_Azure_PnP_Print("Unable to write hub address to file", false);
@@ -548,7 +548,7 @@ bool Calypso_Azure_PnP_Publish_Status_Req(uint8_t mqttIndex, char* operationID)
     char* payload = 0;
 
     reqID++;
-    sprintf(provStatusTopic, "%s%u&operationId=%s", PROVISIONING_STATUS_REQ_TOPIC, reqID, operationID);
+    sprintf(provStatusTopic, "%s%" PRIu32 "&operationId=%s", PROVISIONING_STATUS_REQ_TOPIC, (uint32_t)reqID, operationID);
 
     if (!Calypso_Azure_PnP_MQTT_Publish(mqttIndex, provStatusTopic, 1, payload, 0, true))
     {
@@ -573,7 +573,7 @@ bool Calypso_Azure_PnP_Publish_Reg_Req(uint8_t mqttIndex)
     char provReqTopic[128];
 
     reqID++;
-    sprintf(provReqTopic, "%s%u", PROVISIONING_REG_REQ_TOPIC, reqID);
+    sprintf(provReqTopic, "%s%" PRIu32, PROVISIONING_REG_REQ_TOPIC, (uint32_t)reqID);
 
     char* provReq = Calypso_Azure_PnP_Serialize_Prov_Req();
 
@@ -765,12 +765,12 @@ void Calypso_Azure_PnP_EventCallback(char* eventText)
         case Calypso_ATEvent_Startup:
             if (Calypso_ATEvent_ParseStartUpEvent(&eventText, &Calypso_Azure_PnP_startupEvent))
             {
-                WE_DEBUG_PRINT("Startup event received. "
-                               "Article nr: %s, "
-                               "Chip ID: %s, "
-                               "MAC address: %s, "
-                               "Firmware version: %d.%d.%d\r\n",
-                               Calypso_Azure_PnP_startupEvent.articleNr, Calypso_Azure_PnP_startupEvent.chipID, Calypso_Azure_PnP_startupEvent.MACAddress, Calypso_Azure_PnP_startupEvent.firmwareVersion[0], Calypso_Azure_PnP_startupEvent.firmwareVersion[1], Calypso_Azure_PnP_startupEvent.firmwareVersion[2]);
+                WE_APP_PRINT("Startup event received. "
+                             "Article nr: %s, "
+                             "Chip ID: %s, "
+                             "MAC address: %s, "
+                             "Firmware version: %d.%d.%d\r\n",
+                             Calypso_Azure_PnP_startupEvent.articleNr, Calypso_Azure_PnP_startupEvent.chipID, Calypso_Azure_PnP_startupEvent.MACAddress, Calypso_Azure_PnP_startupEvent.firmwareVersion[0], Calypso_Azure_PnP_startupEvent.firmwareVersion[1], Calypso_Azure_PnP_startupEvent.firmwareVersion[2]);
             }
             Calypso_Azure_PnP_startupEventReceived = true;
             break;
@@ -875,4 +875,4 @@ bool Calypso_Azure_PnP_WaitForStartup(uint32_t timeoutMs)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void Calypso_Azure_PnP_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+void Calypso_Azure_PnP_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

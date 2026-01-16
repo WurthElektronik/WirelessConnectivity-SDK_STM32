@@ -628,8 +628,8 @@ static bool FillChecksum(ProteusII_CMD_Frame_t* cmd)
 /**
  * @brief Transmitting the data via UART.
  *
- * @param[in] data    :  pointer to the data.
- * @param[in] dataLength : length of the data.
+ * @param[in] data: Pointer to the data.
+ * @param[in] dataLength: Length of the data.
  *
  * @return true if transmission succeeded,
  *         false otherwise
@@ -643,21 +643,6 @@ bool ProteusII_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
     return ProteusII_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Initialize the ProteusII for serial interface.
- *
- * Caution: The parameter baudrate must match the configured UserSettings of the ProteusII.
- *          The baudrate parameter must match to perform a successful FTDI communication.
- *          Updating this parameter during runtime may lead to communication errors.
- *
- * @param[in] uartP :         definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] opMode:           operation mode
- * @param[in] callbackConfig:   Callback configuration
- *
- * @return true if initialization succeeded,
- *         false otherwise
- */
 bool ProteusII_Init(WE_UART_t* uartP, ProteusII_Pins_t* pinoutP, ProteusII_OperationMode_t opMode, ProteusII_CallbackConfig_t callbackConfig)
 {
     operationMode = opMode;
@@ -669,11 +654,17 @@ bool ProteusII_Init(WE_UART_t* uartP, ProteusII_Pins_t* pinoutP, ProteusII_Opera
 
     ProteusII_pinsP = pinoutP;
     ProteusII_pinsP->ProteusII_Pin_Reset.type = WE_Pin_Type_Output;
+    ProteusII_pinsP->ProteusII_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     ProteusII_pinsP->ProteusII_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+    ProteusII_pinsP->ProteusII_Pin_SleepWakeUp.initial_value.output = WE_Pin_Level_High;
     ProteusII_pinsP->ProteusII_Pin_Boot.type = WE_Pin_Type_Output;
+    ProteusII_pinsP->ProteusII_Pin_Boot.initial_value.output = WE_Pin_Level_High;
     ProteusII_pinsP->ProteusII_Pin_Mode.type = WE_Pin_Type_Output;
+    ProteusII_pinsP->ProteusII_Pin_Mode.initial_value.output = ((operationMode == ProteusII_OperationMode_PeripheralOnlyMode) ? WE_Pin_Level_High : WE_Pin_Level_Low);
     ProteusII_pinsP->ProteusII_Pin_Busy.type = WE_Pin_Type_Input;
+    ProteusII_pinsP->ProteusII_Pin_Busy.initial_value.input_pull = WE_Pin_PullType_No;
     ProteusII_pinsP->ProteusII_Pin_StatusLed2.type = WE_Pin_Type_Input;
+    ProteusII_pinsP->ProteusII_Pin_StatusLed2.initial_value.input_pull = WE_Pin_PullType_No;
 
     WE_Pin_t pins[sizeof(ProteusII_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -687,11 +678,6 @@ bool ProteusII_Init(WE_UART_t* uartP, ProteusII_Pins_t* pinoutP, ProteusII_Opera
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Boot, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(ProteusII_pinsP->ProteusII_Pin_Mode, (operationMode == ProteusII_OperationMode_PeripheralOnlyMode) ? WE_Pin_Level_High : WE_Pin_Level_Low))
-    {
         return false;
     }
 
@@ -709,7 +695,7 @@ bool ProteusII_Init(WE_UART_t* uartP, ProteusII_Pins_t* pinoutP, ProteusII_Opera
     /* reset module */
     if (!ProteusII_PinReset())
     {
-        WE_DEBUG_PRINT("Pin reset failed\n");
+        WE_DEBUG_PRINT_INFO("Pin reset failed\r\n");
         ProteusII_Deinit();
         return false;
     }
@@ -720,16 +706,19 @@ bool ProteusII_Init(WE_UART_t* uartP, ProteusII_Pins_t* pinoutP, ProteusII_Opera
     return true;
 }
 
-/**
- * @brief Deinitialize the ProteusII interface.
- *
- * @return true if deinitialization succeeded,
- *         false otherwise
- */
 bool ProteusII_Deinit()
 {
+    WE_Pin_t pins[sizeof(ProteusII_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Mode, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_Busy, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &ProteusII_pinsP->ProteusII_Pin_StatusLed2, sizeof(WE_Pin_t));
+
     /* deinit pins */
-    if (!WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Reset) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Boot) || !WE_DeinitPin(ProteusII_pinsP->ProteusII_Pin_Mode))
+    if (!WE_DeinitPins(pins, pin_count))
     {
         return false;
     }
@@ -743,16 +732,6 @@ bool ProteusII_Deinit()
     return ProteusII_uartP->uartDeinit();
 }
 
-/**
- * @brief Wake up the ProteusII from sleep by pin.
- *
- * Please note that the WAKE_UP pin is also used for re-enabling the UART using
- * the function ProteusII_PinUartEnable(). In that case, the module answers
- * with a different response. The two functions are therefore not interchangeable.
- *
- * @return true if wake-up succeeded,
- *         false otherwise
- */
 bool ProteusII_PinWakeup()
 {
     if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_Low))
@@ -774,17 +753,6 @@ bool ProteusII_PinWakeup()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
 }
 
-/**
- * @brief Re-enables the module's UART using the WAKE_UP pin after having disabled the
- * UART using ProteusII_UartDisable().
- *
- * Please note that the WAKE_UP pin is also used for waking up the module from sleep
- * mode using the function ProteusII_PinWakeup(). In that case, the module answers
- * with a different response. The two functions are therefore not interchangeable.
- *
- * @return true if enabling UART succeeded,
- *         false otherwise
- */
 bool ProteusII_PinUartEnable()
 {
     if (!WE_SetPin(ProteusII_pinsP->ProteusII_Pin_SleepWakeUp, WE_Pin_Level_Low))
@@ -806,12 +774,6 @@ bool ProteusII_PinUartEnable()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_UART_ENABLE_IND, CMD_Status_Success, false);
 }
 
-/**
- * @brief Reset the ProteusII by pin.
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool ProteusII_PinReset()
 {
     /* set to output mode */
@@ -838,12 +800,6 @@ bool ProteusII_PinReset()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
-/**
- * @brief Reset the ProteusII by command
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool ProteusII_Reset()
 {
     txPacket.Cmd = PROTEUSII_CMD_RESET_REQ;
@@ -859,12 +815,6 @@ bool ProteusII_Reset()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
-/**
- * @brief Disconnect the ProteusII connection if open.
- *
- * @return true if disconnect succeeded,
- *         false otherwise
- */
 bool ProteusII_Disconnect()
 {
     txPacket.Cmd = PROTEUSII_CMD_DISCONNECT_REQ;
@@ -880,12 +830,6 @@ bool ProteusII_Disconnect()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DISCONNECT_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Put the ProteusII into sleep mode.
- *
- * @return true if succeeded,
- *         false otherwise
- */
 bool ProteusII_Sleep()
 {
     txPacket.Cmd = PROTEUSII_CMD_SLEEP_REQ;
@@ -901,15 +845,6 @@ bool ProteusII_Sleep()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SLEEP_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Disables the UART of the Proteus-II.
- *
- * It will be re-enabled when the module has to send data to the host (e.g. data was received
- * via radio or a state is indicated) or it can be manually re-enabled using ProteusII_PinWakeup().
- *
- * @return true if disable succeeded,
- *         false otherwise
- */
 bool ProteusII_UartDisable()
 {
     txPacket.Cmd = PROTEUSII_CMD_UART_DISABLE_REQ;
@@ -925,15 +860,6 @@ bool ProteusII_UartDisable()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_UART_DISABLE_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Transmit data if a connection is open
- *
- * @param[in] payloadP: pointer to the data to transmit
- * @param[in] length:   length of the data to transmit
- *
- * @return true if succeeded,
- *         false otherwise
- */
 bool ProteusII_Transmit(uint8_t* payloadP, uint16_t length)
 {
     if ((payloadP == NULL) || (length == 0) || (length > PROTEUSII_MAX_RADIO_PAYLOAD_LENGTH) || (ProteusII_DriverState_BLE_ChannelOpen != ProteusII_GetDriverState()))
@@ -960,15 +886,6 @@ bool ProteusII_Transmit(uint8_t* payloadP, uint16_t length)
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_TXCOMPLETE_RSP, CMD_Status_Success, false);
 }
 
-/**
- * @brief Places user data in the scan response packet.
- *
- * @param[in] beaconDataP: pointer to the data to put in scan response packet
- * @param[in] length:      length of the data to put in scan response packet
- *
- * @return true if succeeded,
- *         false otherwise
- */
 bool ProteusII_SetBeacon(uint8_t* beaconDataP, uint16_t length)
 {
     if ((beaconDataP == NULL) || (length > PROTEUSII_MAX_BEACON_LENGTH) || (ProteusII_DriverState_BLE_Idle != ProteusII_GetDriverState()))
@@ -1010,19 +927,6 @@ bool ProteusII_FactoryReset()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, true);
 }
 
-/**
- * @brief Set a special user setting, but checks first if the value is already ok
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] userSetting:  user setting to be updated
- * @param[in] valueP:       pointer to the new settings value
- * @param[in] length:       length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_CheckNSet(ProteusII_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
     if ((valueP == NULL) || (length == 0))
@@ -1053,19 +957,6 @@ bool ProteusII_CheckNSet(ProteusII_UserSettings_t userSetting, uint8_t* valueP, 
     }
 }
 
-/**
- * @brief Set a special user setting.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] userSetting:  user setting to be updated
- * @param[in] valueP:       pointer to the new settings value
- * @param[in] length:       length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_Set(ProteusII_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
     if ((valueP == NULL) || (length == 0))
@@ -1093,34 +984,8 @@ bool ProteusII_Set(ProteusII_UserSettings_t userSetting, uint8_t* valueP, uint8_
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_GETSTATE_CNF, CMD_Status_NoStatus, false);
 }
 
-/**
- * @brief Set the BLE device name.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] deviceNameP: pointer to the device name
- * @param[in] nameLength:  length of the device name
- *
- *note: reset the module after the adaption of the setting such that it can take effect
- *note: use this function only in rare case, since flash can be updated only a limited number times
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetDeviceName(uint8_t* deviceNameP, uint8_t nameLength) { return ProteusII_Set(ProteusII_USERSETTING_RF_DEVICE_NAME, deviceNameP, nameLength); }
 
-/**
- * @brief Set the BLE advertising timeout.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] advTimeout: advertising timeout in seconds (allowed values: 0-650, where 0 = infinite)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetAdvertisingTimeout(uint16_t advTimeout)
 {
     uint8_t help[2];
@@ -1128,17 +993,6 @@ bool ProteusII_SetAdvertisingTimeout(uint16_t advTimeout)
     return ProteusII_Set(ProteusII_USERSETTING_RF_ADVERTISING_TIMEOUT, help, 2);
 }
 
-/**
- * @brief Set the advertising flags.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] advFlags: Advertising flags
- *
- * @return true if request succeeded
- *         false otherwise
- */
 bool ProteusII_SetAdvertisingFlags(ProteusII_AdvertisingFlags_t advFlags)
 {
     uint8_t flags = (uint8_t)advFlags;
@@ -1158,17 +1012,6 @@ bool ProteusII_SetAdvertisingFlags(ProteusII_AdvertisingFlags_t advFlags)
  */
 bool ProteusII_SetScanFlags(uint8_t scanFlags) { return ProteusII_Set(ProteusII_USERSETTING_RF_SCAN_FLAGS, &scanFlags, 1); }
 
-/**
- * @brief Set the beacon flags.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] beaconFlags: Beacon flags
- *
- * @return true if request succeeded
- *         false otherwise
- */
 bool ProteusII_SetBeaconFlags(ProteusII_BeaconFlags_t beaconFlags)
 {
     uint8_t flags = (uint8_t)beaconFlags;
@@ -1193,43 +1036,10 @@ bool ProteusII_SetCFGFlags(uint16_t cfgFlags)
     return ProteusII_Set(ProteusII_USERSETTING_RF_CFGFLAGS, help, 2);
 }
 
-/**
- * @brief Set the BLE connection timing.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] connectionTiming: connection timing
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetConnectionTiming(ProteusII_ConnectionTiming_t connectionTiming) { return ProteusII_Set(ProteusII_USERSETTING_RF_CONNECTION_TIMING, (uint8_t*)&connectionTiming, 1); }
 
-/**
- * @brief Set the BLE scan timing
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] scanTiming: scan timing
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetScanTiming(ProteusII_ScanTiming_t scanTiming) { return ProteusII_Set(ProteusII_USERSETTING_RF_SCAN_TIMING, (uint8_t*)&scanTiming, 1); }
 
-/**
- * @brief Set the BLE scan factor
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] scanFactor: scan factor
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetScanFactor(uint8_t scanFactor)
 {
     if ((scanFactor > 10) || (scanFactor < 1))
@@ -1239,56 +1049,12 @@ bool ProteusII_SetScanFactor(uint8_t scanFactor)
     return ProteusII_Set(ProteusII_USERSETTING_RF_SCAN_FACTOR, &scanFactor, 1);
 }
 
-/**
- * @brief Set the BLE TX power.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] txPower: TX power
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetTXPower(ProteusII_TXPower_t txPower) { return ProteusII_Set(ProteusII_USERSETTING_RF_TX_POWER, (uint8_t*)&txPower, 1); }
 
-/**
- * @brief Set the BLE security flags.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] secFlags: security flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetSecFlags(ProteusII_SecFlags_t secFlags) { return ProteusII_Set(ProteusII_USERSETTING_RF_SEC_FLAGS, (uint8_t*)&secFlags, 1); }
 
-/**
- * @brief Set the BLE security flags for peripheral only mode.
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] secFlags: security flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetSecFlagsPeripheralOnly(ProteusII_SecFlags_t secFlags) { return ProteusII_Set(ProteusII_USERSETTING_RF_SECFLAGSPERONLY, (uint8_t*)&secFlags, 1); }
 
-/**
- * @brief Set the UART baudrate index
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] baudrate: UART baudrate
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetBaudrateIndex(ProteusII_BaudRate_t baudrate)
 {
     uint8_t baudrateIndex = (uint8_t)baudrate;
@@ -1302,26 +1068,13 @@ bool ProteusII_SetBaudrateIndex(ProteusII_BaudRate_t baudrate)
  * Note: Reset the module after the adaption of the setting so that it can take effect.
  * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- * @param[in] staticPasskeyP: pointer to the static passkey (6 digits)
+ * @param[in] staticPasskeyP: Pointer to the static passkey (6 digits)
  *
  * @return true if request succeeded,
  *         false otherwise
  */
 bool ProteusII_SetStaticPasskey(uint8_t* staticPasskeyP) { return ProteusII_Set(ProteusII_USERSETTING_RF_STATIC_PASSKEY, staticPasskeyP, 6); }
 
-/**
- * @brief Sets the Bluetooth appearance of the device
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] appearance: 2 byte Bluetooth appearance value (please check the Bluetooth Core
- *                        Specification: Core Specification Supplement, Part A, section 1.12
- *                        for permissible values)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_SetAppearance(uint16_t appearance)
 {
     uint8_t help[2];
@@ -1335,23 +1088,13 @@ bool ProteusII_SetAppearance(uint16_t appearance)
  * Note: Reset the module after the adaption of the setting so that it can take effect.
  * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
  *
- * @param[in] uuidP: 16 byte UUID (MSB first)
+ * @param[in] uuidP: 16 byte UUID (LSB first)
  *
  * @return true if request succeeded,
  *         false otherwise
  */
 bool ProteusII_SetSppBaseUuid(uint8_t* uuidP) { return ProteusII_Set(ProteusII_USERSETTING_RF_SPPBASEUUID, uuidP, 16); }
 
-/**
- * @brief Request the current user settings
- *
- * @param[in] userSetting: user setting to be requested
- * @param[out] responseP: pointer of the memory to put the requested content
- * @param[out] responseLengthP: length of the requested content
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_Get(ProteusII_UserSettings_t userSetting, uint8_t* responseP, uint16_t* responseLengthP)
 {
     if ((responseP == NULL) || (responseLengthP == NULL))
@@ -1380,28 +1123,12 @@ bool ProteusII_Get(ProteusII_UserSettings_t userSetting, uint8_t* responseP, uin
     return false;
 }
 
-/**
- * @brief Request the 3 byte firmware version.
- *
- * @param[out] versionP: pointer to the 3 byte firmware version, version is returned MSB first
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetFWVersion(uint8_t* versionP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_FS_FWVersion, versionP, &length);
 }
 
-/**
- * @brief Request device info.
- *
- * @param[out] deviceInfoP: pointer to the device info structure
- *
- * @return true if request succeeded
- *         false otherwise
- */
 bool ProteusII_GetDeviceInfo(ProteusII_DeviceInfo_t* deviceInfoP)
 {
     if (deviceInfoP == NULL)
@@ -1422,14 +1149,6 @@ bool ProteusII_GetDeviceInfo(ProteusII_DeviceInfo_t* deviceInfoP)
     return true;
 }
 
-/**
- * @brief Request the 3 byte serial number.
- *
- * @param[out] serialNumberP: pointer to the 3 byte serial number (MSB first)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetSerialNumber(uint8_t* serialNumberP)
 {
     uint16_t length;
@@ -1440,53 +1159,20 @@ bool ProteusII_GetSerialNumber(uint8_t* serialNumberP)
     return true;
 }
 
-/**
- * @brief Request the current BLE device name.
- *
- * @param[out] deviceNameP: pointer to device name
- * @param[out] nameLengthP: pointer to the length of the device name
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetDeviceName(uint8_t* deviceNameP, uint16_t* nameLengthP) { return ProteusII_Get(ProteusII_USERSETTING_RF_DEVICE_NAME, deviceNameP, nameLengthP); }
 
-/**
- * @brief Request the 8 digit MAC.
- *
- * @param[out] macP: pointer to the MAC
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetMAC(uint8_t* macP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_FS_MAC, macP, &length);
 }
 
-/**
- * @brief Request the 6 digit Bluetooth MAC.
- *
- * @param[out] btMacP: pointer to the Bluetooth MAC
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetBTMAC(uint8_t* btMacP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_FS_BTMAC, btMacP, &length);
 }
 
-/**
- * @brief Request the advertising timeout
- *
- * @param[out] advTimeoutP: pointer to the advertising timeout
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetAdvertisingTimeout(uint16_t* advTimeoutP)
 {
     if (advTimeoutP == NULL)
@@ -1506,14 +1192,6 @@ bool ProteusII_GetAdvertisingTimeout(uint16_t* advTimeoutP)
     return false;
 }
 
-/**
- * @brief Request the advertising flags.
- *
- * @param[out] advFlagsP: pointer to the advertising flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetAdvertisingFlags(ProteusII_AdvertisingFlags_t* advFlagsP)
 {
     if (advFlagsP == NULL)
@@ -1534,7 +1212,7 @@ bool ProteusII_GetAdvertisingFlags(ProteusII_AdvertisingFlags_t* advFlagsP)
 /**
  * @brief Request the scan flags (see ProteusII_ScanFlags_t).
  *
- * @param[out] scanFlagsP: pointer to the scan flags (see ProteusII_ScanFlags_t)
+ * @param[out] scanFlagsP: Pointer to the scan flags (see ProteusII_ScanFlags_t)
  *
  * @return true if request succeeded,
  *         false otherwise
@@ -1545,14 +1223,6 @@ bool ProteusII_GetScanFlags(uint8_t* scanFlagsP)
     return ProteusII_Get(ProteusII_USERSETTING_RF_SCAN_FLAGS, scanFlagsP, &length);
 }
 
-/**
- * @brief Request the beacon flags.
- *
- * @param[out] beaconFlagsP: pointer to the beacon flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetBeaconFlags(ProteusII_BeaconFlags_t* beaconFlagsP)
 {
     if (beaconFlagsP == NULL)
@@ -1570,98 +1240,42 @@ bool ProteusII_GetBeaconFlags(ProteusII_BeaconFlags_t* beaconFlagsP)
     return false;
 }
 
-/**
- * @brief Request the connection timing
- *
- * @param[out] connectionTimingP: pointer to the connection timing
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetConnectionTiming(ProteusII_ConnectionTiming_t* connectionTimingP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_CONNECTION_TIMING, (uint8_t*)connectionTimingP, &length);
 }
 
-/**
- * @brief Request the scan timing
- *
- * @param[out] scanTimingP: pointer to the scan timing
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetScanTiming(ProteusII_ScanTiming_t* scanTimingP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_SCAN_TIMING, (uint8_t*)scanTimingP, &length);
 }
 
-/**
- * @brief Request the scan factor
- *
- * @param[out] scanFactorP: pointer to the scan factor
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetScanFactor(uint8_t* scanFactorP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_SCAN_FACTOR, scanFactorP, &length);
 }
 
-/**
- * @brief Request the TX power
- *
- * @param[out] txpowerP: pointer to the TX power
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetTXPower(ProteusII_TXPower_t* txPowerP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_TX_POWER, (uint8_t*)txPowerP, &length);
 }
 
-/**
- * @brief Request the security flags
- *
- * @param[out] secFlagsP: pointer to the security flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetSecFlags(ProteusII_SecFlags_t* secFlagsP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_SEC_FLAGS, (uint8_t*)secFlagsP, &length);
 }
 
-/**
- * @brief Request the security flags for peripheral only mode
- *
- * @param[out] secFlagsP: pointer to the security flags
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetSecFlagsPeripheralOnly(ProteusII_SecFlags_t* secFlagsP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_SECFLAGSPERONLY, (uint8_t*)secFlagsP, &length);
 }
 
-/**
- * @brief Request the UART baudrate index
- *
- * @param[out] baudrateP: pointer to the UART baudrate index
- *
- * @return true if request succeeded
- *         false otherwise
- */
 bool ProteusII_GetBaudrateIndex(ProteusII_BaudRate_t* baudrateP)
 {
     if (baudrateP == NULL)
@@ -1680,28 +1294,12 @@ bool ProteusII_GetBaudrateIndex(ProteusII_BaudRate_t* baudrateP)
     return false;
 }
 
-/**
- * @brief Request the BLE static passkey
- *
- * @param[out] staticPasskeyP: pointer to the static passkey (6 digits)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetStaticPasskey(uint8_t* staticPasskeyP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_STATIC_PASSKEY, staticPasskeyP, &length);
 }
 
-/**
- * @brief Request the Bluetooth appearance of the device
- *
- * @param[out] appearanceP: pointer to the Bluetooth appearance
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetAppearance(uint16_t* appearanceP)
 {
     if (appearanceP == NULL)
@@ -1720,28 +1318,12 @@ bool ProteusII_GetAppearance(uint16_t* appearanceP)
     return false;
 }
 
-/**
- * @brief Request the base UUID of the SPP-like profile.
- *
- * @param[out] uuidP: pointer to the 16 byte UUID (MSB first)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetSppBaseUuid(uint8_t* uuidP)
 {
     uint16_t length;
     return ProteusII_Get(ProteusII_USERSETTING_RF_SPPBASEUUID, uuidP, &length);
 }
 
-/**
- * @brief Request the CFG flags (see ProteusII_CfgFlags_t)
- *
- * @param[out] cfgFlags: pointer to the CFG flags (see ProteusII_CfgFlags_t)
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetCFGFlags(uint16_t* cfgFlagsP)
 {
     if (cfgFlagsP == NULL)
@@ -1760,14 +1342,6 @@ bool ProteusII_GetCFGFlags(uint16_t* cfgFlagsP)
     return false;
 }
 
-/**
- * @brief Request the module state
- *
- * @param[out] moduleStateP: Pointer to module state
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetState(ProteusII_ModuleState_t* moduleStateP)
 {
     if (moduleStateP == NULL)
@@ -1806,19 +1380,8 @@ bool ProteusII_GetState(ProteusII_ModuleState_t* moduleStateP)
     return false;
 }
 
-/**
- * @brief Request the current state of the driver
- *
- * @return driver state
- */
 ProteusII_DriverState_t ProteusII_GetDriverState() { return bleState; }
 
-/**
- * @brief Start scan
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_ScanStart()
 {
     txPacket.Cmd = PROTEUSII_CMD_SCANSTART_REQ;
@@ -1834,12 +1397,6 @@ bool ProteusII_ScanStart()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTART_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Stop a scan
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_ScanStop()
 {
     txPacket.Cmd = PROTEUSII_CMD_SCANSTOP_REQ;
@@ -1855,14 +1412,6 @@ bool ProteusII_ScanStop()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_SCANSTOP_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Request the scan results
- *
- * @param[out] devicesP: pointer to scan result struct
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetDevices(ProteusII_GetDevices_t* devicesP)
 {
     ProteusII_getDevicesP = devicesP;
@@ -1887,14 +1436,6 @@ bool ProteusII_GetDevices(ProteusII_GetDevices_t* devicesP)
     return ret;
 }
 
-/**
- * @brief Connect to the BLE device with the corresponding BTMAC
- *
- * @param[in] btMacP: pointer to btmac
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_Connect(uint8_t* btMacP)
 {
     if (btMacP == NULL)
@@ -1916,24 +1457,16 @@ bool ProteusII_Connect(uint8_t* btMacP)
     return Wait4CNF(3000, PROTEUSII_CMD_CONNECT_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Answer on a passkey request with a passkey to setup a connection
- *
- * @param[in] passkey: pointer to passkey
- *
- * @return true if request succeeded,
- *         false otherwise
- */
-bool ProteusII_Passkey(uint8_t* passkey)
+bool ProteusII_Passkey(uint8_t* passkeyP)
 {
-    if (passkey == NULL)
+    if (passkeyP == NULL)
     {
         return false;
     }
 
     txPacket.Cmd = PROTEUSII_CMD_PASSKEY_REQ;
     txPacket.Length = 6;
-    memcpy(&txPacket.Data[0], passkey, 6);
+    memcpy(&txPacket.Data[0], passkeyP, 6);
 
     FillChecksum(&txPacket);
     if (!ProteusII_Transparent_Transmit((uint8_t*)&txPacket, txPacket.Length + LENGTH_CMD_OVERHEAD))
@@ -1945,14 +1478,6 @@ bool ProteusII_Passkey(uint8_t* passkey)
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_PASSKEY_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Answer on a numeric comparison request
- *
- * @param[in] keyIsOk: boolean to confirm if the key shown is correct
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_NumericCompareConfirm(bool keyIsOk)
 {
     txPacket.Cmd = PROTEUSII_CMD_NUMERIC_COMP_REQ;
@@ -1969,14 +1494,6 @@ bool ProteusII_NumericCompareConfirm(bool keyIsOk)
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_NUMERIC_COMP_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Update the phy during an open connection
- *
- * @param[in] phy: new phy
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_PhyUpdate(ProteusII_Phy_t phy)
 {
     if (ProteusII_DriverState_BLE_ChannelOpen == ProteusII_GetDriverState())
@@ -1997,24 +1514,8 @@ bool ProteusII_PhyUpdate(ProteusII_Phy_t phy)
     return false;
 }
 
-/**
- * @brief Returns the current level of the status pin.
- *
- * @param[out] statusLed2PinLevelP: status pin level
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetStatusLed2PinLevel(WE_Pin_Level_t* statusLed2LevelP) { return WE_GetPinLevel(ProteusII_pinsP->ProteusII_Pin_StatusLed2, statusLed2LevelP); }
 
-/**
- * @brief Returns the current level of the BUSY pin.
- *
- * @param[out] busyStateP: busy pin state
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_IsPeripheralOnlyModeBusy(bool* busyStateP)
 {
     if (busyStateP == NULL)
@@ -2034,27 +1535,8 @@ bool ProteusII_IsPeripheralOnlyModeBusy(bool* busyStateP)
     return true;
 }
 
-/**
- * @brief Sets the callback function which is executed if a byte has been received from Proteus-II.
- *
- * The default callback is ProteusII_HandleRxByte().
- *
- * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
- */
 void ProteusII_SetByteRxCallback(WE_UART_HandleRxByte_t callback) { byteRxCallback = (callback == NULL) ? ProteusII_HandleRxByte : callback; }
 
-/**
- * @brief Requests the BTMAC addresses of all bonded devices.
- *
- * Note that this function supports a maximum of PROTEUSII_MAX_BOND_DEVICES
- * returned devices. The Proteus-II module itself might be capable of
- * bonding more devices.
- *
- * @param[out] bondDatabaseP: Pointer to bond database
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_GetBonds(ProteusII_BondDatabase_t* bondDatabaseP)
 {
     if (bondDatabaseP == NULL)
@@ -2093,12 +1575,6 @@ bool ProteusII_GetBonds(ProteusII_BondDatabase_t* bondDatabaseP)
     return true;
 }
 
-/**
- * @brief Removes all bonding data.
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_DeleteBonds()
 {
     txPacket.Cmd = PROTEUSII_CMD_DELETE_BONDS_REQ;
@@ -2114,14 +1590,6 @@ bool ProteusII_DeleteBonds()
     return Wait4CNF(CMD_WAIT_TIME, PROTEUSII_CMD_DELETE_BONDS_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Removes the bonding information for a single device.
- *
- * @param[in] bondId: bond ID of the device to be removed
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_DeleteBond(uint8_t bondId)
 {
     txPacket.Cmd = PROTEUSII_CMD_DELETE_BONDS_REQ;
@@ -2237,12 +1705,4 @@ bool ProteusII_DTMStop() { return ProteusII_DTMRun(ProteusII_DTMCommand_Stop, 0x
  */
 bool ProteusII_DTMSetPhy(ProteusII_Phy_t phy) { return ProteusII_DTMRun(ProteusII_DTMCommand_Setup, 0x02, (uint8_t)phy, 0x00); }
 
-/**
- * @brief Set the TX power for direct test mode (DTM) test
- *
- * @param[in] power: Tx power
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool ProteusII_DTMSetTXPower(ProteusII_TXPower_t power) { return ProteusII_DTMRun(ProteusII_DTMCommand_StartTX, (uint8_t)power, 0x02, 0x03); }

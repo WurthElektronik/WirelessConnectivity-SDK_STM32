@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATWLAN.c
  * @brief AT commands for WLAN functionality.
  */
 #include <Calypso/ATCommands/ATWLAN.h>
@@ -91,13 +91,6 @@ static bool Calypso_ATWLAN_ParseResponseWlanGet(Calypso_ATWLAN_SetID_t id, uint8
 
 static bool Calypso_ATWLAN_SendPolicyGet(Calypso_ATWLAN_PolicyID_t id, char** pRespondCommand);
 
-/**
- * @brief Sets the wireless LAN mode (using the AT+wlanSetMode command).
- *
- * @param[in] mode WLAN operating mode to be set.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_SetMode(Calypso_ATWLAN_SetMode_t mode)
 {
 
@@ -127,19 +120,6 @@ bool Calypso_ATWLAN_SetMode(Calypso_ATWLAN_SetMode_t mode)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Initiates a WLAN scan (using the AT+wlanScan command).
- *
- * Note that when calling this function for the first time, an error is returned, as the module responds
- * with SL_ERROR_WLAN_GET_NETWORK_LIST_EAGAIN (-2073).
- *
- * @param[in] index Starting index (0-29)
- * @param[in] deviceCount Max. number of entries to get (max. 30)
- * @param[out] pOutValues The scan entries which the module has returned
- * @param[out] pOutNumEntries Number of entries the module has returned
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, Calypso_ATWLAN_ScanEntry_t* pOutValues, uint8_t* pOutNumEntries)
 {
 
@@ -189,13 +169,6 @@ bool Calypso_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, Calypso_ATWLAN_Scan
     return true;
 }
 
-/**
- * @brief Connects to a wireless network (using the AT+wlanConnect command).
- *
- * @param[in] connectArgs Connection parameters
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_Connect(Calypso_ATWLAN_ConnectionArguments_t connectArgs)
 {
 
@@ -221,11 +194,6 @@ bool Calypso_ATWLAN_Connect(Calypso_ATWLAN_ConnectionArguments_t connectArgs)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Disconnects from a wireless network (using the AT+disconnect command).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_Disconnect()
 {
     if (!Calypso_SendRequest("AT+wlanDisconnect\r\n"))
@@ -235,16 +203,6 @@ bool Calypso_ATWLAN_Disconnect()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Adds a wireless LAN profile.
- *
- * Internally sends the AT+wlanProfileAdd command.
- *
- * @param[in] profile WLAN profile to be added.
- * @param[out] pOutIndex The index of the added profile. Can be used to access the profile.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_AddProfile(Calypso_ATWLAN_Profile_t profile, uint8_t* pOutIndex)
 {
 
@@ -286,14 +244,6 @@ bool Calypso_ATWLAN_AddProfile(Calypso_ATWLAN_Profile_t profile, uint8_t* pOutIn
     return Calypso_ATWLAN_ParseResponseWlanAddProfile(&pRespondCommand, pOutIndex);
 }
 
-/**
- * @brief Gets a wireless LAN profile (using the AT+wlanProfileGet command).
- *
- * @param[in] index Index of the profile as returned by Calypso_ATWLAN_AddProfile().
- * @param[out] pOutProfile The returned WLAN profile.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_GetProfile(uint8_t index, Calypso_ATWLAN_Profile_t* pOutProfile)
 {
 
@@ -329,13 +279,6 @@ bool Calypso_ATWLAN_GetProfile(uint8_t index, Calypso_ATWLAN_Profile_t* pOutProf
     return Calypso_ATWLAN_ParseResponseWlanGetProfile(&pRespondCommand, pOutProfile);
 }
 
-/**
- * @brief Deletes a wireless LAN profile (using the AT+wlanProfileDel command).
- *
- * @param[in] index Index of the profile to be deleted (as returned by Calypso_ATWLAN_AddProfile()).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_DeleteProfile(uint8_t index)
 {
 
@@ -361,15 +304,6 @@ bool Calypso_ATWLAN_DeleteProfile(uint8_t index)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @briefs Reads wireless LAN settings (using the AT+wlanGet command).
- *
- * @param[in] id ID of the value to get
- * @param[in] option Option of the value to get
- * @param[out] pValues Values returned by the module
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_t id, uint8_t option, Calypso_ATWLAN_Settings_t* pValues)
 {
 
@@ -402,15 +336,6 @@ bool Calypso_ATWLAN_Get(Calypso_ATWLAN_SetID_t id, uint8_t option, Calypso_ATWLA
     return Calypso_ATWLAN_ParseResponseWlanGet(id, option, &pRespondCommand, pValues);
 }
 
-/**
- * @brief Writes wireless LAN settings (using the AT+wlanSet command).
- *
- * @param[in] id ID of the value to set
- * @param[in] option Option of the value to set
- * @param[in] pValues Values to set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_Set(Calypso_ATWLAN_SetID_t id, uint8_t option, Calypso_ATWLAN_Settings_t* pValues)
 {
 
@@ -436,16 +361,6 @@ bool Calypso_ATWLAN_Set(Calypso_ATWLAN_SetID_t id, uint8_t option, Calypso_ATWLA
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Set WLAN connection policy.
- *
- * Note that setting a connection policy while the device parameter
- * Calypso_ATDevice_GetGeneral_Persistent is set to false (0) will return an error (code -31008).
- *
- * @param[in] policy Connection policy flags. See Calypso_ATWLAN_PolicyConnection_t.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_SetConnectionPolicy(uint8_t policy)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -474,13 +389,6 @@ bool Calypso_ATWLAN_SetConnectionPolicy(uint8_t policy)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN connection policy.
- *
- * @param[out] policy Connection policy flags. See Calypso_ATWLAN_PolicyConnection_t.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_GetConnectionPolicy(uint8_t* policy)
 {
     *policy = 0;
@@ -501,14 +409,6 @@ bool Calypso_ATWLAN_GetConnectionPolicy(uint8_t* policy)
     return false;
 }
 
-/**
- * @brief Set WLAN scan policy.
- *
- * @param[in] policy Scan policy to set
- * @param[in] scanIntervalSeconds Scan interval in seconds
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_SetScanPolicy(Calypso_ATWLAN_PolicyScan_t policy, uint32_t scanIntervalSeconds)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -539,14 +439,6 @@ bool Calypso_ATWLAN_SetScanPolicy(Calypso_ATWLAN_PolicyScan_t policy, uint32_t s
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN scan policy.
- *
- * @param[out] policy Scan policy
- * @param[out] scanIntervalSeconds Scan interval in seconds
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_GetScanPolicy(Calypso_ATWLAN_PolicyScan_t* policy, uint32_t* scanIntervalSeconds)
 {
     *policy = Calypso_ATWLAN_PolicyScan_DisableScan;
@@ -574,14 +466,6 @@ bool Calypso_ATWLAN_GetScanPolicy(Calypso_ATWLAN_PolicyScan_t* policy, uint32_t*
     return ATCommand_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Set WLAN power management policy.
- *
- * @param[in] policy Power management policy to set
- * @param[in] maxSleepTimeMs Max. sleep time in milliseconds
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_SetPMPolicy(Calypso_ATWLAN_PolicyPM_t policy, uint32_t maxSleepTimeMs)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -612,14 +496,6 @@ bool Calypso_ATWLAN_SetPMPolicy(Calypso_ATWLAN_PolicyPM_t policy, uint32_t maxSl
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN power management policy.
- *
- * @param[out] policy Power management policy
- * @param[out] maxSleepTimeMs Max. sleep time in milliseconds
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_GetPMPolicy(Calypso_ATWLAN_PolicyPM_t* policy, uint32_t* maxSleepTimeMs)
 {
     *policy = Calypso_ATWLAN_PolicyPM_Normal;
@@ -647,14 +523,6 @@ bool Calypso_ATWLAN_GetPMPolicy(Calypso_ATWLAN_PolicyPM_t* policy, uint32_t* max
     return ATCommand_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Set WLAN P2P policy.
- *
- * @param[in] policy P2P policy to set
- * @param[in] value Option value
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_SetP2PPolicy(Calypso_ATWLAN_PolicyP2P_t policy, Calypso_ATWLAN_PolicyP2PValue_t value)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -685,14 +553,6 @@ bool Calypso_ATWLAN_SetP2PPolicy(Calypso_ATWLAN_PolicyP2P_t policy, Calypso_ATWL
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN P2P policy.
- *
- * @param[out] policy P2P policy
- * @param[out] value Option value
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATWLAN_GetP2PPolicy(Calypso_ATWLAN_PolicyP2P_t* policy, Calypso_ATWLAN_PolicyP2PValue_t* value)
 {
     *policy = Calypso_ATWLAN_PolicyP2P_Negotiate;

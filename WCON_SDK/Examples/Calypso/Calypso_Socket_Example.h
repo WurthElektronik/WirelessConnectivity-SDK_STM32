@@ -36,10 +36,10 @@ extern "C"
 {
 #endif
 
-    extern void Calypso_TCPServer_Example(void);
-    extern void Calypso_TCPClient_Example(void);
-    extern void Calypso_UDPReceive_Example(void);
-    extern void Calypso_UDPTransmit_Example(void);
+extern void Calypso_TCPServer_Example(void);
+extern void Calypso_TCPClient_Example(void);
+extern void Calypso_UDPReceive_Example(void);
+extern void Calypso_UDPTransmit_Example(void);
 
 #ifdef __cplusplus
 }

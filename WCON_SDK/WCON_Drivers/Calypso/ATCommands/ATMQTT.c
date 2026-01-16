@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATMQTT.c
  * @brief AT commands for MQTT functionality.
  */
 #include <Calypso/ATCommands/ATMQTT.h>
@@ -48,18 +48,6 @@ static bool Calypso_ATMQTT_AddArgumentsUnsubscribe(char* pAtCommand, uint8_t ind
 static bool Calypso_ATMQTT_AddArgumentsSet(char* pAtCommand, uint8_t index, Calypso_ATMQTT_SetOption_t option, Calypso_ATMQTT_SetValues_t* pValues);
 static bool Calypso_ATMQTT_ParseResponseCreate(char** pAtCommand, uint8_t* pOutIndex);
 
-/**
- * @brief Creates a new MQTT client (using the AT+MQTTCreate command).
- *
- * @param[in] clientID Client ID
- * @param[in] flags Creation flags (see Calypso_ATMQTT_CreateFlags_t)
- * @param[in] serverInfo Server address and port. See Calypso_ATMQTT_ServerInfo_t.
- * @param[in] securityParams Security parameters. See Calypso_ATMQTT_SecurityParams_t.
- * @param[in] connectionParams Connection parameters. See Calypso_ATMQTT_ConnectionParams_t.
- * @param[out] pIndex Index (handle) of the created MQTT client.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Create(char* clientID, uint32_t flags, Calypso_ATMQTT_ServerInfo_t serverInfo, Calypso_ATMQTT_SecurityParams_t securityParams, Calypso_ATMQTT_ConnectionParams_t connectionParams, uint8_t* pIndex)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -83,13 +71,7 @@ bool Calypso_ATMQTT_Create(char* clientID, uint32_t flags, Calypso_ATMQTT_Server
 
     return Calypso_ATMQTT_ParseResponseCreate(&pRespondCommand, pIndex);
 }
-/**
- * @brief Deletes an MQTT client (using the AT+MQTTDelete command)
- *
- * @param[in] index Index (handle) of MQTT client to delete
- *
- * @return true if successful, false otherwise
- */
+
 bool Calypso_ATMQTT_Delete(uint8_t index)
 {
 
@@ -114,13 +96,6 @@ bool Calypso_ATMQTT_Delete(uint8_t index)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Connects an MQTT client to an MQTT broker (using the AT+MQTTConnect command).
- *
- * @param[in] index Index (handle) of the MQTT client to connect to server. Server data is set with Calypso_ATMQTT_Create().
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Connect(uint8_t index)
 {
 
@@ -144,13 +119,6 @@ bool Calypso_ATMQTT_Connect(uint8_t index)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Disconnects from an MQTT broker (using the AT+MQTTDisconnect command).
- *
- * @param[in] index Index (handle) of the MQTT client to disconnect from server.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Disconnect(uint8_t index)
 {
 
@@ -175,17 +143,6 @@ bool Calypso_ATMQTT_Disconnect(uint8_t index)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Publishes an MQTT topic (using the AT+MQTTpublish command).
- *
- * @param[in] index Index (handle) of the MQTT client to use.
- * @param[in] topic Topic to be published
- * @param[in] retain Retain the message (1) or do not retain the message (0)
- * @param[in] messageLength Length of the message
- * @param[in] pMessage Message to publish
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Publish(uint8_t index, char* topic, Calypso_ATMQTT_QoS_t QoS, uint8_t retain, uint16_t messageLength, char* pMessage)
 {
 
@@ -205,15 +162,6 @@ bool Calypso_ATMQTT_Publish(uint8_t index, char* topic, Calypso_ATMQTT_QoS_t QoS
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Subscribes to one or more MQTT topics (using the AT+MQTTsubscribe command).
- *
- * @param[in] index Index (handle) of the MQTT client to use.
- * @param[in] numOfTopics Number of topics to subscribe to (max. MQTT_MAX_NUM_TOPICS_TO_SUBSCRIBE)
- * @param[in] pTopics Topics to subscribe to. See Calypso_ATMQTT_SubscribeTopic_t.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Subscribe(uint8_t index, uint8_t numOfTopics, Calypso_ATMQTT_SubscribeTopic_t* pTopics)
 {
 
@@ -233,17 +181,6 @@ bool Calypso_ATMQTT_Subscribe(uint8_t index, uint8_t numOfTopics, Calypso_ATMQTT
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Unsubscribe from one or more MQTT topics (using the AT+MQTTunsubscribe command).
- *
- * @param[in] index Index (handle) of MQTT client to use.
- * @param[in] topic1 Topic 1 to unsubscribe.
- * @param[in] topic2 Topic 2 to unsubscribe. Set to NULL / empty string to ignore this topic and topics 3,4.
- * @param[in] topic3 Topic 3 to unsubscribe. Set to NULL / empty string to ignore this topic and topic 4.
- * @param[in] topic4 Topic 4 to unsubscribe. Set to NULL / empty string to ignore.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Unsubscribe(uint8_t index, char* topic1, char* topic2, char* topic3, char* topic4)
 {
 
@@ -263,17 +200,6 @@ bool Calypso_ATMQTT_Unsubscribe(uint8_t index, char* topic1, char* topic2, char*
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Sets parameters of an MQTT client (using the AT+MQTTset command).
- *
- * CAUTION! Only use this command if firmware version of the Calypso module is 1.1.0 or later.
- *
- * @param[in] index Index (handle) of MQTT client to set options for
- * @param[in] option Option to set
- * @param[in] pValues Values to set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATMQTT_Set(uint8_t index, Calypso_ATMQTT_SetOption_t option, Calypso_ATMQTT_SetValues_t* pValues)
 {
 

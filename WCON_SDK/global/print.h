@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -25,21 +25,29 @@
 
 /**
  * @file
- * @brief DaphnisI Remote GPIO example.
- *
+ * @brief This is the print header file of the WE Wireless Connectivity SDK.
  */
 
-#ifndef DAPHNISI_REMOTE_GPIO_EXAMPLE_H_INCLUDED
-#define DAPHNISI_REMOTE_GPIO_EXAMPLE_H_INCLUDED
+#ifndef PRINT_H_INCLUDED
+#define PRINT_H_INCLUDED
 
-#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+#ifdef WE_APP_PRINT_ENABLED
+#define WE_APP_PRINT(...) printf(__VA_ARGS__)
+#else
+#define WE_APP_PRINT(...)
+#endif
+
+#if ((WE_DEBUG_PRINT_LEVEL > WE_DEBUG_PRINT_LEVEL_OFF) || defined(WE_APP_PRINT_ENABLED))
+
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern void DaphnisI_Remote_GPIO_Example();
+void WE_Print_Init();
+void WE_Print_Flush();
 
 #ifdef __cplusplus
 }
@@ -47,4 +55,4 @@ extern "C"
 
 #endif
 
-#endif /* DAPHNISI_P2P_EXAMPLE_H_INCLUDED */
+#endif /* GLOBAL_H_INCLUDED */

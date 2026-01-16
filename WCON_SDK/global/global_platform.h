@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
+ * This file is part of WIRELESS CONNECTIVITY SDK:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -25,26 +25,51 @@
 
 /**
  * @file
- * @brief DaphnisI Local GPIO example.
+ * @brief This file contains the platform dependent pin definition used in the Wireless Connectivity SDK.
+ *
+ * @details For any other platform, which is not STM32, please define the WE_XXX_Pin_t struct and WE_XXX_PIN macro
+ * needed for your platform.
  *
  */
 
-#ifndef DAPHNISI_LOCAL_GPIO_EXAMPLE_H_INCLUDED
-#define DAPHNISI_LOCAL_GPIO_EXAMPLE_H_INCLUDED
+#ifndef GLOBAL_PLATFORM_TYPES_H_
+#define GLOBAL_PLATFORM_TYPES_H_
 
-#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+#if defined(STM32L073xx)
+#include "global_L0xx.h"
+#elif defined(STM32F401xE)
+#include "global_F4xx.h"
+#endif
 
-#ifdef __cplusplus
-extern "C"
+/**
+ * @brief Priority for UART interrupts (used for communicating with radio module)
+ */
+#define WE_PRIORITY_UART_RX 0
+
+/**
+ * @brief Priority for (asynchronous) processing of data received from radio module.
+ */
+#define WE_PRIORITY_RX_DATA_PROCESSING 1
+
+/**
+ * @brief Configuration of a STM32 pin.
+ */
+typedef struct WE_STM32_Pin_t
 {
-#endif
+    GPIO_TypeDef* port;
+    uint32_t pin;
+} WE_STM32_Pin_t;
 
-    extern void DaphnisI_Local_GPIO_Example();
+#define WE_STM32_PIN(PORT_ID, PIN_ID) ((WE_STM32_Pin_t){.port = PORT_ID, .pin = PIN_ID})
 
-#ifdef __cplusplus
-}
-#endif
+/**
+* @brief Initializes the platform (peripherals, flash interface, Systick, system clock, interrupts etc.)
+*/
+extern void WE_Platform_Init(void);
 
-#endif /* DAPHNISI_MIN_FW_VER */
+/**
+* @brief Is called in case of a critical HAL error.
+*/
+extern void WE_Error_Handler(void);
 
-#endif /* DAPHNISI_P2P_EXAMPLE_H_INCLUDED */
+#endif /* GLOBAL_PLATFORM_TYPES_H_ */

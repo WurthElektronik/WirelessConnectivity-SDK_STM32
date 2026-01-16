@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATBluetoothLE.c
  * @brief AT commands for Bluetooth LE functionality.
  */
 
@@ -32,13 +32,6 @@
 #include <StephanoI/StephanoI.h>
 #include <global/ATCommands.h>
 
-/**
- * @brief Initialize the Bluetooth LE interface
- *
- * @param[in] type The type of the Bluetooth LE device
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Init(StephanoI_ATBluetoothLE_InitType_t type)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -61,13 +54,6 @@ bool StephanoI_ATBluetoothLE_Init(StephanoI_ATBluetoothLE_InitType_t type)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the device name
- *
- * @param[in] dev_name Device name
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetDeviceName(StephanoI_ATBluetoothLE_DeviceName_t dev_name)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -91,13 +77,6 @@ bool StephanoI_ATBluetoothLE_SetDeviceName(StephanoI_ATBluetoothLE_DeviceName_t 
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the device name
- *
- * @param[out] dev_name The pointer to device name
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetDeviceName(StephanoI_ATBluetoothLE_DeviceName_t* dev_name)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_DeviceName_t) + 1];
@@ -113,14 +92,6 @@ bool StephanoI_ATBluetoothLE_GetDeviceName(StephanoI_ATBluetoothLE_DeviceName_t*
     return StephanoI_ATBluetoothLE_ParseDeviceName(responsebuffer, dev_name);
 }
 
-/**
- * @brief Set the device ID
- *
- * @param[in] type Address type
- * @param[in] ID ID in case of random static adress
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetDeviceID(StephanoI_ATBluetoothLE_Address_t type, StephanoI_ATBluetoothLE_DeviceID_t ID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -158,13 +129,6 @@ bool StephanoI_ATBluetoothLE_SetDeviceID(StephanoI_ATBluetoothLE_Address_t type,
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the device ID
- *
- * @param[out] ID The pointer to ID
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetDeviceID(StephanoI_ATBluetoothLE_DeviceID_t* ID)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_DeviceID_t) + 1];
@@ -180,13 +144,6 @@ bool StephanoI_ATBluetoothLE_GetDeviceID(StephanoI_ATBluetoothLE_DeviceID_t* ID)
     return StephanoI_ATBluetoothLE_ParseDeviceID(responsebuffer, ID);
 }
 
-/**
- * @brief Set the advertising data
- *
- * @param[in] data Advertising data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetAdvertisingData(StephanoI_ATBluetoothLE_AdvertisingData_t data)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -221,13 +178,6 @@ bool StephanoI_ATBluetoothLE_SetAdvertisingData(StephanoI_ATBluetoothLE_Advertis
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the advertising data
- *
- * @param[out] data The pointer to the advertising data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetAdvertisingData(StephanoI_ATBluetoothLE_AdvertisingData_t* data)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_AdvertisingData_t) + 1];
@@ -243,13 +193,6 @@ bool StephanoI_ATBluetoothLE_GetAdvertisingData(StephanoI_ATBluetoothLE_Advertis
     return StephanoI_ATBluetoothLE_ParseAdvertisingData(responsebuffer, data);
 }
 
-/**
- * @brief Set the advertising parameters
- *
- * @param[in] params Advertising parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetAdvertisingParameters(StephanoI_ATBluetoothLE_AdvertisingParameters_t params)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -292,13 +235,6 @@ bool StephanoI_ATBluetoothLE_SetAdvertisingParameters(StephanoI_ATBluetoothLE_Ad
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the advertising parameters
- *
- * @param[out] paramsP The pointer to the advertising parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetAdvertisingParameters(StephanoI_ATBluetoothLE_AdvertisingParameters_t* paramsP)
 {
     char responsebuffer[64];
@@ -314,13 +250,6 @@ bool StephanoI_ATBluetoothLE_GetAdvertisingParameters(StephanoI_ATBluetoothLE_Ad
     return StephanoI_ATBluetoothLE_ParseAdvertisingParameters(responsebuffer, paramsP);
 }
 
-/**
- * @brief Set raw scan response data
- *
- * @param[in] data Raw scan response data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetScanResponseRawData(StephanoI_ATBluetoothLE_AdvertisingRawData_t data)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -342,13 +271,7 @@ bool StephanoI_ATBluetoothLE_SetScanResponseRawData(StephanoI_ATBluetoothLE_Adve
 
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
-/**
- * @brief Set raw advertising
- *
- * @param[in] data Raw advertising data
- *
- * @return true if successful, false otherwise
- */
+
 bool StephanoI_ATBluetoothLE_SetAdvertisingRawData(StephanoI_ATBluetoothLE_AdvertisingRawData_t data)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -370,11 +293,6 @@ bool StephanoI_ATBluetoothLE_SetAdvertisingRawData(StephanoI_ATBluetoothLE_Adver
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Start advertising
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_StartAdvertising()
 {
     if (!StephanoI_SendRequest("AT+BLEADVSTART\r\n"))
@@ -384,11 +302,6 @@ bool StephanoI_ATBluetoothLE_StartAdvertising()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Stop advertising
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_StopAdvertising()
 {
     if (!StephanoI_SendRequest("AT+BLEADVSTOP\r\n"))
@@ -398,13 +311,6 @@ bool StephanoI_ATBluetoothLE_StopAdvertising()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the scan parameters
- *
- * @param[in] params Scan parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetScanParameters(StephanoI_ATBluetoothLE_ScanParameters_t params)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -443,13 +349,6 @@ bool StephanoI_ATBluetoothLE_SetScanParameters(StephanoI_ATBluetoothLE_ScanParam
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the scan parameters
- *
- * @param[out] paramsP The pointer to the scan parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetScanParameters(StephanoI_ATBluetoothLE_ScanParameters_t* paramsP)
 {
     char responsebuffer[64];
@@ -465,13 +364,6 @@ bool StephanoI_ATBluetoothLE_GetScanParameters(StephanoI_ATBluetoothLE_ScanParam
     return StephanoI_ATBluetoothLE_ParseScanParameters(responsebuffer, paramsP);
 }
 
-/**
- * @brief Set the security parameters
- *
- * @param[in] params Security parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetSecurityParameters(StephanoI_ATBluetoothLE_SecurityParameters_t params)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -514,13 +406,6 @@ bool StephanoI_ATBluetoothLE_SetSecurityParameters(StephanoI_ATBluetoothLE_Secur
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the security parameters
- *
- * @param[out] paramsP The pointer to the security parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetSecurityParameters(StephanoI_ATBluetoothLE_SecurityParameters_t* paramsP)
 {
     char responsebuffer[24];
@@ -536,13 +421,6 @@ bool StephanoI_ATBluetoothLE_GetSecurityParameters(StephanoI_ATBluetoothLE_Secur
     return StephanoI_ATBluetoothLE_ParseSecurityParameters(responsebuffer, paramsP);
 }
 
-/**
- * @brief Set the static passkey
- *
- * @param[in] key Key
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetStaticKey(StephanoI_ATBluetoothLE_Key_t key)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -565,13 +443,6 @@ bool StephanoI_ATBluetoothLE_SetStaticKey(StephanoI_ATBluetoothLE_Key_t key)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the static passkey
- *
- * @param[out] keyP Pointer to the key
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetStaticKey(StephanoI_ATBluetoothLE_Key_t* keyP)
 {
     char responsebuffer[10];
@@ -587,14 +458,6 @@ bool StephanoI_ATBluetoothLE_GetStaticKey(StephanoI_ATBluetoothLE_Key_t* keyP)
     return StephanoI_ATBluetoothLE_ParseStaticKey(responsebuffer, keyP);
 }
 
-/**
- * @brief Accept/reject a pairing request
- *
- * @param[in] conn_index Connection index
- * @param[in] accept True for 'accept', false for 'reject'
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_RespondPairingRequest(int8_t conn_index, bool accept)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -621,14 +484,6 @@ bool StephanoI_ATBluetoothLE_RespondPairingRequest(int8_t conn_index, bool accep
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Initiate encryption
- *
- * @param[in] conn_index Connection index
- * @param[in] sec_act Encryption type
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_InitiateEncryption(int8_t conn_index, StephanoI_ATBluetoothLE_InitiateEncryption_t sec_act)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -655,14 +510,6 @@ bool StephanoI_ATBluetoothLE_InitiateEncryption(int8_t conn_index, StephanoI_ATB
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Reply with a key
- *
- * @param[in] conn_index Connection index
- * @param[in] key Key
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ReplyKey(int8_t conn_index, char* key)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -689,14 +536,6 @@ bool StephanoI_ATBluetoothLE_ReplyKey(int8_t conn_index, char* key)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Confirm/reject encryption value
- *
- * @param[in] conn_index Connection index
- * @param[in] confirm True for 'confirm', false for 'reject'
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ConfirmValue(int8_t conn_index, bool confirm)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -723,11 +562,6 @@ bool StephanoI_ATBluetoothLE_ConfirmValue(int8_t conn_index, bool confirm)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Request bonding informations
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_BondsGet()
 {
     if (!StephanoI_SendRequest("AT+BLEENCDEV?\r\n"))
@@ -737,13 +571,6 @@ bool StephanoI_ATBluetoothLE_BondsGet()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Delete bonding informations
- *
- * @param[in] bonding_index Bonding index, -1 to delete all
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_BondsDelete(int8_t bonding_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -774,14 +601,6 @@ bool StephanoI_ATBluetoothLE_BondsDelete(int8_t bonding_index)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the data length of a connection
- *
- * @param[in] conn_index Connection index
- * @param[in] length Data length
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetDatalen(int8_t conn_index, uint16_t length)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -808,13 +627,6 @@ bool StephanoI_ATBluetoothLE_SetDatalen(int8_t conn_index, uint16_t length)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the MTU of a connection
- *
- * @param[in] data MTU
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralSetMTU(StephanoI_ATBluetoothLE_MTU_t data)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -841,13 +653,6 @@ bool StephanoI_ATBluetoothLE_CentralSetMTU(StephanoI_ATBluetoothLE_MTU_t data)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the MTU of a connection
- *
- * @param[out] data Pointer to mtu
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralGetMTU(StephanoI_ATBluetoothLE_MTU_t* data)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_MTU_t) + 1];
@@ -863,13 +668,6 @@ bool StephanoI_ATBluetoothLE_CentralGetMTU(StephanoI_ATBluetoothLE_MTU_t* data)
     return StephanoI_ATBluetoothLE_ParseMTU(responsebuffer, data);
 }
 
-/**
- * @brief Set the timing parameters of a connection
- *
- * @param[in] param Connection parameters
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralSetConnectionParameters(StephanoI_ATBluetoothLE_Central_ConnectionParameters_t param)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -908,14 +706,6 @@ bool StephanoI_ATBluetoothLE_CentralSetConnectionParameters(StephanoI_ATBluetoot
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the timing parameters of a connection
- *
- * @param[out] paramP Pointer to the connection parameters
- * @param[out] current_intervalP Pointer to the current connection interval
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralGetConnectionParameters(StephanoI_ATBluetoothLE_Central_ConnectionParameters_t* paramP, uint16_t* current_intervalP)
 {
     char responsebuffer[20];
@@ -931,14 +721,6 @@ bool StephanoI_ATBluetoothLE_CentralGetConnectionParameters(StephanoI_ATBluetoot
     return StephanoI_ATBluetoothLE_ParseConnectionParameters(responsebuffer, paramP, current_intervalP);
 }
 
-/**
- * @brief Set the phy of a connection
- *
- * @param[in] conn_index Connection index
- * @param[in] tx_rx_phy Phy
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_SetConnectionPhy(int8_t conn_index, StephanoI_ATBluetoothLE_Phy_t tx_rx_phy)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -965,14 +747,6 @@ bool StephanoI_ATBluetoothLE_SetConnectionPhy(int8_t conn_index, StephanoI_ATBlu
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the phy of a connection
- *
- * @param[in] conn_index Connection index
- * @param[out] tx_rx_phy Pointer to the phy
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_GetConnectionPhy(int8_t conn_index, StephanoI_ATBluetoothLE_ReadPhy_t* tx_rx_phy)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_ReadPhy_t) + 1];
@@ -1000,11 +774,6 @@ bool StephanoI_ATBluetoothLE_GetConnectionPhy(int8_t conn_index, StephanoI_ATBlu
     return StephanoI_ATBluetoothLE_ParseReadPhy(responsebuffer, tx_rx_phy);
 }
 
-/**
- * @brief Create services
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Peripheral_ServiceCreate()
 {
     if (!StephanoI_SendRequest("AT+BLEGATTSSRVCRE\r\n"))
@@ -1014,13 +783,6 @@ bool StephanoI_ATBluetoothLE_Peripheral_ServiceCreate()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Start services
- *
- * @param[in] srv_index Service index to start, -1 to start all services
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Peripheral_ServiceStart(int8_t srv_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1051,13 +813,6 @@ bool StephanoI_ATBluetoothLE_Peripheral_ServiceStart(int8_t srv_index)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Stop services
- *
- * @param[in] srv_index Service index to stop, -1 to stop all services
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Peripheral_ServiceStop(int8_t srv_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1088,11 +843,6 @@ bool StephanoI_ATBluetoothLE_Peripheral_ServiceStop(int8_t srv_index)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Discover services
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Peripheral_DiscoverServices()
 {
     if (!StephanoI_SendRequest("AT+BLEGATTSSRV?\r\n"))
@@ -1102,12 +852,6 @@ bool StephanoI_ATBluetoothLE_Peripheral_DiscoverServices()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Discover characteristics
- *
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Peripheral_DiscoverCharacteristics()
 {
     if (!StephanoI_SendRequest("AT+BLEGATTSCHAR?\r\n"))
@@ -1117,17 +861,6 @@ bool StephanoI_ATBluetoothLE_Peripheral_DiscoverCharacteristics()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Peripheral notify client
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- * @param[in] char_index Characteristics index
- * @param[in] data Pointer to the data
- * @param[in] length Length of the data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_PeripheralNotifyClient(int8_t conn_index, uint8_t srv_index, uint8_t char_index, uint8_t* data, uint32_t length)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1171,17 +904,6 @@ bool StephanoI_ATBluetoothLE_PeripheralNotifyClient(int8_t conn_index, uint8_t s
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Peripheral indicate client
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- * @param[in] char_index Characteristics index
- * @param[in] data Pointer to the data
- * @param[in] length Length of the data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_PeripheralIndicateClient(int8_t conn_index, uint8_t srv_index, uint8_t char_index, uint8_t* data, uint32_t length)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1226,16 +948,6 @@ bool StephanoI_ATBluetoothLE_PeripheralIndicateClient(int8_t conn_index, uint8_t
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Central start or stop scan
- *
- * @param[in] enable true to 'start', false to 'stop' scan
- * @param[in] interval On-time of the scanner
- * @param[in] filter_type Filter type
- * @param[in] filter_param Filter parameter
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralScan(bool enable, int8_t interval, StephanoI_ATBluetoothLE_ScanFilter_t filter_type, char* filter_param)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1277,16 +989,6 @@ bool StephanoI_ATBluetoothLE_CentralScan(bool enable, int8_t interval, StephanoI
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Connect to a peripheral
- *
- * @param[in] conn_index Connection index
- * @param[in] remote_address MAC of the remote device to connect to
- * @param[in] public_address true if 'public' address is used
- * @param[in] timeout Timeout of the connection setup
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralConnect(int8_t conn_index, char* remote_address, bool public_address, uint8_t timeout)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1322,13 +1024,6 @@ bool StephanoI_ATBluetoothLE_CentralConnect(int8_t conn_index, char* remote_addr
     return StephanoI_WaitForConfirm(timeout * 1000 + 500, StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Disconnect
- *
- * @param[in] conn_index Connection index
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_Disconnect(int8_t conn_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1352,13 +1047,6 @@ bool StephanoI_ATBluetoothLE_Disconnect(int8_t conn_index)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Discover primary service
- *
- * @param[in] conn_index Connection index
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralDiscoverPrimaryService(int8_t conn_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1382,14 +1070,6 @@ bool StephanoI_ATBluetoothLE_CentralDiscoverPrimaryService(int8_t conn_index)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Discover included services
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralDiscoverIncludedServices(int8_t conn_index, uint8_t srv_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1418,14 +1098,6 @@ bool StephanoI_ATBluetoothLE_CentralDiscoverIncludedServices(int8_t conn_index, 
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Discover characteristics
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralDiscoverCharacteristics(int8_t conn_index, uint8_t srv_index)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1454,18 +1126,6 @@ bool StephanoI_ATBluetoothLE_CentralDiscoverCharacteristics(int8_t conn_index, u
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Central write characteristics
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- * @param[in] char_index Characteristics index
- * @param[in] desc_index Descriptor index
- * @param[in] data Pointer to the data
- * @param[in] length Length of the data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATBluetoothLE_CentralWrite(int8_t conn_index, uint8_t srv_index, uint8_t char_index, int8_t desc_index, uint8_t* data, uint32_t length)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1515,17 +1175,7 @@ bool StephanoI_ATBluetoothLE_CentralWrite(int8_t conn_index, uint8_t srv_index, 
     }
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
-/**
- * @brief Central read characteristics
- *
- * @param[in] conn_index Connection index
- * @param[in] srv_index Service index
- * @param[in] char_index Characteristics index
- * @param[in] desc_index Descriptor index
- * @param[out] t Pointer to the data read
- *
- * @return true if successful, false otherwise
- */
+
 bool StephanoI_ATBluetoothLE_CentralRead(int8_t conn_index, uint8_t srv_index, uint8_t char_index, int8_t desc_index, StephanoI_ATBluetoothLE_Read_t* t)
 {
     char responsebuffer[sizeof(StephanoI_ATBluetoothLE_Read_t) + 1];
@@ -1571,14 +1221,6 @@ bool StephanoI_ATBluetoothLE_CentralRead(int8_t conn_index, uint8_t srv_index, u
     return StephanoI_ATBluetoothLE_ParseRead(responsebuffer, t);
 }
 
-/**
- * @brief Parses the values of the connection event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseConnection(char* EventArgumentsP, StephanoI_ATBluetoothLE_Connection_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1596,14 +1238,6 @@ bool StephanoI_ATBluetoothLE_ParseConnection(char* EventArgumentsP, StephanoI_AT
     return true;
 }
 
-/**
- * @brief Parses the values of the MTU event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseMTU(char* EventArgumentsP, StephanoI_ATBluetoothLE_MTU_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1621,14 +1255,6 @@ bool StephanoI_ATBluetoothLE_ParseMTU(char* EventArgumentsP, StephanoI_ATBluetoo
     return true;
 }
 
-/**
- * @brief Parses the values of the write event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseWrite(char* EventArgumentsP, StephanoI_ATBluetoothLE_Write_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1675,14 +1301,6 @@ bool StephanoI_ATBluetoothLE_ParseWrite(char* EventArgumentsP, StephanoI_ATBluet
     return true;
 }
 
-/**
- * @brief Parses the values of the read event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseRead(char* EventArgumentsP, StephanoI_ATBluetoothLE_Read_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1705,14 +1323,6 @@ bool StephanoI_ATBluetoothLE_ParseRead(char* EventArgumentsP, StephanoI_ATBlueto
     return true;
 }
 
-/**
- * @brief Parses the values of the scan event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseScan(char* EventArgumentsP, StephanoI_ATBluetoothLE_Central_Scan_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1745,14 +1355,6 @@ bool StephanoI_ATBluetoothLE_ParseScan(char* EventArgumentsP, StephanoI_ATBlueto
     return true;
 }
 
-/**
- * @brief Parses the values of the authentication complete arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseAuthenticationComplete(char* EventArgumentsP, StephanoI_ATBluetoothLE_AuthenticationComplete_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1772,42 +1374,18 @@ bool StephanoI_ATBluetoothLE_ParseAuthenticationComplete(char* EventArgumentsP, 
     return true;
 }
 
-/**
- * @brief Parses the values of the encryption request parameters.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 Pointer to the connection index
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseEncryptionRequest(char* EventArgumentsP, StephanoI_ATBluetoothLE_EncryptionRequest_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentInt(&argumentsP, &(t->conn_index), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the security key request parameters.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 Pointer to the connection index
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseSecurityKeyRequest(char* EventArgumentsP, StephanoI_ATBluetoothLE_SecurityKeyRequest_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentInt(&argumentsP, &(t->conn_index), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the peripheral service discovery arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverService(char* EventArgumentsP, StephanoI_ATBluetoothLE_Peripheral_DiscoverService_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1834,14 +1412,6 @@ bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverService(char* EventArguments
     return true;
 }
 
-/**
- * @brief Parses the values of the characteristics discovery arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverCharacteristics(char* EventArgumentsP, StephanoI_ATBluetoothLE_Peripheral_DiscoverCharacteristics_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1891,14 +1461,6 @@ bool StephanoI_ATBluetoothLE_ParsePeripheralDiscoverCharacteristics(char* EventA
     return true;
 }
 
-/**
- * @brief Parses the values of the central primary service discovery arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseCentralDiscoverPrimaryService(char* EventArgumentsP, StephanoI_ATBluetoothLE_Central_DiscoverPrimaryService_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1925,14 +1487,6 @@ bool StephanoI_ATBluetoothLE_ParseCentralDiscoverPrimaryService(char* EventArgum
     return true;
 }
 
-/**
- * @brief Parses the values of the central included service discovery arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseCentralDiscoverIncludedServices(char* EventArgumentsP, StephanoI_ATBluetoothLE_Central_DiscoverIncludedServices_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1969,14 +1523,6 @@ bool StephanoI_ATBluetoothLE_ParseCentralDiscoverIncludedServices(char* EventArg
     return true;
 }
 
-/**
- * @brief Parses the values of the characteristics discovery arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseCentralDiscoverCharacteristics(char* EventArgumentsP, StephanoI_ATBluetoothLE_Central_DiscoverCharacteristics_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2027,42 +1573,18 @@ bool StephanoI_ATBluetoothLE_ParseCentralDiscoverCharacteristics(char* EventArgu
     return true;
 }
 
-/**
- * @brief Parses the values of the device ID arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseDeviceID(char* EventArgumentsP, StephanoI_ATBluetoothLE_DeviceID_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentStringWithoutQuotationMarks(&argumentsP, *t, ATCOMMAND_STRING_TERMINATE, sizeof(StephanoI_ATBluetoothLE_DeviceID_t));
 }
 
-/**
- * @brief Parses the values of the device name arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseDeviceName(char* EventArgumentsP, StephanoI_ATBluetoothLE_DeviceName_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentString(&argumentsP, *t, ATCOMMAND_STRING_TERMINATE, sizeof(StephanoI_ATBluetoothLE_DeviceName_t));
 }
 
-/**
- * @brief Parses the values of the advertising data arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseAdvertisingData(char* EventArgumentsP, StephanoI_ATBluetoothLE_AdvertisingData_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2091,14 +1613,6 @@ bool StephanoI_ATBluetoothLE_ParseAdvertisingData(char* EventArgumentsP, Stephan
     return true;
 }
 
-/**
- * @brief Parses the values of the advertising parameters arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseAdvertisingParameters(char* EventArgumentsP, StephanoI_ATBluetoothLE_AdvertisingParameters_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2131,14 +1645,6 @@ bool StephanoI_ATBluetoothLE_ParseAdvertisingParameters(char* EventArgumentsP, S
     return true;
 }
 
-/**
- * @brief Parses the values of the scan parameters arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseScanParameters(char* EventArgumentsP, StephanoI_ATBluetoothLE_ScanParameters_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2167,14 +1673,6 @@ bool StephanoI_ATBluetoothLE_ParseScanParameters(char* EventArgumentsP, Stephano
     return true;
 }
 
-/**
- * @brief Parses the values of the phy
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseReadPhy(char* EventArgumentsP, StephanoI_ATBluetoothLE_ReadPhy_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2196,15 +1694,6 @@ bool StephanoI_ATBluetoothLE_ParseReadPhy(char* EventArgumentsP, StephanoI_ATBlu
     return true;
 }
 
-/**
- * @brief Parses the values of the connection parameters
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 The parsed event data
- * @param[out]    current_intervalP Pointer to the current connection interval
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseConnectionParameters(char* EventArgumentsP, StephanoI_ATBluetoothLE_Central_ConnectionParameters_t* t, uint16_t* current_intervalP)
 {
     char* argumentsP = EventArgumentsP;
@@ -2238,14 +1727,6 @@ bool StephanoI_ATBluetoothLE_ParseConnectionParameters(char* EventArgumentsP, St
     return true;
 }
 
-/**
- * @brief Parses the values of the security parameters
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseSecurityParameters(char* EventArgumentsP, StephanoI_ATBluetoothLE_SecurityParameters_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2281,14 +1762,6 @@ bool StephanoI_ATBluetoothLE_ParseSecurityParameters(char* EventArgumentsP, Step
     return true;
 }
 
-/**
- * @brief Parses the values of the notify key event
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseNotifyKey(char* EventArgumentsP, StephanoI_ATBluetoothLE_NotifyKey_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2306,14 +1779,6 @@ bool StephanoI_ATBluetoothLE_ParseNotifyKey(char* EventArgumentsP, StephanoI_ATB
     return true;
 }
 
-/**
- * @brief Parses the values of the bonding information event
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseBondingInformations(char* EventArgumentsP, StephanoI_ATBluetoothLE_Bonding_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -2331,14 +1796,6 @@ bool StephanoI_ATBluetoothLE_ParseBondingInformations(char* EventArgumentsP, Ste
     return true;
 }
 
-/**
- * @brief Parses the values of the static passkey event
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t                 The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATBluetoothLE_ParseStaticKey(char* EventArgumentsP, StephanoI_ATBluetoothLE_Key_t* t)
 {
     char* argumentsP = EventArgumentsP;

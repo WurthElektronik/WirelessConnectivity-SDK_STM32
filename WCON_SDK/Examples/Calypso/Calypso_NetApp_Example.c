@@ -42,13 +42,13 @@ static uint8_t nrOfPingResponsesRemaining = 0;
 
 void Calypso_NetApp_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATNetApp example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATNetApp example ***\r\n");
 
     bool ret = false;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_NetApp_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -59,8 +59,8 @@ void Calypso_NetApp_Example(void)
     WE_Delay(1000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -104,18 +104,18 @@ void Calypso_NetApp_Example(void)
     Calypso_Examples_Print("Get IPv4 config", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Host / IP lookup example */
     Calypso_ATNetApp_GetHostByNameResult_t lookupResult;
     ret = Calypso_ATNetApp_GetHostByName("www.google.com", Calypso_ATSocket_Family_INET, &lookupResult);
     Calypso_Examples_Print("Get host by name", ret);
-    WE_DEBUG_PRINT("IP lookup result: host=\"%s\", IP=\"%s\"\r\n", lookupResult.hostName, lookupResult.hostAddress);
+    WE_APP_PRINT("IP lookup result: host=\"%s\", IP=\"%s\"\r\n", lookupResult.hostName, lookupResult.hostAddress);
 
     /* SNTP client example */
     ret = Calypso_ATNetApp_StartApplications(Calypso_ATNetApp_Application_SntpClient);
@@ -148,7 +148,7 @@ void Calypso_NetApp_Example(void)
     Calypso_Examples_Print("Get device time", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u\r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+        WE_APP_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u\r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
     }
 
     ret = Calypso_ATNetApp_StopApplications(Calypso_ATNetApp_Application_SntpClient);
@@ -207,11 +207,11 @@ void Calypso_NetApp_Example_EventCallback(char* eventText)
             Calypso_ATEvent_Ping_t pingEvent;
             if (Calypso_ATEvent_ParsePingEvent(&eventText, &pingEvent))
             {
-                WE_DEBUG_PRINT("Ping event - "
-                               "Packets received: %d, "
-                               "packets sent: %d, "
-                               "roundtrip time: %d ms\r\n",
-                               pingEvent.packetsSent, pingEvent.packetsReceived, pingEvent.roundTripTimeMs);
+                WE_APP_PRINT("Ping event - "
+                             "Packets received: %d, "
+                             "packets sent: %d, "
+                             "roundtrip time: %d ms\r\n",
+                             pingEvent.packetsSent, pingEvent.packetsReceived, pingEvent.roundTripTimeMs);
             }
             if (nrOfPingResponsesRemaining > 0)
             {

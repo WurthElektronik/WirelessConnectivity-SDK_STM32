@@ -42,11 +42,11 @@ static AdrasteaI_ATGNSS_Satellite_Count_t satelliteQueryCount = 0, satelliteQuer
  */
 void ATGNSSExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATGNSS example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATGNSS example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATGNSS_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -66,7 +66,7 @@ void ATGNSSExample()
     AdrasteaI_ExamplesPrint("Query CEP Status", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Validity: %d, Remaining Days: %d, Hours: %d, Minutes:%d\r\n", cepStatus.validity, cepStatus.remDays, cepStatus.remHours, cepStatus.remMinutes);
+        WE_APP_PRINT("Validity: %d, Remaining Days: %d, Hours: %d, Minutes:%d\r\n", cepStatus.validity, cepStatus.remDays, cepStatus.remHours, cepStatus.remMinutes);
     }
 
     ret = AdrasteaI_ATDevice_SetPhoneFunctionality(AdrasteaI_ATDevice_Phone_Functionality_Min, AdrasteaI_ATDevice_Phone_Functionality_Reset_Do_Not_Reset);
@@ -88,7 +88,7 @@ void ATGNSSExample()
         satelliteQueryEventCount = 0;
         ret = AdrasteaI_ATGNSS_QueryGNSSSatellites(&satelliteQueryCount);
         AdrasteaI_ExamplesPrint("Query GNSS Satellites", ret);
-        WE_DEBUG_PRINT("Satellites Count: %d\r\n", satelliteQueryCount);
+        WE_APP_PRINT("Satellites Count: %d\r\n", satelliteQueryCount);
 
         while (satelliteQueryCount != satelliteQueryEventCount)
         {
@@ -100,7 +100,7 @@ void ATGNSSExample()
 
         if (ret && fix.fixType != AdrasteaI_ATGNSS_Fix_Type_No_Fix)
         {
-            WE_DEBUG_PRINT("Fix Latitude: %f, Longitude: %f, Altitude: %f\r\n", fix.latitude, fix.longitude, fix.altitude);
+            WE_APP_PRINT("Fix Latitude: %f, Longitude: %f, Altitude: %f\r\n", fix.latitude, fix.longitude, fix.altitude);
         }
     }
 }
@@ -127,7 +127,7 @@ void AdrasteaI_ATGNSS_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("PRN: %d, Elevation: %d, Azimuth: %d, SNR: %d\r\n", satellite.prn, satellite.elevation, satellite.azimuth, satellite.snr);
+            WE_APP_PRINT("PRN: %d, Elevation: %d, Azimuth: %d, SNR: %d\r\n", satellite.prn, satellite.elevation, satellite.azimuth, satellite.snr);
             satelliteQueryEventCount++;
             break;
         }

@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATHTTP.h
  * @brief AT commands for HTTP functionality.
  */
 
@@ -40,63 +40,131 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief HTTP option
  */
-    typedef enum StephanoI_ATHTTP_Opt_t
-    {
-        StephanoI_ATHTTP_Opt_Head = 1,
-        StephanoI_ATHTTP_Opt_Get = 2,
-        StephanoI_ATHTTP_Opt_Post = 3,
-        StephanoI_ATHTTP_Opt_Put = 4,
-        StephanoI_ATHTTP_Opt_Delete = 5,
-    } StephanoI_ATHTTP_Opt_t;
+typedef enum StephanoI_ATHTTP_Opt_t
+{
+    StephanoI_ATHTTP_Opt_Head = 1,
+    StephanoI_ATHTTP_Opt_Get = 2,
+    StephanoI_ATHTTP_Opt_Post = 3,
+    StephanoI_ATHTTP_Opt_Put = 4,
+    StephanoI_ATHTTP_Opt_Delete = 5,
+} StephanoI_ATHTTP_Opt_t;
 
-    /**
+/**
  * @brief HTTP content type
  */
-    typedef enum StephanoI_ATHTTP_Content_t
-    {
-        StephanoI_ATHTTP_Content_ApplicationURLEncoded = 0,
-        StephanoI_ATHTTP_Content_ApplicationJson = 1,
-        StephanoI_ATHTTP_Content_MultipartFormdata = 2,
-        StephanoI_ATHTTP_Content_textxml = 3,
-    } StephanoI_ATHTTP_Content_t;
+typedef enum StephanoI_ATHTTP_Content_t
+{
+    StephanoI_ATHTTP_Content_ApplicationURLEncoded = 0,
+    StephanoI_ATHTTP_Content_ApplicationJson = 1,
+    StephanoI_ATHTTP_Content_MultipartFormdata = 2,
+    StephanoI_ATHTTP_Content_textxml = 3,
+} StephanoI_ATHTTP_Content_t;
 
-    /**
+/**
  * @brief HTTP client event
  */
-    typedef struct StephanoI_ATHTTP_Client_t
-    {
-        uint16_t length;
-        uint8_t* data;
-    } StephanoI_ATHTTP_Client_t;
+typedef struct StephanoI_ATHTTP_Client_t
+{
+    uint16_t length;
+    uint8_t* data;
+} StephanoI_ATHTTP_Client_t;
 
-    /**
+/**
  * @brief HTTP get size event
  */
-    typedef uint16_t StephanoI_ATHTTP_Size_t;
+typedef uint16_t StephanoI_ATHTTP_Size_t;
 
-    /**
+/**
  * @brief HTTP get event
  */
-    typedef struct StephanoI_ATHTTP_Get_t
-    {
-        uint16_t length;
-        uint8_t* data;
-    } StephanoI_ATHTTP_Get_t;
+typedef struct StephanoI_ATHTTP_Get_t
+{
+    uint16_t length;
+    uint8_t* data;
+} StephanoI_ATHTTP_Get_t;
 
-    /**
- * @brief HTTP URL
+/**
+ * @brief HTTP Client
+ *
+ * @param[in] opt: Method
+ * @param[in] content: Content type
+ * @param[in] url: URL
+ * @param[in] host: Host
+ * @param[in] path: Path
+ * @param[in] transport_via_SSL: SSL or TCP
+ * @param[in] data: Data
+ * @param[in] header: Header
+ *
+ * @return True if successful, false otherwise
  */
-    extern bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Content_t content, char* url, char* host, char* path, bool transport_via_SSL, char* data, char* header);
-    extern bool StephanoI_ATHTTP_GetSize(char* url, StephanoI_ATHTTP_Size_t* size);
-    extern bool StephanoI_ATHTTP_Get(char* url, StephanoI_ATHTTP_Get_t* t);
-    extern bool StephanoI_ATHTTP_Post(char* url, uint8_t* data, uint32_t length, uint8_t number_of_headers, char** headers);
+extern bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Content_t content, char* url, char* host, char* path, bool transport_via_SSL, char* data, char* header);
 
-    extern bool StephanoI_ATHTTP_ParseClient(char* EventArgumentsP, StephanoI_ATHTTP_Client_t* t);
-    extern bool StephanoI_ATHTTP_ParseGetSize(char* EventArgumentsP, StephanoI_ATHTTP_Size_t* t);
-    extern bool StephanoI_ATHTTP_ParseGet(char* EventArgumentsP, StephanoI_ATHTTP_Get_t* t);
+/**
+ * @brief HTTP Get size
+ *
+ * @param[in] url: URL
+ * @param[out] t: Pointer to the size of the data
+
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool StephanoI_ATHTTP_GetSize(char* url, StephanoI_ATHTTP_Size_t* t);
+
+/**
+ * @brief HTTP Get
+ *
+ * @param[in] url: URL
+ * @param[out] t: Pointer to the data and its length
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool StephanoI_ATHTTP_Get(char* url, StephanoI_ATHTTP_Get_t* t);
+
+/**
+ * @brief HTTP post
+ *
+ * @param[in] url: URL
+ * @param[in] data: Data
+ * @param[in] length: Length
+ * @param[in] number_of_headers: Number of header
+ * @param[in] headers: Headers
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool StephanoI_ATHTTP_Post(char* url, uint8_t* data, uint32_t length, uint8_t number_of_headers, char** headers);
+
+/**
+ * @brief Parses the values of the HTTP client event arguments.
+ *
+ * @param[in] EventArgumentsP: String containing arguments of the AT command
+ * @param[out] t: The parsed event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool StephanoI_ATHTTP_ParseClient(char* EventArgumentsP, StephanoI_ATHTTP_Client_t* t);
+
+/**
+ * @brief Parses the values of the HTTP get size event arguments.
+ *
+ * @param[in] EventArgumentsP: String containing arguments of the AT command
+ * @param[out] t: The parsed event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool StephanoI_ATHTTP_ParseGetSize(char* EventArgumentsP, StephanoI_ATHTTP_Size_t* t);
+
+/**
+ * @brief Parses the values of the HTTP get event arguments.
+ *
+ * @param[in] EventArgumentsP: String containing arguments of the AT command
+ * @param[out] t: The parsed event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool StephanoI_ATHTTP_ParseGet(char* EventArgumentsP, StephanoI_ATHTTP_Get_t* t);
 
 #ifdef __cplusplus
 }

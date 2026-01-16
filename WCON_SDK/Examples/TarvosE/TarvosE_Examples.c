@@ -30,7 +30,8 @@
 
 #include <TarvosE/TarvosE.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <string.h>
 

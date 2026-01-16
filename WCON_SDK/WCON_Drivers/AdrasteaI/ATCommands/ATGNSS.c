@@ -24,13 +24,17 @@
  */
 
 /**
- * @file
+ * @file ATGNSS.c
  * @brief AT commands for GNSS functionality.
  */
 #include <AdrasteaI/ATCommands/ATGNSS.h>
 #include <AdrasteaI/AdrasteaI.h>
 #include <global/ATCommands.h>
 #include <stdio.h>
+
+#define AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues 2
+
+#define AdrasteaI_ATGNSS_NMEA_Sentences_Strings_NumberOfValues 10
 
 static const char* AdrasteaI_ATGNSS_Satellite_Systems_Strings[AdrasteaI_ATGNSS_Satellite_Systems_Strings_NumberOfValues] = {
     "GPS",
@@ -56,11 +60,6 @@ static const char* AdrasteaI_ATGNSS_Deletion_Option_Strings[AdrasteaI_ATGNSS_Del
     "0", "0001", "0002", "0004", "0008",
 };
 
-/**
- * @brief Stop GNSS (using the AT%IGNSSACT command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_StopGNSS()
 {
     if (!AdrasteaI_SendRequest("AT%IGNSSACT=0\r\n"))
@@ -76,13 +75,6 @@ bool AdrasteaI_ATGNSS_StopGNSS()
     return true;
 }
 
-/**
- * @brief Start GNSS (using the AT%IGNSSACT command).
- *
- * @param[in] startMode GNSS Start Mode (optional pass AdrasteaI_ATGNSS_Start_Mode_Invalid to skip). See AdrasteaI_ATGNSS_Start_Mode_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_StartGNSS(AdrasteaI_ATGNSS_Start_Mode_t startMode)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -120,13 +112,6 @@ bool AdrasteaI_ATGNSS_StartGNSS(AdrasteaI_ATGNSS_Start_Mode_t startMode)
     return true;
 }
 
-/**
- * @brief Start GNSS with Tolerance (using the AT%IGNSSACT command).
- *
- * @param[in] tolerance Tolerance delay to start GNSS in Seconds
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_StartGNSSWithTolerance(AdrasteaI_ATGNSS_Tolerance_t tolerance)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -156,13 +141,6 @@ bool AdrasteaI_ATGNSS_StartGNSSWithTolerance(AdrasteaI_ATGNSS_Tolerance_t tolera
     return true;
 }
 
-/**
- * @brief Read GNSS Active (using the AT%IGNSSACT command).
- *
- * @param[out] activeModeP GNSS Active is returned in this argument. See AdrasteaI_ATGNSS_Active_Mode_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_ReadGNSSActiveMode(AdrasteaI_ATGNSS_Active_Mode_t* activeModeP)
 {
     if (activeModeP == NULL)
@@ -190,13 +168,6 @@ bool AdrasteaI_ATGNSS_ReadGNSSActiveMode(AdrasteaI_ATGNSS_Active_Mode_t* activeM
     return true;
 }
 
-/**
- * @brief Set Satellite Systems (using the AT%IGNSSCFG command).
- *
- * @param[in] satSystems Satellite Systems used. See AdrasteaI_ATGNSS_Satellite_Systems_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_SetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t satSystems)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -236,13 +207,6 @@ bool AdrasteaI_ATGNSS_SetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t s
     return true;
 }
 
-/**
- * @brief Read Used Satellite Systems (using the AT%IGNSSCFG command).
- *
- * @param[out] satSystemsP Used Satellite Systems are returned in this argument. See AdrasteaI_ATGNSS_Satellite_Systems_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_GetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t* satSystemsP)
 {
     if (satSystemsP == NULL)
@@ -292,13 +256,6 @@ bool AdrasteaI_ATGNSS_GetSatelliteSystems(AdrasteaI_ATGNSS_Satellite_Systems_t* 
     return true;
 }
 
-/**
- * @brief Set NMEA Sentences (using the AT%IGNSSCFG command).
- *
- * @param[in] nmeaSentences NMEA Sentences. See AdrasteaI_ATGNSS_NMEA_Sentences_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_SetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t nmeaSentences)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -338,13 +295,6 @@ bool AdrasteaI_ATGNSS_SetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t nmeaSen
     return true;
 }
 
-/**
- * @brief Read Used NMEA Sentences (using the AT%IGNSSCFG command).
- *
- * @param[out] nmeaSentencesP Used NMEA Sentences are returned in this argument. See AdrasteaI_ATGNSS_NMEA_Sentences_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_GetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t* nmeaSentencesP)
 {
     if (nmeaSentencesP == NULL)
@@ -394,13 +344,6 @@ bool AdrasteaI_ATGNSS_GetNMEASentences(AdrasteaI_ATGNSS_NMEA_Sentences_t* nmeaSe
     return true;
 }
 
-/**
- * @brief Query available GNSS Satellites (using the AT%IGNSSINFO command).
- *
- * @param[out] satCountP Number of available Satellites is returned in this argument
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_QueryGNSSSatellites(AdrasteaI_ATGNSS_Satellite_Count_t* satCountP)
 {
     if (satCountP == NULL)
@@ -430,14 +373,6 @@ bool AdrasteaI_ATGNSS_QueryGNSSSatellites(AdrasteaI_ATGNSS_Satellite_Count_t* sa
     return true;
 }
 
-/**
- * @brief Parses the value of Query GNSS Satellites event arguments.
- *
- * @param[out] dataP Satellite information is returned in this argument
- * @param[in] pEventArguments String containing arguments of the AT command
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_ParseSatelliteQueryEvent(char* pEventArguments, AdrasteaI_ATGNSS_Satellite_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -481,15 +416,6 @@ bool AdrasteaI_ATGNSS_ParseSatelliteQueryEvent(char* pEventArguments, AdrasteaI_
     return true;
 }
 
-/**
- * @brief Query GNSS Fix (using the AT%IGNSSINFO command).
- *
- * @param[in] relevancy Determines if Last Fix or Current Fix should be queried. See AdrasteaI_ATGNSS_Fix_Relavancy_t.
- *
- * @param[out] fixP GNSS Fix is returned in this argument
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_QueryGNSSFix(AdrasteaI_ATGNSS_Fix_Relavancy_t relevancy, AdrasteaI_ATGNSS_Fix_t* fixP)
 {
     if (fixP == NULL)
@@ -630,13 +556,6 @@ bool AdrasteaI_ATGNSS_QueryGNSSFix(AdrasteaI_ATGNSS_Fix_Relavancy_t relevancy, A
     return true;
 }
 
-/**
- * @brief Query GNSS Time To First Fix (using the AT%IGNSSINFO command).
- *
- * @param[out] ttffP Time to first fix in milliseconds is returned in this argument
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_QueryGNSSTTFF(AdrasteaI_ATGNSS_TTFF_t* ttffP)
 {
     if (ttffP == NULL)
@@ -666,13 +585,6 @@ bool AdrasteaI_ATGNSS_QueryGNSSTTFF(AdrasteaI_ATGNSS_TTFF_t* ttffP)
     return true;
 }
 
-/**
- * @brief Query GNSS Ephemeris (using the AT%IGNSSINFO command).
- *
- * @param[out] statusP Ephemeris status is returned in this argument
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_QueryGNSSEphemerisStatus(AdrasteaI_ATGNSS_Ephemeris_Status_t* statusP)
 {
     if (statusP == NULL)
@@ -700,15 +612,6 @@ bool AdrasteaI_ATGNSS_QueryGNSSEphemerisStatus(AdrasteaI_ATGNSS_Ephemeris_Status
     return true;
 }
 
-/**
- * @brief Set GNSS Notification Events (using the AT%IGNSSINFO command).
- *
- * @param[in] event GNSS event type. See AdrasteaI_ATGNSS_Event_t.
- *
- * @param[in] state Event State
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_SetGNSSUnsolicitedNotificationEvents(AdrasteaI_ATGNSS_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -743,14 +646,6 @@ bool AdrasteaI_ATGNSS_SetGNSSUnsolicitedNotificationEvents(AdrasteaI_ATGNSS_Even
     return true;
 }
 
-/**
- * @brief Parses the value of Session Status Change event arguments.
- *
- * @param[out] dataP Session Status is returned in this argument
- * @param[in] pEventArguments String containing arguments of the AT command
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_ParseSessionStatusChangedEvent(char* pEventArguments, AdrasteaI_ATGNSS_Session_Status_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -768,14 +663,6 @@ bool AdrasteaI_ATGNSS_ParseSessionStatusChangedEvent(char* pEventArguments, Adra
     return true;
 }
 
-/**
- * @brief Parses the value of Allowed Status Change event arguments.
- *
- * @param[out] dataP Allowed Status is returned in this argument
- * @param[in] pEventArguments String containing arguments of the AT command
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_ParseAllowedStatusChangedEvent(char* pEventArguments, AdrasteaI_ATGNSS_Allowed_Status_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -793,14 +680,6 @@ bool AdrasteaI_ATGNSS_ParseAllowedStatusChangedEvent(char* pEventArguments, Adra
     return true;
 }
 
-/**
- * @brief Parses the value of NMEA event arguments.
- *
- * @param[out] dataP NMEA Sentence is returned in this argument
- * @param[in] pEventArguments String containing arguments of the AT command
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_ParseNMEAEvent(char* pEventArguments, AdrasteaI_ATGNSS_NMEA_Sentence_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -813,13 +692,6 @@ bool AdrasteaI_ATGNSS_ParseNMEAEvent(char* pEventArguments, AdrasteaI_ATGNSS_NME
     return true;
 }
 
-/**
- * @brief Deletes GNSS Data (using the AT%IGNSSMEM command).
- *
- * @param[in] deleteOption GNSS data to delete. See AdrasteaI_ATGNSS_Deletion_Option_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_DeleteData(AdrasteaI_ATGNSS_Deletion_Option_t deleteOption)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -849,13 +721,6 @@ bool AdrasteaI_ATGNSS_DeleteData(AdrasteaI_ATGNSS_Deletion_Option_t deleteOption
     return true;
 }
 
-/**
- * @brief Downloads CEP File (using the AT%IGNSSCEP command).
- *
- * @param[in] numDays Number of days for the downlaoded CEP file. See AdrasteaI_ATGNSS_CEP_Number_of_Days_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_DownloadCEPFile(AdrasteaI_ATGNSS_CEP_Number_of_Days_t numDays)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -885,11 +750,6 @@ bool AdrasteaI_ATGNSS_DownloadCEPFile(AdrasteaI_ATGNSS_CEP_Number_of_Days_t numD
     return true;
 }
 
-/**
- * @brief Erase CEP File (using the AT%IGNSSCEP command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_EraseCEPFile()
 {
     if (!AdrasteaI_SendRequest("AT%IGNSSCEP=\"ERASE\"\r\n"))
@@ -905,13 +765,6 @@ bool AdrasteaI_ATGNSS_EraseCEPFile()
     return true;
 }
 
-/**
- * @brief Query Information about CEP File (using the AT%IGNSSCEP command).
- *
- * @param[out] Status of CEP file is returned in this argument. See AdrasteaI_ATGNSS_CEP_Status_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATGNSS_QueryCEPFileStatus(AdrasteaI_ATGNSS_CEP_Status_t* status)
 {
     if (status == NULL)

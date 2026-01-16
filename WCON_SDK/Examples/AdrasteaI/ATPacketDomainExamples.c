@@ -40,11 +40,11 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {.state =
  */
 void ATPacketDomainExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATPacketDomain example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATPacketDomain example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATPacketDomain_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -60,7 +60,7 @@ void ATPacketDomainExample()
     AdrasteaI_ExamplesPrint("Read Network Registration Status", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Result Code: %d, State: %d, TAC: %s, ECI: %s, AcT: %d\r\n", statusRead.resultCode, statusRead.state, statusRead.TAC, statusRead.ECI, statusRead.AcT);
+        WE_APP_PRINT("Result Code: %d, State: %d, TAC: %s, ECI: %s, AcT: %d\r\n", statusRead.resultCode, statusRead.state, statusRead.TAC, statusRead.ECI, statusRead.AcT);
     }
 
     AdrasteaI_ATPacketDomain_PDP_Context_t context = {.cid = 2, .pdpType = AdrasteaI_ATPacketDomain_PDP_Type_IPv4, .apnName = "web.vodafone.de"};
@@ -96,7 +96,7 @@ void AdrasteaI_ATPacketDomain_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("CID: %d, PDP Type: %d, APN Name: %s\r\n", pdpContext.cid, pdpContext.pdpType, pdpContext.apnName);
+            WE_APP_PRINT("CID: %d, PDP Type: %d, APN Name: %s\r\n", pdpContext.cid, pdpContext.pdpType, pdpContext.apnName);
             break;
         }
         case AdrasteaI_ATEvent_PacketDomain_PDP_Context_State:
@@ -106,7 +106,7 @@ void AdrasteaI_ATPacketDomain_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("CID: %d, State: %d\r\n", pdpContextState.cid, pdpContextState.state);
+            WE_APP_PRINT("CID: %d, State: %d\r\n", pdpContextState.cid, pdpContextState.state);
             break;
         }
         default:

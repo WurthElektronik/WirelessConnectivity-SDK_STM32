@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATDevice.c
  * @brief AT commands for basic device functionality.
  */
 #include <Calypso/ATCommands/ATDevice.h>
@@ -61,11 +61,6 @@ static bool Calypso_ATDevice_AddArgumentsATget(char* pAtCommand, uint8_t id, uin
 static bool Calypso_ATDevice_AddArgumentsATset(char* pAtCommand, uint8_t id, uint8_t option, Calypso_ATDevice_Value_t* pValue);
 static bool Calypso_ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char* pAtCommand, Calypso_ATDevice_Value_t* pValue);
 
-/**
- * @brief Tests the connection to the wireless module (using the AT+test command).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Test()
 {
     if (!Calypso_SendRequest("AT+test\r\n"))
@@ -75,11 +70,6 @@ bool Calypso_ATDevice_Test()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Starts the network processor (using the AT+start command).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Start()
 {
     if (!Calypso_SendRequest("AT+start\r\n"))
@@ -88,14 +78,6 @@ bool Calypso_ATDevice_Start()
     }
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
-
-/**
- * @brief Stops the network processor (using the AT+stop command).
- *
- * @param[in] timeoutMs Timeout in milliseconds.
- *
- * @return true if successful, false otherwise
- */
 
 bool Calypso_ATDevice_Stop(uint32_t timeoutMs)
 {
@@ -125,18 +107,12 @@ bool Calypso_ATDevice_Stop(uint32_t timeoutMs)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Restarts the network processor by sending an AT+stop followed by an AT+start command.
- *
- * @param[in] timeoutMs Timeout for stop command
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Restart(uint32_t timeoutMs)
 {
     if (!Calypso_ATDevice_Stop(timeoutMs))
     {
         /* Stop command will fail with error -2018 if the network processor is not active at
-		 * the time of processing the command. This is not considered to be an error. */
+         * the time of processing the command. This is not considered to be an error. */
         if (Calypso_GetLastError(NULL) != -2018)
         {
             return false;
@@ -145,11 +121,6 @@ bool Calypso_ATDevice_Restart(uint32_t timeoutMs)
     return Calypso_ATDevice_Start();
 }
 
-/**
- * @brief Reboots the device (using the AT+reboot command).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Reboot()
 {
     if (!Calypso_SendRequest("AT+reboot\r\n"))
@@ -160,11 +131,6 @@ bool Calypso_ATDevice_Reboot()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Performs a factory reset of the device (using the AT+factoryReset command).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_FactoryReset()
 {
     if (!Calypso_SendRequest("AT+factoryreset\r\n"))
@@ -175,14 +141,6 @@ bool Calypso_ATDevice_FactoryReset()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_FactoryReset), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Puts the wireless module into the lowest possible power mode for the supplied duration (using the AT+sleep command).
- *
- * @param[in] timeoutSeconds Timeout until the module wakes up again.
- *                           Must be in range ATDEVICE_SLEEP_MIN_TIMEOUT <= timeoutInSeconds <= ATDEVICE_SLEEP_MAX_TIMEOUT.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Sleep(uint32_t timeoutSeconds)
 {
 
@@ -211,11 +169,6 @@ bool Calypso_ATDevice_Sleep(uint32_t timeoutSeconds)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Puts the module in power save mode.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_PowerSave()
 {
     if (!Calypso_SendRequest("AT+powersave\r\n"))
@@ -225,15 +178,6 @@ bool Calypso_ATDevice_PowerSave()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Reads device parameters (using the AT+get command).
- *
- * @param[in] id ID of the parameter to get.
- * @param[in] option Option to get. Valid values depend on id.
- * @param[out] pValue Values returned.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Get(Calypso_ATDevice_GetId_t id, uint8_t option, Calypso_ATDevice_Value_t* pValue)
 {
     if (!Calypso_ATDevice_IsInputValidATget(id, option))
@@ -266,7 +210,7 @@ bool Calypso_ATDevice_Get(Calypso_ATDevice_GetId_t id, uint8_t option, Calypso_A
     }
 
     /* If getting version info: Store firmware version info for later use (in Calypso_firmwareVersionMajor/Minor/Patch).
-	 * Note: Firmware versions below 1.9.0 don't return Calypso firmware version info - in that case the version can't be determined. */
+     * Note: Firmware versions below 1.9.0 don't return Calypso firmware version info - in that case the version can't be determined. */
     if (id == Calypso_ATDevice_GetId_General && option == Calypso_ATDevice_GetGeneral_Version && pValue->general.version.calypsoFirmwareVersion[0] != '\0')
     {
         char* fw = pValue->general.version.calypsoFirmwareVersion;
@@ -291,15 +235,6 @@ bool Calypso_ATDevice_Get(Calypso_ATDevice_GetId_t id, uint8_t option, Calypso_A
     return true;
 }
 
-/**
- * @brief Sets device parameters (using the AT+set command).
- *
- * @param[in] id ID of parameter to be set. Valid IDs are Calypso_ATDevice_GetId_General and Calypso_ATDevice_GetId_UART.
- * @param[in] option Option to set. Valid values depend on ID.
- * @param[out] pValues Values for the specific ID/option
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_Set(Calypso_ATDevice_GetId_t id, uint8_t option, Calypso_ATDevice_Value_t* pValue)
 {
 
@@ -322,11 +257,6 @@ bool Calypso_ATDevice_Set(Calypso_ATDevice_GetId_t id, uint8_t option, Calypso_A
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Starts provisioning mode.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_StartProvisioning()
 {
     if (!Calypso_SendRequest("AT+provisioningStart\r\n"))
@@ -336,15 +266,6 @@ bool Calypso_ATDevice_StartProvisioning()
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Prints status flags to string (for debugging purposes).
- *
- * @param[in] flags Status flags
- * @param[out] pOutStr Output string buffer
- * @param[in] maxLength Size of output string buffer
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATDevice_PrintStatusFlags(uint32_t flags, char* pOutStr, size_t maxLength)
 {
     pOutStr[0] = '\0';
@@ -531,7 +452,7 @@ bool Calypso_ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char* pAtCo
                         return false;
                     }
                     /* Calypso firmware version is only returned by firmware versions >= 1.9.0 - in that case, there is another argument after the ROM version.
-			 * Otherwise, the ROM version is the last argument (followed by ATCOMMAND_STRING_TERMINATE). */
+             * Otherwise, the ROM version is the last argument (followed by ATCOMMAND_STRING_TERMINATE). */
 
                     if (ATCommand_GetNextArgumentString(&pAtCommand, version->ROMVersion, ATCOMMAND_ARGUMENT_DELIM, sizeof(version->ROMVersion)))
                     {
@@ -844,7 +765,7 @@ bool Calypso_ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char* pAtCo
 }
 
 /**
- * @param Checks if parameters are valid for the AT+set command.
+ * @brief Checks if parameters are valid for the AT+set command.
  *
  * @param[in] id The ID of the parameter to be added
  * @param[in] option The option to be added

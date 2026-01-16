@@ -32,6 +32,7 @@
 #include <DaphnisI/DaphnisI.h>
 #include <global/ATCommands.h>
 #include <stdio.h>
+#include <string.h>
 
 static bool DaphnisI_SetIntSetting(const char* setting, uint32_t integer, uint16_t int_flags);
 static bool DaphnisI_GetIntSetting(const char* setting, void* integerP, uint16_t int_flags);

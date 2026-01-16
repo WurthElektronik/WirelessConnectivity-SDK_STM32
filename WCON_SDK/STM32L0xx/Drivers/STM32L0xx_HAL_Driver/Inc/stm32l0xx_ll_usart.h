@@ -1624,6 +1624,18 @@ __STATIC_INLINE void LL_USART_SetBaudRate(USART_TypeDef *USARTx, uint32_t Periph
   }
 }
 
+__STATIC_INLINE uint32_t MinBaudRate(uint32_t PeriphClk, uint32_t OverSampling)
+{
+  if (OverSampling == LL_USART_OVERSAMPLING_8)
+  {
+	  return (2 * PeriphClk / 0xFFF);
+  }
+  else
+  {
+	  return (PeriphClk / 0xFFF);
+  }
+}
+
 /**
   * @brief  Return current Baud Rate value, according to USARTDIV present in BRR register
   *         (full BRR content), and to used Peripheral Clock and Oversampling mode values

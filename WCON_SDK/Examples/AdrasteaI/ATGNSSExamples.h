@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATGNSSExample();
+extern void ATGNSSExample();
 
 #ifdef __cplusplus
 }

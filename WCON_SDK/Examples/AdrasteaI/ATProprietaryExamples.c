@@ -36,11 +36,11 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {.state =
 
 void ATProprietaryExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATProprietary example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATProprietary example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATProprietary_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -62,7 +62,7 @@ void ATProprietaryExample()
     AdrasteaI_ExamplesPrint("Read Network Attachment State", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Attachment State: %d\r\n", networkAttachmentState);
+        WE_APP_PRINT("Attachment State: %d\r\n", networkAttachmentState);
     }
 
     AdrasteaI_ATProprietary_PIN_PUK_Attempts_t attempts;
@@ -70,7 +70,7 @@ void ATProprietaryExample()
     AdrasteaI_ExamplesPrint("Read Remaining PIN PUK Attempts", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Remaining Attempts PIN: %d, PUK: %d, PIN2: %d, PUK2: %d\r\n", attempts.pinAttempts, attempts.pukAttempts, attempts.pin2Attempts, attempts.puk2Attempts);
+        WE_APP_PRINT("Remaining Attempts PIN: %d, PUK: %d, PIN2: %d, PUK2: %d\r\n", attempts.pinAttempts, attempts.pukAttempts, attempts.pin2Attempts, attempts.puk2Attempts);
     }
 
     AdrasteaI_ATProprietary_RAT_Status_t ratStatus;
@@ -78,7 +78,7 @@ void ATProprietaryExample()
     AdrasteaI_ExamplesPrint("Read RAT Status", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
+        WE_APP_PRINT("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
     }
 
     memset(&status, -1, sizeof(AdrasteaI_ATPacketDomain_Network_Registration_Status_t));
@@ -93,7 +93,7 @@ void ATProprietaryExample()
     AdrasteaI_ExamplesPrint("Read RAT Status", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
+        WE_APP_PRINT("RAT Type: %d, RAT Mode: %d, RAT Source: %d\r\n", ratStatus.rat, ratStatus.mode, ratStatus.source);
     }
 
     AdrasteaI_ATProprietary_PDN_Parameters_t pdnParamters;
@@ -101,7 +101,7 @@ void ATProprietaryExample()
     AdrasteaI_ExamplesPrint("Read PDN Parameters", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Session ID: %d, APN Name: %s, IP Format: %d\r\n", pdnParamters.sessionID, pdnParamters.apnName, pdnParamters.ipFormat);
+        WE_APP_PRINT("Session ID: %d, APN Name: %s, IP Format: %d\r\n", pdnParamters.sessionID, pdnParamters.apnName, pdnParamters.ipFormat);
     }
 
     AdrasteaI_ATProprietary_File_Names_List_t filesnamesList;
@@ -111,7 +111,7 @@ void ATProprietaryExample()
     {
         for (uint8_t i = 0; i < filesnamesList.count; i++)
         {
-            WE_DEBUG_PRINT("Filename: %s\r\n", filesnamesList.filenames[i]);
+            WE_APP_PRINT("Filename: %s\r\n", filesnamesList.filenames[i]);
 
             ret = AdrasteaI_ATProprietary_DeleteCredential(filesnamesList.filenames[i]);
             AdrasteaI_ExamplesPrint("Delete Credential", ret);
@@ -150,7 +150,7 @@ CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\
     {
         for (uint8_t i = 0; i < tlsProfilesIDList.count; i++)
         {
-            WE_DEBUG_PRINT("SSL/TLS Profile ID: %d\r\n", tlsProfilesIDList.profileIDs[i]);
+            WE_APP_PRINT("SSL/TLS Profile ID: %d\r\n", tlsProfilesIDList.profileIDs[i]);
 
             ret = AdrasteaI_ATProprietary_DeleteTLSProfile(tlsProfilesIDList.profileIDs[i]);
 
@@ -185,7 +185,7 @@ void AdrasteaI_ATProprietary_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("Ping ID: %d, Address: %s, TTL: %d, RTT: %d\r\n", pingResult.id, pingResult.addr, pingResult.ttl, pingResult.rtt);
+            WE_APP_PRINT("Ping ID: %d, Address: %s, TTL: %d, RTT: %d\r\n", pingResult.id, pingResult.addr, pingResult.ttl, pingResult.rtt);
             break;
         }
         case AdrasteaI_ATEvent_Proprietary_Domain_Name_Resolve:
@@ -195,7 +195,7 @@ void AdrasteaI_ATProprietary_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("Address Format: %d, IP Address: %s\r\n", dnsResult.format, dnsResult.addr);
+            WE_APP_PRINT("Address Format: %d, IP Address: %s\r\n", dnsResult.format, dnsResult.addr);
             break;
         }
         default:

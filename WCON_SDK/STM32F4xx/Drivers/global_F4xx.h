@@ -45,7 +45,8 @@
 #include <global/global_types.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 extern void WE_SystemClock_Config(void);
@@ -58,7 +59,7 @@ extern void WE_SystemClock_Config(void);
  * @param[in] parity Parity bit configuration
  * @param[in] rxByteHandlerP Pointer to the handle rx byte function inside the driver. (this function should be called by the ISR for uart on data reception)
  */
-extern bool WE_UART1_Init(uint32_t baudrate, WE_FlowControl_t flowControl, WE_Parity_t parity, WE_UART_HandleRxByte_t *rxByteHandlerP);
+extern bool WE_UART1_Init(uint32_t baudrate, WE_FlowControl_t flowControl, WE_Parity_t parity, WE_UART_HandleRxByte_t* rxByteHandlerP);
 
 /**
  * @brief Deinitialize and stop the UART.
@@ -71,7 +72,7 @@ extern bool WE_UART1_DeInit();
  * @param[in] data Pointer to data buffer (data to be sent)
  * @param[in] length Number of bytes to be sent
  */
-extern bool WE_UART1_Transmit(const uint8_t *data, uint16_t length);
+extern bool WE_UART1_Transmit(const uint8_t* data, uint16_t length);
 
 /**
  * @brief Initialize and start the UART.
@@ -81,7 +82,7 @@ extern bool WE_UART1_Transmit(const uint8_t *data, uint16_t length);
  * @param[in] parity Parity bit configuration
  * @param[in] rxByteHandlerP Pointer to the handle rx byte function inside the driver. (this function should be called by the ISR for uart on data reception)
  */
-extern bool WE_UART6_Init(uint32_t baudrate, WE_FlowControl_t flowControl, WE_Parity_t parity, WE_UART_HandleRxByte_t *rxByteHandlerP);
+extern bool WE_UART6_Init(uint32_t baudrate, WE_FlowControl_t flowControl, WE_Parity_t parity, WE_UART_HandleRxByte_t* rxByteHandlerP);
 
 /**
  * @brief Deinitialize and stop the UART.
@@ -94,7 +95,7 @@ extern bool WE_UART6_DeInit();
  * @param[in] data Pointer to data buffer (data to be sent)
  * @param[in] length Number of bytes to be sent
  */
-extern bool WE_UART6_Transmit(const uint8_t *data, uint16_t length);
+extern bool WE_UART6_Transmit(const uint8_t* data, uint16_t length);
 
 #ifdef __cplusplus
 }

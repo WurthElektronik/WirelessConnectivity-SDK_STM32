@@ -24,7 +24,7 @@
  **/
 
 /**
- * @file
+ * @file ATEvent.c
  * @brief AT event definitions.
  */
 
@@ -52,23 +52,19 @@ static const ATCommand_Event_t moduleMainEvents[] = {
     PARENTEVENTENTRY("+MQTTPUB", MQTTSubEvents, ATCOMMAND_STRING_TERMINATE) LASTPARENTEVENTENTRY(NULL, WildCardSubEvents, ATCOMMAND_STRING_TERMINATE)                                                                                                                                        // <link ID>,CONNECT or <link ID>,CLOSED
 };
 
-/**
- * @brief Parses the received AT command and returns the corresponding StephanoI_ATEvent_t.
- *
- * @param[in,out] pAtCommand AT command starting with '+'
- * @param[out] pEvent StephanoI_ATEvent_t representing the event
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATEvent_ParseEventType(char** pAtCommand, StephanoI_ATEvent_t* pEvent)
 {
     char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE, ATCOMMAND_ARGUMENT_DELIM, '\r'};
 
-    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*)pEvent))
+    uint16_t event;
+
+    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), &event))
     {
         *pEvent = StephanoI_ATEvent_Invalid;
         return false;
     }
+
+    *pEvent = (StephanoI_ATEvent_t)event;
 
     return true;
 }

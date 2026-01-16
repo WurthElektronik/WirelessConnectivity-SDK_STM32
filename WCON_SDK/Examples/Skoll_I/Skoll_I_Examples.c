@@ -33,7 +33,7 @@
 #include <Skoll_I/Skoll_I_BluetoothLE_Examples.h>
 #include <Skoll_I/Skoll_I_Examples_handler.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -66,9 +66,9 @@ void Skoll_I_Examples(void)
     Skoll_I_uart.baudrate = SKOLL_I_DEFAULT_BAUDRATE;
     Skoll_I_uart.flowControl = WE_FlowControl_NoFlowControl;
 #if 0
-	/* use UART settings for high throughput */
-	Skoll_I_uart.baudrate = 2666666;
-	Skoll_I_uart.flowControl = WE_FlowControl_RTSAndCTS;
+    /* use UART settings for high throughput */
+    Skoll_I_uart.baudrate = 2666666;
+    Skoll_I_uart.flowControl = WE_FlowControl_RTSAndCTS;
 #endif
     Skoll_I_uart.parity = WE_Parity_None;
     Skoll_I_uart.uartInit = WE_UART1_Init;
@@ -76,24 +76,24 @@ void Skoll_I_Examples(void)
     Skoll_I_uart.uartTransmit = WE_UART1_Transmit;
 
 #if 0
-	/* reset */
+    /* reset */
 
-	if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
-	{
-		WE_DEBUG_PRINT("Initialization error\r\n");
-		return;
-	}
+    if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
+    {
+        WE_APP_PRINT("Initialization error\r\n");
+        return;
+    }
 
-	Skoll_I_PinReset();
-	WE_Delay(1000);
-	return;
+    Skoll_I_PinReset();
+    WE_Delay(1000);
+    return;
 
 #elif 0
     /* enables flow control and uses 2.666 MBaud */
 
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -108,7 +108,7 @@ void Skoll_I_Examples(void)
 
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ezs_cmd_system_factory_reset();
@@ -140,7 +140,7 @@ static void Test_System()
     /* initialize the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -172,7 +172,7 @@ static void Test_Settings()
     /* initialize the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -257,15 +257,15 @@ static void Test_Settings()
     Examples_Print("bt_get_parameters", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_get_parameters(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
 #if 0
-	Examples_Print("system_store_config", (packet = EZS_SEND_AND_WAIT(ezs_cmd_system_store_config(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
-	WE_Delay(1000);
+    Examples_Print("system_store_config", (packet = EZS_SEND_AND_WAIT(ezs_cmd_system_store_config(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
+    WE_Delay(1000);
 
-	ezs_cmd_system_factory_reset();
-	Examples_Print("system_factory_reset", (packet = EZS_WAIT_FOR_EVENT(5000)) != (ezs_packet_t*)NULL);
+    ezs_cmd_system_factory_reset();
+    Examples_Print("system_factory_reset", (packet = EZS_WAIT_FOR_EVENT(5000)) != (ezs_packet_t*)NULL);
 #else
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 #endif
@@ -294,10 +294,10 @@ static void Test_Compiler_Packing()
     if (test_packet->int_header != 0x1A020CC0)
     {
         /* endianness failed, compiler is using big-endian byte ordering */
-        WE_DEBUG_PRINT("\r\nINCOMPATIBLE COMPILER BEHAVIOR:\r\n");
-        WE_DEBUG_PRINT("EZ-Serial API byte stream requires little-endian, compiler is big-endian.\r\n");
-        WE_DEBUG_PRINT("Please review compiler flags for your toolchain to verify whether it is\r\n");
-        WE_DEBUG_PRINT("possible to switch to little-endian data storage.\r\n\r\n");
+        WE_APP_PRINT("\r\nINCOMPATIBLE COMPILER BEHAVIOR:\r\n");
+        WE_APP_PRINT("EZ-Serial API byte stream requires little-endian, compiler is big-endian.\r\n");
+        WE_APP_PRINT("Please review compiler flags for your toolchain to verify whether it is\r\n");
+        WE_APP_PRINT("possible to switch to little-endian data storage.\r\n\r\n");
         while (1)
         {
             /* loop forever, cannot communicate */
@@ -306,7 +306,7 @@ static void Test_Compiler_Packing()
     else
     {
         /* successful 32-bit integer byte order comparison */
-        WE_DEBUG_PRINT("Compiler endianness passes verification\r\n");
+        WE_APP_PRINT("Compiler endianness passes verification\r\n");
     }
 
     /* verify packing/alignment */
@@ -314,9 +314,9 @@ static void Test_Compiler_Packing()
         test_packet->payload.rsp_system_get_uart_parameters.databits != 0xDD || test_packet->payload.rsp_system_get_uart_parameters.parity != 0xEE || test_packet->payload.rsp_system_get_uart_parameters.stopbits != 0xFF)
     {
         /* packing failed, compiler is not tightly packing and/or properly aligning structures */
-        WE_DEBUG_PRINT("\r\nINCOMPATIBLE COMPILER BEHAVIOR:\r\n");
-        WE_DEBUG_PRINT("Structures must be fully packed, but compiler is generating padding.\r\n");
-        WE_DEBUG_PRINT("Please review and modify the __PACKDEF macro definition in ezsapi.h.\r\n\r\n");
+        WE_APP_PRINT("\r\nINCOMPATIBLE COMPILER BEHAVIOR:\r\n");
+        WE_APP_PRINT("Structures must be fully packed, but compiler is generating padding.\r\n");
+        WE_APP_PRINT("Please review and modify the __PACKDEF macro definition in ezsapi.h.\r\n\r\n");
         while (1)
         {
             /* loop forever, cannot communicate */
@@ -325,6 +325,6 @@ static void Test_Compiler_Packing()
     else
     {
         /* successful read back from packed structure */
-        WE_DEBUG_PRINT("Compiler structure packing passes verification\r\n");
+        WE_APP_PRINT("Compiler structure packing passes verification\r\n");
     }
 }

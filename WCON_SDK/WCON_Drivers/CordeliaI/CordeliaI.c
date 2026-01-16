@@ -181,15 +181,6 @@ static CordeliaI_Pins_t* CordeliaI_pinsP = NULL;
  */
 static WE_UART_t* CordeliaI_uartP = NULL;
 
-/**
- * @brief Initializes the serial communication with the module
- *
- * @param[in] uartP:          definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] eventCallback  Function pointer to event handler (optional)
-
- * @return true if successful, false otherwise
- */
 bool CordeliaI_Init(WE_UART_t* uartP, CordeliaI_Pins_t* pinoutP, CordeliaI_EventCallback_t eventCallback)
 {
     CordeliaI_requestPending = false;
@@ -206,12 +197,19 @@ bool CordeliaI_Init(WE_UART_t* uartP, CordeliaI_Pins_t* pinoutP, CordeliaI_Event
 
     CordeliaI_pinsP = pinoutP;
     CordeliaI_pinsP->CordeliaI_Pin_Reset.type = WE_Pin_Type_Output;
+    CordeliaI_pinsP->CordeliaI_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     CordeliaI_pinsP->CordeliaI_Pin_WakeUp.type = WE_Pin_Type_Output;
+    CordeliaI_pinsP->CordeliaI_Pin_WakeUp.initial_value.output = WE_Pin_Level_Low;
     CordeliaI_pinsP->CordeliaI_Pin_Boot.type = WE_Pin_Type_Output;
+    CordeliaI_pinsP->CordeliaI_Pin_Boot.initial_value.output = WE_Pin_Level_Low;
     CordeliaI_pinsP->CordeliaI_Pin_AppMode0.type = WE_Pin_Type_Output;
+    CordeliaI_pinsP->CordeliaI_Pin_AppMode0.initial_value.output = WE_Pin_Level_Low;
     CordeliaI_pinsP->CordeliaI_Pin_AppMode1.type = WE_Pin_Type_Output;
+    CordeliaI_pinsP->CordeliaI_Pin_AppMode1.initial_value.output = WE_Pin_Level_Low;
     CordeliaI_pinsP->CordeliaI_Pin_StatusInd0.type = WE_Pin_Type_Input;
+    CordeliaI_pinsP->CordeliaI_Pin_StatusInd0.initial_value.input_pull = WE_Pin_PullType_No;
     CordeliaI_pinsP->CordeliaI_Pin_StatusInd1.type = WE_Pin_Type_Input;
+    CordeliaI_pinsP->CordeliaI_Pin_StatusInd1.initial_value.input_pull = WE_Pin_PullType_No;
 
     WE_Pin_t pins[sizeof(CordeliaI_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -226,12 +224,6 @@ bool CordeliaI_Init(WE_UART_t* uartP, CordeliaI_Pins_t* pinoutP, CordeliaI_Event
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    /* Set initial pin levels */
-    if (!WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_AppMode0, WE_Pin_Level_Low) || !WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_AppMode1, WE_Pin_Level_Low))
-    {
         return false;
     }
 
@@ -253,13 +245,24 @@ bool CordeliaI_Init(WE_UART_t* uartP, CordeliaI_Pins_t* pinoutP, CordeliaI_Event
     return true;
 }
 
-/**
- * @brief Deinitializes the serial communication with the module.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_Deinit(void)
 {
+    WE_Pin_t pins[sizeof(CordeliaI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_WakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_AppMode0, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_AppMode1, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_StatusInd0, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &CordeliaI_pinsP->CordeliaI_Pin_StatusInd1, sizeof(WE_Pin_t));
+
+    /* deinit pins */
+    if (!WE_DeinitPins(pins, pin_count))
+    {
+        return false;
+    }
+
     CordeliaI_eventCallback = NULL;
 
     CordeliaI_rxByteCounter = 0;
@@ -270,13 +273,6 @@ bool CordeliaI_Deinit(void)
     return CordeliaI_uartP->uartDeinit();
 }
 
-/**
- * @brief Sets the CordeliaI's application mode pins APP_MODE_0 and APP_MODE_1.
- *
- * @param[in] appMode Application mode to set
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_SetApplicationModePins(CordeliaI_ApplicationMode_t appMode)
 {
     if (!WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_AppMode0, (0 != (appMode & 0x01)) ? WE_Pin_Level_High : WE_Pin_Level_Low))
@@ -286,11 +282,6 @@ bool CordeliaI_SetApplicationModePins(CordeliaI_ApplicationMode_t appMode)
     return WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_AppMode1, (0 != (appMode & 0x02)) ? WE_Pin_Level_High : WE_Pin_Level_Low);
 }
 
-/**
- * @brief Performs a reset of the module using the reset pin.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_PinReset(void)
 {
     if (!WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_Reset, WE_Pin_Level_Low))
@@ -301,11 +292,6 @@ bool CordeliaI_PinReset(void)
     return WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_Reset, WE_Pin_Level_High);
 }
 
-/**
- * @brief Wakes the module up from power save mode using the wake up pin.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_PinWakeUp(void)
 {
     if (!WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_WakeUp, WE_Pin_Level_High))
@@ -316,32 +302,14 @@ bool CordeliaI_PinWakeUp(void)
     return WE_SetPin(CordeliaI_pinsP->CordeliaI_Pin_WakeUp, WE_Pin_Level_Low);
 }
 
-/**
- * @brief Gets the pin level
- *
- * @param[in] pin: the pin to be checked
- *
- * @param[out] pin_levelP: the pin level
- *
- * @return true if request succeeded,
- *         false otherwise
- *
- */
 bool CordeliaI_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP) { return WE_GetPinLevel(pin, pin_levelP); }
 
-/**
- * @brief Sends the supplied AT command to the module
- *
- * @param[in] data AT command to send. Note that the command has to end with "\r\n\0".
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_SendRequest(char* data)
 {
     if (CordeliaI_executingEventCallback)
     {
         /* Don't allow sending AT commands from event handlers, as this will
-		 * mess up send/receive states and buffers. */
+         * mess up send/receive states and buffers. */
         return false;
     }
 
@@ -351,7 +319,7 @@ bool CordeliaI_SendRequest(char* data)
     CordeliaI_lastErrorCode = 0;
 
     /* Make sure that the time between the last confirmation received from the module
-	 * and the next command sent to the module is not shorter than CordeliaI_minCommandIntervalUsec */
+     * and the next command sent to the module is not shorter than CordeliaI_minCommandIntervalUsec */
     uint32_t t = WE_GetTickMicroseconds() - CordeliaI_lastConfirmTimeUsec;
     if (t < CordeliaI_minCommandIntervalUsec)
     {
@@ -373,26 +341,13 @@ bool CordeliaI_SendRequest(char* data)
         }
     }
 
-#ifdef WE_DEBUG
-    printf("> %s", data);
-#endif
+    WE_DEBUG_PRINT_DEBUG("> %s", data);
 
     CordeliaI_Transparent_Transmit(data, dataLength);
 
     return true;
 }
 
-/**
- * @brief Sends raw data to CordeliaI via UART.
- *
- * This function sends data immediately without any processing and is used
- * internally for sending AT commands to CordeliaI.
- *
- * @param[in] data Pointer to data buffer (data to be sent)
- * @param[in] dataLength Number of bytes to be sent
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_Transparent_Transmit(const char* data, uint16_t dataLength)
 {
     if ((data == NULL) || (dataLength == 0))
@@ -402,15 +357,6 @@ bool CordeliaI_Transparent_Transmit(const char* data, uint16_t dataLength)
     return CordeliaI_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Waits for the response from the module after a request.
- *
- * @param[in] maxTimeMs Maximum wait time in milliseconds
- * @param[in] expectedStatus Status to wait for
- * @param[out] pOutResponse Received response text (if any) will be written to this buffer (optional)
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_WaitForConfirm(uint32_t maxTimeMs, CordeliaI_CNFStatus_t expectedStatus, char* pOutResponse)
 {
     CordeliaI_cmdConfirmStatus = CordeliaI_CNFStatus_Invalid;
@@ -458,13 +404,6 @@ bool CordeliaI_WaitForConfirm(uint32_t maxTimeMs, CordeliaI_CNFStatus_t expected
     return false;
 }
 
-/**
- * @brief Returns the code of the last error (if any).
- *
- * @param[out] lastErrorText Text of last error (if any). See CordeliaI_lastErrorText for max. buffer size.
- *
- * @return Last error code (if any)
- */
 int32_t CordeliaI_GetLastError(char* lastErrorText)
 {
     if (NULL != lastErrorText)
@@ -474,16 +413,6 @@ int32_t CordeliaI_GetLastError(char* lastErrorText)
     return CordeliaI_lastErrorCode;
 }
 
-/**
- * @brief Set timing parameters used by the CordeliaI driver.
- *
- * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
- *
- * @param[in] waitTimeStepUsec Time step (microseconds) when waiting for responses from CordeliaI.
- * @param[in] minCommandIntervalUsec Minimum interval (microseconds) between subsequent commands sent to CordeliaI.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
     CordeliaI_waitTimeStepUsec = waitTimeStepUsec;
@@ -491,21 +420,7 @@ bool CordeliaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minComman
     return true;
 }
 
-/**
- * @brief Sets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- * @param[in] timeout Timeout in milliseconds
- */
 void CordeliaI_SetTimeout(CordeliaI_Timeout_t type, uint32_t timeout) { CordeliaI_timeouts[type] = timeout; }
-
-/**
- * @brief Gets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- *
- * @return Timeout in milliseconds
- */
 uint32_t CordeliaI_GetTimeout(CordeliaI_Timeout_t type) { return CordeliaI_timeouts[type]; }
 
 /**
@@ -584,9 +499,7 @@ static void CordeliaI_HandleRxByte(uint8_t* dataP, size_t size)
  */
 static void CordeliaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
-#ifdef WE_DEBUG
-    printf("< %s\r\n", rxPacket);
-#endif
+    WE_DEBUG_PRINT_DEBUG("< %s\r\n", rxPacket);
 
     /* Check if a custom line rx callback is specified and call it if so */
     if (NULL != CordeliaI_lineRxCallback)
@@ -641,7 +554,7 @@ static void CordeliaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
         else
         {
             /* Doesn't start with o or e - copy to response text buffer, if the start
-			 * of the response matches the pending command name preceded by '+' */
+             * of the response matches the pending command name preceded by '+' */
             if (rxLength < CORDELIAI_LINE_MAX_SIZE && rxLength > 1 && CordeliaI_rxBuffer[0] == '+' && CordeliaI_pendingCommandName[0] != '\0' && 0 == strncasecmp(CordeliaI_pendingCommandName, CordeliaI_rxBuffer + 1, CordeliaI_pendingCommandNameLength))
             {
                 /* Copy to response text buffer, taking care not to exceed buffer size */
@@ -668,33 +581,10 @@ static void CordeliaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
     }
 }
 
-/**
- * @brief Sets the callback function which is executed if a byte has been received from CordeliaI.
- *
- * The default callback is CordeliaI_HandleRxByte().
- *
- * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
- */
 void CordeliaI_SetByteRxCallback(WE_UART_HandleRxByte_t callback) { byteRxCallback = (callback == NULL) ? CordeliaI_HandleRxByte : callback; }
 
-/**
- * @brief Sets an optional callback function which is executed if a line has been received from CordeliaI.
- * Can be used to intercept responses from CordeliaI.
- *
- * The callback function must return true if the line should not be processed by the driver
- * and false if the driver should process the line as usual.
- *
- * @param[in] callback Pointer to line received callback function
- */
 void CordeliaI_SetLineRxCallback(CordeliaI_LineRxCallback_t callback) { CordeliaI_lineRxCallback = callback; }
 
-/**
- * @brief Sets EOL character(s) used for interpreting responses from CordeliaI.
- *
- * @param[in] eol1 First EOL character
- * @param[in] eol2 Second EOL character (is only used if twoEolCharacters is true)
- * @param[in] twoEolCharacters Controls whether the two EOL characters eol1 and eol2 (true) or only eol1 (false) is used
- */
 void CordeliaI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
     CordeliaI_eolChar1 = eol1;

@@ -33,6 +33,7 @@
 #include <ProteusE/ProteusE_Examples.h>
 #include <ProteusII/ProteusII_Examples.h>
 #include <ProteusIII/ProteusIII_Examples.h>
+#include <ProteusIV/ProteusIV_Examples.h>
 #include <Skoll_I/Skoll_I_Examples.h>
 #include <StephanoI/StephanoI_Examples.h>
 #include <TarvosE/TarvosE_Examples.h>
@@ -43,6 +44,8 @@
 #include <ThyoneE/ThyoneE_Examples.h>
 #include <ThyoneI/ThyoneI_Examples.h>
 #include <global/global.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 
 int main(void)
@@ -50,8 +53,8 @@ int main(void)
     /* Initialize platform (peripherals, flash interface, Systick, system clock) */
     WE_Platform_Init();
 
-#ifdef WE_DEBUG
-    WE_Debug_Init();
+#if ((WE_DEBUG_PRINT_LEVEL > WE_DEBUG_PRINT_LEVEL_OFF) || defined(WE_APP_PRINT_ENABLED))
+    WE_Print_Init();
 #endif
 
     /* add delay to not start the example too early, as flasher starts old code before it's actually flashed */
@@ -59,7 +62,7 @@ int main(void)
 
     uint8_t driverVersion[3];
     WE_GetDriverVersion(driverVersion);
-    WE_DEBUG_PRINT("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
+    WE_APP_PRINT("Wuerth Elektronik eiSos Wireless Connectivity SDK version %d.%d.%d\r\n", driverVersion[0], driverVersion[1], driverVersion[2]);
     /* select the example to run */
     //AdrasteaI_Examples();
     //Calypso_Examples();
@@ -70,6 +73,7 @@ int main(void)
     //ProteusE_Examples();
     //ProteusII_Examples();
     //ProteusIII_Examples();
+    ProteusIV_Examples();
     //Skoll_I_Examples();
     //StephanoI_Examples();
     //ThyoneE_Examples();
@@ -80,7 +84,7 @@ int main(void)
     //ThebeII_Examples();
     //ThemistoI_Examples();
     //MultiModule_ProteusIII_TarvosIII_Examples();
-    WE_DEBUG_PRINT("*** End of execution ***\r\n");
+    WE_APP_PRINT("*** End of execution ***\r\n");
     while (1)
     {
         WE_Delay(5000);

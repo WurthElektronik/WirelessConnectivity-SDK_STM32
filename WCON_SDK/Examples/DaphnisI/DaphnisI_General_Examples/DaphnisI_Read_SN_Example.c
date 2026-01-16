@@ -25,26 +25,40 @@
 
 /**
  * @file
- * @brief DaphnisI P2P Throughput test.
+ * @brief DaphnisI Read Serial Number example.
  *
  */
-
-#ifndef DAPHNISI_P2P_RF_PROFILES_THROUGHPUT_TESTS_H_INCLUDED
-#define DAPHNISI_P2P_RF_PROFILES_THROUGHPUT_TESTS_H_INCLUDED
+#include <DaphnisI/ATCommands/ATDevice.h>
+#include <DaphnisI/DaphnisI.h>
+#include <DaphnisI/DaphnisI_Examples.h>
+#include <DaphnisI/DaphnisI_General_Examples/DaphnisI_Read_SN_Example.h>
+#include <global/global.h>
+#include <stdio.h>
 
 #if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
-#ifdef __cplusplus
-extern "C"
+/**
+ * @brief In this example the serial number of the module is read back.
+ */
+void DaphnisI_Read_Serial_Number_Example()
 {
-#endif
+    if (!DaphnisI_Init(&DaphnisI_uart, &DaphnisI_pins, NULL))
+    {
+        WE_APP_PRINT("Initialization error\r\n");
+        return;
+    }
 
-    extern void DaphnisI_P2P_Throughput_Test();
+    DaphnisI_SerialNumber_t serial_number;
 
-#ifdef __cplusplus
+    if (!DaphnisI_GetSerialNumber(&serial_number))
+    {
+        WE_APP_PRINT("Failed to read back serial number\r\n");
+        return;
+    }
+
+    WE_APP_PRINT("The read back serial number is ");
+    DaphnisI_Print_Key_Addr(serial_number, DAPHNISI_ADDRESS_LENGTH);
+    WE_APP_PRINT("\r\n");
 }
-#endif
 
 #endif
-
-#endif /* DAPHNISI_P2P_RF_PROFILES_THROUGHPUT_TESTS_H_INCLUDED */

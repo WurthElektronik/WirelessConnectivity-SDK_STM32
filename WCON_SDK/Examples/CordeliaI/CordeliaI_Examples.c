@@ -34,7 +34,7 @@
 #include <CordeliaI/CordeliaI_Examples.h>
 #include <CordeliaI/CordeliaI_Quarklink_Example.h>
 #include <global/global_types.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
 #include <stdio.h>
 #include <string.h>
 

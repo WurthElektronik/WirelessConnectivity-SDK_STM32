@@ -112,13 +112,13 @@ void Calypso_P2P_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t* rcvdEvent)
 
 void Calypso_P2P_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso P2P example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso P2P example ***\r\n");
 
     bool ret;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_P2P_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -127,8 +127,8 @@ void Calypso_P2P_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -152,10 +152,10 @@ void Calypso_P2P_Example(void)
     Calypso_Examples_Print("Set P2P mode", ret);
 
     /* Main P2P example loop - tries to establish a connection to the first peer being discovered,
-	 * then creates a TCP port and waits for incoming connections. When the peer connects to the
-	 * port, we wait for incoming characters and send the characters back (converted to uppercase).
-	 * When the connection fails / is lost, the network processor is restarted and the sequence
-	 * starts from the beginning. */
+     * then creates a TCP port and waits for incoming connections. When the peer connects to the
+     * port, we wait for incoming characters and send the characters back (converted to uppercase).
+     * When the connection fails / is lost, the network processor is restarted and the sequence
+     * starts from the beginning. */
     while (true)
     {
         p2pConnected = false;
@@ -178,7 +178,7 @@ void Calypso_P2P_Example(void)
 
             if (ret)
             {
-                WE_DEBUG_PRINT("Number of scan entries: %d\r\n", numScanEntries);
+                WE_APP_PRINT("Number of scan entries: %d\r\n", numScanEntries);
 
                 if (numScanEntries == 0)
                 {
@@ -197,7 +197,7 @@ void Calypso_P2P_Example(void)
 
             if (WE_GetTick() - t > p2pConnectTimeoutMs)
             {
-                WE_DEBUG_PRINT("Timeout waiting for P2P request event.\r\n");
+                WE_APP_PRINT("Timeout waiting for P2P request event.\r\n");
                 p2pConnectFail = true;
                 break;
             }
@@ -211,7 +211,7 @@ void Calypso_P2P_Example(void)
 
             if (WE_GetTick() - t > p2pConnectTimeoutMs)
             {
-                WE_DEBUG_PRINT("Timeout waiting for P2P connect event.\r\n");
+                WE_APP_PRINT("Timeout waiting for P2P connect event.\r\n");
                 p2pConnectFail = true;
                 break;
             }
@@ -239,11 +239,11 @@ void Calypso_P2P_Example(void)
             }
             if (ret)
             {
-                WE_DEBUG_PRINT("*** P2P IPv4 configuration ***\r\n");
-                WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-                WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-                WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-                WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+                WE_APP_PRINT("*** P2P IPv4 configuration ***\r\n");
+                WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+                WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+                WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+                WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
             }
 
             /* Create TCP socket, bind it to a port and start listening for incoming connections */
@@ -272,7 +272,7 @@ void Calypso_P2P_Example(void)
                     /* The peer has connected to the server */
                     p2pServerConnectionAccepted = false;
 
-                    WE_DEBUG_PRINT("Peer %s:%d connected.\r\n", p2pServerAcceptEvent.clientAddress, p2pServerAcceptEvent.clientPort);
+                    WE_APP_PRINT("Peer %s:%d connected.\r\n", p2pServerAcceptEvent.clientAddress, p2pServerAcceptEvent.clientPort);
 
                     /* This is the socket ID that can be used for communicating with the peer */
                     tcpServerClientSocketID = p2pServerAcceptEvent.socketID;
@@ -289,7 +289,7 @@ void Calypso_P2P_Example(void)
                     else
                     {
                         /* Start waiting for data. An Calypso_ATEvent_SocketRcvd event is generated when new
-						 * data is available (see Calypso_eventCallback()). */
+                         * data is available (see Calypso_eventCallback()). */
                         p2pExampleWaitingForData = true;
                         Calypso_ATSocket_Receive(tcpServerClientSocketID, Calypso_DataFormat_Binary, CALYPSO_MAX_PAYLOAD_SIZE);
 
@@ -455,7 +455,7 @@ void Calypso_P2P_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t* rcvdEvent)
 {
     memcpy(p2pExampleReceiveBuffer, rcvdEvent->data, rcvdEvent->length);
     p2pExampleReceiveBuffer[rcvdEvent->length] = '\0';
-    WE_DEBUG_PRINT("RECEIVED %s\r\n", p2pExampleReceiveBuffer);
+    WE_APP_PRINT("RECEIVED %s\r\n", p2pExampleReceiveBuffer);
 
     p2pExampleWaitingForData = false;
 }

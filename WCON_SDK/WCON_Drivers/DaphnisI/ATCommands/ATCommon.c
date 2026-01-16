@@ -28,6 +28,7 @@
  * @brief Common functions for DaphnisI source file.
  */
 #include <DaphnisI/ATCommands/ATCommon.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -41,13 +42,12 @@ bool DaphnisI_ByteArrayToKeyAddr(uint8_t* byteArray, uint16_t byteArrayLength, c
     }
 
     uint16_t i;
-
     for (i = 0; i < byteArrayLength - 1; i++)
     {
-        sprintf(&keyAddr[3 * i], "%02X:", byteArray[byteArrayLength - 1 - i]);
+        sprintf(&keyAddr[3 * i], "%02" PRIX32 ":", (uint32_t)byteArray[byteArrayLength - 1 - i]);
     }
 
-    sprintf(&keyAddr[3 * i], "%02X", byteArray[byteArrayLength - 1 - i]);
+    sprintf(&keyAddr[3 * i], "%02" PRIX32, (uint32_t)byteArray[byteArrayLength - 1 - i]);
 
     keyAddr[(3 * byteArrayLength) - 1] = '\0';
 
@@ -61,11 +61,9 @@ bool DaphnisI_ByteArrayToHexString(uint8_t* byteArray, uint16_t byteArrayLength,
         return false;
     }
 
-    uint16_t i;
-
-    for (i = 0; i < byteArrayLength; i++)
+    for (uint16_t i = 0; i < byteArrayLength; i++)
     {
-        sprintf(&hexString[2 * i], "%02X", byteArray[i]);
+        sprintf(&hexString[2 * i], "%02" PRIX32, (uint32_t)byteArray[i]);
     }
 
     hexString[2 * byteArrayLength] = '\0';
@@ -78,7 +76,6 @@ bool DaphnisI_KeyAddrToByteArray(char* keyAddr, uint16_t keyAddrLength, uint8_t*
     if (keyAddr == NULL)
     {
         return false;
-        ;
     }
 
     if (keyAddr[keyAddrLength] != '\0')
@@ -88,10 +85,9 @@ bool DaphnisI_KeyAddrToByteArray(char* keyAddr, uint16_t keyAddrLength, uint8_t*
 
     for (uint16_t i = 0; i < keyAddrLength; i += 3)
     {
-        unsigned int temp;
-        sscanf(&keyAddr[i], "%02X", &temp);
-        temp &= 0xFF;
-        memcpy(&byteArray[(keyAddrLength - 1 - i) / 3], &temp, sizeof(uint8_t));
+        uint32_t temp;
+        sscanf(&keyAddr[i], "%02" SCNx32, &temp);
+        byteArray[(keyAddrLength - 1 - i) / 3] = (uint8_t)(temp & 0xFF);
     }
 
     return true;
@@ -102,7 +98,6 @@ bool DaphnisI_HexStringToByteArray(char* hexString, uint16_t hexStringLength, ui
     if (hexString == NULL)
     {
         return false;
-        ;
     }
 
     if (hexString[hexStringLength] != '\0')
@@ -112,10 +107,9 @@ bool DaphnisI_HexStringToByteArray(char* hexString, uint16_t hexStringLength, ui
 
     for (uint16_t i = 0; i < hexStringLength; i += 2)
     {
-        unsigned int temp;
-        sscanf(&hexString[i], "%02X", &temp);
-        temp &= 0xFF;
-        memcpy(&byteArray[i / 2], &temp, sizeof(uint8_t));
+        uint32_t temp;
+        sscanf(&hexString[i], "%02" SCNx32, &temp);
+        byteArray[i / 2] = (uint8_t)(temp & 0xFF);
     }
 
     return true;

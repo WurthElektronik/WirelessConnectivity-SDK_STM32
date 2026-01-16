@@ -364,6 +364,12 @@ ErrorStatus LL_USART_Init(USART_TypeDef *USARTx, LL_USART_InitTypeDef *USART_Ini
     if ((periphclk != LL_RCC_PERIPH_FREQUENCY_NO)
         && (USART_InitStruct->BaudRate != 0U))
     {
+	  uint32_t minbaudrate = MinBaudRate(periphclk, USART_InitStruct->OverSampling);
+	  if (USART_InitStruct->BaudRate < minbaudrate)
+	  {
+		return ERROR;
+	  }
+
       status = SUCCESS;
       LL_USART_SetBaudRate(USARTx,
                            periphclk,

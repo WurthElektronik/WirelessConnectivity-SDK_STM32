@@ -1,6 +1,6 @@
 /*
  ***************************************************************************************************
- * This file is part of WIRELESS CONNECTIVITY SDK:
+ * This file is part of WIRELESS CONNECTIVITY SDK for STM32:
  *
  *
  * THE SOFTWARE INCLUDING THE SOURCE CODE IS PROVIDED “AS IS”. YOU ACKNOWLEDGE THAT WÜRTH ELEKTRONIK
@@ -25,27 +25,26 @@
 
 /**
  * @file
- * @brief Contains type definitions used in the Wireless Connectivity SDK.
+ * @brief DaphnisI P2P Throughput test.
+ *
  */
 
-#ifndef GLOBAL_PLATFORM_TYPES_H_
-#define GLOBAL_PLATFORM_TYPES_H_
+#ifndef DAPHNISI_P2P_THROUGHPUT_TEST_EXAMPLE_H_INCLUDED
+#define DAPHNISI_P2P_THROUGHPUT_TEST_EXAMPLE_H_INCLUDED
 
-#if defined(STM32L073xx)
-#include "global_L0xx.h"
-#elif defined(STM32F401xE)
-#include "global_F4xx.h"
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-/**
- * @brief Configuration of a STM32 pin.
- */
-typedef struct WE_STM32_Pin_t
-{
-    GPIO_TypeDef* port;
-    uint32_t pin;
-} WE_STM32_Pin_t;
+extern void DaphnisI_P2P_Throughput_Test();
 
-#define WE_STM32_PIN(PORT_ID, PIN_ID) ((WE_STM32_Pin_t){.port = PORT_ID, .pin = PIN_ID})
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* GLOBAL_PLATFORM_TYPES_H_ */
+#endif
+
+#endif /* DAPHNISI_P2P_THROUGHPUT_TEST_EXAMPLE_H_INCLUDED */

@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATProprietaryExample();
+extern void ATProprietaryExample();
 
 #ifdef __cplusplus
 }

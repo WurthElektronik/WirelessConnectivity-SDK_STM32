@@ -41,11 +41,11 @@ static AdrasteaI_ATHTTP_Event_Result_t requestState = {.state = -1};
  */
 void ATHTTPExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATHTTP example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATHTTP example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATHTTP_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -84,7 +84,7 @@ void ATHTTPExample()
     AdrasteaI_ExamplesPrint("Read Response", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Data Length: %d, Received Length: %d, Payload: %s\r\n", response.dataLength, response.receivedLength, response.responseBody);
+        WE_APP_PRINT("Data Length: %d, Received Length: %d, Payload: %s\r\n", response.dataLength, response.receivedLength, response.responseBody);
     }
 }
 

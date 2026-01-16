@@ -34,7 +34,7 @@
 #include <AdrasteaI/ATSMSExamples.h>
 #include <AdrasteaI/ATSocketExamples.h>
 #include <AdrasteaI/AdrasteaI_Examples.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
 #include <stdio.h>
 
 /**
@@ -74,7 +74,7 @@ void AdrasteaI_Examples()
     //    ATProprietaryExample();
     //    ATSIMExample();
     //    ATSMSExample();
-    //	ATSocketExample();
+    //    ATSocketExample();
 
     return;
 }
@@ -85,4 +85,4 @@ void AdrasteaI_Examples()
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void AdrasteaI_ExamplesPrint(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+void AdrasteaI_ExamplesPrint(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

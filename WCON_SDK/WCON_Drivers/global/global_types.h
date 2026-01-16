@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file global_types.h
  * @brief Contains type definitions used in the Wireless Connectivity SDK.
  */
 
@@ -35,10 +35,20 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+ * @brief Combines major, minor, and patch version numbers into a single 32-bit integer.
+ *
+ * @param[in] ma: Major
+ * @param[in] mi: Minor
+ * @param[in] pa: Patch
+ *
+ * @return int that represents the firmware version.
+ */
+
 #define FW(ma, mi, pa) ((ma << 16) | (mi << 8) | pa)
 
 /**
- * @brief Used to configure a pin as input or output.
+ * @brief Marks the pin as input or output pin.
  */
 typedef enum WE_Pin_Type_t
 {
@@ -47,16 +57,7 @@ typedef enum WE_Pin_Type_t
 } WE_Pin_Type_t;
 
 /**
- * @brief Configuration of one pin.
- */
-typedef struct WE_Pin_t
-{
-    void* pin_def;
-    WE_Pin_Type_t type;
-} WE_Pin_t;
-
-/**
- * @brief Configures pin pull type.
+ * @brief Defines pin pull type.
  */
 typedef enum WE_Pin_PullType_t
 {
@@ -66,13 +67,27 @@ typedef enum WE_Pin_PullType_t
 } WE_Pin_PullType_t;
 
 /**
- * @brief Pin level (high/low).
+ * @brief Defines the level of a pin (high/low).
  */
 typedef enum WE_Pin_Level_t
 {
     WE_Pin_Level_Low = (uint8_t)0, /**< Pin level LOW */
     WE_Pin_Level_High = (uint8_t)1 /**< Pin level HIGH */
 } WE_Pin_Level_t;
+
+/**
+ * @brief Configuration of one pin.
+ */
+typedef struct WE_Pin_t
+{
+    void* pin_def;      /**< Pointer to pin definition (platform agnostic) */
+    WE_Pin_Type_t type; /**< Pin type */
+    union
+    {
+        WE_Pin_PullType_t input_pull; /**< Initial value of input pull type */
+        WE_Pin_Level_t output;        /**< Initial value of output */
+    } initial_value;                  /**< Initial value of the pin */
+} WE_Pin_t;
 
 /**
  * @brief UART flow control configuration.
@@ -98,40 +113,53 @@ typedef enum WE_Parity_t
 /**
  * @brief Handle one or several bytes received via UART.
  *
- * @param[in] receivedByte The received byte
+ * @param[in] received_bytesP: Pointer to the buffer of bytes received via UART
+ * @param[in] length: Number of received bytes
+ *
+ * @return None
  */
-typedef void (*WE_UART_HandleRxByte_t)(uint8_t*, size_t);
+typedef void (*WE_UART_HandleRxByte_t)(uint8_t* received_bytesP, size_t length);
 
 /**
- * @brief UART Init.
- * Arguments: baudrate, flow control, parity, pointer to the handle rx byte function
+ * @brief Initialization and start of the UART using the provided settings (baud rate, flow control,...).
+ * 
+ * @param[in] baudrate: Baud rate
+ * @param[in] flow_control: The type of flow control
+ * @param[in] parity: The type of parity
+ * @param[in] RXbyte_handlerP: Function pointer to the byte handler that will be called whenever bytes are received
+ *
+ * @return True in case initialization succeeded, false otherwise
  */
-typedef bool (*WE_UART_Init_t)(uint32_t, WE_FlowControl_t, WE_Parity_t, WE_UART_HandleRxByte_t*);
+typedef bool (*WE_UART_Init_t)(uint32_t baudrate, WE_FlowControl_t flow_control, WE_Parity_t parity, WE_UART_HandleRxByte_t* RXbyte_handlerP);
 
 /**
- * @brief UART Deinit.
+ * @brief De-initialization of the UART.
+ *
+ * @return True in case de-initialization succeeded, false otherwise
  */
 typedef bool (*WE_UART_DeInit_t)();
 
 /**
  * @brief Transmit data via UART.
  *
- * @param[in] data Pointer to data buffer (data to be sent)
- * @param[in] length Number of bytes to be sent
+ * @param[in] dataP: Pointer to buffer of data to be sent via UART
+ * @param[in] length: Number of bytes to be sent
+ *
+ * @return True in case UART data transmission succeeded, false otherwise
  */
-typedef bool (*WE_UART_Transmit_t)(const uint8_t*, uint16_t);
+typedef bool (*WE_UART_Transmit_t)(const uint8_t* dataP, uint16_t length);
 
 /**
- * @brief Used to store pointers to uart functions.
+ * @brief Used to store pointers to UART functions and configuration.
  */
 typedef struct WE_UART_t
 {
-    WE_UART_Init_t uartInit;
-    WE_UART_DeInit_t uartDeinit;
-    WE_UART_Transmit_t uartTransmit;
-    uint32_t baudrate;
-    WE_FlowControl_t flowControl;
-    WE_Parity_t parity;
+    WE_UART_Init_t uartInit;         /**< Pointer to UART initialization function */
+    WE_UART_DeInit_t uartDeinit;     /**< Pointer to UART de-initialization function */
+    WE_UART_Transmit_t uartTransmit; /**< Pointer to UART transmit function */
+    uint32_t baudrate;               /**< UART baud rate configuration */
+    WE_FlowControl_t flowControl;    /**< UART flow control setting */
+    WE_Parity_t parity;              /**< UART parity configuration */
 } WE_UART_t;
 
 #endif /* GLOBAL_TYPES_H_INCLUDED */

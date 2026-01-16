@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATNetServiceExample();
+extern void ATNetServiceExample();
 
 #ifdef __cplusplus
 }

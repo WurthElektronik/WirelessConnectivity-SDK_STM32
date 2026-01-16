@@ -33,18 +33,50 @@
 #ifndef DAPHNISI_EXAMPLES_H_INCLUDED
 #define DAPHNISI_EXAMPLES_H_INCLUDED
 
+#include <DaphnisI/ATCommands/ATUserSettings.h>
 #include <DaphnisI/DaphnisI.h>
+#include <print.h>
+
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+#define MODULE_ROLE_TX 0
+#define MODULE_ROLE_RX 1
+#include <DaphnisI/ATCommands/ATGPIO.h>
+#endif
+
+/*
+ * State machine for Daphnis-I P2P RX example.
+ * */
+typedef enum
+{
+    DaphnisI_Setting_Status_Unmodified = (1 << 0),
+    DaphnisI_Setting_Status_Modified = (1 << 1),
+    DaphnisI_Setting_Status_Failure = (1 << 2)
+} DaphnisI_Setting_Status_t;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern DaphnisI_Pins_t DaphnisI_pins;
+extern DaphnisI_Pins_t DaphnisI_pins;
 
-    extern WE_UART_t DaphnisI_uart;
+extern WE_UART_t DaphnisI_uart;
 
-    extern void DaphnisI_Examples(void);
+extern void DaphnisI_Examples(void);
+
+extern void DaphnisI_Print_Key_Addr(uint8_t* key_addr, uint8_t key_addr_length);
+
+extern void DaphnisI_Print_Payload(uint8_t* payload, uint8_t payload_length);
+
+extern bool DaphnisI_Apply_Settings(DaphnisI_Setting_Status_t settings_statuses);
+
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+
+extern DaphnisI_Setting_Status_t DaphnisI_Mode_Check_and_Set(DaphnisI_Mode_t new_mode);
+
+extern bool DaphnisI_Are_GPIO_Configurations_Valid(DaphnisI_GPIOConfigBlock_t* current_configurations, uint8_t current_configurations_count, DaphnisI_GPIOConfigBlock_t* new_configurations, uint8_t new_configurations_count);
+
+#endif /* DAPHNISI_MIN_FW_VER >= FW(1, 4, 0) */
 
 #ifdef __cplusplus
 }

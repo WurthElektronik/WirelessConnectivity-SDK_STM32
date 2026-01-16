@@ -42,11 +42,11 @@ static AdrasteaI_ATMQTT_Subscription_Result_t subResult = {.resultCode = -1};
  */
 void ATMQTTExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATMQTT example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATMQTT example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATMQTT_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -119,7 +119,7 @@ void AdrasteaI_ATMQTT_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("Connection ID: %d, Message ID: %d, Topic Name: %s, Payload Size: %d, Payload: %s\r\n", result.connID, result.msgID, result.topicName, result.payloadSize, result.payload);
+            WE_APP_PRINT("Connection ID: %d, Message ID: %d, Topic Name: %s, Payload Size: %d, Payload: %s\r\n", result.connID, result.msgID, result.topicName, result.payloadSize, result.payload);
             break;
         }
         case AdrasteaI_ATEvent_PacketDomain_Network_Registration_Status:

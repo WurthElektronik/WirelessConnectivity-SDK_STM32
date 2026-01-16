@@ -42,10 +42,10 @@ extern "C"
 #define BYTEARRAY_TO_KEYADDR_LENGTH(length) ((length * 2) + (length - 1) + 1)
 #define BYTEARRAY_TO_HEXSTRING_LENGTH(length) ((length * 2) + 1)
 
-    extern bool DaphnisI_ByteArrayToKeyAddr(uint8_t* byteArray, uint16_t byteArrayLength, char* keyAddr);
-    extern bool DaphnisI_ByteArrayToHexString(uint8_t* byteArray, uint16_t byteArrayLength, char* hexString);
-    extern bool DaphnisI_KeyAddrToByteArray(char* keyAddr, uint16_t keyAddrLength, uint8_t* byteArray);
-    extern bool DaphnisI_HexStringToByteArray(char* hexString, uint16_t hexStringLength, uint8_t* byteArray);
+extern bool DaphnisI_ByteArrayToKeyAddr(uint8_t* byteArray, uint16_t byteArrayLength, char* keyAddr);
+extern bool DaphnisI_ByteArrayToHexString(uint8_t* byteArray, uint16_t byteArrayLength, char* hexString);
+extern bool DaphnisI_KeyAddrToByteArray(char* keyAddr, uint16_t keyAddrLength, uint8_t* byteArray);
+extern bool DaphnisI_HexStringToByteArray(char* hexString, uint16_t hexStringLength, uint8_t* byteArray);
 
 #ifdef __cplusplus
 }

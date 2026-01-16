@@ -35,11 +35,11 @@
 
 void Calypso_GPIO_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso GPIO example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso GPIO example ***\r\n");
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -53,8 +53,8 @@ void Calypso_GPIO_Example(void)
     bool ret;
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -86,7 +86,7 @@ void Calypso_GPIO_Example(void)
         Calypso_Examples_Print("Set GPIO0 level", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("GPIO0 level set to %s\r\n", gpio.parameters.output.state == Calypso_ATGPIO_GPIOState_High ? "high" : "low");
+            WE_APP_PRINT("GPIO0 level set to %s\r\n", gpio.parameters.output.state == Calypso_ATGPIO_GPIOState_High ? "high" : "low");
         }
 
         memset(&gpio, 0, sizeof(gpio));
@@ -96,14 +96,14 @@ void Calypso_GPIO_Example(void)
         Calypso_Examples_Print("Get GPIO1 level", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("GPIO1 level is %s\r\n", gpio.parameters.input.state == Calypso_ATGPIO_GPIOState_High ? "high" : "low");
+            WE_APP_PRINT("GPIO1 level is %s\r\n", gpio.parameters.input.state == Calypso_ATGPIO_GPIOState_High ? "high" : "low");
         }
 
         WE_Delay(1000);
     }
 
     /* Configure GPIO2 as PWM output with 100 ms period (and store configuration
-	 * in flash). Initial ratio = 0%. */
+     * in flash). Initial ratio = 0%. */
     uint16_t pwmPeriodMs = 100;
     memset(&gpio, 0, sizeof(gpio));
     gpio.id = Calypso_ATGPIO_GPIOId_2;
@@ -126,7 +126,7 @@ void Calypso_GPIO_Example(void)
         Calypso_Examples_Print("Increase GPIO2 PWM ratio", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("GPIO2 PWM set to period=%d ms, ratio=%d%%\r\n", gpio.parameters.pwm.period, gpio.parameters.pwm.ratio);
+            WE_APP_PRINT("GPIO2 PWM set to period=%d ms, ratio=%d%%\r\n", gpio.parameters.pwm.period, gpio.parameters.pwm.ratio);
         }
         WE_Delay(1000);
     }

@@ -45,17 +45,6 @@ static bool CordeliaI_ATFile_ParseResponseFileOpen(char** pAtCommand, uint32_t* 
 static bool CordeliaI_ATFile_ParseResponseFileRead(char** pAtCommand, uint16_t bytesToRead, bool decodeBase64, uint16_t* bytesRead, char* data);
 static bool CordeliaI_ATFile_ParseResponseFileWrite(char** pAtCommand, uint16_t* bytesWritten);
 
-/**
- * @brief Opens a file (using the AT+FileOpen command).
- *
- * @param[in] fileName Name of file to be opened
- * @param[in] options Option flags (see CordeliaI_ATFile_OpenFlags_t)
- * @param[in] fileSize Maximum size of the file. Will be allocated on creation.
- * @param[out] fileID ID of the opened file. Can be used for further file functions.
- * @param[out] secureToken Secure token of the opened file.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_Open(const char* fileName, uint32_t options, uint16_t fileSize, uint32_t* fileID, uint32_t* secureToken)
 {
 
@@ -81,15 +70,6 @@ bool CordeliaI_ATFile_Open(const char* fileName, uint32_t options, uint16_t file
     return CordeliaI_ATFile_ParseResponseFileOpen(&pRespondCommand, fileID, secureToken);
 }
 
-/**
- * @brief Closes a file (using the AT+FileClose command).
- *
- * @param[in] fileID File ID as returned by CordeliaI_ATFile_Open
- * @param[in] certFileName Full path to certificate (optional). Can be NULL if not used.
- * @param[in] signature SHA1 signature (optional). Can be NULL if not used.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_Close(uint32_t fileID, char* certFileName, char* signature)
 {
 
@@ -110,14 +90,6 @@ bool CordeliaI_ATFile_Close(uint32_t fileID, char* certFileName, char* signature
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Deletes a file (using the AT+FileDel command).
- *
- * @param[in] fileName Name of the file to delete
- * @param[in] secureToken Secure token returned by CordeliaI_ATFile_Open() (optional)
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_Delete(const char* fileName, uint32_t secureToken)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -136,24 +108,6 @@ bool CordeliaI_ATFile_Delete(const char* fileName, uint32_t secureToken)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Reads a file's contents (using the AT+FileRead command).
- *
- * The file has to be opened using CordeliaI_ATFile_Open() prior to reading!
- *
- * @param[in] fileID ID of file to read as returned by CordeliaI_ATFile_Open()
- * @param[in] offset Offset for the read operation
- * @param[in] format Format of the output data. When using CordeliaI_DataFormat_Base64,
- *                   you can set decodeBase64 to true to automatically decode the received data.
- * @param[in] decodeBase64 Enables decoding of received Base64 data
- * @param[in] bytesToRead Number of bytes to read. Note that the returned data is a
- *                        null terminated string, so the output buffer must have a
- *                        minimum size of bytesToRead+1.
- * @param[out] bytesRead Number of bytes which have been read
- * @param[out] data File contents which has been read
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_Read(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, bool decodeBase64, uint16_t bytesToRead, char* data, uint16_t* bytesRead)
 {
     *bytesRead = 0;
@@ -193,32 +147,11 @@ bool CordeliaI_ATFile_Read(uint32_t fileID, uint16_t offset, CordeliaI_DataForma
         }
 
         *bytesRead += chunkBytesRead;
-
-#ifdef WE_DEBUG
-        /* Flush debug buffer, as it may have been filled up with the read data */
-        WE_Debug_Flush();
-#endif
     }
 
     return true;
 }
 
-/**
- * @brief Writes a file's contents (using the AT+FileWrite command).
- *
- * The file has to be opened using CordeliaI_ATFile_Open() prior to writing!
- *
- * @param[in] fileID ID of file to write as returned by CordeliaI_ATFile_Open()
- * @param[in] offset Offset for the write operation
- * @param[in] format Format of the data to be written. Note that when using CordeliaI_DataFormat_Base64,
- *                   you either need to provide Base64 encoded data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the CordeliaI module
- * @param[in] bytestoWrite Number of bytes to write
- * @param[in] data Data to be written
- * @param[out] bytesWritten Number of bytes which have been written
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_Write(uint32_t fileID, uint16_t offset, CordeliaI_DataFormat_t format, bool encodeAsBase64, uint16_t bytesToWrite, const char* data, uint16_t* bytesWritten)
 {
     *bytesWritten = 0;
@@ -226,7 +159,7 @@ bool CordeliaI_ATFile_Write(uint32_t fileID, uint16_t offset, CordeliaI_DataForm
     if (encodeAsBase64)
     {
         /* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
-		 * the data is encoded in chunks, if necessary. */
+         * the data is encoded in chunks, if necessary. */
 
         uint16_t maxChunkSize = (((ATFILE_FILE_MAX_CHUNK_SIZE - 1) * 3) / 4) - 2;
         uint16_t chunkSize = 0;
@@ -298,25 +231,11 @@ bool CordeliaI_ATFile_Write(uint32_t fileID, uint16_t offset, CordeliaI_DataForm
         }
 
         *bytesWritten += chunkBytesWritten;
-
-#ifdef WE_DEBUG
-        /* Flush debug buffer, as it may have been filled up with the written data */
-        WE_Debug_Flush();
-#endif
     }
 
     return true;
 }
 
-/**
- * @brief Returns information on a file.
- *
- * @param[in] fileName Name of file
- * @param[in] secureToken Secure token
- * @param[out] fileInfo The returned file information
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_GetInfo(const char* fileName, uint32_t secureToken, CordeliaI_ATFile_FileInfo_t* fileInfo)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -387,16 +306,6 @@ bool CordeliaI_ATFile_GetInfo(const char* fileName, uint32_t secureToken, Cordel
     return true;
 }
 
-/**
- * @brief Retrieves a list of the files stored in the CordeliaI module.
- *
- * The file list entries are made available in the form of events of type
- * CordeliaI_ATEvent_FileListEntry as soon as they are received (the complete list of files
- * may be too large to be returned by this function as a whole). The events are
- * triggered before this function returns.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_GetFileList()
 {
     if (!CordeliaI_SendRequest("AT+fileGetFileList\r\n"))
@@ -406,14 +315,6 @@ bool CordeliaI_ATFile_GetFileList()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FileIO), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Parses the values of a file list entry string.
- *
- * @param[in,out] pInArguments String containing arguments of the AT command
- * @param[out] fileListEntry The parsed file list entry data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool CordeliaI_ATFile_ParseFileListEntry(char** pInArguments, CordeliaI_ATFile_FileListEntry_t* fileListEntry)
 {
     if (!ATCommand_GetNextArgumentString(pInArguments, fileListEntry->fileName, ATCOMMAND_ARGUMENT_DELIM, sizeof(fileListEntry->fileName)))
@@ -431,15 +332,6 @@ bool CordeliaI_ATFile_ParseFileListEntry(char** pInArguments, CordeliaI_ATFile_F
     return ATCommand_GetNextArgumentInt(pInArguments, &fileListEntry->allocatedBlocks, ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Prints file property flags to string.
- *
- * @param[in] properties File properties (see CordeliaI_ATFile_FileProperties_t)
- * @param[out] pOutStr Output string
- * @param[in] maxLength Max. length of output string
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATFile_PrintFileProperties(uint32_t properties, char* pOutStr, size_t maxLength) { return ATCommand_AppendArgumentBitmask(pOutStr, CordeliaI_ATFile_FileProperties_Strings, CordeliaI_ATFile_FileProperties_NumberOfValues, properties, ATCOMMAND_STRING_TERMINATE, maxLength); }
 
 /**

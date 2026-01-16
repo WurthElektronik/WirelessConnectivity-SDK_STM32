@@ -51,7 +51,7 @@ extern "C"
 
 #define SL_ERROR_GENERAL_DEVICE (-6L) /* General device error */
 
-    /* BSD SOCKET ERRORS CODES */
+/* BSD SOCKET ERRORS CODES */
 
 #define SL_ERROR_BSD_SOC_ERROR (-1L) /* Failure */
 #define SL_ERROR_BSD_EINTR (-4L)     /* Interrupted system call */

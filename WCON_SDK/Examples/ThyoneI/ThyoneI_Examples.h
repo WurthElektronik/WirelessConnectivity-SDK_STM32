@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void ThyoneI_Examples(void);
+extern void ThyoneI_Examples(void);
 
 #ifdef __cplusplus
 }

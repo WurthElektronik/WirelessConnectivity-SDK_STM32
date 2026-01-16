@@ -55,35 +55,23 @@ static const ATCommand_Event_t moduleMainEvents[] = {PARENTEVENTENTRY("+eventgen
                                                              EVENTENTRY("+recvfrom", Calypso_ATEvent_SocketRcvdFrom) EVENTENTRY("+connect", Calypso_ATEvent_SocketTCPConnect) EVENTENTRY("+accept", Calypso_ATEvent_SocketTCPAccept) EVENTENTRY("+select", Calypso_ATEvent_SocketSelect) EVENTENTRY("+eventhttpget", Calypso_ATEvent_HTTPGet)
                                                                  PARENTEVENTENTRY("+eventcustom", customSubEvents, ATCOMMAND_ARGUMENT_DELIM) EVENTENTRY("+netappping", Calypso_ATEvent_Ping) LASTEVENTENTRY("+filegetfilelist", Calypso_ATEvent_FileListEntry)};
 
-/**
- * @brief Parses the received AT command and returns the corresponding Calypso_ATEvent_t.
- *
- * @param[in,out] pAtCommand AT command starting with '+'
- * @param[out] pEvent Calypso_ATEvent_t representing the event
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseEventType(char** pAtCommand, Calypso_ATEvent_t* pEvent)
 {
     char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE};
 
-    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*)pEvent))
+    uint16_t event;
+
+    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), &event))
     {
         *pEvent = Calypso_ATEvent_Invalid;
         return false;
     }
 
+    *pEvent = (Calypso_ATEvent_t)event;
+
     return true;
 }
 
-/**
- * @brief Parses the values of the startup event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] Calypso_Examples_startupEvent The parsed startup event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseStartUpEvent(char** pEventArguments, Calypso_ATEvent_Startup_t* Calypso_Examples_startupEvent)
 {
 
@@ -120,14 +108,6 @@ bool Calypso_ATEvent_ParseStartUpEvent(char** pEventArguments, Calypso_ATEvent_S
     return true;
 }
 
-/**
- * @brief Parses the values of the ping event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] pingEvent The parsed ping event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParsePingEvent(char** pEventArguments, Calypso_ATEvent_Ping_t* pingEvent)
 {
 
@@ -144,14 +124,6 @@ bool Calypso_ATEvent_ParsePingEvent(char** pEventArguments, Calypso_ATEvent_Ping
     return ATCommand_GetNextArgumentInt(pEventArguments, &(pingEvent->roundTripTimeMs), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_NOTATION_DEC | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the TCP connect event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] connectEvent The parsed TCP connect event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseSocketTCPConnectEvent(char** pEventArguments, Calypso_ATEvent_SocketTCPConnect_t* connectEvent)
 {
     if (!ATCommand_GetNextArgumentInt(pEventArguments, &(connectEvent->serverPort), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
@@ -162,14 +134,6 @@ bool Calypso_ATEvent_ParseSocketTCPConnectEvent(char** pEventArguments, Calypso_
     return ATCommand_GetNextArgumentString(pEventArguments, connectEvent->serverAddress, ATCOMMAND_STRING_TERMINATE, sizeof(connectEvent->serverAddress));
 }
 
-/**
- * @brief Parses the values of the TCP accept event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] acceptEvent The parsed TCP accept event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseSocketTCPAcceptEvent(char** pEventArguments, Calypso_ATEvent_SocketTCPAccept_t* acceptEvent)
 {
     char temp[12];
@@ -197,33 +161,16 @@ bool Calypso_ATEvent_ParseSocketTCPAcceptEvent(char** pEventArguments, Calypso_A
     return ATCommand_GetNextArgumentString(pEventArguments, acceptEvent->clientAddress, ATCOMMAND_STRING_TERMINATE, sizeof(acceptEvent->clientAddress));
 }
 
-/**
- * @brief Parses the values of the socket tx failed event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] txFailedEvent The parsed socket tx failed event data
- *
- * @return true if parsed successfully, false otherwise
- */
-bool Calypso_ATEvent_ParseSocketTXFailedEvent(char** pEventArguments, Calypso_ATEvent_SocketTXFailed_t* txFailedtEvent)
+bool Calypso_ATEvent_ParseSocketTXFailedEvent(char** pEventArguments, Calypso_ATEvent_SocketTXFailed_t* txFailedEvent)
 {
-    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(txFailedtEvent->socketID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
+    if (!ATCommand_GetNextArgumentInt(pEventArguments, &(txFailedEvent->socketID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
 
-    return ATCommand_GetNextArgumentInt(pEventArguments, &(txFailedtEvent->errorCode), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_STRING_TERMINATE);
+    return ATCommand_GetNextArgumentInt(pEventArguments, &(txFailedEvent->errorCode), ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_SIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the socket receive / receive from event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[in] decodeBase64 Enables decoding of received Base64 data
- * @param[out] rcvdEvent The parsed socket receive / receive from event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseSocketRcvdEvent(char** pEventArguments, bool decodeBase64, Calypso_ATEvent_SocketRcvd_t* rcvdEvent)
 {
     if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->socketID), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
@@ -275,14 +222,6 @@ bool Calypso_ATEvent_ParseSocketRcvdEvent(char** pEventArguments, bool decodeBas
     return ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->data, ATCOMMAND_STRING_TERMINATE, sizeof(rcvdEvent->data));
 }
 
-/**
- * @brief Parses the values of the MQTT from event.
- *
- * @param[in,out] pEventArguments String containing arguments of the event
- * @param[out] rcvdEvent The parsed mqtt received data from event
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, Calypso_ATEvent_MQTTRcvd_t* rcvdEvent)
 {
     if (!ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(rcvdEvent->topic)))
@@ -290,10 +229,14 @@ bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, Calypso_AT
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentEnum(pEventArguments, &(rcvdEvent->qos), Calypso_ATMQTT_QoSStrings, Calypso_ATMQTT_QoS_NumberOfValues, 5, ATCOMMAND_ARGUMENT_DELIM))
+    uint8_t qos_index;
+
+    if (!ATCommand_GetNextArgumentEnum(pEventArguments, &qos_index, Calypso_ATMQTT_QoSStrings, Calypso_ATMQTT_QoS_NumberOfValues, 5, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
+
+    rcvdEvent->qos = (Calypso_ATMQTT_QoS_t)qos_index;
 
     if (!ATCommand_GetNextArgumentInt(pEventArguments, &(rcvdEvent->retain), ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_ARGUMENT_DELIM))
     {
@@ -338,14 +281,6 @@ bool Calypso_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, Calypso_AT
     return false;
 }
 
-/**
- * @brief Parses the values of the IPv4 acquired event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] ipv4Event The parsed IPv4 acquired event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseNetappIP4AcquiredEvent(char** pEventArguments, Calypso_ATEvent_NetappIP4Acquired_t* ipv4Event)
 {
     if (!ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipv4Event->address)))
@@ -359,15 +294,6 @@ bool Calypso_ATEvent_ParseNetappIP4AcquiredEvent(char** pEventArguments, Calypso
     return ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->DNS, ATCOMMAND_STRING_TERMINATE, sizeof(ipv4Event->DNS));
 }
 
-/**
- * @brief Parses the values of the MQTT connect event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT
- * command
- * @param[out] connackEvent The parsed MQTT connack event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseMQTTConnackEvent(char** pEventArguments, Calypso_ATEvent_MQTTConnack_t* connackEvent)
 {
     if (!pEventArguments || !connackEvent)
@@ -388,48 +314,12 @@ bool Calypso_ATEvent_ParseMQTTConnackEvent(char** pEventArguments, Calypso_ATEve
     return true;
 }
 
-/**
- * @brief Retrieves the HTTP GET event ID argument.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] id The HTTP GET event ID
- * @param[in] maxIdLength Max. length of ID (including string termination character).
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseHttpGetEvent(char** pEventArguments, char* id, uint16_t maxIdLength) { return ATCommand_GetNextArgumentString(pEventArguments, id, ATCOMMAND_STRING_TERMINATE, maxIdLength); }
 
-/**
- * @brief Parses the values of the file list entry event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] fileListEntry The parsed file list entry data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseFileListEntryEvent(char** pEventArguments, Calypso_ATFile_FileListEntry_t* fileListEntry) { return Calypso_ATFile_ParseFileListEntry(pEventArguments, fileListEntry); }
 
-/**
- * @brief Parses the values of the custom GPIO event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] gpioId ID of the GPIO that has been configured via the module's REST API.
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseCustomGPIOEvent(char** pEventArguments, uint8_t* gpioId) { return ATCommand_GetNextArgumentInt(pEventArguments, gpioId, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE); }
 
-/**
- * @brief Parses the values of the custom HTTP POST event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] id HTTP POST event id
- * @param[out] value HTTP POST event value
- * @param[in] maxIdLength Max. length of ID (including string termination character)
- * @param[in] maxValueLength Max. length of value (including string termination character)
- *
- * @return true if parsed successfully, false otherwise
- */
 bool Calypso_ATEvent_ParseCustomHTTPPostEvent(char** pEventArguments, char* id, char* value, uint16_t maxIdLength, uint16_t maxValueLength)
 {
     if (!ATCommand_GetNextArgumentString(pEventArguments, id, ATCOMMAND_ARGUMENT_DELIM, maxIdLength))

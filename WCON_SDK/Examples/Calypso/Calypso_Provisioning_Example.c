@@ -37,11 +37,11 @@
  */
 void Calypso_Provisioning_Example()
 {
-    WE_DEBUG_PRINT("*** Start of Calypso provisioning example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso provisioning example ***\r\n");
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -60,8 +60,8 @@ void Calypso_Provisioning_Example()
     //    ret = Calypso_Examples_WaitForStartup(10000);
     //    Calypso_Examples_Print("Wait for startup message", ret);
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);

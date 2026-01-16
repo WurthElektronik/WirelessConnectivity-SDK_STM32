@@ -66,12 +66,12 @@ void Test_BluetoothClassic_SPP_TransparentConnection(Skoll_I_BluetoothClassic_Ro
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, transparentDataHandler))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 
@@ -95,9 +95,9 @@ void Test_BluetoothClassic_SPP_TransparentConnection(Skoll_I_BluetoothClassic_Ro
             }
 
 #if 0
-			Examples_Print("bt_query_name", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_name(address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
-			Examples_Print("bt_query_connections", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_connections(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
-			Examples_Print("bt_query_rssi", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_rssi(btclassic_peer_address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
+            Examples_Print("bt_query_name", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_name(address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
+            Examples_Print("bt_query_connections", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_connections(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
+            Examples_Print("bt_query_rssi", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_rssi(btclassic_peer_address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 #endif
 
             /* connect to peer device */
@@ -128,12 +128,12 @@ void Test_BluetoothClassic_SPP_TransparentConnection(Skoll_I_BluetoothClassic_Ro
         {
             case Skoll_I_BluetoothClassic_Role_Master:
             {
-                WE_DEBUG_PRINT("Setting up connection\r\n");
+                WE_APP_PRINT("Setting up connection\r\n");
                 break;
             }
             case Skoll_I_BluetoothClassic_Role_Slave:
             {
-                WE_DEBUG_PRINT("Waiting for connection setup\r\n");
+                WE_APP_PRINT("Waiting for connection setup\r\n");
                 break;
             }
             default:
@@ -149,7 +149,7 @@ void Test_BluetoothClassic_SPP_TransparentConnection(Skoll_I_BluetoothClassic_Ro
     i = 0;
     while (Skoll_I_PinIsChannelOpen(&isChannelOpen) && (isChannelOpen) && (i < 30))
     {
-        WE_DEBUG_PRINT("%d ", i);
+        WE_APP_PRINT("%d ", i);
         Examples_Print("Skoll_I_BluetoothClassic_SPPTransparentTransmit", true == Skoll_I_BluetoothClassic_SPPTransparentTransmit(sizeof(data), data));
         i++;
         WE_Delay(500);
@@ -194,12 +194,12 @@ void Test_BluetoothClassic_SPP_Connection(Skoll_I_BluetoothClassic_Role_t role)
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 
@@ -223,7 +223,7 @@ void Test_BluetoothClassic_SPP_Connection(Skoll_I_BluetoothClassic_Role_t role)
             }
 
 #if 0
-			Examples_Print("bt_query_name", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_name(address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
+            Examples_Print("bt_query_name", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_name(address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 #endif
             Examples_Print("bt_query_connections", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_connections(), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
             Examples_Print("bt_query_rssi", (packet = EZS_SEND_AND_WAIT(ezs_cmd_bt_query_rssi(btclassic_peer_address), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
@@ -256,12 +256,12 @@ void Test_BluetoothClassic_SPP_Connection(Skoll_I_BluetoothClassic_Role_t role)
         {
             case Skoll_I_BluetoothClassic_Role_Master:
             {
-                WE_DEBUG_PRINT("Setting up connection\r\n");
+                WE_APP_PRINT("Setting up connection\r\n");
                 break;
             }
             case Skoll_I_BluetoothClassic_Role_Slave:
             {
-                WE_DEBUG_PRINT("Waiting for connection setup\r\n");
+                WE_APP_PRINT("Waiting for connection setup\r\n");
                 break;
             }
             default:
@@ -277,7 +277,7 @@ void Test_BluetoothClassic_SPP_Connection(Skoll_I_BluetoothClassic_Role_t role)
     i = 0;
     while (Skoll_I_PinIsChannelOpen(&isChannelOpen) && (isChannelOpen) && (i < 30))
     {
-        WE_DEBUG_PRINT("%d ", i);
+        WE_APP_PRINT("%d ", i);
         data.data[0] = 0x30 + (i % 10);
         Examples_Print("spp_send_command", (packet = EZS_SEND_AND_WAIT(ezs_cmd_spp_send_command(states.Classic.conn_handle, &data), 2 * SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
@@ -312,12 +312,12 @@ void Test_BluetoothClassic_SPP_Slave_Secure_Connection(void)
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 
@@ -331,7 +331,7 @@ void Test_BluetoothClassic_SPP_Slave_Secure_Connection(void)
     /* wait until connected */
     while (false == states.Classic.connected)
     {
-        WE_DEBUG_PRINT("Wait for connection\r\n");
+        WE_APP_PRINT("Wait for connection\r\n");
         WE_Delay(7500);
     }
 
@@ -341,7 +341,7 @@ void Test_BluetoothClassic_SPP_Slave_Secure_Connection(void)
         int i = 60;
         while (i > 0)
         {
-            WE_DEBUG_PRINT("Disconnect in %d seconds\r\n", i);
+            WE_APP_PRINT("Disconnect in %d seconds\r\n", i);
             i -= 5;
             WE_Delay(5000);
         }
@@ -379,7 +379,7 @@ void Test_BluetoothClassic_SPP_TransparentThroughput(Skoll_I_BluetoothClassic_Ro
     /* initialize the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, transparentDataHandler))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -415,7 +415,7 @@ void Test_BluetoothClassic_SPP_TransparentThroughput(Skoll_I_BluetoothClassic_Ro
             }
             case Skoll_I_BluetoothClassic_Role_Slave:
             {
-                WE_DEBUG_PRINT("Waiting for connection\r\n");
+                WE_APP_PRINT("Waiting for connection\r\n");
                 WE_Delay(2500);
                 break;
             }

@@ -40,11 +40,11 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {0};
  */
 void ATNetServiceExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATNetService example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATNetService example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATNetService_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -66,7 +66,7 @@ void ATNetServiceExample()
     AdrasteaI_ExamplesPrint("Read PLMN", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Selection Mode: %d, Format: %d, Operator Numeric: %lu\r\n", plmn.selectionMode, plmn.format, (unsigned long)plmn.operator.operatorNumeric);
+        WE_APP_PRINT("Selection Mode: %d, Format: %d, Operator Numeric: %lu\r\n", plmn.selectionMode, plmn.format, (unsigned long)plmn.operator.operatorNumeric);
     }
 
     AdrasteaI_ATNetService_Signal_Quality_t sq;
@@ -74,7 +74,7 @@ void ATNetServiceExample()
     AdrasteaI_ExamplesPrint("Read Signal Quality", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("RSSI: %d, BER: %d\r\n", sq.rssi, sq.ber);
+        WE_APP_PRINT("RSSI: %d, BER: %d\r\n", sq.rssi, sq.ber);
     }
 
     AdrasteaI_ATNetService_Extended_Signal_Quality_t esq;
@@ -82,7 +82,7 @@ void ATNetServiceExample()
     AdrasteaI_ExamplesPrint("Read Extended Signal Quality", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("RXLEV: %d, BER: %d, RSCP: %d, ECNO: %d, RSRQ: %d, RSRP: %d\r\n", esq.rxlev, esq.ber, esq.rscp, esq.ecno, esq.rsrq, esq.rsrp);
+        WE_APP_PRINT("RXLEV: %d, BER: %d, RSCP: %d, ECNO: %d, RSRQ: %d, RSRP: %d\r\n", esq.rxlev, esq.ber, esq.rscp, esq.ecno, esq.rsrq, esq.rsrp);
     }
 
     AdrasteaI_ATNetService_Power_Saving_Mode_t psm = {.state = AdrasteaI_ATNetService_Power_Saving_Mode_State_Enable, .activeTime = {.activeTimeValues = {.value = 20, .unit = AdrasteaI_ATNetService_Power_Saving_Mode_Active_Time_Unit_1m}}, .periodicTAU = {.periodicTAUValues = {.value = 0, .unit = AdrasteaI_ATNetService_Power_Saving_Mode_Periodic_TAU_Deactivated}}};

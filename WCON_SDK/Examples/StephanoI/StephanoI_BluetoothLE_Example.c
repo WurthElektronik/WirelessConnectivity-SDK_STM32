@@ -140,10 +140,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
             StephanoI_ATBluetoothLE_Bonding_t bond;
             if (StephanoI_ATBluetoothLE_ParseBondingInformations(eventText, &bond))
             {
-                WE_DEBUG_PRINT("Bonding information event received.\r\n"
-                               "Bonding index: %d\r\n"
-                               "Mac: %s\r\n",
-                               bond.enc_dev_index, bond.mac);
+                WE_APP_PRINT("Bonding information event received.\r\n"
+                             "Bonding index: %d\r\n"
+                             "Mac: %s\r\n",
+                             bond.enc_dev_index, bond.mac);
             }
         }
         break;
@@ -151,11 +151,11 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParsePeripheralDiscoverService(eventText, &StephanoI_Examples_Peripheral_DiscoverService))
             {
-                WE_DEBUG_PRINT("Peripheral Discover service event received.\r\n"
-                               "Service index: %d\r\n"
-                               "UUID: %s\r\n"
-                               "Service type: %d\r\n",
-                               StephanoI_Examples_Peripheral_DiscoverService.srv_index, StephanoI_Examples_Peripheral_DiscoverService.srv_uuid, StephanoI_Examples_Peripheral_DiscoverService.srv_type);
+                WE_APP_PRINT("Peripheral Discover service event received.\r\n"
+                             "Service index: %d\r\n"
+                             "UUID: %s\r\n"
+                             "Service type: %d\r\n",
+                             StephanoI_Examples_Peripheral_DiscoverService.srv_index, StephanoI_Examples_Peripheral_DiscoverService.srv_uuid, StephanoI_Examples_Peripheral_DiscoverService.srv_type);
             }
         }
         break;
@@ -163,12 +163,12 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParsePeripheralDiscoverCharacteristics(eventText, &StephanoI_Examples_Peripheral_DiscoverCharacteristics))
             {
-                WE_DEBUG_PRINT("Characteristics event received.\r\n"
-                               "Type: %s\r\n"
-                               "Service index: %d\r\n"
-                               "Char. index: %d\r\n"
-                               "Desc. index: %d\r\n",
-                               StephanoI_Examples_Peripheral_DiscoverCharacteristics.characteristics_type, StephanoI_Examples_Peripheral_DiscoverCharacteristics.srv_index, StephanoI_Examples_Peripheral_DiscoverCharacteristics.char_index, StephanoI_Examples_Peripheral_DiscoverCharacteristics.desc_index);
+                WE_APP_PRINT("Characteristics event received.\r\n"
+                             "Type: %s\r\n"
+                             "Service index: %d\r\n"
+                             "Char. index: %d\r\n"
+                             "Desc. index: %d\r\n",
+                             StephanoI_Examples_Peripheral_DiscoverCharacteristics.characteristics_type, StephanoI_Examples_Peripheral_DiscoverCharacteristics.srv_index, StephanoI_Examples_Peripheral_DiscoverCharacteristics.char_index, StephanoI_Examples_Peripheral_DiscoverCharacteristics.desc_index);
             }
         }
         break;
@@ -176,10 +176,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseConnection(eventText, &StephanoI_Examples_Connection))
             {
-                WE_DEBUG_PRINT("Connection event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Remote address: %s\r\n",
-                               StephanoI_Examples_Connection.conn_index, StephanoI_Examples_Connection.remote_address);
+                WE_APP_PRINT("Connection event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Remote address: %s\r\n",
+                             StephanoI_Examples_Connection.conn_index, StephanoI_Examples_Connection.remote_address);
 
                 if (0 == strcmp(StephanoI_Examples_Connection.remote_address, "-1"))
                 {
@@ -205,10 +205,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseConnection(eventText, &StephanoI_Examples_Connection))
             {
-                WE_DEBUG_PRINT("Disconnection event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Remote address: %s\r\n",
-                               StephanoI_Examples_Connection.conn_index, StephanoI_Examples_Connection.remote_address);
+                WE_APP_PRINT("Disconnection event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Remote address: %s\r\n",
+                             StephanoI_Examples_Connection.conn_index, StephanoI_Examples_Connection.remote_address);
                 StephanoI_Examples_Connection.conn_index = BLE_CONNECTION_INDEX_INVALID;
                 StephanoI_Examples_MTU.conn_index = StephanoI_Examples_Connection.conn_index;
                 StephanoI_Examples_Connection.channelopen = false;
@@ -222,10 +222,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
             StephanoI_ATBluetoothLE_AuthenticationComplete_t t;
             if (StephanoI_ATBluetoothLE_ParseAuthenticationComplete(eventText, &t))
             {
-                WE_DEBUG_PRINT("Authentication complete event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "%s\r\n",
-                               t.conn_index, t.success ? "Success" : "Failed");
+                WE_APP_PRINT("Authentication complete event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "%s\r\n",
+                             t.conn_index, t.success ? "Success" : "Failed");
 
                 StephanoI_Examples_Connection.secure = t.success;
             }
@@ -235,10 +235,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseMTU(eventText, &StephanoI_Examples_MTU))
             {
-                WE_DEBUG_PRINT("MTU event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "MTU: %d\r\n",
-                               StephanoI_Examples_MTU.conn_index, StephanoI_Examples_MTU.MTU);
+                WE_APP_PRINT("MTU event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "MTU: %d\r\n",
+                             StephanoI_Examples_MTU.conn_index, StephanoI_Examples_MTU.MTU);
             }
         }
         break;
@@ -246,13 +246,13 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseWrite(eventText, &StephanoI_Examples_Write))
             {
-                WE_DEBUG_PRINT("Write event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Service index: %d\r\n"
-                               "Characteristic index: %d\r\n"
-                               "Descriptor: %d\r\n"
-                               "Length: %d\r\n",
-                               StephanoI_Examples_Write.conn_index, StephanoI_Examples_Write.srv_index, StephanoI_Examples_Write.char_index, StephanoI_Examples_Write.desc, StephanoI_Examples_Write.length);
+                WE_APP_PRINT("Write event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Service index: %d\r\n"
+                             "Characteristic index: %d\r\n"
+                             "Descriptor: %d\r\n"
+                             "Length: %d\r\n",
+                             StephanoI_Examples_Write.conn_index, StephanoI_Examples_Write.srv_index, StephanoI_Examples_Write.char_index, StephanoI_Examples_Write.desc, StephanoI_Examples_Write.length);
 
                 if ((StephanoI_Examples_Write.srv_index == 1) && (StephanoI_Examples_Write.char_index == 2) && (StephanoI_Examples_Write.desc == 1) && (StephanoI_Examples_Write.length == 2))
                 {
@@ -264,12 +264,12 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
                 else if ((StephanoI_Examples_Write.srv_index == 1) && (StephanoI_Examples_Write.char_index == 1) && (StephanoI_Examples_Write.desc == 0) && (StephanoI_Examples_Write.length > 0))
                 {
                     /* RXCHAR of the WE SPP-like profile has been written */
-                    WE_DEBUG_PRINT("Data received: 0x");
+                    WE_APP_PRINT("Data received: 0x");
                     for (uint16_t i = 0; i < StephanoI_Examples_Write.length; i++)
                     {
-                        WE_DEBUG_PRINT("%02X", StephanoI_Examples_Write.data[i]);
+                        WE_APP_PRINT("%02X", StephanoI_Examples_Write.data[i]);
                     }
-                    WE_DEBUG_PRINT("\r\n");
+                    WE_APP_PRINT("\r\n");
                 }
             }
         }
@@ -278,17 +278,17 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseRead(eventText, &StephanoI_Examples_Read))
             {
-                WE_DEBUG_PRINT("Write event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Length: %d\r\n",
-                               StephanoI_Examples_Read.conn_index, StephanoI_Examples_Read.length);
+                WE_APP_PRINT("Write event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Length: %d\r\n",
+                             StephanoI_Examples_Read.conn_index, StephanoI_Examples_Read.length);
 
-                WE_DEBUG_PRINT("Data read: 0x");
+                WE_APP_PRINT("Data read: 0x");
                 for (uint16_t i = 0; i < StephanoI_Examples_Read.length; i++)
                 {
-                    WE_DEBUG_PRINT("%02X", StephanoI_Examples_Read.data[i]);
+                    WE_APP_PRINT("%02X", StephanoI_Examples_Read.data[i]);
                 }
-                WE_DEBUG_PRINT("\r\n");
+                WE_APP_PRINT("\r\n");
             }
         }
         break;
@@ -296,10 +296,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseScan(eventText, &StephanoI_Examples_Central_Scan))
             {
-                WE_DEBUG_PRINT("Scan event received.\r\n"
-                               "Remote address: %s\r\n"
-                               "RSSI: %d\r\n",
-                               StephanoI_Examples_Central_Scan.remote_address, StephanoI_Examples_Central_Scan.rssi);
+                WE_APP_PRINT("Scan event received.\r\n"
+                             "Remote address: %s\r\n"
+                             "RSSI: %d\r\n",
+                             StephanoI_Examples_Central_Scan.remote_address, StephanoI_Examples_Central_Scan.rssi);
             }
         }
         break;
@@ -307,12 +307,12 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseCentralDiscoverPrimaryService(eventText, &StephanoI_Examples_Central_DiscoverPrimaryService))
             {
-                WE_DEBUG_PRINT("Primary service event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Service index: %d\r\n"
-                               "Service UUID: %s\r\n"
-                               "Service type: %d\r\n",
-                               StephanoI_Examples_Central_DiscoverPrimaryService.conn_index, StephanoI_Examples_Central_DiscoverPrimaryService.srv_index, StephanoI_Examples_Central_DiscoverPrimaryService.srv_uuid, StephanoI_Examples_Central_DiscoverPrimaryService.srv_type);
+                WE_APP_PRINT("Primary service event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Service index: %d\r\n"
+                             "Service UUID: %s\r\n"
+                             "Service type: %d\r\n",
+                             StephanoI_Examples_Central_DiscoverPrimaryService.conn_index, StephanoI_Examples_Central_DiscoverPrimaryService.srv_index, StephanoI_Examples_Central_DiscoverPrimaryService.srv_uuid, StephanoI_Examples_Central_DiscoverPrimaryService.srv_type);
             }
         }
         break;
@@ -320,15 +320,15 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseCentralDiscoverIncludedServices(eventText, &StephanoI_Examples_Central_DiscoverIncludedServices))
             {
-                WE_DEBUG_PRINT("Included service event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Service index: %d\r\n"
-                               "Service UUID: %s\r\n"
-                               "Service type: %d\r\n"
-                               "Included service UUID: %s\r\n"
-                               "Included service type: %d\r\n",
-                               StephanoI_Examples_Central_DiscoverIncludedServices.conn_index, StephanoI_Examples_Central_DiscoverIncludedServices.srv_index, StephanoI_Examples_Central_DiscoverIncludedServices.srv_uuid, StephanoI_Examples_Central_DiscoverIncludedServices.srv_type, StephanoI_Examples_Central_DiscoverIncludedServices.included_srv_uuid,
-                               StephanoI_Examples_Central_DiscoverIncludedServices.included_srv_type);
+                WE_APP_PRINT("Included service event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Service index: %d\r\n"
+                             "Service UUID: %s\r\n"
+                             "Service type: %d\r\n"
+                             "Included service UUID: %s\r\n"
+                             "Included service type: %d\r\n",
+                             StephanoI_Examples_Central_DiscoverIncludedServices.conn_index, StephanoI_Examples_Central_DiscoverIncludedServices.srv_index, StephanoI_Examples_Central_DiscoverIncludedServices.srv_uuid, StephanoI_Examples_Central_DiscoverIncludedServices.srv_type, StephanoI_Examples_Central_DiscoverIncludedServices.included_srv_uuid,
+                             StephanoI_Examples_Central_DiscoverIncludedServices.included_srv_type);
             }
         }
         break;
@@ -336,16 +336,16 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseCentralDiscoverCharacteristics(eventText, &StephanoI_Examples_Central_DiscoverCharacteristics))
             {
-                WE_DEBUG_PRINT("Characteristics event received.\r\n"
-                               "Type: %s\r\n"
-                               "Connection index: %d\r\n"
-                               "Service index: %d\r\n"
-                               "Char. index: %d\r\n"
-                               "Char. UUID: %s\r\n"
-                               "Desc. index: %d\r\n"
-                               "Desc. UUID: %s\r\n",
-                               StephanoI_Examples_Central_DiscoverCharacteristics.characteristics_type, StephanoI_Examples_Central_DiscoverCharacteristics.conn_index, StephanoI_Examples_Central_DiscoverCharacteristics.srv_index, StephanoI_Examples_Central_DiscoverCharacteristics.char_index, StephanoI_Examples_Central_DiscoverCharacteristics.char_uuid,
-                               StephanoI_Examples_Central_DiscoverCharacteristics.desc_index, StephanoI_Examples_Central_DiscoverCharacteristics.desc_uuid);
+                WE_APP_PRINT("Characteristics event received.\r\n"
+                             "Type: %s\r\n"
+                             "Connection index: %d\r\n"
+                             "Service index: %d\r\n"
+                             "Char. index: %d\r\n"
+                             "Char. UUID: %s\r\n"
+                             "Desc. index: %d\r\n"
+                             "Desc. UUID: %s\r\n",
+                             StephanoI_Examples_Central_DiscoverCharacteristics.characteristics_type, StephanoI_Examples_Central_DiscoverCharacteristics.conn_index, StephanoI_Examples_Central_DiscoverCharacteristics.srv_index, StephanoI_Examples_Central_DiscoverCharacteristics.char_index, StephanoI_Examples_Central_DiscoverCharacteristics.char_uuid,
+                             StephanoI_Examples_Central_DiscoverCharacteristics.desc_index, StephanoI_Examples_Central_DiscoverCharacteristics.desc_uuid);
             }
         }
         break;
@@ -374,10 +374,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
             StephanoI_ATBluetoothLE_NotifyKey_t key;
             if (StephanoI_ATBluetoothLE_ParseNotifyKey(eventText, &key))
             {
-                WE_DEBUG_PRINT("Key event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Key: %s\r\n",
-                               key.conn_index, key.key);
+                WE_APP_PRINT("Key event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Key: %s\r\n",
+                             key.conn_index, key.key);
             }
         }
         break;
@@ -385,10 +385,10 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATBluetoothLE_ParseNotifyKey(eventText, &StephanoI_Examples_ConfirmSecurityKeyRequest))
             {
-                WE_DEBUG_PRINT("Confirm key event received.\r\n"
-                               "Connection index: %d\r\n"
-                               "Key: %s\r\n",
-                               StephanoI_Examples_ConfirmSecurityKeyRequest.conn_index, StephanoI_Examples_ConfirmSecurityKeyRequest.key);
+                WE_APP_PRINT("Confirm key event received.\r\n"
+                             "Connection index: %d\r\n"
+                             "Key: %s\r\n",
+                             StephanoI_Examples_ConfirmSecurityKeyRequest.conn_index, StephanoI_Examples_ConfirmSecurityKeyRequest.key);
                 received_confirmsecuritykey_request = true;
             }
         }
@@ -405,7 +405,7 @@ void StephanoI_BluetoothLE_Examples_EventCallback(char* eventText)
  */
 void StephanoI_BluetoothLE_Central_ThroughputData_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Bluetooth LE data throughput example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Bluetooth LE data throughput example ***\r\n");
     char target_remote_address[BLE_MAC_STRINGLEN] = "84:f7:03:a2:23:f6";
 
     /* generate data for later data transmission */
@@ -415,7 +415,7 @@ void StephanoI_BluetoothLE_Central_ThroughputData_Example()
         data[i] = (0x30) + (i % 10);
     }
     /* First byte must be 0x01 to transmit data to a Proteus device,
-	 * For any other device there is no restriction */
+     * For any other device there is no restriction */
     data[0] = 0x01;
 
     bool ret;
@@ -426,7 +426,7 @@ void StephanoI_BluetoothLE_Central_ThroughputData_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -442,7 +442,7 @@ void StephanoI_BluetoothLE_Central_ThroughputData_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_ATDevice_Restore();
@@ -456,7 +456,7 @@ void StephanoI_BluetoothLE_Central_ThroughputData_Example()
     /* set the UART baudrate to 3 MBaud */
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -544,7 +544,7 @@ void StephanoI_BluetoothLE_Central_ThroughputData_Example()
  */
 void StephanoI_BluetoothLE_Central_Data_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Bluetooth LE data transmission (Stephano-I Central -> Bluetooth LE) example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Bluetooth LE data transmission (Stephano-I Central -> Bluetooth LE) example ***\r\n");
     char target_remote_address[BLE_MAC_STRINGLEN] = "00:18:DA:00:10:88";
     char static_passkey[] = "123123"; //default static passkey of Proteus-III
 
@@ -555,12 +555,12 @@ void StephanoI_BluetoothLE_Central_Data_Example()
         data[i] = (0x30) + (i % 10);
     }
     /* First byte must be 0x01 to transmit data to a Proteus device,
-	 * For any other device there is no restriction */
+     * For any other device there is no restriction */
     data[0] = 0x01;
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -590,12 +590,12 @@ void StephanoI_BluetoothLE_Central_Data_Example()
     StephanoI_Examples_Print("Bluetooth LE Init", ret);
 
 #if false
-	StephanoI_ATBluetoothLE_ScanParameters_t params;
-	ret = StephanoI_ATBluetoothLE_GetScanParameters(&params);
-	StephanoI_Examples_Print("Bluetooth LE get scan params", ret);
-	ret = StephanoI_ATBluetoothLE_SetScanParameters(params);
-	StephanoI_Examples_Print("Bluetooth LE set scan params", ret);
-	WE_Delay(500);
+    StephanoI_ATBluetoothLE_ScanParameters_t params;
+    ret = StephanoI_ATBluetoothLE_GetScanParameters(&params);
+    StephanoI_Examples_Print("Bluetooth LE get scan params", ret);
+    ret = StephanoI_ATBluetoothLE_SetScanParameters(params);
+    StephanoI_Examples_Print("Bluetooth LE set scan params", ret);
+    WE_Delay(500);
 #endif
 
 #define nENABLE_CENTRAL_SECURITY
@@ -716,7 +716,7 @@ void StephanoI_BluetoothLE_Central_Data_Example()
  */
 void StephanoI_BluetoothLE_Peripheral_Data_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Bluetooth LE data transmission (Bluetooth LE -> Stephano-I peripheral) example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Bluetooth LE data transmission (Bluetooth LE -> Stephano-I peripheral) example ***\r\n");
 
     /* generate data for later data transmission */
     /* refer to the Base64.h file in the utils folder for Base64 encoding in case its needed for the data. */
@@ -726,12 +726,12 @@ void StephanoI_BluetoothLE_Peripheral_Data_Example()
         data[i] = (0x30) + (i % 10);
     }
     /* First byte must be 0x01 to transmit data to a Proteus device,
-	 * For any other device there is no restriction */
+     * For any other device there is no restriction */
     data[0] = 0x01;
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -782,11 +782,11 @@ void StephanoI_BluetoothLE_Peripheral_Data_Example()
     StephanoI_Examples_Print("Bluetooth LE Set security parameters", ret);
 
 #if 0
-	StephanoI_ATBluetoothLE_Key_t key = "123123";
-	ret = StephanoI_ATBluetoothLE_SetStaticKey(key);
-	StephanoI_Examples_Print("Bluetooth LE set static key", ret);
-	ret = StephanoI_ATBluetoothLE_GetStaticKey(&key);
-	StephanoI_Examples_Print("Bluetooth LE get static key", ret);
+    StephanoI_ATBluetoothLE_Key_t key = "123123";
+    ret = StephanoI_ATBluetoothLE_SetStaticKey(key);
+    StephanoI_Examples_Print("Bluetooth LE set static key", ret);
+    ret = StephanoI_ATBluetoothLE_GetStaticKey(&key);
+    StephanoI_Examples_Print("Bluetooth LE get static key", ret);
 #endif
 #endif
 
@@ -834,9 +834,9 @@ void StephanoI_BluetoothLE_Peripheral_Data_Example()
             /* no channel open */
             StephanoI_Examples_Print("Waiting for channel open", true);
 #if 0
-			StephanoI_ATBluetoothLE_ReadPhy_t phy;
-			ret = StephanoI_ATBluetoothLE_GetConnectionPhy(StephanoI_Examples_Connection.conn_index, &phy);
-			StephanoI_Examples_Print("Get Phy", ret);
+            StephanoI_ATBluetoothLE_ReadPhy_t phy;
+            ret = StephanoI_ATBluetoothLE_GetConnectionPhy(StephanoI_Examples_Connection.conn_index, &phy);
+            StephanoI_Examples_Print("Get Phy", ret);
 #endif
 
             WE_Delay(1000);
@@ -862,11 +862,11 @@ void StephanoI_BluetoothLE_Peripheral_Data_Example()
  */
 void StephanoI_BluetoothLE_Peripheral_Advertising_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Bluetooth LE advertising example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Bluetooth LE advertising example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_BluetoothLE_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 

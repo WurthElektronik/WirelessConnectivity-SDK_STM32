@@ -25,12 +25,12 @@
 
 /**
  * @file
- * @brief DaphnisI LoRaWAN example.
+ * @brief DaphnisI P2P Remote GPIO example.
  *
  */
 
-#ifndef DAPHNISI_P2P_EXAMPLE_H_INCLUDED
-#define DAPHNISI_P2P_EXAMPLE_H_INCLUDED
+#ifndef DAPHNISI_P2P_REMOTE_GPIO_EXAMPLE_H_INCLUDED
+#define DAPHNISI_P2P_REMOTE_GPIO_EXAMPLE_H_INCLUDED
 
 #if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
 
@@ -39,7 +39,7 @@ extern "C"
 {
 #endif
 
-    extern void DaphnisI_P2P_Send();
+extern void DaphnisI_P2P_Remote_GPIO_Example();
 
 #ifdef __cplusplus
 }
@@ -47,4 +47,4 @@ extern "C"
 
 #endif
 
-#endif /* DAPHNISI_P2P_EXAMPLE_H_INCLUDED */
+#endif /* DAPHNISI_P2P_REMOTE_GPIO_EXAMPLE_H_INCLUDED */

@@ -36,6 +36,7 @@
 #include <Calypso/Calypso.h>
 #include <Calypso/Calypso_Examples.h>
 #include <Calypso/Calypso_Socket_Example.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 /**
@@ -123,7 +124,7 @@ void Calypso_Socket_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t* rcvdEve
  */
 void Calypso_TCPServer_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATSocket TCP server example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATSocket TCP server example ***\r\n");
 
     bool ret = false;
 
@@ -135,7 +136,7 @@ void Calypso_TCPServer_Example(void)
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Socket_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -144,8 +145,8 @@ void Calypso_TCPServer_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -186,11 +187,11 @@ void Calypso_TCPServer_Example(void)
     Calypso_Examples_Print("Get IPv4 config", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Create TCP socket, bind it to a port and start listening for incoming connections */
@@ -240,7 +241,7 @@ void Calypso_TCPServer_Example(void)
                           "-----END RSA PRIVATE KEY-----";
         ret = Calypso_ATFile_Write(fileID, 0, Calypso_DataFormat_Binary, false, strlen(key), key, &bytesWritten);
         Calypso_Examples_Print("Write key file", ret);
-        WE_DEBUG_PRINT("Wrote key file \"%s\" (length %d)\r\n", keyFileName, strlen(key));
+        WE_APP_PRINT("Wrote key file \"%s\" (length %d)\r\n", keyFileName, strlen(key));
 
         ret = Calypso_ATFile_Close(fileID, NULL, NULL);
         Calypso_Examples_Print("Close key file", ret);
@@ -299,7 +300,7 @@ void Calypso_TCPServer_Example(void)
                                   "-----END CERTIFICATE-----\r\n";
         ret = Calypso_ATFile_Write(fileID, 0, Calypso_DataFormat_Binary, false, strlen(certificate), certificate, &bytesWritten);
         Calypso_Examples_Print("Write certificate file", ret);
-        WE_DEBUG_PRINT("Wrote certificate file \"%s\" (length %d)\r\n", certificateFileName, strlen(certificate));
+        WE_APP_PRINT("Wrote certificate file \"%s\" (length %d)\r\n", certificateFileName, strlen(certificate));
 
         ret = Calypso_ATFile_Close(fileID, NULL, NULL);
         Calypso_Examples_Print("Close certificate file", ret);
@@ -320,7 +321,7 @@ void Calypso_TCPServer_Example(void)
         Calypso_Examples_Print("Set certificate file name", ret);
 
         /* Must have the correct time on client and server for certificate
-		 * verification - use SNTP client to set the current time */
+         * verification - use SNTP client to set the current time */
         ret = Calypso_ATNetApp_StartApplications(Calypso_ATNetApp_Application_SntpClient);
         Calypso_Examples_Print("Start SNTP client", ret);
         Calypso_ATNetApp_OptionValue_t value;
@@ -338,7 +339,7 @@ void Calypso_TCPServer_Example(void)
         Calypso_Examples_Print("Get device time", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+            WE_APP_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
         }
     }
 
@@ -366,7 +367,7 @@ void Calypso_TCPServer_Example(void)
             /* A client has connected to the server */
             tcpServerConnectionAccepted = false;
 
-            WE_DEBUG_PRINT("Client %s:%d connected.\r\n", tcpServerAcceptEvent.clientAddress, tcpServerAcceptEvent.clientPort);
+            WE_APP_PRINT("Client %s:%d connected.\r\n", tcpServerAcceptEvent.clientAddress, tcpServerAcceptEvent.clientPort);
 
             /* This is the socket ID that can be used for communicating with the client */
             tcpServerClientSocketID = tcpServerAcceptEvent.socketID;
@@ -383,7 +384,7 @@ void Calypso_TCPServer_Example(void)
             else
             {
                 /* Start waiting for data. An Calypso_ATEvent_SocketRcvd event is generated when new
-				 * data is available (see Calypso_eventCallback()). */
+                 * data is available (see Calypso_eventCallback()). */
                 socketExampleWaitingForData = true;
                 Calypso_ATSocket_Receive(tcpServerClientSocketID, Calypso_DataFormat_Binary, CALYPSO_MAX_PAYLOAD_SIZE);
             }
@@ -400,7 +401,7 @@ void Calypso_TCPServer_Example(void)
  */
 void Calypso_TCPClient_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATSocket TCP client example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATSocket TCP client example ***\r\n");
 
     bool ret = false;
 
@@ -409,7 +410,7 @@ void Calypso_TCPClient_Example(void)
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Socket_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -418,8 +419,8 @@ void Calypso_TCPClient_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -460,11 +461,11 @@ void Calypso_TCPClient_Example(void)
     Calypso_Examples_Print("Get IPv4 config", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Create TCP socket and connect to server. */
@@ -509,7 +510,7 @@ void Calypso_TCPClient_Example(void)
                              "-----END CERTIFICATE-----";
         ret = Calypso_ATFile_Write(fileID, 0, Calypso_DataFormat_Binary, false, strlen(caCert), caCert, &bytesWritten);
         Calypso_Examples_Print("Write CA file", ret);
-        WE_DEBUG_PRINT("Wrote CA certificate file \"%s\" (length %d)\r\n", caCertificateFileName, strlen(caCert));
+        WE_APP_PRINT("Wrote CA certificate file \"%s\" (length %d)\r\n", caCertificateFileName, strlen(caCert));
 
         ret = Calypso_ATFile_Close(fileID, NULL, NULL);
         Calypso_Examples_Print("Close CA file", ret);
@@ -526,21 +527,21 @@ void Calypso_TCPClient_Example(void)
         Calypso_Examples_Print("Set CA file name", ret);
 
         /* The following command disables the module's certificate store and thus allows
-		 * us to use self-signed certificates. Don't set this option if using an official
-		 * root CA that should be checked against the module's certificate catalog.
-		 *
-		 * Note that when the certificate store is enabled and the root CA can't be verified
-		 * (e.g. when using a self-signed certificate), the encrypted connection is established
-		 * and data can be sent via the socket, but the module does not generate a
-		 * Calypso_ATEvent_SocketTCPConnect event - instead it returns an error code (e.g. error code
-		 * SL_ERROR_BSD_ESEC_ASN_NO_SIGNER_E). */
+         * us to use self-signed certificates. Don't set this option if using an official
+         * root CA that should be checked against the module's certificate catalog.
+         *
+         * Note that when the certificate store is enabled and the root CA can't be verified
+         * (e.g. when using a self-signed certificate), the encrypted connection is established
+         * and data can be sent via the socket, but the module does not generate a
+         * Calypso_ATEvent_SocketTCPConnect event - instead it returns an error code (e.g. error code
+         * SL_ERROR_BSD_ESEC_ASN_NO_SIGNER_E). */
         memset(&options, 0, sizeof(options));
         options.disableCertificateStore = Calypso_ATSocket_OptionState_Enabled;
         ret = Calypso_ATSocket_SetSocketOption(socketID, Calypso_ATSocket_SockOptLevel_Socket, Calypso_ATSocket_SockOptSocket_DisableCertificateStore, &options);
         Calypso_Examples_Print("Disable certificate store", ret);
 
         /* Must have the correct time on client and server for certificate
-		 * verification - use SNTP client to set the current time. */
+         * verification - use SNTP client to set the current time. */
         ret = Calypso_ATNetApp_StartApplications(Calypso_ATNetApp_Application_SntpClient);
         Calypso_Examples_Print("Start SNTP client", ret);
         Calypso_ATNetApp_OptionValue_t value;
@@ -558,7 +559,7 @@ void Calypso_TCPClient_Example(void)
         Calypso_Examples_Print("Get device time", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+            WE_APP_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
         }
     }
 
@@ -576,7 +577,7 @@ void Calypso_TCPClient_Example(void)
             /* Connection to server has been established */
             tcpClientConnectionEstablished = false;
 
-            WE_DEBUG_PRINT("Connected to server %s:%d.\r\n", tcpClientConnectEvent.serverAddress, tcpClientConnectEvent.serverPort);
+            WE_APP_PRINT("Connected to server %s:%d.\r\n", tcpClientConnectEvent.serverAddress, tcpClientConnectEvent.serverPort);
 
             tcpConnected = true;
         }
@@ -584,10 +585,10 @@ void Calypso_TCPClient_Example(void)
         if (tcpConnected)
         {
             /* When connected, a 16bit counter value (converted to ASCII) is sent to the server every 250ms */
-            static uint16_t counter = 0;
+            static uint32_t counter = 0;
             char data[8];
             uint16_t bytesSent = 0;
-            sprintf(data, "%d\r\n", counter++);
+            sprintf(data, "%" PRIu32 "\r\n", counter++);
             Calypso_ATSocket_Send(socketID, Calypso_DataFormat_Binary, false, strlen(data), data, &bytesSent);
         }
 
@@ -602,7 +603,7 @@ void Calypso_TCPClient_Example(void)
  */
 void Calypso_UDPReceive_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATSocket UDP receive example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATSocket UDP receive example ***\r\n");
 
     bool ret = false;
 
@@ -611,7 +612,7 @@ void Calypso_UDPReceive_Example(void)
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Socket_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -620,8 +621,8 @@ void Calypso_UDPReceive_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -662,11 +663,11 @@ void Calypso_UDPReceive_Example(void)
     Calypso_Examples_Print("Get IPv4 config", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Create UDP socket and bind it to a port */
@@ -694,7 +695,7 @@ void Calypso_UDPReceive_Example(void)
         else
         {
             /* Start waiting for data. An Calypso_ATEvent_SocketRcvdFrom event is generated when new
-			 * data is available (see Calypso_eventCallback()). */
+             * data is available (see Calypso_eventCallback()). */
             socketExampleWaitingForData = true;
             Calypso_ATSocket_ReceiveFrom(socketID, socketDescriptorClient, Calypso_DataFormat_Binary, CALYPSO_MAX_PAYLOAD_SIZE);
         }
@@ -712,7 +713,7 @@ void Calypso_UDPReceive_Example(void)
  */
 void Calypso_UDPTransmit_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATSocket UDP transmit example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATSocket UDP transmit example ***\r\n");
 
     bool ret = false;
 
@@ -721,7 +722,7 @@ void Calypso_UDPTransmit_Example(void)
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Socket_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -730,8 +731,8 @@ void Calypso_UDPTransmit_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -772,11 +773,11 @@ void Calypso_UDPTransmit_Example(void)
     Calypso_Examples_Print("Get IPv4 config", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("*** Station IPv4 configuration ***\r\n");
-        WE_DEBUG_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
-        WE_DEBUG_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
-        WE_DEBUG_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
-        WE_DEBUG_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
+        WE_APP_PRINT("*** Station IPv4 configuration ***\r\n");
+        WE_APP_PRINT("IPv4 address: %s\r\n", ipV4Config.ipAddress);
+        WE_APP_PRINT("Subnet mask: %s\r\n", ipV4Config.subnetMask);
+        WE_APP_PRINT("Gateway address: %s\r\n", ipV4Config.gatewayAddress);
+        WE_APP_PRINT("DNS address: %s\r\n", ipV4Config.dnsAddress);
     }
 
     /* Create UDP socket and bind it to a port */
@@ -798,10 +799,10 @@ void Calypso_UDPTransmit_Example(void)
     while (true)
     {
         /* A 16bit counter value (converted to ASCII) is sent to the peer every 250ms */
-        static uint16_t counter = 0;
+        static uint32_t counter = 0;
         char data[8];
         uint16_t bytesSent = 0;
-        sprintf(data, "%d\r\n", counter++);
+        sprintf(data, "%" PRIu32 "\r\n", counter++);
         Calypso_ATSocket_SendTo(socketID, &socketDescriptorServer, Calypso_DataFormat_Binary, false, strlen(data), data, &bytesSent);
 
         WE_Delay(250);
@@ -937,5 +938,5 @@ void Calypso_Socket_Example_OnDataReceived(Calypso_ATEvent_SocketRcvd_t* rcvdEve
 {
     memcpy(socketExampleReceiveBuffer, rcvdEvent->data, rcvdEvent->length);
     socketExampleReceiveBuffer[rcvdEvent->length] = '\0';
-    WE_DEBUG_PRINT("RECEIVED %s\r\n", socketExampleReceiveBuffer);
+    WE_APP_PRINT("RECEIVED %s\r\n", socketExampleReceiveBuffer);
 }

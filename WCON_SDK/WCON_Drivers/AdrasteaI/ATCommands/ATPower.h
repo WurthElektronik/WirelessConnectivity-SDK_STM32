@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATPower.h
  * @brief MCU commands for Power functionality.
  */
 
@@ -40,25 +40,43 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief MCU Power Modes
  */
-    typedef enum AdrasteaI_ATPower_Mode_t
-    {
-        AdrasteaI_ATPower_Mode_Invalid = -1,
-        AdrasteaI_ATPower_Mode_Stop,
-        AdrasteaI_ATPower_Mode_Standby,
-        AdrasteaI_ATPower_Mode_Shutdown,
-        AdrasteaI_ATPower_Mode_NumberOfValues
-    } AdrasteaI_ATPower_Mode_t;
+typedef enum AdrasteaI_ATPower_Mode_t
+{
+    AdrasteaI_ATPower_Mode_Invalid = -1,
+    AdrasteaI_ATPower_Mode_Stop,
+    AdrasteaI_ATPower_Mode_Standby,
+    AdrasteaI_ATPower_Mode_Shutdown,
+    /** @cond DOXYGEN_IGNORE */
+    AdrasteaI_ATPower_Mode_NumberOfValues
+    /** @endcond */
+} AdrasteaI_ATPower_Mode_t;
 
-    typedef uint16_t AdrasteaI_ATPower_Mode_Duration_t;
+typedef uint16_t AdrasteaI_ATPower_Mode_Duration_t;
 
 #define AdrasteaI_ATPower_Mode_Duration_Invalid 0
 
-    extern bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration);
+/**
+ * @brief Set MCU Power Mode (using the pwrMode command).
+ *
+ * @param[in] mode: Power Mode. See AdrasteaI_ATPower_Mode_t.
+ *
+ * @param[in] duration: Duration for sleep mode.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration);
 
-    extern bool AdrasteaI_ATPower_EnableSleep();
+/**
+ * @brief Enable MCU Sleep (using the sleepSet command).
+ *
+ * Note: Make sure to disable the modem before enabling sleep if you don't want the modem to keep waking up the MCU.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool AdrasteaI_ATPower_EnableSleep();
 
 #ifdef __cplusplus
 }

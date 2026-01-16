@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATEvent.h
  * @brief AT event definitions.
  */
 
@@ -39,102 +39,158 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief AT event IDs.
  */
-    typedef enum CordeliaI_ATEvent_t
-    {
-        CordeliaI_ATEvent_Invalid = (uint16_t)0,
-        CordeliaI_ATEvent_Startup,
-        CordeliaI_ATEvent_GeneralResetRequest,
-        CordeliaI_ATEvent_GeneralError,
-        CordeliaI_ATEvent_WlanConnect,
-        CordeliaI_ATEvent_WlanDisconnect,
-        CordeliaI_ATEvent_WlanStaAdded,
-        CordeliaI_ATEvent_WlanStaRemoved,
-        CordeliaI_ATEvent_SocketTxFailed,
-        CordeliaI_ATEvent_SocketAsyncEvent,
-        CordeliaI_ATEvent_NetappIP4Acquired,
-        CordeliaI_ATEvent_MQTTError,
-        CordeliaI_ATEvent_MQTTRecv,
-        CordeliaI_ATEvent_MQTTInfo,
-        CordeliaI_ATEvent_IoTInfo,
-        CordeliaI_ATEvent_IoTError,
-        CordeliaI_ATEvent_FatalErrorDeviceAbort,
-        CordeliaI_ATEvent_FatalErrorDriverAbort,
-        CordeliaI_ATEvent_FatalErrorSyncLost,
-        CordeliaI_ATEvent_FatalErrorNoCmdAck,
-        CordeliaI_ATEvent_FatalErrorCmdTimeout,
-        CordeliaI_ATEvent_NumberOfValues,
-        CordeliaI_ATEvent_Max = UINT16_MAX
-    } CordeliaI_ATEvent_t;
+typedef enum CordeliaI_ATEvent_t
+{
+    CordeliaI_ATEvent_Invalid = (uint16_t)0,
+    CordeliaI_ATEvent_Startup,
+    CordeliaI_ATEvent_GeneralResetRequest,
+    CordeliaI_ATEvent_GeneralError,
+    CordeliaI_ATEvent_WlanConnect,
+    CordeliaI_ATEvent_WlanDisconnect,
+    CordeliaI_ATEvent_WlanStaAdded,
+    CordeliaI_ATEvent_WlanStaRemoved,
+    CordeliaI_ATEvent_SocketTxFailed,
+    CordeliaI_ATEvent_SocketAsyncEvent,
+    CordeliaI_ATEvent_NetappIP4Acquired,
+    CordeliaI_ATEvent_MQTTError,
+    CordeliaI_ATEvent_MQTTRecv,
+    CordeliaI_ATEvent_MQTTInfo,
+    CordeliaI_ATEvent_IoTInfo,
+    CordeliaI_ATEvent_IoTError,
+    CordeliaI_ATEvent_FatalErrorDeviceAbort,
+    CordeliaI_ATEvent_FatalErrorDriverAbort,
+    CordeliaI_ATEvent_FatalErrorSyncLost,
+    CordeliaI_ATEvent_FatalErrorNoCmdAck,
+    CordeliaI_ATEvent_FatalErrorCmdTimeout,
+    /** @cond DOXYGEN_IGNORE */
+    CordeliaI_ATEvent_NumberOfValues,
+    CordeliaI_ATEvent_Max = UINT16_MAX
+    /** @endcond */
+} CordeliaI_ATEvent_t;
 
-    /**
+/**
  * @brief Custom event IDs (first argument of "+eventcustom" event).
  */
-    typedef enum CordeliaI_ATEvent_CustomEventID_t
-    {
-        CordeliaI_ATEvent_CustomEventID_GPIO,
-        CordeliaI_ATEvent_CustomEventID_HTTPPost,
-        CordeliaI_ATEvent_CustomEventID_NumberOfValues
-    } CordeliaI_ATEvent_CustomEventID_t;
+typedef enum CordeliaI_ATEvent_CustomEventID_t
+{
+    CordeliaI_ATEvent_CustomEventID_GPIO,
+    CordeliaI_ATEvent_CustomEventID_HTTPPost,
+    /** @cond DOXYGEN_IGNORE */
+    CordeliaI_ATEvent_CustomEventID_NumberOfValues
+    /** @endcond */
+} CordeliaI_ATEvent_CustomEventID_t;
 
-    /**
+/**
  * @brief Parameters of startup event (CordeliaI_ATEvent_Startup).
  */
-    typedef struct CordeliaI_ATEvent_Startup_t
-    {
-        char articleNr[16];
-        char chipID[12];
-        char MACAddress[18];
-        uint8_t firmwareVersion[3];
-    } CordeliaI_ATEvent_Startup_t;
+typedef struct CordeliaI_ATEvent_Startup_t
+{
+    char articleNr[16];
+    char chipID[12];
+    char MACAddress[18];
+    uint8_t firmwareVersion[3];
+} CordeliaI_ATEvent_Startup_t;
 
-    /**
+/**
  * @brief Parameters of IoT event (CordeliaI_ATEvent_Startup).
  */
-    typedef struct CordeliaI_ATEvent_IoT_t
-    {
-        char statusMessage[32];
-        uint16_t statusCode;
-    } CordeliaI_ATEvent_IoT_t;
+typedef struct CordeliaI_ATEvent_IoT_t
+{
+    char statusMessage[32];
+    uint16_t statusCode;
+} CordeliaI_ATEvent_IoT_t;
 
-    /**
+/**
  * @brief Parameters of MQTT event (CordeliaI_ATEvent_Startup).
  */
-    typedef struct CordeliaI_ATEvent_MQTT_t
-    {
-        char statusMessage[32];
-        uint16_t statusCode;
-    } CordeliaI_ATEvent_MQTT_t;
+typedef struct CordeliaI_ATEvent_MQTT_t
+{
+    char statusMessage[32];
+    uint16_t statusCode;
+} CordeliaI_ATEvent_MQTT_t;
 
-    /**
+/**
  * @brief Parameters of MQTT recv event (CordeliaI_ATEvent_Startup).
  */
-    typedef struct CordeliaI_ATEvent_MQTTRecv_t
-    {
-        char topic[32];
-        char qos[8];
-        char message[128];
-    } CordeliaI_ATEvent_MQTTRecv_t;
+typedef struct CordeliaI_ATEvent_MQTTRecv_t
+{
+    char topic[32];
+    char qos[8];
+    char message[128];
+} CordeliaI_ATEvent_MQTTRecv_t;
 
-    /**
+/**
  * @brief Parameters of IPv4 acquired event (CordeliaI_ATEvent_NetappIP4Acquired).
  */
-    typedef struct CordeliaI_ATEvent_NetappIP4Acquired_t
-    {
-        char address[16];
-        char gateway[16];
-        char DNS[16];
-    } CordeliaI_ATEvent_NetappIP4Acquired_t;
+typedef struct CordeliaI_ATEvent_NetappIP4Acquired_t
+{
+    char address[16];
+    char gateway[16];
+    char DNS[16];
+} CordeliaI_ATEvent_NetappIP4Acquired_t;
 
-    extern bool CordeliaI_ATEvent_ParseEventType(char** pAtCommand, CordeliaI_ATEvent_t* pEvent);
-    extern bool CordeliaI_ATEvent_ParseStartUpEvent(char** pEventArguments, CordeliaI_ATEvent_Startup_t* CordeliaI_Examples_startupEvent);
-    extern bool CordeliaI_ATEvent_ParseIoTEvent(char** pEventArguments, CordeliaI_ATEvent_IoT_t* CordeliaI_Examples_IoTEvent);
-    extern bool CordeliaI_ATEvent_ParseMQTTEvent(char** pEventArguments, CordeliaI_ATEvent_MQTT_t* CordeliaI_Examples_MQTTEvent);
-    extern bool CordeliaI_ATEvent_ParseNetappIP4AcquiredEvent(char** pEventArguments, CordeliaI_ATEvent_NetappIP4Acquired_t* ipv4Event);
-    extern bool CordeliaI_ATEvent_ParseHttpGetEvent(char** pEventArguments, char* id, uint16_t maxIdLength);
-    extern bool CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, CordeliaI_ATEvent_MQTTRecv_t* CordeliaI_Examples_MQTTRecvEvent);
+/**
+ * @brief Parses the received AT command and returns the corresponding CordeliaI_ATEvent_t.
+ *
+ * @param[in,out] pAtCommand: AT command starting with '+'
+ * @param[out] pEvent: CordeliaI_ATEvent_t representing the event
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool CordeliaI_ATEvent_ParseEventType(char** pAtCommand, CordeliaI_ATEvent_t* pEvent);
+
+/**
+ * @brief Parses the values of the startup event arguments.
+ *
+ * @param[in,out] pEventArguments: String containing arguments of the AT command
+ * @param[out] CordeliaI_Examples_startupEvent: The parsed startup event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool CordeliaI_ATEvent_ParseStartUpEvent(char** pEventArguments, CordeliaI_ATEvent_Startup_t* CordeliaI_Examples_startupEvent);
+
+/**
+ * @brief Parses the values of the IoT event arguments.
+ *
+ * @param[in,out] pEventArguments: String containing arguments of the AT command.
+ * @param[out] CordeliaI_Examples_IoTEvent: The parsed IoT event data.
+ *
+ * @return True if parsed successfully, false otherwise.
+ */
+extern bool CordeliaI_ATEvent_ParseIoTEvent(char** pEventArguments, CordeliaI_ATEvent_IoT_t* CordeliaI_Examples_IoTEvent);
+
+/**
+ * @brief Parses the values of the MQTT event arguments.
+ *
+ * @param[in,out] pEventArguments: String containing arguments of the AT command.
+ * @param[out] CordeliaI_Examples_MQTTEvent: The parsed MQTT event data.
+ *
+ * @return True if parsed successfully, false otherwise.
+ */
+extern bool CordeliaI_ATEvent_ParseMQTTEvent(char** pEventArguments, CordeliaI_ATEvent_MQTT_t* CordeliaI_Examples_MQTTEvent);
+
+/**
+ * @brief Parses the values of the IPv4 acquired event arguments.
+ *
+ * @param[in,out] pEventArguments: String containing arguments of the AT command
+ * @param[out] ipv4Event: The parsed IPv4 acquired event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool CordeliaI_ATEvent_ParseNetappIP4AcquiredEvent(char** pEventArguments, CordeliaI_ATEvent_NetappIP4Acquired_t* ipv4Event);
+
+/**
+ * @brief Parses the values of the MQTT data received event.
+ *
+ * @param[in,out] pEventArguments: String containing arguments of the event
+ * @param[out] rcvdEvent: The parsed mqtt received data from event
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, CordeliaI_ATEvent_MQTTRecv_t* rcvdEvent);
 
 #ifdef __cplusplus
 }

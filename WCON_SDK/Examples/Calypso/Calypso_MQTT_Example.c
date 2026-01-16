@@ -51,7 +51,7 @@ static const uint16_t mqttServerPort = 1883;
  */
 void Calypso_MQTT_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATMQTT example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATMQTT example ***\r\n");
 
     bool ret = false;
 
@@ -67,8 +67,8 @@ void Calypso_MQTT_Example(void)
     WE_Delay(1000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);

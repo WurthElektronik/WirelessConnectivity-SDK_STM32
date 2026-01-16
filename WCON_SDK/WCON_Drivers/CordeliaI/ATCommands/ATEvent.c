@@ -24,7 +24,7 @@
  **/
 
 /**
- * @file
+ * @file ATEvent.c
  * @brief AT event definitions.
  */
 #include <CordeliaI/ATCommands/ATEvent.h>
@@ -48,35 +48,23 @@ static const ATCommand_Event_t fatalErrorSubEvents[] = {EVENTENTRY("device_abort
 static const ATCommand_Event_t moduleMainEvents[] = {PARENTEVENTENTRY("+eventgeneral", generalSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("+eventwlan", wlanSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("+eventsock", socketSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("+eventnetapp", netAppSubEvents, ATCOMMAND_ARGUMENT_DELIM)
                                                          PARENTEVENTENTRY("+eventmqtt", mqttSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("+eventfatalerror", fatalErrorSubEvents, ATCOMMAND_ARGUMENT_DELIM) PARENTEVENTENTRY("+eventiot", iotSubEvents, ATCOMMAND_ARGUMENT_DELIM) LASTEVENTENTRY("+eventstartup", CordeliaI_ATEvent_Startup)};
 
-/**
- * @brief Parses the received AT command and returns the corresponding CordeliaI_ATEvent_t.
- *
- * @param[in,out] pAtCommand AT command starting with '+'
- * @param[out] pEvent CordeliaI_ATEvent_t representing the event
- *
- * @return true if parsed successfully, false otherwise
- */
 bool CordeliaI_ATEvent_ParseEventType(char** pAtCommand, CordeliaI_ATEvent_t* pEvent)
 {
     char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE};
 
-    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*)pEvent))
+    uint16_t event;
+
+    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), &event))
     {
         *pEvent = CordeliaI_ATEvent_Invalid;
         return false;
     }
 
+    *pEvent = (CordeliaI_ATEvent_t)event;
+
     return true;
 }
 
-/**
- * @brief Parses the values of the startup event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] CordeliaI_Examples_startupEvent The parsed startup event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool CordeliaI_ATEvent_ParseStartUpEvent(char** pEventArguments, CordeliaI_ATEvent_Startup_t* CordeliaI_Examples_startupEvent)
 {
 
@@ -113,14 +101,6 @@ bool CordeliaI_ATEvent_ParseStartUpEvent(char** pEventArguments, CordeliaI_ATEve
     return true;
 }
 
-/**
- * @brief Parses the values of the IoT event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command.
- * @param[out] CordeliaI_Examples_IoTEvent The parsed IoT event data.
- *
- * @return true if parsed successfully, false otherwise.
- */
 bool CordeliaI_ATEvent_ParseIoTEvent(char** pEventArguments, CordeliaI_ATEvent_IoT_t* CordeliaI_Examples_IoTEvent)
 {
     if ((pEventArguments == NULL) || (CordeliaI_Examples_IoTEvent == NULL))
@@ -141,14 +121,6 @@ bool CordeliaI_ATEvent_ParseIoTEvent(char** pEventArguments, CordeliaI_ATEvent_I
     return true;
 }
 
-/**
- * @brief Parses the values of the MQTT event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command.
- * @param[out] CordeliaI_Examples_MQTTEvent The parsed MQTT event data.
- *
- * @return true if parsed successfully, false otherwise.
- */
 bool CordeliaI_ATEvent_ParseMQTTEvent(char** pEventArguments, CordeliaI_ATEvent_MQTT_t* CordeliaI_Examples_MQTTEvent)
 {
     if ((pEventArguments == NULL) || (CordeliaI_Examples_MQTTEvent == NULL))
@@ -169,32 +141,24 @@ bool CordeliaI_ATEvent_ParseMQTTEvent(char** pEventArguments, CordeliaI_ATEvent_
     return true;
 }
 
-/**
- * @brief Parses the values of the MQTT data received event.
- *
- * @param[in,out] pEventArguments String containing arguments of the event
- * @param[out] rcvdEvent The parsed mqtt received data from event
- *
- * @return true if parsed successfully, false otherwise
- */
-bool CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, CordeliaI_ATEvent_MQTTRecv_t* CordeliaI_Examples_MQTTRecvEvent)
+bool CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, CordeliaI_ATEvent_MQTTRecv_t* rcvdEvent)
 {
-    if ((pEventArguments == NULL) || (CordeliaI_Examples_MQTTRecvEvent == NULL))
+    if ((pEventArguments == NULL) || (rcvdEvent == NULL))
     {
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentString(pEventArguments, CordeliaI_Examples_MQTTRecvEvent->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(CordeliaI_Examples_MQTTRecvEvent->topic)))
+    if (!ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->topic, ATCOMMAND_ARGUMENT_DELIM, sizeof(rcvdEvent->topic)))
     {
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentString(pEventArguments, CordeliaI_Examples_MQTTRecvEvent->qos, ATCOMMAND_ARGUMENT_DELIM, sizeof(CordeliaI_Examples_MQTTRecvEvent->qos)))
+    if (!ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->qos, ATCOMMAND_ARGUMENT_DELIM, sizeof(rcvdEvent->qos)))
     {
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentString(pEventArguments, CordeliaI_Examples_MQTTRecvEvent->message, ATCOMMAND_STRING_TERMINATE, sizeof(CordeliaI_Examples_MQTTRecvEvent->message)))
+    if (!ATCommand_GetNextArgumentString(pEventArguments, rcvdEvent->message, ATCOMMAND_STRING_TERMINATE, sizeof(rcvdEvent->message)))
     {
         return false;
     }
@@ -202,14 +166,6 @@ bool CordeliaI_ATEvent_ParseSocketMQTTRcvdEvent(char** pEventArguments, Cordelia
     return true;
 }
 
-/**
- * @brief Parses the values of the IPv4 acquired event arguments.
- *
- * @param[in,out] pEventArguments String containing arguments of the AT command
- * @param[out] ipv4Event The parsed IPv4 acquired event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool CordeliaI_ATEvent_ParseNetappIP4AcquiredEvent(char** pEventArguments, CordeliaI_ATEvent_NetappIP4Acquired_t* ipv4Event)
 {
     if (!ATCommand_GetNextArgumentString(pEventArguments, ipv4Event->address, ATCOMMAND_ARGUMENT_DELIM, sizeof(ipv4Event->address)))

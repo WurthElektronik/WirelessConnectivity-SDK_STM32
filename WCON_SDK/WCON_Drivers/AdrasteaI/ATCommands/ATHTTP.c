@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATHTTP.c
  * @brief AT commands for HTTP functionality.
  */
 #include <AdrasteaI/ATCommands/ATHTTP.h>
@@ -34,19 +34,6 @@
 
 static const char* AdrasteaI_ATHTTP_Event_Strings[AdrasteaI_ATHTTP_Event_NumberOfValues] = {"PUTCONF", "POSTCONF", "DELCONF", "GETRCV", "SESTERM", "ALL"};
 
-/**
- * @brief Configure Nodes (using the AT%HTTPCFG command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] addr Ip address or URL for this profile.
- *
- * @param[in] username Username if authentication is required (optional pass empty string to skip).
- *
- * @param[in] password Password if authentication is required (optional pass empty string to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ConfigureNodes(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATCommon_Auth_Username_t username, AdrasteaI_ATCommon_Auth_Password_t password)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -100,17 +87,6 @@ bool AdrasteaI_ATHTTP_ConfigureNodes(AdrasteaI_ATHTTP_Profile_ID_t profileID, Ad
     return true;
 }
 
-/**
- * @brief Configure TLS (using the AT%HTTPCFG command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] authMode Authentication mode of TLS.
- *
- * @param[in] tlsProfileID Profile ID of TLS configuration.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ConfigureTLS(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_TLS_Auth_Mode_t authMode, AdrasteaI_ATCommon_TLS_Profile_ID_t tlsProfileID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -150,21 +126,6 @@ bool AdrasteaI_ATHTTP_ConfigureTLS(AdrasteaI_ATHTTP_Profile_ID_t profileID, Adra
     return true;
 }
 
-/**
- * @brief Configure IP (using the AT%HTTPCFG command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] sessionID Session ID (optional pass AdrasteaI_ATHTTP_IP_Session_ID_Invalid to skip).
- *
- * @param[in] ipFormat IP Address format (optional pass AdrasteaI_ATHTTP_IP_Addr_Format_Invalid to skip).
- *
- * @param[in] destPort Destination Port (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
- *
- * @param[in] sourcePort Source Port (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ConfigureIP(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_IP_Session_ID_t sessionID, AdrasteaI_ATHTTP_IP_Addr_Format_t ipFormat, AdrasteaI_ATCommon_Port_Number_t destPort, AdrasteaI_ATCommon_Port_Number_t sourcePort)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -258,17 +219,6 @@ bool AdrasteaI_ATHTTP_ConfigureIP(AdrasteaI_ATHTTP_Profile_ID_t profileID, Adras
     return true;
 }
 
-/**
- * @brief Configure Format (using the AT%HTTPCFG command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] responseHeader Configure if headers should be present in the response.
- *
- * @param[in] requestHeader Configure if headers should be present in the request.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ConfigureFormat(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, AdrasteaI_ATHTTP_Header_Presence_t requestHeader)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -313,15 +263,6 @@ bool AdrasteaI_ATHTTP_ConfigureFormat(AdrasteaI_ATHTTP_Profile_ID_t profileID, A
     return true;
 }
 
-/**
- * @brief Configure Timeout (using the AT%HTTPCFG command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] timeout Configure Server response timeout in seconds.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ConfigureTimeout(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Timeout_t timeout)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -356,15 +297,6 @@ bool AdrasteaI_ATHTTP_ConfigureTimeout(AdrasteaI_ATHTTP_Profile_ID_t profileID, 
     return true;
 }
 
-/**
- * @brief Set HTTP Notification Events (using the AT%HTTPEV command).
- *
- * @param[in] event HTTP event type. See AdrasteaI_ATHTTP_Event_t.
- *
- * @param[in] state Event State
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_SetHTTPUnsolicitedNotificationEvents(AdrasteaI_ATHTTP_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -473,21 +405,6 @@ static bool GETDELETE_Common(char* pRequestCommand, AdrasteaI_ATHTTP_Profile_ID_
     return true;
 }
 
-/**
- * @brief Configure GET request (using the AT%HTTPCMD command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] addr Ip address or URL for this request.
- *
- * @param[in] responseHeader Configure if headers should be present in the response of this request.
- *
- * @param[in] headers Headers array to be passed in this request (optional pass NULL to skip).
- *
- * @param[in] headersCount Headers count in headers array to be passed in this request (optional pass 0 to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_GET(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, char* headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -497,21 +414,6 @@ bool AdrasteaI_ATHTTP_GET(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATC
     return GETDELETE_Common(pRequestCommand, profileID, addr, responseHeader, headers, headersCount);
 }
 
-/**
- * @brief Configure DELETE request (using the AT%HTTPCMD command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] addr Ip address or URL for this request.
- *
- * @param[in] responseHeader Configure if headers should be present in the response of this request.
- *
- * @param[in] headers Headers array to be passed in this request (optional pass NULL to skip).
- *
- * @param[in] headersCount Headers count in headers array to be passed in this request (optional pass 0 to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_DELETE(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, AdrasteaI_ATHTTP_Header_Presence_t responseHeader, char* headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -614,25 +516,6 @@ static bool POSTPUT_Common(char* pRequestCommand, AdrasteaI_ATHTTP_Profile_ID_t 
     return true;
 }
 
-/**
- * @brief Configure POST request (using the AT%HTTPSEND command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] addr Ip address or URL for this request.
- *
- * @param[in] body Body of the http request.
- *
- * @param[in] bodySize Size of the body in the http request.
- *
- * @param[in] contentType Content type of the body (optional pass NULL to skip).
- *
- * @param[in] headers Headers array to be passed in this request (optional pass NULL to skip).
- *
- * @param[in] headersCount Headers count in headers array to be passed in this request (optional pass 0 to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_POST(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, char* body, AdrasteaI_ATHTTP_Body_Size_t bodySize, char* contentType, char* headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -642,25 +525,6 @@ bool AdrasteaI_ATHTTP_POST(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_AT
     return POSTPUT_Common(pRequestCommand, profileID, addr, body, bodySize, contentType, headers, headersCount);
 }
 
-/**
- * @brief Configure PUT request (using the AT%HTTPSEND command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] addr Ip address or URL for this request.
- *
- * @param[in] body Body of the http request.
- *
- * @param[in] bodySize Size of the body in the http request.
- *
- * @param[in] contentType Content type of the body (optional pass NULL to skip).
- *
- * @param[in] headers Headers array to be passed in this request (optional pass NULL to skip).
- *
- * @param[in] headersCount Headers count in headers array to be passed in this request (optional pass 0 to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_PUT(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATCommon_IP_Addr_t addr, char* body, AdrasteaI_ATHTTP_Body_Size_t bodySize, char* contentType, char* headers[], AdrasteaI_ATHTTP_Header_Count_t headersCount)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -670,14 +534,6 @@ bool AdrasteaI_ATHTTP_PUT(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATC
     return POSTPUT_Common(pRequestCommand, profileID, addr, body, bodySize, contentType, headers, headersCount);
 }
 
-/**
- * @brief Parses the value of GET event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ParseGETEvent(char* pEventArguments, AdrasteaI_ATHTTP_Event_Result_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -713,17 +569,6 @@ bool AdrasteaI_ATHTTP_ParseGETEvent(char* pEventArguments, AdrasteaI_ATHTTP_Even
     return true;
 }
 
-/**
- * @brief Read the response (using the AT%HTTPREAD command).
- *
- * @param[in] profileID HTTP Profile. See AdrasteaI_ATHTTP_Profile_ID_t.
- *
- * @param[in] maxLength max length of bytes to be read.
- *
- * @param[out] response Response is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ReadResponse(AdrasteaI_ATHTTP_Profile_ID_t profileID, AdrasteaI_ATHTTP_Data_Length_t maxLength, AdrasteaI_ATHTTP_Response_t* response)
 {
     if (response == NULL)
@@ -801,32 +646,8 @@ bool AdrasteaI_ATHTTP_ReadResponse(AdrasteaI_ATHTTP_Profile_ID_t profileID, Adra
     return true;
 }
 
-/**
- * @brief Parses the value of DELETE event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ParseDELETEEvent(char* pEventArguments, AdrasteaI_ATHTTP_Event_Result_t* dataP) { return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP); }
 
-/**
- * @brief Parses the value of POST event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ParsePOSTEvent(char* pEventArguments, AdrasteaI_ATHTTP_Event_Result_t* dataP) { return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP); }
 
-/**
- * @brief Parses the value of PUT event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP the result of the HTTP event is returned in this argument. See AdrasteaI_ATHTTP_Event_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATHTTP_ParsePUTEvent(char* pEventArguments, AdrasteaI_ATHTTP_Event_Result_t* dataP) { return AdrasteaI_ATHTTP_ParseGETEvent(pEventArguments, dataP); }

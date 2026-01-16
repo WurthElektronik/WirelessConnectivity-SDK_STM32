@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATSocketExample();
+extern void ATSocketExample();
 
 #ifdef __cplusplus
 }

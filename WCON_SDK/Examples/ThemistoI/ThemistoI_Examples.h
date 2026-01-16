@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void ThemistoI_Examples(void);
+extern void ThemistoI_Examples(void);
 
 #ifdef __cplusplus
 }

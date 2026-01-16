@@ -34,7 +34,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 /**
  * @brief Size of buffer used for commands sent to the wireless module and the responses
@@ -89,7 +88,9 @@ typedef enum ATCommand_BooleanValue_t
 {
     ATCommand_BooleanValue_False = 0,
     ATCommand_BooleanValue_True = 1,
+    /** @cond DOXYGEN_IGNORE */
     ATCommand_BooleanValue_NumberOfValues
+    /** @endcond */
 } ATCommand_BooleanValue_t;
 
 typedef struct ATCommand_Event_t
@@ -106,68 +107,68 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief Buffer used for commands sent to the wireless module and the responses
  * received from the module.
  */
-    extern char AT_commandBuffer[AT_MAX_COMMAND_BUFFER_SIZE];
+extern char AT_commandBuffer[AT_MAX_COMMAND_BUFFER_SIZE];
 
-    extern bool ATCommand_IntToString(char* outString, uint32_t number, uint16_t intFlags);
-    extern bool ATCommand_StringToInt(void* pOutInt, const char* pInString, uint16_t intFlags);
+extern bool ATCommand_IntToString(char* outString, uint32_t number, uint16_t intFlags);
+extern bool ATCommand_StringToInt(void* pOutInt, const char* pInString, uint16_t intFlags);
 
-    extern bool ATCommand_AppendArgumentBytes(char* pOutString, const char* pInArgument, uint16_t numBytes, char delimiter);
+extern bool ATCommand_AppendArgumentBytes(char* pOutString, const char* pInArgument, uint16_t numBytes, char delimiter);
 
-    extern bool ATCommand_AppendArgumentString(char* pOutString, const char* pInArgument, char delimiter);
+extern bool ATCommand_AppendArgumentString(char* pOutString, const char* pInArgument, char delimiter);
 
-    extern bool ATCommand_AppendArgumentStringQuotationMarks(char* pOutString, const char* pInArgument, char delimiter);
+extern bool ATCommand_AppendArgumentStringQuotationMarks(char* pOutString, const char* pInArgument, char delimiter);
 
-    extern bool ATCommand_AppendArgumentBitmask(char* pOutString, const char* stringList[], uint8_t numStrings, uint32_t bitmask, char delimiter, uint16_t maxStringLength);
+extern bool ATCommand_AppendArgumentBitmask(char* pOutString, const char* stringList[], uint8_t numStrings, uint32_t bitmask, char delimiter, uint16_t maxStringLength);
 
-    extern bool ATCommand_AppendArgumentBoolean(char* pOutString, bool inBool, char delimiter);
+extern bool ATCommand_AppendArgumentBoolean(char* pOutString, bool inBool, char delimiter);
 
-    extern bool ATCommand_AppendArgumentBitsQuotationMarks(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
+extern bool ATCommand_AppendArgumentBitsQuotationMarks(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentString(char** pInArguments, char* pOutArgument, char delimiter, uint16_t maxLength);
+extern bool ATCommand_GetNextArgumentString(char** pInArguments, char* pOutArgument, char delimiter, uint16_t maxLength);
 
-    extern bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char** pInArguments, char* pOutArgument, char delimiter, uint16_t maxLength);
+extern bool ATCommand_GetNextArgumentStringWithoutQuotationMarks(char** pInArguments, char* pOutArgument, char delimiter, uint16_t maxLength);
 
-    extern bool ATCommand_GetNextArgumentByteArray(char** pInArguments, uint16_t length, uint8_t* pOutArgument, uint16_t maxLength);
+extern bool ATCommand_GetNextArgumentByteArray(char** pInArguments, uint16_t length, uint8_t* pOutArgument, uint16_t maxLength);
 
-    extern bool ATCommand_AppendArgumentInt(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
+extern bool ATCommand_AppendArgumentInt(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_AppendArgumentIntQuotationMarks(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
+extern bool ATCommand_AppendArgumentIntQuotationMarks(char* pOutString, uint32_t pInValue, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
+extern bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
+extern bool ATCommand_GetNextArgumentBitsWithoutQuotationMarks(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentInt(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
+extern bool ATCommand_GetNextArgumentInt(char** pInArguments, void* pOutArgument, uint16_t intFlags, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentEnum(char** pInArguments, uint8_t* pOutArgument, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter);
-    extern bool ATCommand_GetNextArgumentBitmask(char** pInArguments, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, uint32_t* bitmask, char delimiter);
-    extern bool ATCommand_GetNextArgumentBoolean(char** pInArguments, bool* outBool, char delimiter);
+extern bool ATCommand_GetNextArgumentEnum(char** pInArguments, uint8_t* pOutArgument, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter);
+extern bool ATCommand_GetNextArgumentBitmask(char** pInArguments, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, uint32_t* bitmask, char delimiter);
+extern bool ATCommand_GetNextArgumentBoolean(char** pInArguments, bool* outBool, char delimiter);
 
-    extern bool ATCommand_GetCmdName(char** pInAtCmd, char* pCmdName, size_t CmdNameLen, char* delimiters, uint8_t number_of_delimiters);
+extern bool ATCommand_GetCmdName(char** pInAtCmd, char* pCmdName, size_t CmdNameLen, char* delimiters, uint8_t number_of_delimiters);
 
-    extern uint8_t ATCommand_FindString(const char* stringList[], uint8_t numStrings, const char* str, uint8_t defaultValue, bool* ok);
+extern uint8_t ATCommand_FindString(const char* stringList[], uint8_t numStrings, const char* str, uint8_t defaultValue, bool* ok);
 
-    extern bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char** pInArguments, uint8_t* pOutArgument, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter);
+extern bool ATCommand_GetNextArgumentEnumWithoutQuotationMarks(char** pInArguments, uint8_t* pOutArgument, const char* stringList[], uint8_t numStrings, uint16_t maxStringLength, char delimiter);
 
-    extern bool ATCommand_StringToDouble(void* number, const char* inString);
+extern bool ATCommand_StringToDouble(void* number, const char* inString);
 
-    extern bool ATCommand_StringToFloat(void* number, const char* inString);
+extern bool ATCommand_StringToFloat(void* number, const char* inString);
 
-    extern bool ATCommand_GetNextArgumentDouble(char** pInArguments, void* pOutArgument, char delimiter);
+extern bool ATCommand_GetNextArgumentDouble(char** pInArguments, void* pOutArgument, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentFloat(char** pInArguments, void* pOutArgument, char delimiter);
+extern bool ATCommand_GetNextArgumentFloat(char** pInArguments, void* pOutArgument, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char** pInArguments, void* pOutArgument, char delimiter);
+extern bool ATCommand_GetNextArgumentDoubleWithoutQuotationMarks(char** pInArguments, void* pOutArgument, char delimiter);
 
-    extern bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char** pInArguments, void* pOutArgument, char delimiter);
+extern bool ATCommand_GetNextArgumentFloatWithoutQuotationMarks(char** pInArguments, void* pOutArgument, char delimiter);
 
-    extern int ATCommand_CountArgs(char* stringP);
+extern int ATCommand_CountArgs(char* stringP);
 
-    extern bool ATCommand_ParseEventType(char** pAtCommand, const ATCommand_Event_t* pmoduleEvents, char* delimiters, uint8_t number_of_delimiters, uint16_t* pEvent);
+extern bool ATCommand_ParseEventType(char** pAtCommand, const ATCommand_Event_t* pmoduleEvents, char* delimiters, uint8_t number_of_delimiters, uint16_t* pEvent);
 
 #ifdef __cplusplus
 }

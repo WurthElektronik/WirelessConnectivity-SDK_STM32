@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATSocket.c
  * @brief AT commands for Socket functionality.
  */
 #include <AdrasteaI/ATCommands/ATSocket.h>
@@ -38,11 +38,6 @@ static const char* AdrasteaI_ATSocket_Type_Strings[AdrasteaI_ATSocket_Type_Numbe
 
 static const char* AdrasteaI_ATSocket_Behaviour_Strings[AdrasteaI_ATSocket_Behaviour_NumberOfValues] = {"OPEN", "LISTEN", "LISTENP"};
 
-/**
- * @brief Read Created Sockets States (using the AT%SOCKETCMD command).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ReadCreatedSocketsStates()
 {
     if (!AdrasteaI_SendRequest("AT%SOCKETCMD?\r\n"))
@@ -52,31 +47,6 @@ bool AdrasteaI_ATSocket_ReadCreatedSocketsStates()
     return AdrasteaI_WaitForConfirm(AdrasteaI_GetTimeout(AdrasteaI_Timeout_Socket), AdrasteaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Allocate Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] sessionID Session ID.
- *
- * @param[in] socketType Socket Type. See AdrasteaI_ATSocket_Type_t.
- *
- * @param[in] socketBehaviour Socket Behaviour. See AdrasteaI_ATSocket_Behaviour_t.
- *
- * @param[in] destinationIPAddress Destination IP Address.
- *
- * @param[in] destinationPortNumber Destination Port Number.
- *
- * @param[in] sourcePortNumber Source Port Number (optional pass AdrasteaI_ATCommon_Port_Number_Invalid to skip).
- *
- * @param[in] packetSize Packet Size (optional pass AdrasteaI_ATSocket_Data_Length_Automatic to skip).
- *
- * @param[in] socketTimeout Socket Timeout in seconds (optional pass AdrasteaI_ATSocket_Timeout_Invalid to skip).
- *
- * @param[in] addressFormat IP Address Format (optional pass AdrasteaI_ATSocket_IP_Addr_Format_Invalid to skip). See AdrasteaI_ATSocket_IP_Addr_Format_t.
- *
- * @param[out] socketIDP Socket ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_AllocateSocket(AdrasteaI_ATCommon_Session_ID_t sessionID, AdrasteaI_ATSocket_Type_t socketType, AdrasteaI_ATSocket_Behaviour_t socketBehaviour, AdrasteaI_ATCommon_IP_Addr_t destinationIPAddress, AdrasteaI_ATCommon_Port_Number_t destinationPortNumber, AdrasteaI_ATCommon_Port_Number_t sourcePortNumber, AdrasteaI_ATSocket_Data_Length_t packetSize,
                                        AdrasteaI_ATSocket_Timeout_t socketTimeout, AdrasteaI_ATSocket_IP_Addr_Format_t addressFormat, AdrasteaI_ATSocket_ID_t* socketIDP)
 {
@@ -203,15 +173,6 @@ bool AdrasteaI_ATSocket_AllocateSocket(AdrasteaI_ATCommon_Session_ID_t sessionID
     return true;
 }
 
-/**
- * @brief Activate Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[in] SSLSessionID SSL Session ID (optional pass AdrasteaI_ATCommon_Session_ID_Invalid to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ActivateSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_Session_ID_t SSLSessionID)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -254,15 +215,6 @@ bool AdrasteaI_ATSocket_ActivateSocket(AdrasteaI_ATSocket_ID_t socketID, Adraste
     return true;
 }
 
-/**
- * @brief Read Socket Info (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[out] infoP Socket Info is returned in this argument. See AdrasteaI_ATSocket_Info_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ReadSocketInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Info_t* infoP)
 {
     if (infoP == NULL)
@@ -362,13 +314,6 @@ bool AdrasteaI_ATSocket_ReadSocketInfo(AdrasteaI_ATSocket_ID_t socketID, Adraste
     return true;
 }
 
-/**
- * @brief Deactivate Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_DeactivateSocket(AdrasteaI_ATSocket_ID_t socketID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -398,19 +343,6 @@ bool AdrasteaI_ATSocket_DeactivateSocket(AdrasteaI_ATSocket_ID_t socketID)
     return true;
 }
 
-/**
- * @brief Set Socket Options (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[in] aggregationTime Aggregation Time in milliseconds.
- *
- * @param[in] aggregationBufferSize Aggregation Buffer Size in bytes.
- *
- * @param[in] idleTime Idle Time in seconds.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_SetSocketOptions(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Aggregation_Time_t aggregationTime, AdrasteaI_ATSocket_Aggregation_Buffer_Size_t aggregationBufferSize, AdrasteaI_ATSocket_TCP_Idle_Time_t idleTime)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -455,13 +387,6 @@ bool AdrasteaI_ATSocket_SetSocketOptions(AdrasteaI_ATSocket_ID_t socketID, Adras
     return true;
 }
 
-/**
- * @brief Delete Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_DeleteSocket(AdrasteaI_ATSocket_ID_t socketID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -491,17 +416,6 @@ bool AdrasteaI_ATSocket_DeleteSocket(AdrasteaI_ATSocket_ID_t socketID)
     return true;
 }
 
-/**
- * @brief Add SSL to Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[in] authMode SSL Authentication Mode.
- *
- * @param[in] profileID SSL Profile ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_AddSSLtoSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATCommon_SSL_Auth_Mode_t authMode, AdrasteaI_ATCommon_SSL_Profile_ID_t profileID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -541,15 +455,6 @@ bool AdrasteaI_ATSocket_AddSSLtoSocket(AdrasteaI_ATSocket_ID_t socketID, Adraste
     return true;
 }
 
-/**
- * @brief Read Socket Last Error (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[out] errorCodeP Socket Error Code is returned in this argument. See AdrasteaI_ATSocket_Error_Code_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ReadSocketLastError(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Error_Code_t* errorCodeP)
 {
     if (errorCodeP == NULL)
@@ -591,15 +496,6 @@ bool AdrasteaI_ATSocket_ReadSocketLastError(AdrasteaI_ATSocket_ID_t socketID, Ad
     return true;
 }
 
-/**
- * @brief Read Socket SSL Info (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[out] infoP SSL Info is returned in this argument. See AdrasteaI_ATSocket_SSL_Info_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ReadSocketSSLInfo(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_SSL_Info_t* infoP)
 {
     if (infoP == NULL)
@@ -646,13 +542,6 @@ bool AdrasteaI_ATSocket_ReadSocketSSLInfo(AdrasteaI_ATSocket_ID_t socketID, Adra
     return true;
 }
 
-/**
- * @brief Keep SSL Session for Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] sessionID Session ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_KeepSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -682,13 +571,6 @@ bool AdrasteaI_ATSocket_KeepSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
     return true;
 }
 
-/**
- * @brief Delete SSL Session for Socket (using the AT%SOCKETCMD command).
- *
- * @param[in] socketID Socket ID.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_DeleteSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -718,17 +600,6 @@ bool AdrasteaI_ATSocket_DeleteSocketSSLSession(AdrasteaI_ATSocket_ID_t socketID)
     return true;
 }
 
-/**
- * @brief Receive from Socket (using the AT%SOCKETDATA command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[in] maxBufferLength Maximum data length to read.
- *
- * @param[out] dataReadP Data read is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ReceiveFromSocket(AdrasteaI_ATSocket_ID_t socketID, AdrasteaI_ATSocket_Data_Read_t* dataReadP, uint16_t maxBufferLength)
 {
     if (dataReadP == NULL)
@@ -823,17 +694,6 @@ bool AdrasteaI_ATSocket_ReceiveFromSocket(AdrasteaI_ATSocket_ID_t socketID, Adra
     return true;
 }
 
-/**
- * @brief Send to Socket (using the AT%SOCKETDATA command).
- *
- * @param[in] socketID Socket ID.
- *
- * @param[in] data Data to send.
- *
- * @param[in] dataLength Length of data to send.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_SendToSocket(AdrasteaI_ATSocket_ID_t socketID, char* data, AdrasteaI_ATSocket_Data_Length_t dataLength)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -873,15 +733,6 @@ bool AdrasteaI_ATSocket_SendToSocket(AdrasteaI_ATSocket_ID_t socketID, char* dat
     return true;
 }
 
-/**
- * @brief Set Socket Notification Events (using the AT%SOCKETEV command).
- *
- * @param[in] event Socket event type. See AdrasteaI_ATSocket_Event_t.
- *
- * @param[in] state Event State
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_SetSocketUnsolicitedNotificationEvents(AdrasteaI_ATSocket_Event_t event, AdrasteaI_ATCommon_Event_State_t state)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -916,14 +767,6 @@ bool AdrasteaI_ATSocket_SetSocketUnsolicitedNotificationEvents(AdrasteaI_ATSocke
     return true;
 }
 
-/**
- * @brief Parses the value of Data Received event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP ID of Socket where data was received is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ParseDataReceivedEvent(char* pEventArguments, AdrasteaI_ATSocket_ID_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -941,14 +784,6 @@ bool AdrasteaI_ATSocket_ParseDataReceivedEvent(char* pEventArguments, AdrasteaI_
     return true;
 }
 
-/**
- * @brief Parses the value of Socket Terminated event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP ID of Socket that was terminated is returned in this argument.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ParseSocketTerminatedEvent(char* pEventArguments, AdrasteaI_ATSocket_ID_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -966,14 +801,6 @@ bool AdrasteaI_ATSocket_ParseSocketTerminatedEvent(char* pEventArguments, Adrast
     return true;
 }
 
-/**
- * @brief Parses the value of Socket Read event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP Socket Read Result si returned in this argument. See AdrasteaI_ATSocket_Read_Result_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATSocket_ParseSocketsReadEvent(char* pEventArguments, AdrasteaI_ATSocket_Read_Result_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)

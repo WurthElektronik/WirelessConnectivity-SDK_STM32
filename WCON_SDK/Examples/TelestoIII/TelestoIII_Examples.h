@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void TelestoIII_Examples(void);
+extern void TelestoIII_Examples(void);
 
 #ifdef __cplusplus
 }

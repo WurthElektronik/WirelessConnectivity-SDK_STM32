@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file StephanoI.c
  * @brief StephanoI driver source file.
  */
 
@@ -193,7 +193,9 @@ bool StephanoI_Init(WE_UART_t* uartP, StephanoI_Pins_t* pinoutP, StephanoI_Event
     /* initialize the pins */
     StephanoI_pinsP = pinoutP;
     StephanoI_pinsP->StephanoI_Pin_Reset.type = WE_Pin_Type_Output;
+    StephanoI_pinsP->StephanoI_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     StephanoI_pinsP->StephanoI_Pin_Wakeup.type = WE_Pin_Type_Output;
+    StephanoI_pinsP->StephanoI_Pin_Wakeup.initial_value.output = WE_Pin_Level_Low;
 
     WE_Pin_t pins[sizeof(StephanoI_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -203,12 +205,6 @@ bool StephanoI_Init(WE_UART_t* uartP, StephanoI_Pins_t* pinoutP, StephanoI_Event
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    /* Set initial pin levels */
-    if (!WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(StephanoI_pinsP->StephanoI_Pin_Wakeup, WE_Pin_Level_Low))
-    {
         return false;
     }
 
@@ -241,6 +237,17 @@ bool StephanoI_Init(WE_UART_t* uartP, StephanoI_Pins_t* pinoutP, StephanoI_Event
  */
 bool StephanoI_Deinit(void)
 {
+    WE_Pin_t pins[sizeof(StephanoI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &StephanoI_pinsP->StephanoI_Pin_Wakeup, sizeof(WE_Pin_t));
+
+    /* deinit pins */
+    if (!WE_DeinitPins(pins, pin_count))
+    {
+        return false;
+    }
+
     StephanoI_eventCallback = NULL;
 
     StephanoI_rxByteCounter = 0;
@@ -306,7 +313,7 @@ bool StephanoI_SendRequest_ex(uint8_t* data, size_t dataLength)
     if (StephanoI_executingEventCallback)
     {
         /* Don't allow sending AT commands from event handlers, as this will
-		 * mess up send/receive states and buffers. */
+         * mess up send/receive states and buffers. */
         return false;
     }
 
@@ -314,7 +321,7 @@ bool StephanoI_SendRequest_ex(uint8_t* data, size_t dataLength)
     StephanoI_currentResponseLength = 0;
 
     /* Make sure that the time between the last confirmation received from the module
-	 * and the next command sent to the module is not shorter than StephanoI_minCommandIntervalUsec */
+     * and the next command sent to the module is not shorter than StephanoI_minCommandIntervalUsec */
     uint32_t t = WE_GetTickMicroseconds() - StephanoI_lastConfirmTimeUsec;
     if (t < StephanoI_minCommandIntervalUsec)
     {
@@ -334,13 +341,11 @@ bool StephanoI_SendRequest_ex(uint8_t* data, size_t dataLength)
         }
     }
 
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("> %.*s", dataLength, data);
+    WE_DEBUG_PRINT_DEBUG("> %.*s", dataLength, data);
     if ((data[dataLength - 2] != '\r') && (data[dataLength - 1] != '\n'))
     {
-        WE_DEBUG_PRINT("\r\n");
+        WE_DEBUG_PRINT_DEBUG("\r\n");
     }
-#endif
 
     StephanoI_Transparent_Transmit(data, dataLength);
 
@@ -550,9 +555,7 @@ static void StephanoI_HandleRxByte(uint8_t* dataP, size_t size)
  */
 static void StephanoI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
-#endif
+    WE_DEBUG_PRINT_DEBUG("< %s\r\n", rxPacket);
 
     /* confirmations */
     if (StephanoI_requestPending)
@@ -589,7 +592,7 @@ static void StephanoI_HandleRxLine(char* rxPacket, uint16_t rxLength)
         else
         {
             /* Doesn't start with o or e - copy to response text buffer, if the start
-			 * of the response matches the pending command name preceded by '+' */
+             * of the response matches the pending command name preceded by '+' */
             if ((StephanoI_currentResponseText != NULL) && (rxLength > 1) && (StephanoI_rxBuffer[0] == '+') && (StephanoI_pendingCommandName[0] != '\0') && (0 == strncmp(StephanoI_pendingCommandName, StephanoI_rxBuffer + 1, StephanoI_pendingCommandNameLength)))
             { /* Copy to response text buffer, taking care not to exceed buffer size */
                 uint16_t chunkLength = rxLength;

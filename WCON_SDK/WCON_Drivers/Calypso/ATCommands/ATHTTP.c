@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATHTTP.c
  * @brief AT commands for HTTP client functionality.
  */
 #include <Calypso/ATCommands/ATHTTP.h>
@@ -98,13 +98,6 @@ static const char* Calypso_ATHTTP_HeaderField_Strings[Calypso_ATHTTP_HeaderField
 
 static const char* Calypso_ATHTTP_HeaderPersistency_Strings[Calypso_ATHTTP_HeaderPersistency_NumberOfValues] = {"not_persistent", "persistent"};
 
-/**
- * @brief Creates an HTTP client.
- *
- * @param[out] clientHandle Handle (index) of the created HTTP client
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_Create(uint8_t* clientHandle)
 {
     if (!Calypso_SendRequest("AT+httpCreate\r\n"))
@@ -131,13 +124,6 @@ bool Calypso_ATHTTP_Create(uint8_t* clientHandle)
     return ATCommand_GetNextArgumentInt(&pRespondCommand, clientHandle, ATCOMMAND_INTFLAGS_SIZE8 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Deletes an HTTP client.
- *
- * @param[in] clientHandle Handle of the HTTP client to be deleted
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_Destroy(uint8_t clientHandle)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -157,18 +143,6 @@ bool Calypso_ATHTTP_Destroy(uint8_t clientHandle)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Establishes an HTTP connection.
- *
- * @param[in] clientHandle Handle of the HTTP client to connect
- * @param[in] host Name of host to connect to
- * @param[in] flags Connection flags. See Calypso_ATHTTP_ConnectFlag_t.
- * @param[in] privateKey Private key file name (optional, set to NULL if not used).
- * @param[in] certificate Client certificate file name (optional, set to NULL if not used).
- * @param[in] rootCaCertificate Root CA certificate file name (optional, set to NULL if not used).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_Connect(uint8_t clientHandle, const char* host, uint8_t flags, const char* privateKey, const char* certificate, const char* rootCaCertificate)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -210,13 +184,6 @@ bool Calypso_ATHTTP_Connect(uint8_t clientHandle, const char* host, uint8_t flag
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_HttpConnect), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Closes an HTTP connection.
- *
- * @param[in] clientHandle Handle of the HTTP client to disconnect
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_Disconnect(uint8_t clientHandle)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -236,13 +203,6 @@ bool Calypso_ATHTTP_Disconnect(uint8_t clientHandle)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Sets a proxy server for HTTP communication.
- *
- * @param[in] proxy Proxy server info
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_SetProxy(Calypso_ATSocket_Descriptor_t proxy)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -262,24 +222,6 @@ bool Calypso_ATHTTP_SetProxy(Calypso_ATSocket_Descriptor_t proxy)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Sends an HTTP request.
- *
- * @param[in] clientHandle Handle of the HTTP client to be used for sending the request
- * @param[in] method HTTP method to be used
- * @param[in] uri HTTP server address or URL
- * @param[in] flags HTTP Request flags (see Calypso_ATHTTP_RequestFlags_t)
- * @param[in] format Format in which the request's data is provided. Note that setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to interpret the data as Base64 - the module will decode the data and
- *                   transmit the decoded data. If using Calypso_DataFormat_Base64, you either need to provide Base64 encoded
- *                   data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the Calypso module
- * @param[in] length Number of bytes to send as payload of the request (see argument data)
- * @param[in] data Payload of the request
- * @param[out] status HTTP status code (usually 200 in case of success, else failure)
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_SendRequest(uint8_t clientHandle, Calypso_ATHTTP_Method_t method, const char* uri, uint8_t flags, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, const char* data, uint32_t* status)
 {
     *status = 0;
@@ -287,7 +229,7 @@ bool Calypso_ATHTTP_SendRequest(uint8_t clientHandle, Calypso_ATHTTP_Method_t me
     if (Calypso_ATHTTP_Method_Head == method)
     {
         /* HEAD request is always without body. Must use this flag, otherwise the
-		 * next call to Calypso_ATHTTP_ReadResponseBody will cause the module to hang. */
+         * next call to Calypso_ATHTTP_ReadResponseBody will cause the module to hang. */
         flags |= Calypso_ATHTTP_RequestFlags_DropBody;
     }
 
@@ -366,21 +308,6 @@ bool Calypso_ATHTTP_SendRequest(uint8_t clientHandle, Calypso_ATHTTP_Method_t me
     return ATCommand_GetNextArgumentInt(&pRespondCommand, status, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Fetches the response to the last HTTP request from the Calypso module.
- *
- * @param[in] clientHandle HTTP client handle
- * @param[in] format Format in which the data is to be provided. Setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to encode the data as Base64 before sending it to this device via UART.
- * @param[in] decodeBase64 Enables decoding of received Base64 data
- * @param[in] length Number of bytes to fetch
- * @param[out] responseBody The returned HTTP response data. The payload of the response is contained in the body attribute
- *                          of responseBody. Note that, depending on the length argument, the response might be split into
- *                          chunks. The hasMoreData attribute of responseBody is set to true, if the body data is fragmented
- *                          and there is more data to be fetched.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_ReadResponseBody(uint8_t clientHandle, Calypso_DataFormat_t format, bool decodeBase64, uint16_t length, Calypso_ATHTTP_ResponseBody_t* responseBody)
 {
     responseBody->clientHandle = 0;
@@ -486,25 +413,6 @@ bool Calypso_ATHTTP_ReadResponseBody(uint8_t clientHandle, Calypso_DataFormat_t 
     return true;
 }
 
-/**
- * @brief Sets HTTP header data for the next HTTP request(s).
- *
- * When used with a request field (prefix "Calypso_ATHTTP_HeaderField_Request"), the field's value is set.
- * When used with a response field (prefix "Calypso_ATHTTP_HeaderField_Response"), a response filter is set for the field.
- *
- * @param[in] clientHandle HTTP client handle
- * @param[in] field Header field to be set
- * @param[in] persistency Specifies if the supplied header field value is persistent or not persistent
- * @param[in] format Format in which the header field value is provided. Note that setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to interpret the data as Base64 - the module will decode the data and
- *                   transmit the decoded data. If using Calypso_DataFormat_Base64, you either need to provide Base64 encoded
- *                   data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the Calypso module
- * @param[in] length Number of bytes in header field value. Set to zero to remove a request header.
- * @param[in] data Header field value
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_SetHeader(uint8_t clientHandle, Calypso_ATHTTP_HeaderField_t field, Calypso_ATHTTP_HeaderPersistency_t persistency, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, const char* data)
 {
     if (encodeAsBase64)
@@ -562,19 +470,6 @@ bool Calypso_ATHTTP_SetHeader(uint8_t clientHandle, Calypso_ATHTTP_HeaderField_t
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Gets HTTP header data.
- *
- * @param[in] clientHandle HTTP client handle
- * @param[in] field Header field to be fetched
- * @param[in] format Format in which the header data is to be provided. Setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to encode the data as Base64 before sending it to this device via UART.
- * @param[in] decodeBase64 Enables decoding of received Base64 data
- * @param[in] length Number of bytes to fetch
- * @param[out] header The returned header data
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_GetHeader(uint8_t clientHandle, Calypso_ATHTTP_HeaderField_t field, Calypso_DataFormat_t format, bool decodeBase64, uint16_t length, Calypso_ATHTTP_HeaderData_t* header)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -675,19 +570,6 @@ bool Calypso_ATHTTP_GetHeader(uint8_t clientHandle, Calypso_ATHTTP_HeaderField_t
     return true;
 }
 
-/**
- * @brief Sends a custom HTTP response in reply to a client's HTTP GET request.
- *
- * @param[in] format Format in which the response data is provided. Note that setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to interpret the data as Base64 - the module will decode the data and
- *                   transmit the decoded data. If using Calypso_DataFormat_Base64, you either need to provide Base64 encoded
- *                   data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the Calypso module
- * @param[in] length Number of bytes in response data.
- * @param[in] data Response content
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATHTTP_SendCustomResponse(Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, const char* data)
 {
     if (encodeAsBase64)

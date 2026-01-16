@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATWebserver.c
  * @brief AT commands for web server functionality.
  */
 
@@ -32,15 +32,6 @@
 #include <StephanoI/StephanoI.h>
 #include <global/ATCommands.h>
 
-/**
- * @brief Enable or disable the web server
- *
- * @param[in] enable             Enable or disable
- * @param[in] server_port        Port
- * @param[in] connection_timeout Timeout in ms [21,60]
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t connection_timeout)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -77,14 +68,6 @@ bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t con
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Parses the values of the Webserver response event arguments.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATWebserver_ParseResponse(char* EventArgumentsP, StephanoI_ATWebserver_Response_t* t)
 {
     char* argumentsP = EventArgumentsP;

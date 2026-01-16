@@ -47,7 +47,7 @@
 #include <Calypso/Calypso_TransparentMode_Example.h>
 #include <Calypso/Calypso_WLAN_Example.h>
 #include <global/global_types.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -178,12 +178,12 @@ void Calypso_Examples_EventCallback(char* eventText)
         case Calypso_ATEvent_Startup:
             if (Calypso_ATEvent_ParseStartUpEvent(&eventText, &Calypso_Examples_startupEvent))
             {
-                WE_DEBUG_PRINT("Startup event received. "
-                               "Article nr: %s, "
-                               "Chip ID: %s, "
-                               "MAC address: %s, "
-                               "Firmware version: %d.%d.%d\r\n",
-                               Calypso_Examples_startupEvent.articleNr, Calypso_Examples_startupEvent.chipID, Calypso_Examples_startupEvent.MACAddress, Calypso_Examples_startupEvent.firmwareVersion[0], Calypso_Examples_startupEvent.firmwareVersion[1], Calypso_Examples_startupEvent.firmwareVersion[2]);
+                WE_APP_PRINT("Startup event received. "
+                             "Article nr: %s, "
+                             "Chip ID: %s, "
+                             "MAC address: %s, "
+                             "Firmware version: %d.%d.%d\r\n",
+                             Calypso_Examples_startupEvent.articleNr, Calypso_Examples_startupEvent.chipID, Calypso_Examples_startupEvent.MACAddress, Calypso_Examples_startupEvent.firmwareVersion[0], Calypso_Examples_startupEvent.firmwareVersion[1], Calypso_Examples_startupEvent.firmwareVersion[2]);
             }
             Calypso_Examples_startupEventReceived = true;
             break;
@@ -248,4 +248,4 @@ void Calypso_Examples_EventCallback(char* eventText)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void Calypso_Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+void Calypso_Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

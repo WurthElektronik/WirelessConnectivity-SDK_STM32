@@ -30,7 +30,8 @@
 
 #include <ProteusE/ProteusE.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -93,7 +94,7 @@ void ProteusE_Examples(void)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+static void Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Proteus-e command mode example.
@@ -119,48 +120,48 @@ static void CommandModeExample()
 
     if (false == ProteusE_Init(&ProteusE_uart, &ProteusE_pins, ProteusE_OperationMode_CommandMode, callbackConfig))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
     ProteusE_DeviceInfo_t deviceInfo;
     if (ProteusE_GetDeviceInfo(&deviceInfo))
     {
-        WE_DEBUG_PRINT("Device info OS version = 0x%04x, "
-                       "build code = 0x%08lx, "
-                       "package variant = 0x%04x, "
-                       "chip ID = 0x%08lx\r\n",
-                       deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
+        WE_APP_PRINT("Device info OS version = 0x%04x, "
+                     "build code = 0x%08lx, "
+                     "package variant = 0x%04x, "
+                     "chip ID = 0x%08lx\r\n",
+                     deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
     }
 
     uint8_t fwVersion[3];
     ret = ProteusE_GetFWVersion(fwVersion);
     Examples_Print("Get firmware version", ret);
-    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+    WE_APP_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
     WE_Delay(500);
 
     uint8_t mac[8];
     ret = ProteusE_GetMAC(mac);
     Examples_Print("Get MAC", ret);
-    WE_DEBUG_PRINT("MAC is 0x%02x%02x%02x%02x%02x%02x%02x%02x\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7]);
+    WE_APP_PRINT("MAC is 0x%02x%02x%02x%02x%02x%02x%02x%02x\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5], mac[6], mac[7]);
     WE_Delay(500);
 
     uint8_t btMac[6];
     ret = ProteusE_GetBTMAC(btMac);
     Examples_Print("Get BT MAC", ret);
-    WE_DEBUG_PRINT("BTMAC is 0x%02x%02x%02x%02x%02x%02x\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
+    WE_APP_PRINT("BTMAC is 0x%02x%02x%02x%02x%02x%02x\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
     WE_Delay(500);
 
     uint8_t serialNr[3];
     ret = ProteusE_GetSerialNumber(serialNr);
     Examples_Print("Get serial number", ret);
-    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x\r\n", serialNr[2], serialNr[1], serialNr[0]);
+    WE_APP_PRINT("Serial number is 0x%02x%02x%02x\r\n", serialNr[2], serialNr[1], serialNr[0]);
     WE_Delay(500);
 
     ProteusE_TXPower_t txPower;
     ret = ProteusE_GetTXPower(&txPower);
     Examples_Print("Get TX power", ret);
-    WE_DEBUG_PRINT("TX power index is %d\r\n", txPower);
+    WE_APP_PRINT("TX power index is %d\r\n", txPower);
     WE_Delay(500);
 
     uint8_t echo[] = "Hello, I'm connected ";
@@ -170,13 +171,13 @@ static void CommandModeExample()
         {
             if (!ProteusE_Transmit(echo, sizeof(echo)))
             {
-                WE_DEBUG_PRINT("Transmission failed\r\n");
+                WE_APP_PRINT("Transmission failed\r\n");
             };
             WE_Delay(500);
         }
         else
         {
-            WE_DEBUG_PRINT("Wait for channel open\r\n");
+            WE_APP_PRINT("Wait for channel open\r\n");
             WE_Delay(2000);
         }
     }
@@ -199,7 +200,7 @@ static void TransparentModeExample()
 
     if (false == ProteusE_Init(&ProteusE_uart, &ProteusE_pins, ProteusE_OperationMode_CommandMode, callbackConfig))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -210,21 +211,21 @@ static void TransparentModeExample()
     if (ProteusE_GetDeviceName(deviceName, &deviceNameLength))
     {
         deviceName[deviceNameLength] = '\0';
-        WE_DEBUG_PRINT("Device name: %s\r\n", deviceName);
+        WE_APP_PRINT("Device name: %s\r\n", deviceName);
     }
 
     ProteusE_Deinit();
 
     if (false == ProteusE_Init(&ProteusE_uart, &ProteusE_pins, ProteusE_OperationMode_TransparentMode, callbackConfig))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
     /* In transparent mode, all bytes received should be diverted to custom callback OnTransparentModeByteReceived() */
     ProteusE_SetByteRxCallback(OnTransparentModeByteReceived);
 
-    WE_DEBUG_PRINT("Transparent mode started.\r\n");
+    WE_APP_PRINT("Transparent mode started.\r\n");
 
     uint32_t lastStatusPinLowTick = WE_GetTick();
     bool per_channelOpen = false;
@@ -234,7 +235,7 @@ static void TransparentModeExample()
 
     if (!ProteusE_GetStatusPinLed1Level(&statusPinState))
     {
-        WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+        WE_APP_PRINT("Failed to get pin state.\r\n");
         return;
     }
 
@@ -244,7 +245,7 @@ static void TransparentModeExample()
         /* Check connection status and print message on state change (using status i.e. LED_2 pin) */
         if (!ProteusE_GetStatusPinLed1Level(&statusPinState))
         {
-            WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+            WE_APP_PRINT("Failed to get pin state.\r\n");
             return;
         }
 
@@ -253,21 +254,21 @@ static void TransparentModeExample()
             if (statusPinState == WE_Pin_Level_Low)
             {
                 /* Status pin changed to low - channel is now closed */
-                WE_DEBUG_PRINT("Channel closed.\r\n");
+                WE_APP_PRINT("Channel closed.\r\n");
                 per_channelOpen = false;
             }
             else
             {
                 if (!ProteusE_IsTransparentModeBusy(&busyState))
                 {
-                    WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+                    WE_APP_PRINT("Failed to get pin state.\r\n");
                     return;
                 }
 
                 if (!busyState)
                 {
                     /* module not busy */
-                    WE_DEBUG_PRINT("Transmit data\r\n");
+                    WE_APP_PRINT("Transmit data\r\n");
 
                     if (ProteusE_Transparent_Transmit(echo, sizeof(echo)))
                     {
@@ -280,7 +281,7 @@ static void TransparentModeExample()
                             count++;
                             if (!ProteusE_IsTransparentModeBusy(&busyState))
                             {
-                                WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+                                WE_APP_PRINT("Failed to get pin state.\r\n");
                                 return;
                             }
                             if (busyState)
@@ -297,7 +298,7 @@ static void TransparentModeExample()
                             count++;
                             if (!ProteusE_IsTransparentModeBusy(&busyState))
                             {
-                                WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+                                WE_APP_PRINT("Failed to get pin state.\r\n");
                                 return;
                             }
                             if (!busyState)
@@ -312,7 +313,7 @@ static void TransparentModeExample()
                 else
                 {
                     /* module busy */
-                    WE_DEBUG_PRINT("Module busy\r\n");
+                    WE_APP_PRINT("Module busy\r\n");
                     WE_Delay(20);
                 }
             }
@@ -322,8 +323,8 @@ static void TransparentModeExample()
             if (WE_GetTick() - lastStatusPinLowTick > PROTEUSE_STATUS_LED_CONNECTED_TIMEOUT_MS)
             {
                 /* Status pin has been high for at least
-				 * PROTEUSII_STATUS_LED_CONNECTED_TIMEOUT_MS ms - channel is now open */
-                WE_DEBUG_PRINT("Channel opened.\r\n");
+                 * PROTEUSII_STATUS_LED_CONNECTED_TIMEOUT_MS ms - channel is now open */
+                WE_APP_PRINT("Channel opened.\r\n");
                 per_channelOpen = true;
             }
         }
@@ -331,7 +332,7 @@ static void TransparentModeExample()
         if (statusPinState == WE_Pin_Level_Low)
         {
             /* Status pin is low - store current tick value (required for checking
-			 * the duration that the status pin is high) */
+             * the duration that the status pin is high) */
             lastStatusPinLowTick = WE_GetTick();
         }
     }
@@ -352,24 +353,24 @@ static void DTMExample()
 
     if (false == ProteusE_Init(&ProteusE_uart, &ProteusE_pins, ProteusE_OperationMode_CommandMode, callbackConfig))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
     ProteusE_DeviceInfo_t deviceInfo;
     if (ProteusE_GetDeviceInfo(&deviceInfo))
     {
-        WE_DEBUG_PRINT("Device info OS version = 0x%04x, "
-                       "build code = 0x%08lx, "
-                       "package variant = 0x%04x, "
-                       "chip ID = 0x%08lx\r\n",
-                       deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
+        WE_APP_PRINT("Device info OS version = 0x%04x, "
+                     "build code = 0x%08lx, "
+                     "package variant = 0x%04x, "
+                     "chip ID = 0x%08lx\r\n",
+                     deviceInfo.osVersion, deviceInfo.buildCode, deviceInfo.packageVariant, deviceInfo.chipId);
     }
 
     uint8_t fwVersion[3];
     ret = ProteusE_GetFWVersion(fwVersion);
     Examples_Print("Get firmware version", ret);
-    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+    WE_APP_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
     WE_Delay(500);
 
     ret = ProteusE_DTMEnable();
@@ -407,18 +408,18 @@ static void DTMExample()
 static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi)
 {
     uint16_t i = 0;
-    WE_DEBUG_PRINT("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\r\n-> ", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
-    WE_DEBUG_PRINT("0x");
+    WE_APP_PRINT("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\r\n-> ", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
+    WE_APP_PRINT("0x");
     for (i = 0; i < payloadLength; i++)
     {
-        WE_DEBUG_PRINT("%02x", *(payload + i));
+        WE_APP_PRINT("%02x", *(payload + i));
     }
-    WE_DEBUG_PRINT(" (");
+    WE_APP_PRINT(" (");
     for (i = 0; i < payloadLength; i++)
     {
-        WE_DEBUG_PRINT("%c", *(payload + i));
+        WE_APP_PRINT("%c", *(payload + i));
     }
-    WE_DEBUG_PRINT(")\r\n");
+    WE_APP_PRINT(")\r\n");
 }
 
 /**
@@ -426,8 +427,8 @@ static void RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac,
  */
 static void ConnectCallback(bool success, uint8_t* btMac)
 {
-    WE_DEBUG_PRINT("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", success ? "Connected" : "Failed to connect", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
-    WE_DEBUG_PRINT("\r\n");
+    WE_APP_PRINT("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) ", success ? "Connected" : "Failed to connect", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
+    WE_APP_PRINT("\r\n");
 }
 
 /**
@@ -437,8 +438,8 @@ static void SecurityCallback(uint8_t* btMac, ProteusE_SecurityState_t securitySt
 {
     static const char* stateStrings[] = {"rebonded", "bonded", "paired"};
 
-    WE_DEBUG_PRINT("Encrypted link to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established (%s)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], stateStrings[securityState]);
-    WE_DEBUG_PRINT("\r\n");
+    WE_APP_PRINT("Encrypted link to device with BTMAC (0x%02x%02x%02x%02x%02x%02x) established (%s)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], stateStrings[securityState]);
+    WE_APP_PRINT("\r\n");
 }
 
 /**
@@ -448,7 +449,7 @@ static void DisconnectCallback(ProteusE_DisconnectReason_t reason)
 {
     static const char* reasonStrings[] = {"unknown", "connection timeout", "user terminated connection", "host terminated connection", "connection interval unacceptable", "MIC failure", "connection setup failed"};
 
-    WE_DEBUG_PRINT("Disconnected (reason: %s)\r\n", reasonStrings[reason]);
+    WE_APP_PRINT("Disconnected (reason: %s)\r\n", reasonStrings[reason]);
 }
 
 /**
@@ -456,8 +457,8 @@ static void DisconnectCallback(ProteusE_DisconnectReason_t reason)
  */
 static void ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload)
 {
-    WE_DEBUG_PRINT("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload);
-    WE_DEBUG_PRINT("\r\n");
+    WE_APP_PRINT("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload);
+    WE_APP_PRINT("\r\n");
 }
 
 /**
@@ -467,24 +468,24 @@ static void PhyUpdateCallback(bool success, uint8_t* btMac, uint8_t phyRx, uint8
 {
     if (success)
     {
-        WE_DEBUG_PRINT("Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], phyRx, phyTx);
+        WE_APP_PRINT("Phy of connection to BTMAC (0x%02x%02x%02x%02x%02x%02x) updated (RX: %dMBit, TX: %dMBit)", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], phyRx, phyTx);
     }
     else
     {
-        WE_DEBUG_PRINT("Failed to update Phy connection");
+        WE_APP_PRINT("Failed to update Phy connection");
     }
-    WE_DEBUG_PRINT("\r\n");
+    WE_APP_PRINT("\r\n");
 }
 
 /**
  * @brief Callback called when module goes to sleep mode
  */
-static void SleepCallback() { WE_DEBUG_PRINT("Will go to sleep now\r\n"); }
+static void SleepCallback() { WE_APP_PRINT("Will go to sleep now\r\n"); }
 
 /**
  * @brief Callback called when remote device has changed the state of the module's GPIOs
  */
-static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value) { WE_DEBUG_PRINT("GPIO write indication received (remote: %s, GPIO: %u, value: %u)\r\n", remote ? "true" : "false", gpioId, value); }
+static void GpioWriteCallback(bool remote, uint8_t gpioId, uint8_t value) { WE_APP_PRINT("GPIO write indication received (remote: %s, GPIO: %u, value: %u)\r\n", remote ? "true" : "false", gpioId, value); }
 
 /**
  * @brief Callback called when remote device has configured the module's GPIOs
@@ -495,7 +496,7 @@ static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t* gpioConfig)
 
     static const char* pullStrings[] = {"no pull", "pull down", "pull up"};
 
-    WE_DEBUG_PRINT("GPIO remote config indication received (GPIO: %u, function: %s", gpioConfig->gpioId, functionStrings[gpioConfig->function]);
+    WE_APP_PRINT("GPIO remote config indication received (GPIO: %u, function: %s", gpioConfig->gpioId, functionStrings[gpioConfig->function]);
 
     switch (gpioConfig->function)
     {
@@ -503,20 +504,20 @@ static void GpioRemoteConfigCallback(ProteusE_GPIOConfigBlock_t* gpioConfig)
             break;
 
         case ProteusE_GPIO_IO_Input:
-            WE_DEBUG_PRINT(", input type: %s", pullStrings[gpioConfig->value.input]);
+            WE_APP_PRINT(", input type: %s", pullStrings[gpioConfig->value.input]);
             break;
 
         case ProteusE_GPIO_IO_Output:
-            WE_DEBUG_PRINT(", output level: %s", gpioConfig->value.output == ProteusE_GPIO_Output_High ? "HIGH" : "LOW");
+            WE_APP_PRINT(", output level: %s", gpioConfig->value.output == ProteusE_GPIO_Output_High ? "HIGH" : "LOW");
             break;
     }
-    WE_DEBUG_PRINT(")\r\n");
+    WE_APP_PRINT(")\r\n");
 }
 
 /**
  * @brief Callback called when module reports an error state
  */
-static void ErrorCallback(uint8_t errorCode) { WE_DEBUG_PRINT("Error %u\r\n", errorCode); }
+static void ErrorCallback(uint8_t errorCode) { WE_APP_PRINT("Error %u\r\n", errorCode); }
 
 /**
  * @brief Handles bytes received in transparent mode (is set as custom callback
@@ -526,17 +527,17 @@ static void OnTransparentModeByteReceived(uint8_t* dataP, size_t size)
 {
     uint8_t* p = dataP;
     size_t s = size;
-    WE_DEBUG_PRINT("Rx 0x");
+    WE_APP_PRINT("Rx 0x");
     for (; s > 0; s--, p++)
     {
-        WE_DEBUG_PRINT("%02x", *p);
+        WE_APP_PRINT("%02x", *p);
     }
     p = dataP;
     s = size;
-    WE_DEBUG_PRINT("(");
+    WE_APP_PRINT("(");
     for (; s > 0; s--, p++)
     {
-        WE_DEBUG_PRINT("%c", *p);
+        WE_APP_PRINT("%c", *p);
     }
-    WE_DEBUG_PRINT(")\r\n");
+    WE_APP_PRINT(")\r\n");
 }

@@ -36,6 +36,7 @@
 #include <global/ATCommands.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 static bool DaphnisI_GPIO_ParseConfigBlocks(char* string, DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t* configBlocksCountP);
 static bool DaphnisI_GPIO_ParseValueGetBlocks(char* string, DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP, uint8_t* valueGetBlocksCountP);

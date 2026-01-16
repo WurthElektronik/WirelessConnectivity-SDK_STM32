@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void MultiModule_ProteusIII_TarvosIII_Examples(void);
+extern void MultiModule_ProteusIII_TarvosIII_Examples(void);
 
 #ifdef __cplusplus
 }

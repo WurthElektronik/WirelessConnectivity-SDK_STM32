@@ -306,22 +306,24 @@ bool Skoll_I_Init(WE_UART_t* uartP, Skoll_I_Pins_t* pinoutP, void (*event_handle
     /* define and init the pins */
     Skoll_I_pinsP = pinoutP;
     Skoll_I_pinsP->Skoll_I_Pin_Reset.type = WE_Pin_Type_Output;
+    Skoll_I_pinsP->Skoll_I_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     Skoll_I_pinsP->Skoll_I_Pin_SPP.type = WE_Pin_Type_Input;
+    Skoll_I_pinsP->Skoll_I_Pin_SPP.initial_value.input_pull = WE_Pin_PullType_No;
     Skoll_I_pinsP->Skoll_I_Pin_Connection.type = WE_Pin_Type_Input;
+    Skoll_I_pinsP->Skoll_I_Pin_Connection.initial_value.input_pull = WE_Pin_PullType_No;
     Skoll_I_pinsP->Skoll_I_Pin_Role.type = WE_Pin_Type_Output;
+    Skoll_I_pinsP->Skoll_I_Pin_Role.initial_value.output = WE_Pin_Level_High;
 
     WE_Pin_t pins[sizeof(Skoll_I_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
     memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_SPP, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Connection, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Role, sizeof(WE_Pin_t));
 
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    if (!WE_SetPin(Skoll_I_pinsP->Skoll_I_Pin_Reset, WE_Pin_Level_High))
-    {
         return false;
     }
 
@@ -399,20 +401,15 @@ bool Skoll_I_Configure()
 
 bool Skoll_I_Deinit()
 {
+    WE_Pin_t pins[sizeof(Skoll_I_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_SPP, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Connection, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Skoll_I_pinsP->Skoll_I_Pin_Role, sizeof(WE_Pin_t));
+
     /* deinit pins */
-    if (!WE_DeinitPin(Skoll_I_pinsP->Skoll_I_Pin_Reset))
-    {
-        return false;
-    }
-    else if (!WE_DeinitPin(Skoll_I_pinsP->Skoll_I_Pin_SPP))
-    {
-        return false;
-    }
-    else if (!WE_DeinitPin(Skoll_I_pinsP->Skoll_I_Pin_Connection))
-    {
-        return false;
-    }
-    else if (!WE_DeinitPin(Skoll_I_pinsP->Skoll_I_Pin_Role))
+    if (!WE_DeinitPins(pins, pin_count))
     {
         return false;
     }
@@ -438,7 +435,7 @@ bool Skoll_I_PinReset()
     }
 
     /* Workaround: boot-up message may be in text mode, and can not be interpreted by this driver which is using binary mode.
-	 * All fine so far, thus wait for boot up */
+     * All fine so far, thus wait for boot up */
     WE_Delay(SKOLL_I_BOOT_DURATION);
 
     return Skoll_I_Configure();
@@ -450,16 +447,12 @@ bool Skoll_I_BluetoothClassic_PinDisconnect()
     WE_Pin_t p;
     memcpy(&p, &Skoll_I_pinsP->Skoll_I_Pin_SPP, sizeof(WE_Pin_t));
     p.type = WE_Pin_Type_Output;
+    p.initial_value.output = WE_Pin_Level_High;
     if (!WE_Reconfigure(p))
     {
         return false;
     }
 
-    /* set to high */
-    if (!WE_SetPin(p, WE_Pin_Level_High))
-    {
-        return false;
-    }
     WE_Delay(10);
 
     /* reset pin to input */
@@ -480,16 +473,12 @@ bool Skoll_I_BluetoothLE_PinDisconnect(uint8_t conn_handle)
     WE_Pin_t p;
     memcpy(&p, &Skoll_I_pinsP->Skoll_I_Pin_SPP, sizeof(WE_Pin_t));
     p.type = WE_Pin_Type_Output;
+    p.initial_value.output = WE_Pin_Level_High;
     if (!WE_Reconfigure(p))
     {
         return false;
     }
 
-    /* set to high */
-    if (!WE_SetPin(p, WE_Pin_Level_High))
-    {
-        return false;
-    }
     WE_Delay(10);
 
     if (EZS_SEND_AND_WAIT(ezs_cmd_gap_disconnect(conn_handle), SKOLL_I_COMMAND_TIMEOUT_MS) == (ezs_packet_t*)NULL)

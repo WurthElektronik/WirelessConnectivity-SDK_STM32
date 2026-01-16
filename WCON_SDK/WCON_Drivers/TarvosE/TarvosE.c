@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file TarvosE.c
  * @brief Tarvos-E driver source file.
  */
 
@@ -403,15 +403,6 @@ void TarvosE_HandleRxByte(uint8_t* dataP, size_t size)
 /**************************************
  *         Global functions           *
  **************************************/
-/**
- * @brief Transmitting the data via UART.
- *
- * @param[in] data    :  pointer to the data.
- * @param[in] dataLength : length of the data.
- *
- * @return true if transmission succeeded,
- *         false otherwise
- */
 bool TarvosE_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
 {
     if ((data == NULL) || (dataLength == 0))
@@ -422,23 +413,6 @@ bool TarvosE_Transparent_Transmit(const uint8_t* data, uint16_t dataLength)
     return TarvosE_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Initialize the TarvosE for serial interface.
- *
- * Caution: The parameters baudrate and addrmode must match the configured UserSettings of the TarvosE.
- *          The baudrate parameter must match to perform a successful UART communication.
- *          Updating this parameter during runtime may lead to communication errors.
- *          The addrmode must match when RF packet transmission or reception is performed.
- *          This parameter can be updated to the correct value (used in TarvosE_Init function) as soon as no RF packet transmission or reception was performed.
- *
- * @param[in] uartP :         definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] addrmode:       address mode of the TarvosE
- * @param[in] RXcb:           RX callback function
- *
- * @return true if initialization succeeded,
- *         false otherwise
- */
 bool TarvosE_Init(WE_UART_t* uartP, TarvosE_Pins_t* pinoutP, TarvosE_AddressMode_t addrmode, void (*RXcb)(uint8_t*, uint8_t, uint8_t, uint8_t, uint8_t, int8_t))
 {
     /* set address mode */
@@ -454,9 +428,13 @@ bool TarvosE_Init(WE_UART_t* uartP, TarvosE_Pins_t* pinoutP, TarvosE_AddressMode
 
     TarvosE_pinsP = pinoutP;
     TarvosE_pinsP->TarvosE_Pin_Reset.type = WE_Pin_Type_Output;
+    TarvosE_pinsP->TarvosE_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     TarvosE_pinsP->TarvosE_Pin_SleepWakeUp.type = WE_Pin_Type_Output;
+    TarvosE_pinsP->TarvosE_Pin_SleepWakeUp.initial_value.output = WE_Pin_Level_Low;
     TarvosE_pinsP->TarvosE_Pin_Boot.type = WE_Pin_Type_Output;
+    TarvosE_pinsP->TarvosE_Pin_Boot.initial_value.output = WE_Pin_Level_Low;
     TarvosE_pinsP->TarvosE_Pin_Mode.type = WE_Pin_Type_Output;
+    TarvosE_pinsP->TarvosE_Pin_Mode.initial_value.output = WE_Pin_Level_Low;
 
     WE_Pin_t pins[sizeof(TarvosE_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -468,11 +446,6 @@ bool TarvosE_Init(WE_UART_t* uartP, TarvosE_Pins_t* pinoutP, TarvosE_AddressMode
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    if (!WE_SetPin(TarvosE_pinsP->TarvosE_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(TarvosE_pinsP->TarvosE_Pin_SleepWakeUp, WE_Pin_Level_Low) || !WE_SetPin(TarvosE_pinsP->TarvosE_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(TarvosE_pinsP->TarvosE_Pin_Mode, WE_Pin_Level_Low))
-    {
         return false;
     }
 
@@ -490,7 +463,7 @@ bool TarvosE_Init(WE_UART_t* uartP, TarvosE_Pins_t* pinoutP, TarvosE_AddressMode
     }
     else
     {
-        printf("Pin reset failed\n");
+        WE_DEBUG_PRINT_INFO("Pin reset failed\r\n");
         TarvosE_Deinit();
         return false;
     }
@@ -498,16 +471,17 @@ bool TarvosE_Init(WE_UART_t* uartP, TarvosE_Pins_t* pinoutP, TarvosE_AddressMode
     return true;
 }
 
-/**
- * @brief Deinitialize the TarvosE interface
- *
- * @return true if deinitialization succeeded,
- *         false otherwise
- */
 bool TarvosE_Deinit()
 {
+    WE_Pin_t pins[sizeof(TarvosE_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &TarvosE_pinsP->TarvosE_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &TarvosE_pinsP->TarvosE_Pin_SleepWakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &TarvosE_pinsP->TarvosE_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &TarvosE_pinsP->TarvosE_Pin_Mode, sizeof(WE_Pin_t));
+
     /* deinit pins */
-    if (!WE_DeinitPin(TarvosE_pinsP->TarvosE_Pin_Reset) || !WE_DeinitPin(TarvosE_pinsP->TarvosE_Pin_SleepWakeUp) || !WE_DeinitPin(TarvosE_pinsP->TarvosE_Pin_Boot) || !WE_DeinitPin(TarvosE_pinsP->TarvosE_Pin_Mode))
+    if (!WE_DeinitPins(pins, pin_count))
     {
         return false;
     }
@@ -518,15 +492,6 @@ bool TarvosE_Deinit()
     return TarvosE_uartP->uartDeinit();
 }
 
-/**
- * @brief Wakeup the TarvosE from standby or shutdown mode by pin
- *
- * @param[in] standby:       true, if wake-up from standby mode is made
- * 							 false, if wake-up from shutdown mode is made
- *
- * @return true if wakeup succeeded,
- *         false otherwise
- */
 bool TarvosE_PinWakeup(bool standby)
 {
     if (!WE_SetPin(TarvosE_pinsP->TarvosE_Pin_SleepWakeUp, WE_Pin_Level_High))
@@ -550,12 +515,6 @@ bool TarvosE_PinWakeup(bool standby)
     return Wait4CNF(CMD_WAIT_TIME, standby ? TARVOSE_CMD_STANDBY_IND : TARVOSE_CMD_RESET_IND, CMD_Status_Success, false);
 }
 
-/**
- * @brief Reset the TarvosE by pin
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool TarvosE_PinReset()
 {
     if (!WE_SetPin(TarvosE_pinsP->TarvosE_Pin_Reset, WE_Pin_Level_Low))
@@ -574,12 +533,6 @@ bool TarvosE_PinReset()
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_RESET_IND, CMD_Status_Success, true);
 }
 
-/**
- * @brief Reset the TarvosE by command
- *
- * @return true if reset succeeded,
- *         false otherwise
- */
 bool TarvosE_Reset()
 {
     txPacket.Cmd = TARVOSE_CMD_RESET_REQ;
@@ -596,14 +549,6 @@ bool TarvosE_Reset()
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_RESET_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Factory reset the TarvosE
- *
- * Note: use only in rare cases, since flash can be updated only a limited number of times
- *
- * @return true if factory reset succeeded,
- *         false otherwise
- */
 bool TarvosE_FactoryReset()
 {
     txPacket.Cmd = TARVOSE_CMD_FACTORY_RESET_REQ;
@@ -621,12 +566,6 @@ bool TarvosE_FactoryReset()
     ;
 }
 
-/**
- * @brief Switch the module to standby mode
- *
- * @return true if switching succeeded,
- *         false otherwise
- */
 bool TarvosE_Standby()
 {
     txPacket.Cmd = TARVOSE_CMD_STANDBY_REQ;
@@ -644,12 +583,6 @@ bool TarvosE_Standby()
     ;
 }
 
-/**
- * @brief Switch the module to shutdown mode
- *
- * @return true if switching succeeded,
- *         false otherwise
- */
 bool TarvosE_Shutdown()
 {
     txPacket.Cmd = TARVOSE_CMD_SHUTDOWN_REQ;
@@ -666,16 +599,6 @@ bool TarvosE_Shutdown()
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_SHUTDOWN_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Request the current TarvosE settings
- *
- * @param[in] us: user setting to be requested
- * @param[out] response: pointer of the memory to put the request content
- * @param[out] response_length: length of the request content
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Get(TarvosE_UserSettings_t us, uint8_t* response, uint8_t* response_length)
 {
     if (response == NULL || response_length == NULL)
@@ -707,19 +630,6 @@ bool TarvosE_Get(TarvosE_UserSettings_t us, uint8_t* response, uint8_t* response
     return true;
 }
 
-/**
- * @brief Set a special user setting, but checks first if the value is already ok
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] userSetting:  user setting to be updated
- * @param[in] valueP:       pointer to the new settings value
- * @param[in] length:       length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_CheckNSet(TarvosE_UserSettings_t userSetting, uint8_t* valueP, uint8_t length)
 {
     if (valueP == NULL)
@@ -745,19 +655,6 @@ bool TarvosE_CheckNSet(TarvosE_UserSettings_t userSetting, uint8_t* valueP, uint
     return TarvosE_Set(userSetting, valueP, length);
 }
 
-/**
- * @brief Set a special TarvosE setting
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] us:     user setting to be updated
- * @param[in] value:  pointer to the new settings value
- * @param[in] length: length of the value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Set(TarvosE_UserSettings_t us, uint8_t* value, uint8_t length)
 {
     if (value == NULL)
@@ -782,14 +679,6 @@ bool TarvosE_Set(TarvosE_UserSettings_t us, uint8_t* value, uint8_t length)
     ;
 }
 
-/**
- * @brief Request the 3 byte firmware version
- *
- * @param[out] fw: pointer to the 3 byte firmware version
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetFirmwareVersion(uint8_t* fw)
 {
     if (fw == NULL)
@@ -812,14 +701,6 @@ bool TarvosE_GetFirmwareVersion(uint8_t* fw)
     return true;
 }
 
-/**
- * @brief Request the 4 byte serial number
- *
- * @param[out] sn: pointer to the 4 byte serial number
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetSerialNumber(uint8_t* sn)
 {
     if (sn == NULL)
@@ -843,14 +724,6 @@ bool TarvosE_GetSerialNumber(uint8_t* sn)
     return true;
 }
 
-/**
- * @brief Request the default TX power
- *
- * @param[out] txpower: pointer to the TXpower
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetDefaultTXPower(uint8_t* txpower)
 {
     if (txpower == NULL)
@@ -864,15 +737,6 @@ bool TarvosE_GetDefaultTXPower(uint8_t* txpower)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, txpower, &length);
 }
 
-/**
- * @brief Get the default destination address
- *
- * @param[out] destaddr_lsb: LSB of the destination address
- * @param[out] destaddr_msb: MSB of the destination address
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetDefaultDestAddr(uint8_t* destaddr_lsb, uint8_t* destaddr_msb)
 {
     if (destaddr_lsb == NULL || destaddr_msb == NULL)
@@ -895,14 +759,6 @@ bool TarvosE_GetDefaultDestAddr(uint8_t* destaddr_lsb, uint8_t* destaddr_msb)
     return true;
 }
 
-/**
- * @brief Get the default destination address
- *
- * @param[out] destnetid: destination net id
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetDefaultDestNetID(uint8_t* destnetid)
 {
     uint8_t length;
@@ -910,15 +766,6 @@ bool TarvosE_GetDefaultDestNetID(uint8_t* destnetid)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_DEFAULTDESTNETID, destnetid, &length);
 }
 
-/**
- * @brief Get the default source address
- *
- * @param[out] srcaddr_lsb: LSB of the source address
- * @param[out] srcaddr_msb: MSB of the source address
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetSourceAddr(uint8_t* srcaddr_lsb, uint8_t* srcaddr_msb)
 {
     if (srcaddr_lsb == NULL || srcaddr_msb == NULL)
@@ -941,14 +788,6 @@ bool TarvosE_GetSourceAddr(uint8_t* srcaddr_lsb, uint8_t* srcaddr_msb)
     return true;
 }
 
-/**
- * @brief Set the default source net id
- *
- * @param[out] srcnetid: source net id
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetSourceNetID(uint8_t* srcnetid)
 {
     uint8_t length;
@@ -956,14 +795,6 @@ bool TarvosE_GetSourceNetID(uint8_t* srcnetid)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_SOURCENETID, srcnetid, &length);
 }
 
-/**
- * @brief Get the default RF channel
- *
- * @param[out] channel: channel
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetDefaultRFChannel(uint8_t* channel)
 {
     uint8_t length;
@@ -971,14 +802,6 @@ bool TarvosE_GetDefaultRFChannel(uint8_t* channel)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, channel, &length);
 }
 
-/**
- * @brief Get the default RF profile
- *
- * @param[out] profile: RF profile
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetDefaultRFProfile(uint8_t* profile)
 {
     uint8_t length;
@@ -986,14 +809,6 @@ bool TarvosE_GetDefaultRFProfile(uint8_t* profile)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_DEFAULTRFPROFILE, profile, &length);
 }
 
-/**
- * @brief Get the LBT observation period
- *
- * @param[out] threshold: LBT observation period in ms
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetLBTObservationPeriod(uint8_t* period)
 {
     uint8_t length;
@@ -1001,14 +816,6 @@ bool TarvosE_GetLBTObservationPeriod(uint8_t* period)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, period, &length);
 }
 
-/**
- * @brief Get the LBT threshold value
- *
- * @param[out] threshold: LBT threshold value in dBm
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_GetLBTThreshold(int8_t* threshold)
 {
     uint8_t length;
@@ -1016,18 +823,6 @@ bool TarvosE_GetLBTThreshold(int8_t* threshold)
     return TarvosE_Get(TarvosE_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*)threshold, &length);
 }
 
-/**
- * @brief Set the default TX power
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use TarvosE_SetVolatile_TXPower for frequent adaption of the TX power.
- *
- * @param[in] txpower: TXpower
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetDefaultTXPower(uint8_t txpower)
 {
     /* check for invalid power */
@@ -1040,19 +835,6 @@ bool TarvosE_SetDefaultTXPower(uint8_t txpower)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_DEFAULTRFTXPOWER, &txpower, 1);
 }
 
-/**
- * @brief Set the default destination address
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use TarvosE_SetVolatile_DestAddr for frequent adaption of the destination address.
- *
- * @param[in] destaddr_lsb: LSB of the destination address
- * @param[in] destaddr_msb: MSB of the destination address
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
     /* fill array */
@@ -1062,32 +844,8 @@ bool TarvosE_SetDefaultDestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_DEFAULTDESTADDR, help, 2);
 }
 
-/**
- * @brief Set the default destination address
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use TarvosE_SetVolatile_DestNetID for frequent adaption of the destination net id.
- *
- * @param[in] destnetid: destination net id
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetDefaultDestNetID(uint8_t destnetid) { return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_DEFAULTDESTNETID, &destnetid, 1); }
 
-/**
- * @brief Set the default source address
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] srcaddr_lsb: LSB of the source address
- * @param[in] srcaddr_msb: MSB of the source address
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
 {
     /* fill array */
@@ -1097,31 +855,8 @@ bool TarvosE_SetSourceAddr(uint8_t srcaddr_lsb, uint8_t srcaddr_msb)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_SOURCEADDR, help, 2);
 }
 
-/**
- * @brief Set the default source net id
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] srcnetid: source net id
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetSourceNetID(uint8_t srcnetid) { return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_SOURCENETID, &srcnetid, 1); }
 
-/**
- * @brief Set the default RF channel
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- * Note: Use TarvosE_SetVolatile_Channel for frequent adaption of the channel.
- *
- * @param[in] channel: channel
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetDefaultRFChannel(uint8_t channel)
 {
     /* check for valid channel */
@@ -1133,17 +868,6 @@ bool TarvosE_SetDefaultRFChannel(uint8_t channel)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_DEFAULTRFCHANNEL, &channel, 1);
 }
 
-/**
- * @brief Set the default RF profile
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] profile: RF profile
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetDefaultRFProfile(uint8_t profile)
 {
     if (profile == 3)
@@ -1155,17 +879,6 @@ bool TarvosE_SetDefaultRFProfile(uint8_t profile)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_DEFAULTRFPROFILE, &profile, 1);
 }
 
-/**
- * @brief Set the LBT observation period
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] period: LBT observation period in ms
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetLBTObservationPeriod(uint8_t period)
 {
     if (period > 15)
@@ -1176,17 +889,6 @@ bool TarvosE_SetLBTObservationPeriod(uint8_t period)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_LBT_OBSERVATION_PERIOD, &period, 1);
 }
 
-/**
- * @brief Set the LBT threshold
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @param[in] threshold: LBT threshold in dBm
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetLBTThreshold(int8_t threshold)
 {
     if ((threshold < -100) || (threshold > -45))
@@ -1197,15 +899,6 @@ bool TarvosE_SetLBTThreshold(int8_t threshold)
     return TarvosE_Set(TarvosE_CMD_SETGET_OPTION_LBT_THRESHOLD, (uint8_t*)&threshold, 1);
 }
 
-/**
- * @brief Enables the Sniffer mode
- *
- * Note: Reset the module after the adaption of the setting so that it can take effect.
- * Note: Use this function only in rare case, since flash can be updated only a limited number of times.
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_EnableSnifferMode()
 {
     uint16_t rpFlags;
@@ -1245,14 +938,6 @@ bool TarvosE_EnableSnifferMode()
     return true;
 }
 
-/**
- * @brief Set the volatile TX power
- *
- * @param[in] power: new TX power value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetVolatile_TXPower(uint8_t power)
 {
     /* check for invalid power */
@@ -1283,14 +968,6 @@ bool TarvosE_SetVolatile_TXPower(uint8_t power)
     return ret;
 }
 
-/**
- * @brief Set the volatile channel
- *
- * @param[in] channel: new channel value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetVolatile_Channel(uint8_t channel)
 {
     /* check for valid channel */
@@ -1321,14 +998,6 @@ bool TarvosE_SetVolatile_Channel(uint8_t channel)
     return ret;
 }
 
-/**
- * @brief Set the volatile destination net ID
- *
- * @param[in] destnetid: new destination net ID
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetVolatile_DestNetID(uint8_t destnetid)
 {
 
@@ -1347,15 +1016,6 @@ bool TarvosE_SetVolatile_DestNetID(uint8_t destnetid)
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_SET_DESTNETID_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Set the volatile destination address
- *
- * @param[in] destaddr_lsb: lsb of the new destination address value
- * @param[in] destaddr_msb: msb of the new destination address value
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
 {
     switch (addressmode)
@@ -1392,15 +1052,6 @@ bool TarvosE_SetVolatile_DestAddr(uint8_t destaddr_lsb, uint8_t destaddr_msb)
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_SET_DESTADDR_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Transmit data using the configured settings
- *
- * @param[in] payload: pointer to the data
- * @param[in] length: length of the data
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Transmit(uint8_t* payload, uint8_t length)
 {
     if ((payload == NULL) || (length == 0))
@@ -1410,7 +1061,7 @@ bool TarvosE_Transmit(uint8_t* payload, uint8_t length)
 
     if (length > MAX_PAYLOAD_LENGTH)
     {
-        printf("Data exceeds maximal payload length\n");
+        WE_DEBUG_PRINT_INFO("Data exceeds maximal payload length\r\n");
         return false;
     }
 
@@ -1429,19 +1080,6 @@ bool TarvosE_Transmit(uint8_t* payload, uint8_t length)
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Transmit data
- *
- * @param[in] payload: pointer to the data
- * @param[in] length: length of the data
- * @param[in] channel: channel to be used
- * @param[in] dest_network_id: destination network ID
- * @param[in] dest_address_lsb: destination address lsb
- * @param[in] dest_address_msb: destination address msb
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb)
 {
     if ((payload == NULL) || (length == 0))
@@ -1451,7 +1089,7 @@ bool TarvosE_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel
 
     if (length > MAX_PAYLOAD_LENGTH)
     {
-        printf("Data exceeds maximal payload length\n");
+        WE_DEBUG_PRINT_INFO("Data exceeds maximal payload length\r\n");
         return false;
     }
 
@@ -1513,14 +1151,6 @@ bool TarvosE_Transmit_Extended(uint8_t* payload, uint8_t length, uint8_t channel
     return Wait4CNF(CMD_WAIT_TIME, TARVOSE_CMD_DATA_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Use the ping test command
- *
- * Note: Do not use this command. Just used for internal purposes!
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Ping()
 {
     /* rf-profil 5, ch134, +14dbm, 10 packets */
@@ -1536,16 +1166,6 @@ bool TarvosE_Ping()
     return Wait4CNF(10000 /*10s*/, TARVOSE_CMD_PINGDUT_CNF, CMD_Status_Success, true);
 }
 
-/**
- * @brief Configure the TarvosE
- *
- * @param[in] config: pointer to the configuration struct
- * @param[in] config_length: length of the configuration struct
- * @param[in] factory_reset: apply a factory reset before or not
- *
- * @return true if request succeeded,
- *         false otherwise
- */
 bool TarvosE_Configure(TarvosE_Configuration_t* config, uint8_t config_length, bool factory_reset)
 {
     if ((config == NULL) || (config_length == 0))

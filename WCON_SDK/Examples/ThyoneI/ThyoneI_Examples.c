@@ -30,7 +30,8 @@
 
 #include <ThyoneI/ThyoneI.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -56,18 +57,18 @@ static WE_UART_t ThyoneI_uart;
 static void RxCallback(uint8_t* payload, uint16_t payload_length, uint32_t sourceAddress, int8_t rssi)
 {
     uint16_t i = 0;
-    WE_DEBUG_PRINT("Received data from address 0x%02lx with %d dBm:\n-> ", sourceAddress, rssi);
-    WE_DEBUG_PRINT("0x");
+    WE_APP_PRINT("Received data from address 0x%02lx with %d dBm:\n-> ", sourceAddress, rssi);
+    WE_APP_PRINT("0x");
     for (i = 0; i < payload_length; i++)
     {
-        WE_DEBUG_PRINT("%02x", *(payload + i));
+        WE_APP_PRINT("%02x", *(payload + i));
     }
-    WE_DEBUG_PRINT(" (");
+    WE_APP_PRINT(" (");
     for (i = 0; i < payload_length; i++)
     {
-        WE_DEBUG_PRINT("%c", *(payload + i));
+        WE_APP_PRINT("%c", *(payload + i));
     }
-    WE_DEBUG_PRINT(")\r\n");
+    WE_APP_PRINT(")\r\n");
 }
 
 /**
@@ -76,7 +77,7 @@ static void RxCallback(uint8_t* payload, uint16_t payload_length, uint32_t sourc
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+static void Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Command mode example repeatedly transmitting data via radio
@@ -87,7 +88,7 @@ static void Example_CommandMode_DataTransmission()
 
     if (false == ThyoneI_Init(&ThyoneI_uart, &ThyoneI_pins, ThyoneI_OperationMode_CommandMode, RxCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -95,14 +96,14 @@ static void Example_CommandMode_DataTransmission()
     memset(fwVersion, 0, sizeof(fwVersion));
     ret = ThyoneI_GetFWVersion(fwVersion);
     Examples_Print("Get FW version", ret);
-    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
+    WE_APP_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[2], fwVersion[1], fwVersion[0]);
     WE_Delay(500);
 
     uint8_t serialNr[4];
     memset(serialNr, 0, sizeof(serialNr));
     ret = ThyoneI_GetSerialNumber(serialNr);
     Examples_Print("Get serial number", ret);
-    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[3], serialNr[2], serialNr[1], serialNr[0]);
+    WE_APP_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[3], serialNr[2], serialNr[1], serialNr[0]);
     WE_Delay(500);
 
     uint8_t data[224];
@@ -127,7 +128,7 @@ static void Example_TransparentMode_DataTransmission()
 {
     if (false == ThyoneI_Init(&ThyoneI_uart, &ThyoneI_pins, ThyoneI_OperationMode_TransparentMode, RxCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -145,13 +146,13 @@ static void Example_TransparentMode_DataTransmission()
 
         if (!ThyoneI_IsTransparentModeBusy(&busyState))
         {
-            WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+            WE_APP_PRINT("Failed to get pin state.\r\n");
             return;
         }
 
         if (busyState)
         {
-            WE_DEBUG_PRINT("Module busy\r\n");
+            WE_APP_PRINT("Module busy\r\n");
             WE_Delay(15);
         }
         else if (ThyoneI_Transparent_Transmit(data, sizeof(data)))
@@ -165,7 +166,7 @@ static void Example_TransparentMode_DataTransmission()
                 count++;
                 if (!ThyoneI_IsTransparentModeBusy(&busyState))
                 {
-                    WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+                    WE_APP_PRINT("Failed to get pin state.\r\n");
                     return;
                 }
                 if (busyState)
@@ -182,7 +183,7 @@ static void Example_TransparentMode_DataTransmission()
                 count++;
                 if (!ThyoneI_IsTransparentModeBusy(&busyState))
                 {
-                    WE_DEBUG_PRINT("Failed to get pin state.\r\n");
+                    WE_APP_PRINT("Failed to get pin state.\r\n");
                     return;
                 }
                 if (!busyState)
@@ -194,7 +195,7 @@ static void Example_TransparentMode_DataTransmission()
         }
         else
         {
-            WE_DEBUG_PRINT("Transmission failed\r\n");
+            WE_APP_PRINT("Transmission failed\r\n");
         }
         WE_Delay(100);
     }

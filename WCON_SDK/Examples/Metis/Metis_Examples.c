@@ -30,7 +30,8 @@
 
 #include <Metis/Metis.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -104,7 +105,7 @@ WE_UART_t Metis_uart;
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+static void Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Callback for data reception
@@ -112,18 +113,18 @@ static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n",
 static void RxCallback(uint8_t* payload, uint8_t payload_length, int8_t rssi)
 {
     uint8_t i = 0;
-    WE_DEBUG_PRINT("Received data with %d dBm:\n-> ", rssi);
-    WE_DEBUG_PRINT("0x");
+    WE_APP_PRINT("Received data with %d dBm:\n-> ", rssi);
+    WE_APP_PRINT("0x");
     for (i = 0; i < payload_length; i++)
     {
-        WE_DEBUG_PRINT("%02x", *(payload + i));
+        WE_APP_PRINT("%02x", *(payload + i));
     }
-    WE_DEBUG_PRINT(" (");
+    WE_APP_PRINT(" (");
     for (i = 0; i < payload_length; i++)
     {
-        WE_DEBUG_PRINT("%c", *(payload + i));
+        WE_APP_PRINT("%c", *(payload + i));
     }
-    WE_DEBUG_PRINT(")\r\n");
+    WE_APP_PRINT(")\r\n");
 }
 
 void Metis_Examples(void)
@@ -146,25 +147,25 @@ static void CommandModeExample()
 {
     if (false == Metis_Init(&Metis_uart, &Metis_pins, Metis_Frequency_868, Metis_Mode_Preselect_868_S2, true, RxCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
     uint8_t serialNr[4];
     Examples_Print("Read serial number", Metis_GetSerialNumber(serialNr));
-    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
+    WE_APP_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
     WE_Delay(500);
 
     uint8_t fwVersion[3];
     Examples_Print("Read firmware version", Metis_GetFirmwareVersion(fwVersion));
-    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
+    WE_APP_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
     WE_Delay(500);
 
     while (1)
     {
         if (!Metis_Transmit(APP_Data))
         {
-            WE_DEBUG_PRINT("Transmission failed\r\n");
+            WE_APP_PRINT("Transmission failed\r\n");
         }
         WE_Delay(500);
     }

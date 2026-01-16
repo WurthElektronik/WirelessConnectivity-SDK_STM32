@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATSocket.c
  * @brief AT commands for socket functionality.
  */
 #include <Calypso/ATCommands/ATSocket.h>
@@ -79,17 +79,6 @@ static bool Calypso_ATSocket_AddArgumentsSetSockOpt(char* pAtCommand, uint8_t so
 static bool Calypso_ATSocket_ParseResponseCreate(char** pAtCommand, uint8_t* pOutSocketID);
 static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLevel_t level, uint8_t option, char** pAtCommand, Calypso_ATSocket_Options_t* pValues);
 
-/**
- * @brief Creates a socket (using the AT+socket command).
- *
- * @param[in] family Family of the socket. See Calypso_ATSocket_Family_t
- * @param[in] type Type of the socket. See Calypso_ATSocket_Type_t
- * @param[in] protocol Protocol of the socket. See Calypso_ATSocket_Protocol_t
- * @param[out] socketID ID (descriptor) assigned to the new socket. Can be used to access the socket from other functions.
- *
- * @return true if successful, false otherwise
- */
-
 bool Calypso_ATSocket_Create(Calypso_ATSocket_Family_t family, Calypso_ATSocket_Type_t type, Calypso_ATSocket_Protocol_t protocol, uint8_t* socketID)
 {
 
@@ -115,13 +104,6 @@ bool Calypso_ATSocket_Create(Calypso_ATSocket_Family_t family, Calypso_ATSocket_
     return Calypso_ATSocket_ParseResponseCreate(&pRespondCommand, socketID);
 }
 
-/**
- * @brief Closes a socket (using the AT+close command).
- *
- * @param[in] socketID ID of the socket to be closed
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Close(uint8_t socketID)
 {
 
@@ -146,14 +128,6 @@ bool Calypso_ATSocket_Close(uint8_t socketID)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Binds a socket to an IP address and a port (using the AT+bind command).
- *
- * @param[in] socketID ID of the socket to be bound
- * @param[in] socket Socket configuration. See Calypso_ATSocket_Descriptor_t.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Bind(uint8_t socketID, Calypso_ATSocket_Descriptor_t socket)
 {
 
@@ -173,14 +147,6 @@ bool Calypso_ATSocket_Bind(uint8_t socketID, Calypso_ATSocket_Descriptor_t socke
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * Starts listening on the supplied socket (using the AT+listen command).
- *
- * @param[in] socketID ID of the socket on which to start listening
- * @param[in] backlog Max length of connect request queue
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Listen(uint8_t socketID, uint16_t backlog)
 {
 
@@ -211,14 +177,6 @@ bool Calypso_ATSocket_Listen(uint8_t socketID, uint16_t backlog)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Connects to a remote socket (using the AT+connect command).
- *
- * @param[in] socketID ID of the local socket to be connected
- * @param[in] remoteSocket Remote socket to connect to. See Calypso_ATSocket_Descriptor_t
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Connect(uint8_t socketID, Calypso_ATSocket_Descriptor_t remoteSocket)
 {
 
@@ -238,14 +196,6 @@ bool Calypso_ATSocket_Connect(uint8_t socketID, Calypso_ATSocket_Descriptor_t re
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Accepts incoming connections on a socket (using the AT+accept command).
- *
- * @param[in] socketID ID of the local socket to accept connections for
- * @param[in] family Family of connections to accept
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Accept(uint8_t socketID, Calypso_ATSocket_Family_t family)
 {
 
@@ -275,18 +225,6 @@ bool Calypso_ATSocket_Accept(uint8_t socketID, Calypso_ATSocket_Family_t family)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Trigger receiving of data via the supplied local socket (using the AT+recv command).
- *
- * Note that any received data is provided asynchronously in events of type Calypso_ATEvent_SocketRcvd.
- *
- * @param[in] socketID ID of the local socket which should receive
- * @param[in] format Format in which the data is to be provided. Setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to encode the data as Base64 before sending it to this device via UART.
- * @param[in] length Max number of bytes to receive
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Receive(uint8_t socketID, Calypso_DataFormat_t format, uint16_t length)
 {
 
@@ -306,19 +244,6 @@ bool Calypso_ATSocket_Receive(uint8_t socketID, Calypso_DataFormat_t format, uin
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * Trigger receiving of data from the supplied remote socket via the supplied local socket (using the AT+recvFrom command).
- *
- * Note that any received data is provided asynchronously in events of type Calypso_ATEvent_SocketRcvdFrom.
- *
- * @param[in] socketID ID of the local socket which should receive
- * @param[in] remoteSocket Remote socket from which the data should be received
- * @param[in] format Format in which the data is to be provided. Setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to encode the data as Base64 before sending it to this device via UART.
- * @param[in] length Max number of bytes to receive
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_ReceiveFrom(uint8_t socketID, Calypso_ATSocket_Descriptor_t remoteSocket, Calypso_DataFormat_t format, uint16_t length)
 {
 
@@ -337,44 +262,8 @@ bool Calypso_ATSocket_ReceiveFrom(uint8_t socketID, Calypso_ATSocket_Descriptor_
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Sends data via the supplied local socket (using the AT+send command).
- *
- * @param[in] socketID ID of the local socket via which the data should be sent
- * @param[in] format Format in which the data is provided. Note that setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to interpret the data as Base64 - the module will decode the data and
- *                   transmit the decoded data via the socket. If using Calypso_DataFormat_Base64, you either need to
- *                   provide Base64 encoded data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the Calypso module
- * @param[in] length Number of bytes to be sent
- * @param[in] data Data to be sent
- * @param[out] bytesSent The number of bytes that have been sent. Note that in case
- *                       encodeAsBase64 is true, the actual number of (encoded) bytes sent might be higher.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_Send(uint8_t socketID, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, char* data, uint16_t* bytesSent) { return Calypso_ATSocket_SendTo(socketID, NULL, format, encodeAsBase64, length, data, bytesSent); }
 
-/**
- * Sends data via the supplied local socket (using the AT+send or AT+sendTo command).
- *
- * The AT+sendTo command is used if a remote socket is supplied (UDP). Otherwise,
- * the AT+send command is used (TCP).
- *
- * @param[in] socketID ID of the local socket via which the data should be sent
- * @param[in] remoteSocket Remote socket to which the data should be sent (optional)
- * @param[in] format Format in which the data is provided. Note that setting the format to Calypso_DataFormat_Base64
- *                   causes the Calypso module to interpret the data as Base64 - the module will decode the data and
- *                   transmit the decoded data via the socket. If using Calypso_DataFormat_Base64, you either need to
- *                   provide Base64 encoded data or set encodeAsBase64 to true.
- * @param[in] encodeAsBase64 Encode the data in Base64 format before sending it to the Calypso module
- * @param[in] length Number of bytes to be sent
- * @param[in] data Data to be sent
- * @param[out] bytesSent The number of bytes that have been sent. Note that in case
- *                       encodeAsBase64 is true, the actual number of (encoded) bytes sent might be higher.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t* remoteSocket, Calypso_DataFormat_t format, bool encodeAsBase64, uint16_t length, char* data, uint16_t* bytesSent)
 {
     *bytesSent = 0;
@@ -382,7 +271,7 @@ bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t* re
     if (encodeAsBase64)
     {
         /* Base64 encoded data might exceed the max. chunk size. To limit the required buffer size,
-		 * the data is encoded in chunks, if necessary. */
+         * the data is encoded in chunks, if necessary. */
 
         uint16_t maxChunkSize = (((CALYPSO_MAX_PAYLOAD_SIZE - 1) * 3) / 4) - 2;
         uint16_t chunkSize = 0;
@@ -421,7 +310,7 @@ bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t* re
     }
 
     /* Send data using either AT+send or AT+sendTo, splitting the payload into
-	 * chunks of max. CALYPSO_MAX_PAYLOAD_SIZE, if necessary. */
+     * chunks of max. CALYPSO_MAX_PAYLOAD_SIZE, if necessary. */
     uint16_t chunkBytesSent = 0;
     for (uint16_t chunkOffset = 0; chunkOffset < length; chunkOffset += chunkBytesSent)
     {
@@ -461,26 +350,11 @@ bool Calypso_ATSocket_SendTo(uint8_t socketID, Calypso_ATSocket_Descriptor_t* re
         }
 
         *bytesSent += chunkBytesSent;
-
-#ifdef WE_DEBUG
-        /* Flush debug buffer, as it may have been filled up with the written data */
-        WE_Debug_Flush();
-#endif
     }
 
     return true;
 }
 
-/**
- * @brief Sets socket options (using the AT+setSockOpt command).
- *
- * @param[in] socketID ID of the local socket for which options should be set
- * @param[in] level Option level parameter
- * @param[in] option Option parameter
- * @param[in] pValues Option value. Uses the Calypso_ATSocket_Options_t member corresponding to the option being set.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_SetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* pValues)
 {
 
@@ -500,16 +374,6 @@ bool Calypso_ATSocket_SetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOpt
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Gets socket options (using the AT+getSockOpt command).
- *
- * @param[in] socketID ID of the local socket for which options should be set
- * @param[in] level Option level parameter
- * @param[in] option Option parameter
- * @param[out] pValues Option value. Uses the Calypso_ATSocket_Options_t member corresponding to the option being retrieved.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_GetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOptLevel_t level, uint8_t option, Calypso_ATSocket_Options_t* pValues)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -568,15 +432,6 @@ bool Calypso_ATSocket_GetSocketOption(uint8_t socketID, Calypso_ATSocket_SockOpt
     return Calypso_ATSocket_ParseResponseGetOptions(level, option, &pRespondCommand, pValues);
 }
 
-/**
- * @brief Adds socket descriptor arguments to the AT command string.
- *
- * @param[out] pAtCommand The AT command string to add the arguments to
- * @param[in] socket Socket information to append
- * @param[in] lastDelim Delimiter to append after the last argument
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_AppendSocketDescriptor(char* pAtCommand, Calypso_ATSocket_Descriptor_t socket, char lastDelim)
 {
     if (socket.family >= Calypso_ATSocket_Family_NumberOfValues)
@@ -1133,14 +988,6 @@ static bool Calypso_ATSocket_ParseResponseGetOptions(Calypso_ATSocket_SockOptLev
     return true;
 }
 
-/**
- * @brief Parses a string to Calypso_ATSocket_Family_t.
- *
- * @param[in] familyString String representing the socket family
- * @param[out] pOutFamily The parsed socket family
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_ParseSocketFamily(const char* familyString, Calypso_ATSocket_Family_t* pOutFamily)
 {
     bool ok;
@@ -1148,14 +995,6 @@ bool Calypso_ATSocket_ParseSocketFamily(const char* familyString, Calypso_ATSock
     return ok;
 }
 
-/**
- * @brief Returns the string representation of the supplied socket family.
- *
- * @param[in] family Socket family
- * @param[out] pOutFamilyStr String representation of the supplied socket family
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATSocket_GetSocketFamilyString(Calypso_ATSocket_Family_t family, char* pOutFamilyStr)
 {
     if (family >= Calypso_ATSocket_Family_NumberOfValues)
@@ -1166,10 +1005,4 @@ bool Calypso_ATSocket_GetSocketFamilyString(Calypso_ATSocket_Family_t family, ch
     return true;
 }
 
-/**
- * @brief Appends cipher mask flags to the supplied string.
- *
- * @param[out] pOutStr The string to which the flags should be added (must be null terminated)
- * @param[in] cipherMask Cipher mask flags (see Calypso_ATSocket_Cipher_t)
- */
 bool Calypso_ATSocket_AppendCipherMask(char* pOutStr, uint32_t cipherMask) { return ATCommand_AppendArgumentBitmask(pOutStr, Calypso_ATSocket_CipherStrings, Calypso_ATSocket_Cipher_NumberOfValues, cipherMask, ATCOMMAND_STRING_TERMINATE, AT_MAX_COMMAND_BUFFER_SIZE); }

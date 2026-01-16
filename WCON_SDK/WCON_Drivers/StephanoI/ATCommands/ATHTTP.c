@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATHTTP.c
  * @brief AT commands for HTTP functionality.
  */
 
@@ -32,20 +32,6 @@
 #include <StephanoI/StephanoI.h>
 #include <global/ATCommands.h>
 
-/**
- * @brief HTTP Client
- *
- * @param[in] opt Method
- * @param[in] content Content type
- * @param[in] url URL
- * @param[in] host Host
- * @param[in] path Path
- * @param[in] transport_via_SSL  SSL or TCP
- * @param[in] data  Data
- * @param[in] header  Header
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Content_t content, char* url, char* host, char* path, bool transport_via_SSL, char* data, char* header)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -103,15 +89,6 @@ bool StephanoI_ATHTTP_Client(StephanoI_ATHTTP_Opt_t opt, StephanoI_ATHTTP_Conten
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief HTTP Get size
- *
- * @param[in] url URL
- * @param[out] t Pointer to the size of the data
-
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATHTTP_GetSize(char* url, StephanoI_ATHTTP_Size_t* t)
 {
     char responsebuffer[16];
@@ -140,14 +117,6 @@ bool StephanoI_ATHTTP_GetSize(char* url, StephanoI_ATHTTP_Size_t* t)
     return StephanoI_ATHTTP_ParseGetSize(responsebuffer, t);
 }
 
-/**
- * @brief HTTP Get
- *
- * @param[in] url URL
- * @param[out] t Pointer to the data and its length
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATHTTP_Get(char* url, StephanoI_ATHTTP_Get_t* t)
 {
     char responsebuffer[7 + t->length];
@@ -177,17 +146,6 @@ bool StephanoI_ATHTTP_Get(char* url, StephanoI_ATHTTP_Get_t* t)
     return StephanoI_ATHTTP_ParseGet(responsebuffer, t);
 }
 
-/**
- * @brief HTTP post
- *
- * @param[in] url URL
- * @param[in] data Data
- * @param[in] length Length
- * @param[in] number_of_headers Number of header
- * @param[in] headers Headers
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATHTTP_Post(char* url, uint8_t* data, uint32_t length, uint8_t number_of_headers, char** headers)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -242,14 +200,6 @@ bool StephanoI_ATHTTP_Post(char* url, uint8_t* data, uint32_t length, uint8_t nu
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_HTTPGetPost), StephanoI_CNFStatus_SendOK);
 }
 
-/**
- * @brief Parses the values of the HTTP client event arguments.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATHTTP_ParseClient(char* EventArgumentsP, StephanoI_ATHTTP_Client_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -262,28 +212,12 @@ bool StephanoI_ATHTTP_ParseClient(char* EventArgumentsP, StephanoI_ATHTTP_Client
     return ATCommand_GetNextArgumentByteArray(&argumentsP, t->length, t->data, t->length);
 }
 
-/**
- * @brief Parses the values of the HTTP get size event arguments.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATHTTP_ParseGetSize(char* EventArgumentsP, StephanoI_ATHTTP_Size_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the HTTP get event arguments.
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATHTTP_ParseGet(char* EventArgumentsP, StephanoI_ATHTTP_Get_t* t)
 {
     char* argumentsP = EventArgumentsP;

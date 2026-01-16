@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file Calypso.h
  * @brief Calypso driver header file.
  */
 
@@ -73,78 +73,84 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief AT command confirmation status.
  */
-    typedef enum Calypso_CNFStatus_t
-    {
-        Calypso_CNFStatus_Success,
-        Calypso_CNFStatus_Failed,
-        Calypso_CNFStatus_Invalid,
-        Calypso_CNFStatus_NumberOfValues
-    } Calypso_CNFStatus_t;
+typedef enum Calypso_CNFStatus_t
+{
+    Calypso_CNFStatus_Success,
+    Calypso_CNFStatus_Failed,
+    Calypso_CNFStatus_Invalid,
+    /** @cond DOXYGEN_IGNORE */
+    Calypso_CNFStatus_NumberOfValues
+    /** @endcond */
+} Calypso_CNFStatus_t;
 
-    /**
+/**
  * @brief Data format used for transferred data.
  */
-    typedef enum Calypso_DataFormat_t
-    {
-        Calypso_DataFormat_Binary,
-        Calypso_DataFormat_Base64,
-        Calypso_DataFormat_NumberOfValues,
-    } Calypso_DataFormat_t;
+typedef enum Calypso_DataFormat_t
+{
+    Calypso_DataFormat_Binary,
+    Calypso_DataFormat_Base64,
+    /** @cond DOXYGEN_IGNORE */
+    Calypso_DataFormat_NumberOfValues,
+    /** @endcond */
+} Calypso_DataFormat_t;
 
-    /**
+/**
  * @brief Timeout categories (for responses to AT commands).
  * @see Calypso_SetTimeout(), Calypso_GetTimeout()
  */
-    typedef enum Calypso_Timeout_t
-    {
-        Calypso_Timeout_General,
-        Calypso_Timeout_FactoryReset,
-        Calypso_Timeout_WlanAddProfile,
-        Calypso_Timeout_WlanScan,
-        Calypso_Timeout_NetAppUpdateTime,
-        Calypso_Timeout_NetAppHostLookUp,
-        Calypso_Timeout_HttpConnect,
-        Calypso_Timeout_HttpRequest,
-        Calypso_Timeout_FileIO,
-        Calypso_Timeout_GPIO,
-        Calypso_Timeout_NumberOfValues
-    } Calypso_Timeout_t;
+typedef enum Calypso_Timeout_t
+{
+    Calypso_Timeout_General,
+    Calypso_Timeout_FactoryReset,
+    Calypso_Timeout_WlanAddProfile,
+    Calypso_Timeout_WlanScan,
+    Calypso_Timeout_NetAppUpdateTime,
+    Calypso_Timeout_NetAppHostLookUp,
+    Calypso_Timeout_HttpConnect,
+    Calypso_Timeout_HttpRequest,
+    Calypso_Timeout_FileIO,
+    Calypso_Timeout_GPIO,
+    /** @cond DOXYGEN_IGNORE */
+    Calypso_Timeout_NumberOfValues
+    /** @endcond */
+} Calypso_Timeout_t;
 
-    /**
+/**
  * @brief Application modes. Used with Calypso_SetApplicationModePins().
  */
-    typedef enum Calypso_ApplicationMode_t
-    {
-        Calypso_ApplicationMode_ATCommandMode = 0,
-        Calypso_ApplicationMode_OTAUpdate = 1,
-        Calypso_ApplicationMode_Provisioning = 2,
-        Calypso_ApplicationMode_TransparentMode = 3
-    } Calypso_ApplicationMode_t;
+typedef enum Calypso_ApplicationMode_t
+{
+    Calypso_ApplicationMode_ATCommandMode = 0,
+    Calypso_ApplicationMode_OTAUpdate = 1,
+    Calypso_ApplicationMode_Provisioning = 2,
+    Calypso_ApplicationMode_TransparentMode = 3
+} Calypso_ApplicationMode_t;
 
-    /**
+/**
  * @brief Pins used by this driver.
  */
-    typedef struct Calypso_Pins_t
-    {
-        WE_Pin_t Calypso_Pin_Reset;
-        WE_Pin_t Calypso_Pin_WakeUp;
-        WE_Pin_t Calypso_Pin_Boot;
-        WE_Pin_t Calypso_Pin_AppMode0;
-        WE_Pin_t Calypso_Pin_AppMode1;
-        WE_Pin_t Calypso_Pin_StatusInd0;
-        WE_Pin_t Calypso_Pin_StatusInd1;
-    } Calypso_Pins_t;
+typedef struct Calypso_Pins_t
+{
+    WE_Pin_t Calypso_Pin_Reset;
+    WE_Pin_t Calypso_Pin_WakeUp;
+    WE_Pin_t Calypso_Pin_Boot;
+    WE_Pin_t Calypso_Pin_AppMode0;
+    WE_Pin_t Calypso_Pin_AppMode1;
+    WE_Pin_t Calypso_Pin_StatusInd0;
+    WE_Pin_t Calypso_Pin_StatusInd1;
+} Calypso_Pins_t;
 
-    /**
+/**
  * @brief Calypso event callback.
  * Arguments: Event text
  */
-    typedef void (*Calypso_EventCallback_t)(char*);
+typedef void (*Calypso_EventCallback_t)(char*);
 
-    /**
+/**
  * @brief Calypso line received callback.
  *
  * Can be used to intercept responses from Calypso.
@@ -155,34 +161,165 @@ extern "C"
  *
  * @see Calypso_SetLineRxCallback()
  */
-    typedef bool (*Calypso_LineRxCallback_t)(char*, uint16_t);
+typedef bool (*Calypso_LineRxCallback_t)(char*, uint16_t);
 
-    extern uint8_t Calypso_firmwareVersionMajor;
-    extern uint8_t Calypso_firmwareVersionMinor;
-    extern uint8_t Calypso_firmwareVersionPatch;
+extern uint8_t Calypso_firmwareVersionMajor;
+extern uint8_t Calypso_firmwareVersionMinor;
+extern uint8_t Calypso_firmwareVersionPatch;
 
-    extern bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallback_t eventCallback);
+/**
+ * @brief Initializes the serial communication with the module
+ *
+ * @param[in] uartP: Definition of the uart connected to the module
+ * @param[in] pinoutP: Definition of the gpios connected to the module
+ * @param[in] eventCallback: Function pointer to event handler (optional)
 
-    extern bool Calypso_Deinit(void);
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallback_t eventCallback);
 
-    extern bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode);
-    extern bool Calypso_PinReset(void);
-    extern bool Calypso_PinWakeUp(void);
-    extern bool Calypso_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP);
+/**
+ * @brief Deinitializes the serial communication with the module.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_Deinit(void);
 
-    extern bool Calypso_SendRequest(char* data);
-    extern bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char* pOutResponse);
+/**
+ * @brief Sets the Calypso's application mode pins APP_MODE_0 and APP_MODE_1.
+ *
+ * @param[in] appMode: Application mode to set
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode);
 
-    extern int32_t Calypso_GetLastError(char* lastErrorText);
+/**
+ * @brief Performs a reset of the module using the reset pin.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_PinReset(void);
 
-    extern bool Calypso_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
-    extern void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout);
-    extern uint32_t Calypso_GetTimeout(Calypso_Timeout_t type);
+/**
+ * @brief Wakes the module up from power save mode using the wake up pin.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_PinWakeUp(void);
 
-    extern bool Calypso_Transparent_Transmit(const char* data, uint16_t dataLength);
-    extern void Calypso_SetByteRxCallback(WE_UART_HandleRxByte_t callback);
-    extern void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback);
-    extern void Calypso_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters);
+/**
+ * @brief Gets the pin level
+ *
+ * @param[in] pin: the pin to be checked
+ *
+ * @param[out] pin_levelP: the pin level
+ *
+ * @return True if request succeeded,
+ *         false otherwise
+ *
+ */
+extern bool Calypso_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP);
+
+/**
+ * @brief Sends the supplied AT command to the module
+ *
+ * @param[in] data: AT command to send. Note that the command has to end with "\r\n\0".
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_SendRequest(char* data);
+
+/**
+ * @brief Waits for the response from the module after a request.
+ *
+ * @param[in] maxTimeMs: Maximum wait time in milliseconds
+ * @param[in] expectedStatus: Status to wait for
+ * @param[out] pOutResponse: Received response text (if any) will be written to this buffer (optional)
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char* pOutResponse);
+
+/**
+ * @brief Returns the code of the last error (if any).
+ *
+ * @param[out] lastErrorText: Text of last error (if any). See Calypso_lastErrorText for max. buffer size.
+ *
+ * @return Last error code (if any)
+ */
+extern int32_t Calypso_GetLastError(char* lastErrorText);
+
+/**
+ * @brief Set timing parameters used by the Calypso driver.
+ *
+ * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
+ *
+ * @param[in] minCommandIntervalMicroseconds: Time step (microseconds) when waiting for responses from Calypso.
+ * @param[in] waitTimeStepMicroseconds: Minimum interval (microseconds) between subsequent commands sent to Calypso.
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_SetTimingParameters(uint32_t waitTimeStepMicroseconds, uint32_t minCommandIntervalMicroseconds);
+
+/**
+ * @brief Sets the timeout for responses to AT commands of the given type.
+ *
+ * @param[in] type: Timeout (i.e. command) type
+ * @param[in] timeout: Timeout in milliseconds
+ */
+extern void Calypso_SetTimeout(Calypso_Timeout_t type, uint32_t timeout);
+
+/**
+ * @brief Gets the timeout for responses to AT commands of the given type.
+ *
+ * @param[in] type: Timeout (i.e. command) type
+ *
+ * @return Timeout in milliseconds
+ */
+extern uint32_t Calypso_GetTimeout(Calypso_Timeout_t type);
+
+/**
+ * @brief Sends raw data to Calypso via UART.
+ *
+ * This function sends data immediately without any processing and is used
+ * internally for sending AT commands to Calypso.
+ *
+ * @param[in] data: Pointer to data buffer (data to be sent)
+ * @param[in] dataLength: Number of bytes to be sent
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool Calypso_Transparent_Transmit(const char* data, uint16_t dataLength);
+
+/**
+ * @brief Sets the callback function which is executed if a byte has been received from Calypso.
+ *
+ * The default callback is Calypso_HandleRxByte().
+ *
+ * @param[in] callback: Pointer to byte received callback function (default callback is used if NULL)
+ */
+extern void Calypso_SetByteRxCallback(WE_UART_HandleRxByte_t callback);
+
+/**
+ * @brief Sets an optional callback function which is executed if a line has been received from Calypso.
+ * Can be used to intercept responses from Calypso.
+ *
+ * The callback function must return True if the line should not be processed by the driver
+ * and false if the driver should process the line as usual.
+ *
+ * @param[in] callback: Pointer to line received callback function
+ */
+extern void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback);
+
+/**
+ * @brief Sets EOL character(s) used for interpreting responses from Calypso.
+ *
+ * @param[in] eol1: First EOL character
+ * @param[in] eol2: Second EOL character (is only used if twoEolCharacters is true)
+ * @param[in] twoEolCharacters: Controls whether the two EOL characters eol1 and eol2 (true) or only eol1 (false) is used
+ */
+extern void Calypso_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters);
 
 #ifdef __cplusplus
 }

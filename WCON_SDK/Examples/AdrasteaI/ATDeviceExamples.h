@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATDeviceExample();
+extern void ATDeviceExample();
 
 #ifdef __cplusplus
 }

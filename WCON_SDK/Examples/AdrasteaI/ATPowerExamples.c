@@ -35,11 +35,11 @@
  */
 void ATPowerExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATPower example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATPower example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 

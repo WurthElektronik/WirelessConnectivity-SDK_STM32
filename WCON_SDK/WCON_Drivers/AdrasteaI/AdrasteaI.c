@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file AdrasteaI.c
  * @brief Adrastea driver source file.
  */
 #include <AdrasteaI/ATCommands/ATDevice.h>
@@ -35,7 +35,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * @brief Max. length of sent commands and responses from Adrastea.
+ */
+#define ADRASTEAI_LINE_MAX_SIZE 2048
+
+/**
+ * @brief Max. length of response text (size of buffer storing responses received from ADRASTEA).
+ * @see AdrasteaI_currentResponseText
+ */
+#define ADRASTEAI_MAX_RESPONSE_TEXT_LENGTH ADRASTEAI_LINE_MAX_SIZE
+
+#define ADRASTEAI_RESPONSE_OK "OK"       /**< String sent by module if AT command was successful */
+#define ADRASTEAI_RESPONSE_ERROR "ERROR" /**< String sent by module if AT command failed */
+#define ADRASTEAI_SMS_ERROR "+CMS ERROR" /**< String sent by module if SMS AT command failed */
+
+#define ADRASTEAI_MCU_EVENT "MCU menu -- PowerManager"  /**< String sent by module on boot up before access to at commands */
+#define ADRASTEAI_MAPCLIOPEN_EVENT "Open MAP CLI"       /**< String sent by module after module is ready to receive at commands */
+#define ADRASTEAI_POWERMODECHANGE_EVENT "Configured to" /**< String sent by module after mcu changed power mode */
+#define ADRASTEAI_SLEEPSET_EVENT "Sleep -"              /**< String sent by module after mcu changed sleep */
+#define ADRASTEAI_MAPCLICLOSE_EVENT "MAP CLI Closed"    /**< String sent by module when map cli is closed*/
+
+/**
+ * @brief Hold how many lines if the incoming response.
+ */
+typedef struct AdrasteaI_Response_Complete_t
+{
+    uint8_t lineskip;
+    char delim;
+} AdrasteaI_Response_Complete_t;
+
+static void AdrasteaI_CheckResponseComplete();
+/**
+ * @brief Default byte received callback.
+ *
+ * Is called when a single byte has been received.
+ *
+ * @param[in] receivedByte The received byte.
+ */
 static void AdrasteaI_HandleRxByte(uint8_t* dataP, size_t size);
+/**
+ * @brief Is called when a complete line has been received.
+ *
+ * @param[in] rxPacket Received text
+ * @param[in] rxLength Received text length
+ */
 static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength);
 static WE_UART_HandleRxByte_t byteRxCallback = AdrasteaI_HandleRxByte;
 
@@ -43,7 +87,14 @@ static WE_UART_HandleRxByte_t byteRxCallback = AdrasteaI_HandleRxByte;
  * @brief Timeouts for responses to AT commands (milliseconds).
  * Initialization is done in AdrasteaI_Init().
  */
-static uint32_t AdrasteaI_timeouts[AdrasteaI_Timeout_NumberOfValues] = {0};
+static uint32_t AdrasteaI_timeouts[AdrasteaI_Timeout_NumberOfValues] = {
+    [AdrasteaI_Timeout_General] = 1000,      [AdrasteaI_Timeout_Device] = 3000,       [AdrasteaI_Timeout_GNSS] = 10000, [AdrasteaI_Timeout_HTTP] = 3000, [AdrasteaI_Timeout_MQTT] = 3000,   [AdrasteaI_Timeout_NetService] = 10000,
+    [AdrasteaI_Timeout_PacketDomain] = 3000, [AdrasteaI_Timeout_Proprietary] = 10000, [AdrasteaI_Timeout_SIM] = 3000,   [AdrasteaI_Timeout_SMS] = 20000, [AdrasteaI_Timeout_Socket] = 3000, [AdrasteaI_Timeout_Power] = 3000,
+};
+
+#define ADRASTEAI_OPEN_MAP_CLI() AdrasteaI_Transparent_Transmit("map\r\n", 5);
+
+#define ADRASTEAI_RESET_ALL_CLI() AdrasteaI_Transparent_Transmit("reset all\r\n", 11)
 
 /**
  * @brief Is set to true when sending an AT command and is reset to false when the response has been received.
@@ -201,15 +252,6 @@ static AdrasteaI_Pins_t* AdrasteaI_pinsP = NULL;
  */
 static WE_UART_t* AdrasteaI_uartP = NULL;
 
-/**
- * @brief Initializes the serial communication with the module
- *
- * @param[in] uartP:          definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] eventCallback  Function pointer to event handler (optional)
-
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_EventCallback_t eventCallback)
 {
     AdrasteaI_requestPending = false;
@@ -224,7 +266,9 @@ bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_Event
 
     AdrasteaI_pinsP = pinoutP;
     AdrasteaI_pinsP->AdrasteaI_Pin_Reset.type = WE_Pin_Type_Output;
+    AdrasteaI_pinsP->AdrasteaI_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp.type = WE_Pin_Type_Output;
+    AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp.initial_value.output = WE_Pin_Level_Low;
 
     WE_Pin_t pins[sizeof(AdrasteaI_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -237,12 +281,6 @@ bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_Event
         return false;
     }
 
-    /* Set initial pin levels */
-    if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High))
-    {
-        return false;
-    }
-
     AdrasteaI_uartP = uartP;
     if (false == AdrasteaI_uartP->uartInit(AdrasteaI_uartP->baudrate, AdrasteaI_uartP->flowControl, AdrasteaI_uartP->parity, &byteRxCallback))
     {
@@ -250,34 +288,32 @@ bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_Event
     }
     WE_Delay(10);
 
-    /* Set response timeouts */
-    AdrasteaI_timeouts[AdrasteaI_Timeout_General] = 1000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_Device] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_GNSS] = 10000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_HTTP] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_MQTT] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_NetService] = 10000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_PacketDomain] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_Proprietary] = 10000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_SIM] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_SMS] = 20000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_Socket] = 3000;
-    AdrasteaI_timeouts[AdrasteaI_Timeout_Power] = 3000;
-
     /* reset module */
-    if (AdrasteaI_PinReset())
+    if (IS_WE_PIN_UNDEFINED(AdrasteaI_pinsP->AdrasteaI_Pin_Reset))
     {
-        WE_Delay(10);
-        while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
+        /* To clear the buffer of the module */
+        (void)AdrasteaI_ATDevice_Test();
+
+        if (!AdrasteaI_ATDevice_Reset())
         {
-            WE_Delay(10);
+            ADRASTEAI_RESET_ALL_CLI();
         }
     }
     else
     {
-        WE_DEBUG_PRINT("Pin reset failed\n");
-        AdrasteaI_Deinit();
-        return false;
+        if (!AdrasteaI_PinReset())
+        {
+            WE_DEBUG_PRINT_INFO("Pin reset failed\r\n");
+            AdrasteaI_Deinit();
+            return false;
+        }
+    }
+
+    WE_Delay(10);
+
+    while (AdrasteaI_CheckATMode() != AdrasteaI_ATMode_Ready)
+    {
+        WE_Delay(10);
     }
 
     AdrasteaI_ATDevice_Revision_Identity_t revisionIdentity;
@@ -289,19 +325,25 @@ bool AdrasteaI_Init(WE_UART_t* uartP, AdrasteaI_Pins_t* pinoutP, AdrasteaI_Event
     //check if firmware of connected module matches version of the driver.
     if (revisionIdentity.major != AdrasteaI_firmwareVersionMajor || revisionIdentity.minor != AdrasteaI_firmwareVersionMinor)
     {
-        WE_DEBUG_PRINT("Driver version and module firmware version mismatch, driver might not behave as expected\r\n");
+        WE_DEBUG_PRINT_INFO("Driver version and module firmware version mismatch, driver might not behave as expected\r\n");
     }
 
     return true;
 }
 
-/**
- * @brief Deinitializes the serial communication with the module.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_Deinit(void)
 {
+
+    WE_Pin_t pins[sizeof(AdrasteaI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp, sizeof(WE_Pin_t));
+
+    if (!WE_DeinitPins(pins, pin_count))
+    {
+        return false;
+    }
+
     AdrasteaI_eventCallback = NULL;
 
     AdrasteaI_rxByteCounter = 0;
@@ -309,19 +351,9 @@ bool AdrasteaI_Deinit(void)
     AdrasteaI_requestPending = false;
     AdrasteaI_currentResponseLength = 0;
 
-    if (!WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_WakeUp) || !WE_DeinitPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset))
-    {
-        return false;
-    }
-
     return AdrasteaI_uartP->uartDeinit();
 }
 
-/**
- * @brief Performs a reset of the module using the reset pin.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_PinReset(void)
 {
     if (!WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_Low))
@@ -332,11 +364,6 @@ bool AdrasteaI_PinReset(void)
     return WE_SetPin(AdrasteaI_pinsP->AdrasteaI_Pin_Reset, WE_Pin_Level_High);
 }
 
-/**
- * @brief Wakes the module up from power save mode using the wake up pin.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_PinWakeUp(void)
 {
     AdrasteaI_wakingUp = true;
@@ -362,24 +389,17 @@ bool AdrasteaI_PinWakeUp(void)
         return false;
     }
 
-    AdrasteaI_Transparent_Transmit("map\r\n", 5);
+    ADRASTEAI_OPEN_MAP_CLI();
     AdrasteaI_wakingUp = false;
     return true;
 }
 
-/**
- * @brief Sends the supplied AT command to the module
- *
- * @param[in] data AT command to send. Note that the command has to end with "\r\n\0".
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_SendRequest(char* data)
 {
     if (AdrasteaI_executingEventCallback)
     {
         /* Don't allow sending AT commands from event handlers, as this will
-		 * mess up send/receive states and buffers. */
+         * mess up send/receive states and buffers. */
         return false;
     }
 
@@ -387,7 +407,7 @@ bool AdrasteaI_SendRequest(char* data)
     AdrasteaI_currentResponseLength = 0;
 
     /* Make sure that the time between the last confirmation received from the module
-	 * and the next command sent to the module is not shorter than AdrasteaI_minCommandIntervalUsec */
+     * and the next command sent to the module is not shorter than AdrasteaI_minCommandIntervalUsec */
     uint32_t t = WE_GetTickMicroseconds() - AdrasteaI_lastConfirmTimeUsec;
     if (t < AdrasteaI_minCommandIntervalUsec)
     {
@@ -418,24 +438,13 @@ bool AdrasteaI_SendRequest(char* data)
         }
     }
 
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("> %s", data);
-#endif
+    WE_DEBUG_PRINT_DEBUG("> %s", data);
 
     AdrasteaI_Transparent_Transmit(data, dataLength);
 
     return true;
 }
 
-/**
- * @brief Sends raw data to Adrastea via UART.
- *
- * This function sends data immediately without any processing and is used
- * internally for sending AT commands to Adrastea.
- *
- * @param[in] data Pointer to data buffer (data to be sent)
- * @param[in] dataLength Number of bytes to be sent
- */
 bool AdrasteaI_Transparent_Transmit(const char* data, uint16_t dataLength)
 {
     if ((data == NULL) || (dataLength == 0))
@@ -445,15 +454,6 @@ bool AdrasteaI_Transparent_Transmit(const char* data, uint16_t dataLength)
     return AdrasteaI_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Waits for the response from the module after a request.
- *
- * @param[in] maxTimeMs Maximum wait time in milliseconds
- * @param[in] expectedStatus Status to wait for
- * @param[out] pOutResponse Received response text (if any) will be written to this buffer (optional)
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_WaitForConfirm(uint32_t maxTimeMs, AdrasteaI_CNFStatus_t expectedStatus, char* pOutResponse)
 {
     AdrasteaI_cmdConfirmStatus = AdrasteaI_CNFStatus_Invalid;
@@ -501,10 +501,7 @@ bool AdrasteaI_WaitForConfirm(uint32_t maxTimeMs, AdrasteaI_CNFStatus_t expected
     return false;
 }
 
-/**
- * @brief Check if the response of the command is expected to be more the one line and fill AdrasteaI_responseSkip accordingly.
- */
-void AdrasteaI_CheckResponseComplete()
+static void AdrasteaI_CheckResponseComplete()
 {
     AdrasteaI_responseSkip.lineskip = 0;
     AdrasteaI_responseSkip.delim = '\0';
@@ -551,16 +548,6 @@ void AdrasteaI_CheckResponseComplete()
     }
 }
 
-/**
- * @brief Set timing parameters used by the Adrastea driver.
- *
- * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
- *
- * @param[in] waitTimeStepUsec Time step (microseconds) when waiting for responses from Adrastea.
- * @param[in] minCommandIntervalUsec Minimum interval (microseconds) between subsequent commands sent to Adrastea.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
     AdrasteaI_waitTimeStepUsec = waitTimeStepUsec;
@@ -568,30 +555,10 @@ bool AdrasteaI_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minComman
     return true;
 }
 
-/**
- * @brief Sets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- * @param[in] timeout Timeout in milliseconds
- */
 void AdrasteaI_SetTimeout(AdrasteaI_Timeout_t type, uint32_t timeout) { AdrasteaI_timeouts[type] = timeout; }
 
-/**
- * @brief Gets the timeout for responses to AT commands of the given type.
- *
- * @param[in] type Timeout (i.e. command) type
- *
- * @return Timeout in milliseconds
- */
 uint32_t AdrasteaI_GetTimeout(AdrasteaI_Timeout_t type) { return AdrasteaI_timeouts[type]; }
 
-/**
- * @brief Default byte received callback.
- *
- * Is called when a single byte has been received.
- *
- * @param[in] receivedByte The received byte.
- */
 static void AdrasteaI_HandleRxByte(uint8_t* dataP, size_t size)
 {
     uint8_t receivedByte;
@@ -675,17 +642,9 @@ static void AdrasteaI_HandleRxByte(uint8_t* dataP, size_t size)
     }
 }
 
-/**
- * @brief Is called when a complete line has been received.
- *
- * @param[in] rxPacket Received text
- * @param[in] rxLength Received text length
- */
 static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
-#endif
+    WE_DEBUG_PRINT_DEBUG("< %s\r\n", rxPacket);
 
     if (AdrasteaI_requestPending)
     {
@@ -764,7 +723,7 @@ static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
         AdrasteaI_ATMode = AdrasteaI_ATMode_Off;
         if (!AdrasteaI_wakingUp)
         {
-            AdrasteaI_Transparent_Transmit("map\r\n", 5);
+            ADRASTEAI_OPEN_MAP_CLI();
         }
     }
     else if (0 == strncmp(&rxPacket[0], ADRASTEAI_MAPCLICLOSE_EVENT, strlen(ADRASTEAI_MAPCLICLOSE_EVENT)))
@@ -787,13 +746,6 @@ static void AdrasteaI_HandleRxLine(char* rxPacket, uint16_t rxLength)
     }
 }
 
-/**
- * @brief Sets EOL character(s) used for interpreting responses from Adrastea.
- *
- * @param[in] eol1 First EOL character
- * @param[in] eol2 Second EOL character (is only used if twoEolCharacters is true)
- * @param[in] twoEolCharacters Controls whether the two EOL characters eol1 and eol2 (true) or only eol1 (false) is used
- */
 void AdrasteaI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
     AdrasteaI_eolChar1 = eol1;
@@ -801,9 +753,4 @@ void AdrasteaI_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacter
     AdrasteaI_twoEolCharacters = twoEolCharacters;
 }
 
-/**
- * @brief Check if module is in at command mode
- *
- * @return boolean to indicate mode.
- */
 AdrasteaI_ATMode_t AdrasteaI_CheckATMode() { return AdrasteaI_ATMode; }

@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATNetApp.c
  * @brief AT commands for network application control.
  */
 #include <Calypso/ATCommands/ATNetApp.h>
@@ -48,13 +48,6 @@ static const char* Calypso_ATNetApp_DeviceOptionStrings[Calypso_ATNetApp_DeviceO
 
 static bool Calypso_ATNetApp_AddStartStopArguments(char* pOutString, uint8_t apps);
 
-/**
- * @brief Starts one or more networking applications.
- *
- * @param[in] apps Applications (flags) to start (see Calypso_ATNetApp_Application_t)
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_StartApplications(uint8_t apps)
 {
     if (0 != (apps & Calypso_ATNetApp_Application_SntpClient))
@@ -91,13 +84,6 @@ bool Calypso_ATNetApp_StartApplications(uint8_t apps)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Stops one or more networking applications.
- *
- * @param[in] apps Applications (flags) to stop (see Calypso_ATNetApp_Application_t)
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_StopApplications(uint8_t apps)
 {
     if (0 != (apps & Calypso_ATNetApp_Application_SntpClient))
@@ -134,15 +120,6 @@ bool Calypso_ATNetApp_StopApplications(uint8_t apps)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Sets network applications parameters.
- *
- * @param[in] app Application ID
- * @param[in] option Parameter to be set. Type depends on the application.
- * @param[in] value Value to be set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_Set(Calypso_ATNetApp_Application_t app, uint8_t option, Calypso_ATNetApp_OptionValue_t* value)
 {
     /* Calypso_ATNetApp_Application_t contains bitmask values - find index of first nonzero bit to use as index */
@@ -161,7 +138,7 @@ bool Calypso_ATNetApp_Set(Calypso_ATNetApp_Application_t app, uint8_t option, Ca
     if (Calypso_ATNetApp_Application_SntpClient == app && Calypso_ATNetApp_SntpOption_Servers == option)
     {
         /* Special case: The SNTP servers parameter contains up to three servers which
-		 * have to be set using individual AT commands. */
+         * have to be set using individual AT commands. */
         for (uint8_t i = 0; i < 3; i++)
         {
             if (0 == strlen(value->sntp.servers[i]))
@@ -509,15 +486,6 @@ bool Calypso_ATNetApp_Set(Calypso_ATNetApp_Application_t app, uint8_t option, Ca
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Gets network applications parameters.
- *
- * @param[in] app Application ID
- * @param[in] option Parameter to be retrieved. Type depends on the application.
- * @param[out] value The returned value
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_Get(Calypso_ATNetApp_Application_t app, uint8_t option, Calypso_ATNetApp_OptionValue_t* value)
 {
     /* Calypso_ATNetApp_Application_t contains bitmask values - find index of first nonzero bit to use as index */
@@ -879,15 +847,6 @@ bool Calypso_ATNetApp_Get(Calypso_ATNetApp_Application_t app, uint8_t option, Ca
     return true;
 }
 
-/**
- * @brief Looks up the IP address for the supplied host name.
- *
- * @param[in] hostName Name of host
- * @param[in] family Network protocol family
- * @param[out] lookupResult The lookup result containing the IP address for the supplied host
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_GetHostByName(const char* hostName, Calypso_ATSocket_Family_t family, Calypso_ATNetApp_GetHostByNameResult_t* lookupResult)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -946,18 +905,6 @@ bool Calypso_ATNetApp_GetHostByName(const char* hostName, Calypso_ATSocket_Famil
     return true;
 }
 
-/**
- * @brief Pings another device.
- *
- * This function starts pinging the supplied host at regular intervals. The value returned
- * by this function indicates if the request was successful or not. The results of the ping
- * command (packets sent/received, roundtrip time) are reported in the form of events. The
- * number of events issued depends on the value of the mode parameter.
- *
- * @param[in] parameters Ping command parameters
- *
- * @return true if ping was requested successfully, false otherwise
- */
 bool Calypso_ATNetApp_Ping(Calypso_ATNetApp_PingParameters_t* parameters)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1009,14 +956,6 @@ bool Calypso_ATNetApp_Ping(Calypso_ATNetApp_PingParameters_t* parameters)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Updates the device's time using the SNTP client.
- *
- * Note that the SNTP client must be started using Calypso_ATNetApp_StartApplications(Calypso_ATNetApp_Application_SntpClient)
- * and configured using Calypso_ATNetApp_Set(Calypso_ATNetApp_Application_SntpClient, ...) before calling this function.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetApp_UpdateTime()
 {
     if (!Calypso_SendRequest("AT+netAppUpdateTime\r\n"))

@@ -44,304 +44,336 @@ extern "C"
 #include <stdint.h>
 
 #ifdef __cplusplus
-    extern "C"
-    {
+extern "C"
+{
 #endif
 
-        typedef enum DaphnisI_GPIO_t
-        {
-            DaphnisI_GPIO_0 = (uint8_t)0x00,
-            DaphnisI_GPIO_1 = (uint8_t)0x01,
-            DaphnisI_GPIO_2 = (uint8_t)0x02,
-            DaphnisI_GPIO_3 = (uint8_t)0x03,
-            DaphnisI_GPIO_4 = (uint8_t)0x04,
-            DaphnisI_GPIO_5 = (uint8_t)0x05,
-            DaphnisI_GPIO_6 = (uint8_t)0x06,
-            DaphnisI_GPIO_7 = (uint8_t)0x07,
-            DaphnisI_GPIO_Count
-        } DaphnisI_GPIO_t;
+/** 
+ * @brief DaphnisI GPIO IDs
+*/
+typedef enum DaphnisI_GPIO_t
+{
+    DaphnisI_GPIO_0 = (uint8_t)0x00, /**< GPIO 0 */
+    DaphnisI_GPIO_1 = (uint8_t)0x01, /**< GPIO 1 */
+    DaphnisI_GPIO_2 = (uint8_t)0x02, /**< GPIO 2 */
+    DaphnisI_GPIO_3 = (uint8_t)0x03, /**< GPIO 3 */
+    DaphnisI_GPIO_4 = (uint8_t)0x04, /**< GPIO 4 */
+    DaphnisI_GPIO_5 = (uint8_t)0x05, /**< GPIO 5 */
+    DaphnisI_GPIO_6 = (uint8_t)0x06, /**< GPIO 6 */
+    DaphnisI_GPIO_7 = (uint8_t)0x07, /**< GPIO 7 */
+                                     /** @cond DOXYGEN_IGNORE */
+    DaphnisI_GPIO_Count
+    /** @endcond */
+} DaphnisI_GPIO_t;
 
-        typedef enum DaphnisI_GPIO_IO_t
-        {
-            DaphnisI_GPIO_IO_Disconnected = (uint8_t)0x00,
-            DaphnisI_GPIO_IO_Input = (uint8_t)0x01,
-            DaphnisI_GPIO_IO_Output = (uint8_t)0x02,
-        } DaphnisI_GPIO_IO_t;
+/** 
+ * @brief DaphnisI GPIO type
+*/
+typedef enum DaphnisI_GPIO_IO_t
+{
+    DaphnisI_GPIO_IO_Disconnected = (uint8_t)0x00, /**< Disconnected */
+    DaphnisI_GPIO_IO_Input = (uint8_t)0x01,        /**< Input */
+    DaphnisI_GPIO_IO_Output = (uint8_t)0x02,       /**< Output */
+} DaphnisI_GPIO_IO_t;
 
-        typedef enum DaphnisI_GPIO_Output_t
-        {
-            DaphnisI_GPIO_Output_Low = (uint8_t)0x00,
-            DaphnisI_GPIO_Output_High = (uint8_t)0x01
-        } DaphnisI_GPIO_Output_t;
+/** 
+ * @brief DaphnisI GPIO Output state
+*/
+typedef enum DaphnisI_GPIO_Output_t
+{
+    DaphnisI_GPIO_Output_Low = (uint8_t)0x00, /**< Low */
+    DaphnisI_GPIO_Output_High = (uint8_t)0x01 /**< High */
+} DaphnisI_GPIO_Output_t;
 
-        typedef enum DaphnisI_GPIO_Input_t
-        {
-            DaphnisI_GPIO_Input_NoPull = (uint8_t)0x00,
-            DaphnisI_GPIO_Input_PullDown = (uint8_t)0x01,
-            DaphnisI_GPIO_Input_PullUp = (uint8_t)0x02
-        } DaphnisI_GPIO_Input_t;
+/** 
+ * @brief DaphnisI GPIO Input state
+*/
+typedef enum DaphnisI_GPIO_Input_t
+{
+    DaphnisI_GPIO_Input_NoPull = (uint8_t)0x00,   /**< No pull */
+    DaphnisI_GPIO_Input_PullDown = (uint8_t)0x01, /**< Pull Down */
+    DaphnisI_GPIO_Input_PullUp = (uint8_t)0x02    /**< Pull Up */
+} DaphnisI_GPIO_Input_t;
 
-        typedef enum DaphnisI_GPIO_Block_Status_t
-        {
-            DaphnisI_GPIO_Block_Status_Fail = (uint8_t)0x00,
-            DaphnisI_GPIO_Block_Status_Success = (uint8_t)0x01,
-        } DaphnisI_GPIO_Block_Status_t;
+/** 
+ * @brief DaphnisI GPIO block status
+*/
+typedef enum DaphnisI_GPIO_Block_Status_t
+{
+    DaphnisI_GPIO_Block_Status_Fail = (uint8_t)0x00,    /**< Fail status */
+    DaphnisI_GPIO_Block_Status_Success = (uint8_t)0x01, /**< Success status */
+} DaphnisI_GPIO_Block_Status_t;
 
-        typedef enum DaphnisI_GPIO_Command_Status_t
-        {
-            DaphnisI_GPIO_Command_Status_Fail = (uint8_t)0x00,
-            DaphnisI_GPIO_Command_Status_Success = (uint8_t)0x01,
-            DaphnisI_GPIO_Command_Status_Block = (uint8_t)0x02
-        } DaphnisI_GPIO_Command_Status_t;
+/** 
+ * @brief DaphnisI GPIO Command status
+*/
+typedef enum DaphnisI_GPIO_Command_Status_t
+{
+    DaphnisI_GPIO_Command_Status_Fail = (uint8_t)0x00,    /**< Fail status */
+    DaphnisI_GPIO_Command_Status_Success = (uint8_t)0x01, /**< Success status */
+    DaphnisI_GPIO_Command_Status_Block = (uint8_t)0x02    /**< Blocked status */
+} DaphnisI_GPIO_Command_Status_t;
 
-        typedef struct DaphnisI_GPIOConfigBlock_t
-        {
-            DaphnisI_GPIO_t GPIO_ID;
-            DaphnisI_GPIO_IO_t function;
-            union
-            {
-                DaphnisI_GPIO_Input_t input;
-                DaphnisI_GPIO_Output_t output;
-            } value;
-        } DaphnisI_GPIOConfigBlock_t;
+/** 
+ * @brief DaphnisI GPIO configuration block
+*/
+typedef struct DaphnisI_GPIOConfigBlock_t
+{
+    DaphnisI_GPIO_t GPIO_ID;     /**< GPIO ID */
+    DaphnisI_GPIO_IO_t function; /**< GPIO function */
+    union
+    {
+        DaphnisI_GPIO_Input_t input;   /**< GPIO Input state */
+        DaphnisI_GPIO_Output_t output; /**< GPIO Output state */
+    } value;                           /**< GPIO value */
+} DaphnisI_GPIOConfigBlock_t;
 
-        typedef struct DaphnisI_GPIOValueSetBlock_t
-        {
-            DaphnisI_GPIO_t GPIO_ID;
-            DaphnisI_GPIO_Output_t value;
-        } DaphnisI_GPIOValueSetBlock_t;
+/** 
+ * @brief DaphnisI GPIO value set block
+*/
+typedef struct DaphnisI_GPIOValueSetBlock_t
+{
+    DaphnisI_GPIO_t GPIO_ID;      /**< GPIO ID */
+    DaphnisI_GPIO_Output_t value; /**< GPIO Output state */
+} DaphnisI_GPIOValueSetBlock_t;
 
-        typedef struct DaphnisI_GPIOValueGetBlock_t
-        {
-            DaphnisI_GPIO_t GPIO_ID;
-            DaphnisI_GPIO_Block_Status_t status;
-            DaphnisI_GPIO_Output_t value;
-        } DaphnisI_GPIOValueGetBlock_t;
+/** 
+ * @brief DaphnisI GPIO value get block
+*/
+typedef struct DaphnisI_GPIOValueGetBlock_t
+{
+    DaphnisI_GPIO_t GPIO_ID;             /**< GPIO ID */
+    DaphnisI_GPIO_Block_Status_t status; /**< GPIO block status */
+    DaphnisI_GPIO_Output_t value;        /**< GPIO Output state */
+} DaphnisI_GPIOValueGetBlock_t;
 
-        typedef struct DaphnisI_GPIOStatusBlock_t
-        {
-            DaphnisI_GPIO_t GPIO_ID;
-            DaphnisI_GPIO_Block_Status_t status;
-        } DaphnisI_GPIOStatusBlock_t;
+/** 
+ * @brief DaphnisI GPIO status block
+*/
+typedef struct DaphnisI_GPIOStatusBlock_t
+{
+    DaphnisI_GPIO_t GPIO_ID;             /**< GPIO ID */
+    DaphnisI_GPIO_Block_Status_t status; /**< GPIO block status */
+} DaphnisI_GPIOStatusBlock_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteCfgChangedData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIOConfigBlock_t* configBlocksP;
-            uint8_t configBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteCfgChangedData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteCfgChangedData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIOConfigBlock_t* configBlocksP;
+    uint8_t configBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteCfgChangedData_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteValueChangedData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP;
-            uint8_t valueGetBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteValueChangedData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteValueChangedData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP;
+    uint8_t valueGetBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteValueChangedData_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIO_Command_Status_t command_status;
-            DaphnisI_GPIOStatusBlock_t* statusBlocksP;
-            uint8_t statusBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIO_Command_Status_t command_status;
+    DaphnisI_GPIOStatusBlock_t* statusBlocksP;
+    uint8_t statusBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIO_Command_Status_t command_status;
-            DaphnisI_GPIOConfigBlock_t* configBlocksP;
-            uint8_t configBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIO_Command_Status_t command_status;
+    DaphnisI_GPIOConfigBlock_t* configBlocksP;
+    uint8_t configBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIO_Command_Status_t command_status;
-            DaphnisI_GPIOStatusBlock_t* statusBlocksP;
-            uint8_t statusBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIO_Command_Status_t command_status;
+    DaphnisI_GPIOStatusBlock_t* statusBlocksP;
+    uint8_t statusBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t;
 
-        typedef struct DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t
-        {
-            DaphnisI_Device_Address_t source_address;
-            int16_t RSSI;
-            DaphnisI_GPIO_Command_Status_t command_status;
-            DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP;
-            uint8_t valueGetBlocksCount;
-        } DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t;
+typedef struct DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t
+{
+    DaphnisI_Device_Address_t source_address;
+    int16_t RSSI;
+    DaphnisI_GPIO_Command_Status_t command_status;
+    DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP;
+    uint8_t valueGetBlocksCount;
+} DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t;
 
-        /**
+/**
  * @brief Set the configurations of local GPIO pins (using the AT+GPIOLCFGSET command)
  *
- * @param[in] configBlocksP: Pointer to the configuration blocks. See DaphnisI_GPIOConfigBlock_t.
+ * @param[in] configBlocksP: Pointer to the configuration blocks.
  *
  * @param[in] configBlocksCount: Number of configuration blocks.
  *
- * @param[out] statusBlocksP: Pointer to the status blocks (The number of status blocks equals the number of configuration blocks). See DaphnisI_GPIOStatusBlock_t.
+ * @param[out] statusBlocksP: Pointer to the status blocks (The number of status blocks equals the number of configuration blocks).
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_GPIO_Local_Configuration_Set(DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t configBlocksCount, DaphnisI_GPIOStatusBlock_t* statusBlocksP);
+extern bool DaphnisI_GPIO_Local_Configuration_Set(DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t configBlocksCount, DaphnisI_GPIOStatusBlock_t* statusBlocksP);
 
-        /**
+/**
  * @brief Get the configurations of local GPIO pins (using the AT+GPIOLCFGGET command)
  *
- * @param[out] configBlocksP: Pointer to the configuration blocks. See DaphnisI_GPIOConfigBlock_t.
+ * @param[out] configBlocksP: Pointer to the configuration blocks.
  *
  * @param[out] configBlocksCountP: Pointer to number of configuration blocks.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_GPIO_Local_Configuration_Get(DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t* configBlocksCountP);
+extern bool DaphnisI_GPIO_Local_Configuration_Get(DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t* configBlocksCountP);
 
-        /**
+/**
  * @brief Set the values of local GPIO pins (using the AT+GPIOLVALUESET command)
  *
- * @param[in] valueSetBlocksP: Pointer to the value set blocks. See DaphnisI_GPIOValueSetBlock_t.
+ * @param[in] valueSetBlocksP: Pointer to the value set blocks.
  *
  * @param[in] valueSetBlocksCount: Number of value set blocks.
  *
- * @param[out] statusBlocksP: Pointer to the status blocks (The number of status blocks equals the number of value set blocks). See DaphnisI_GPIOStatusBlock_t.
+ * @param[out] statusBlocksP: Pointer to the status blocks (The number of status blocks equals the number of value set blocks).
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_GPIO_Local_Value_Set(DaphnisI_GPIOValueSetBlock_t* valueSetBlocksP, uint8_t valueSetBlocksCount, DaphnisI_GPIOStatusBlock_t* statusBlocksP);
+extern bool DaphnisI_GPIO_Local_Value_Set(DaphnisI_GPIOValueSetBlock_t* valueSetBlocksP, uint8_t valueSetBlocksCount, DaphnisI_GPIOStatusBlock_t* statusBlocksP);
 
-        /**
+/**
  * @brief Get the values of local GPIO pins (using the AT+GPIOLVALUEGET command)
  *
- * @param[in] gpioToReadP: Pointer to the GPIOs IDs. See DaphnisI_GPIO_t.
+ * @param[in] gpioToReadP: Pointer to the GPIOs IDs.
  *
  * @param[in] gpioToReadCount: Number of GPIO IDs.
  *
- * @param[out] valueGetBlocksP: Pointer to the value get blocks (The number of value get blocks equals the number of GPIO IDs). See DaphnisI_GPIOValueGetBlock_t.
+ * @param[out] valueGetBlocksP: Pointer to the value get blocks (The number of value get blocks equals the number of GPIO IDs).
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_GPIO_Local_Value_Get(DaphnisI_GPIO_t* gpioToReadP, uint8_t gpioToReadCount, DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP);
+extern bool DaphnisI_GPIO_Local_Value_Get(DaphnisI_GPIO_t* gpioToReadP, uint8_t gpioToReadCount, DaphnisI_GPIOValueGetBlock_t* valueGetBlocksP);
 
-        /**
+/**
  * @brief Set the configurations of remote GPIO pins of the destination address (using the AT+P2PGPIORCFGSET command)
  *
- * @param[in] dest_address: Destination address (LSB First). See DaphnisI_Device_Address_t.
+ * @param[in] dest_address: Destination address (LSB First).
  *
- * @param[in] configBlocksP: Pointer to the configuration blocks. See DaphnisI_GPIOConfigBlock_t.
+ * @param[in] configBlocksP: Pointer to the configuration blocks.
  *
  * @param[in] configBlocksCount: Number of configuration blocks.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_Configuration_Set(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t configBlocksCount);
+extern bool DaphnisI_P2P_GPIO_Remote_Configuration_Set(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIOConfigBlock_t* configBlocksP, uint8_t configBlocksCount);
 
-        /**
+/**
  * @brief Get the configurations of remote GPIO pins of the destination address (using the AT+P2PGPIORCFGGET command)
  *
- * @param[in] dest_address: Destination address (LSB First). See DaphnisI_Device_Address_t.
+ * @param[in] dest_address: Destination address (LSB First).
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_Configuration_Get(DaphnisI_Device_Address_t dest_address);
+extern bool DaphnisI_P2P_GPIO_Remote_Configuration_Get(DaphnisI_Device_Address_t dest_address);
 
-        /**
+/**
  * @brief Set the values of remote GPIO pins of the destination address (using the AT+P2PGPIORVALUESET command)
  *
- * @param[in] dest_address: Destination address (LSB First). See DaphnisI_Device_Address_t.
+ * @param[in] dest_address: Destination address (LSB First).
  *
- * @param[in] valueSetBlocksP: Pointer to the value set blocks. See DaphnisI_GPIOValueSetBlock_t.
+ * @param[in] valueSetBlocksP: Pointer to the value set blocks.
  *
  * @param[in] valueSetBlocksCount: Number of value set blocks.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_Value_Set(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIOValueSetBlock_t* valueSetBlocksP, uint8_t valueSetBlocksCount);
+extern bool DaphnisI_P2P_GPIO_Remote_Value_Set(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIOValueSetBlock_t* valueSetBlocksP, uint8_t valueSetBlocksCount);
 
-        /**
+/**
  * @brief Get the values of remote GPIO pins of the destination address (using the AT+P2PGPIORVALUEGET command)
  *
- * @param[in] dest_address: Destination address (LSB First). See DaphnisI_Device_Address_t.
+ * @param[in] dest_address: Destination address (LSB First).
  *
- * @param[in] gpioToReadP: Pointer to the GPIOs IDs. See DaphnisI_GPIO_t.
+ * @param[in] gpioToReadP: Pointer to the GPIOs IDs.
  *
  * @param[in] gpioToReadCount: Number of GPIO IDs.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_Value_Get(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIO_t* gpioToReadP, uint8_t gpioToReadCount);
+extern bool DaphnisI_P2P_GPIO_Remote_Value_Get(DaphnisI_Device_Address_t dest_address, DaphnisI_GPIO_t* gpioToReadP, uint8_t gpioToReadCount);
 
-        /**
- * @brief Parse the value of P2P remote GPIO configuration changed event (using the +P2PGPIORCFGCHANGED event)
+/**
+ * @brief Parse the value of P2P remote GPIO configuration changed event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Changed)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] cfgChangedP: Pointer to remote GPIO configuration changed struct. See DaphnisI_P2P_GPIO_RemoteCfgChangedData_t.
+ * @param[out] cfgChangedP: Pointer to remote GPIO configuration changed struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgChangedEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgChangedData_t* cfgChangedP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgChangedEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgChangedData_t* cfgChangedP);
 
-        /**
- * @brief Parse the value of P2P remote GPIO value changed event (using the +P2PGPIORVALUECHANGED event)
+/**
+ * @brief Parse the value of P2P remote GPIO value changed event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Changed)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] valueChangedP: Pointer to remote GPIO value changed struct. See DaphnisI_P2P_GPIO_RemoteValueChangedData_t.
+ * @param[out] valueChangedP: Pointer to remote GPIO value changed struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseValueChangedEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueChangedData_t* valueChangedP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseValueChangedEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueChangedData_t* valueChangedP);
 
-        /**
- * @brief Parse the value of P2P remote GPIO set configuration response event (using the +P2PGPIORCFGSET event)
+/**
+ * @brief Parse the value of P2P remote GPIO set configuration response event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Set_Response)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] cfgSetResponseP: Pointer to remote GPIO configuration set response struct. See DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t.
+ * @param[out] cfgSetResponseP: Pointer to remote GPIO configuration set response struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgSetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t* cfgSetResponseP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgSetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgSetResponseData_t* cfgSetResponseP);
 
-        /**
- * @brief Parse the value of P2P remote GPIO get configuration response event (using the +P2PGPIORCFGSET event)
+/**
+ * @brief Parse the value of P2P remote GPIO get configuration response event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Cfg_Get_Response)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] cfgGetResponseP: Pointer to remote GPIO configuration get response struct. See DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t.
+ * @param[out] cfgGetResponseP: Pointer to remote GPIO configuration get response struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgGetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t* cfgGetResponseP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseCfgGetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteCfgGetResponseData_t* cfgGetResponseP);
 
-        /**
- * @brief Parse the value of P2P remote GPIO set value response event (using the +P2PGPIORVALUESET event)
+/**
+ * @brief Parse the value of P2P remote GPIO set value response event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Set_Response)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] valueSetResponseP: Pointer to remote GPIO value set response struct. See DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t.
+ * @param[out] valueSetResponseP: Pointer to remote GPIO value set response struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseValueSetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t* valueSetResponseP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseValueSetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueSetResponseData_t* valueSetResponseP);
 
-        /**
- * @brief Parse the value of P2P remote GPIO get value response event (using the +P2PGPIORVALUEGET event)
+/**
+ * @brief Parse the value of P2P remote GPIO get value response event (@ref DaphnisI_ATEvent_P2P_GPIO_Remote_Value_Get_Response)
  *
  * @param[in,out] pEventArguments: String containing arguments of the AT command.
  *
- * @param[out] valueGetResponseP: Pointer to remote GPIO value get response struct. See DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t.
+ * @param[out] valueGetResponseP: Pointer to remote GPIO value get response struct.
  *
- * @return true if successful, false otherwise
+ * @return True if successful, false otherwise
  */
-        extern bool DaphnisI_P2P_GPIO_Remote_ParseValueGetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t* valueGetResponseP);
+extern bool DaphnisI_P2P_GPIO_Remote_ParseValueGetResponseEvent(char** pEventArguments, DaphnisI_P2P_GPIO_RemoteValueGetResponseData_t* valueGetResponseP);
 
 #ifdef __cplusplus
-    }
+}
 #endif
 
 #endif /* DAPHNISI_MIN_FW_VER */

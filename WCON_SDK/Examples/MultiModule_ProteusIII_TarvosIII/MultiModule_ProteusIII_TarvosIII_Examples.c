@@ -31,7 +31,8 @@
 #include <ProteusIII/ProteusIII.h>
 #include <TarvosIII/TarvosIII.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,7 +105,7 @@ static bool DataStorage_GetNextEntry(DataStorage_t* dataStorage, DataStorage_t**
         if (dataStorage[i].dataP != NULL)
         {
             *entryPP = &dataStorage[i];
-            WE_DEBUG_PRINT("Get entry %d OK\r\n", i);
+            WE_APP_PRINT("Get entry %d OK\r\n", i);
             return true;
         }
     }
@@ -127,15 +128,15 @@ static bool DataStorage_Create_Entry(DataStorage_t* dataStorage, uint8_t* data, 
                 /* copy data */
                 memcpy(dataStorage[i].dataP, data, data_len);
                 dataStorage[i].data_len = data_len;
-                WE_DEBUG_PRINT("Create entry %d OK\r\n", i);
+                WE_APP_PRINT("Create entry %d OK\r\n", i);
                 return true;
             }
 
-            WE_DEBUG_PRINT("Create entry memory alloc failed\r\n");
+            WE_APP_PRINT("Create entry memory alloc failed\r\n");
             return false;
         }
     }
-    WE_DEBUG_PRINT("Create entry failed\r\n");
+    WE_APP_PRINT("Create entry failed\r\n");
     return false;
 }
 
@@ -151,11 +152,11 @@ static bool DataStorage_Delete_Entry(DataStorage_t* dataStorage, DataStorage_t* 
             free(dataStorage[i].dataP);
             dataStorage[i].dataP = NULL;
             dataStorage[i].data_len = 0;
-            WE_DEBUG_PRINT("Delete entry %d OK\r\n", i);
+            WE_APP_PRINT("Delete entry %d OK\r\n", i);
             return true;
         }
     }
-    WE_DEBUG_PRINT("Delete entry FAILED\r\n");
+    WE_APP_PRINT("Delete entry FAILED\r\n");
     return false;
 }
 
@@ -165,7 +166,7 @@ static bool DataStorage_Delete_Entry(DataStorage_t* dataStorage, DataStorage_t* 
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+static void Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief MultiModule ProteusIII TarvosIII example.
@@ -209,33 +210,33 @@ void MultiModule_ProteusIII_TarvosIII_Examples(void)
 
     if (false == ProteusIII_Init(&ProteusIII_uart, &ProteusIII_pins, ProteusIII_OperationMode_CommandMode, callbackConfig))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == TarvosIII_Init(&TarvosIII_uart, &TarvosIII_pins, TarvosIII_AddressMode_0, TarvosIII_RxCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
     uint8_t ProteusIII_fwVersion[3];
     ret = ProteusIII_GetFWVersion(ProteusIII_fwVersion);
     Examples_Print("Get firmware version", ret);
-    WE_DEBUG_PRINT("Firmware version of Proteus-III is %u.%u.%u\r\n", ProteusIII_fwVersion[2], ProteusIII_fwVersion[1], ProteusIII_fwVersion[0]);
+    WE_APP_PRINT("Firmware version of Proteus-III is %u.%u.%u\r\n", ProteusIII_fwVersion[2], ProteusIII_fwVersion[1], ProteusIII_fwVersion[0]);
     uint8_t btMac[6];
     ret = ProteusIII_GetBTMAC(btMac);
     Examples_Print("Get BT MAC", ret);
-    WE_DEBUG_PRINT("Proteus-III BTMAC is 0x%02x%02x%02x%02x%02x%02x\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
+    WE_APP_PRINT("Proteus-III BTMAC is 0x%02x%02x%02x%02x%02x%02x\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]);
     WE_Delay(500);
 
     uint8_t TarvosIII_fwVersion[3];
     ret = TarvosIII_GetFirmwareVersion(TarvosIII_fwVersion);
     Examples_Print("Get firmware version", ret);
-    WE_DEBUG_PRINT("Firmware version of Tarvos-III is %u.%u.%u\r\n", TarvosIII_fwVersion[0], TarvosIII_fwVersion[1], TarvosIII_fwVersion[2]);
+    WE_APP_PRINT("Firmware version of Tarvos-III is %u.%u.%u\r\n", TarvosIII_fwVersion[0], TarvosIII_fwVersion[1], TarvosIII_fwVersion[2]);
     uint8_t SN[4];
     ret = TarvosIII_GetSerialNumber(SN);
     Examples_Print("Get Tarvos-III SN", ret);
-    WE_DEBUG_PRINT("Tarvos-III serial number is 0x%02x%02x%02x%02x\r\n", SN[0], SN[1], SN[2], SN[3]);
+    WE_APP_PRINT("Tarvos-III serial number is 0x%02x%02x%02x%02x\r\n", SN[0], SN[1], SN[2], SN[3]);
     WE_Delay(500);
 
     DataStorage_t* entryP;
@@ -251,12 +252,12 @@ void MultiModule_ProteusIII_TarvosIII_Examples(void)
                 {
                     if (true == ProteusIII_Transmit(entryP->dataP, entryP->data_len))
                     {
-                        WE_DEBUG_PRINT("Relayed data (%d bytes) from Tarvos to Proteus\r\n", entryP->data_len);
+                        WE_APP_PRINT("Relayed data (%d bytes) from Tarvos to Proteus\r\n", entryP->data_len);
                         DataStorage_Delete_Entry(Tarvos2ProteusBuffer, entryP);
                     }
                     else
                     {
-                        WE_DEBUG_PRINT("Transmission failed\r\n");
+                        WE_APP_PRINT("Transmission failed\r\n");
                     }
                 }
                 else
@@ -268,7 +269,7 @@ void MultiModule_ProteusIII_TarvosIII_Examples(void)
         }
         else
         {
-            WE_DEBUG_PRINT("Wait for channel open\r\n");
+            WE_APP_PRINT("Wait for channel open\r\n");
             WE_Delay(1000);
         }
 
@@ -280,12 +281,12 @@ void MultiModule_ProteusIII_TarvosIII_Examples(void)
             {
                 if (true == TarvosIII_Transmit(entryP->dataP, entryP->data_len))
                 {
-                    WE_DEBUG_PRINT("Relayed data (%d bytes) from Proteus to Tarvos\r\n", entryP->data_len);
+                    WE_APP_PRINT("Relayed data (%d bytes) from Proteus to Tarvos\r\n", entryP->data_len);
                     DataStorage_Delete_Entry(Proteus2TarvosBuffer, entryP);
                 }
                 else
                 {
-                    WE_DEBUG_PRINT("Transmission failed\r\n");
+                    WE_APP_PRINT("Transmission failed\r\n");
                 }
             }
             else
@@ -306,20 +307,20 @@ void MultiModule_ProteusIII_TarvosIII_Examples(void)
  */
 static void ProteusIII_RxCallback(uint8_t* payload, uint16_t payloadLength, uint8_t* btMac, int8_t rssi)
 {
-    WE_DEBUG_PRINT("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
+    WE_APP_PRINT("Received data from device with BTMAC (0x%02x%02x%02x%02x%02x%02x) with RSSI = %d dBm:\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], rssi);
 #if false
-	uint16_t i = 0;
-	WE_DEBUG_PRINT("-> 0x ");
-	for (i = 0; i < payloadLength; i++)
-	{
-		WE_DEBUG_PRINT("%02x ", *(payload + i));
-	}
-	WE_DEBUG_PRINT("\r\n-> ");
-	for (i = 0; i < payloadLength; i++)
-	{
-		WE_DEBUG_PRINT("%c", *(payload + i));
-	}
-	WE_DEBUG_PRINT("\r\n");
+    uint16_t i = 0;
+    WE_APP_PRINT("-> 0x ");
+    for (i = 0; i < payloadLength; i++)
+    {
+        WE_APP_PRINT("%02x ", *(payload + i));
+    }
+    WE_APP_PRINT("\r\n-> ");
+    for (i = 0; i < payloadLength; i++)
+    {
+        WE_APP_PRINT("%c", *(payload + i));
+    }
+    WE_APP_PRINT("\r\n");
 #endif
     DataStorage_Create_Entry(Proteus2TarvosBuffer, payload, payloadLength);
 }
@@ -327,7 +328,7 @@ static void ProteusIII_RxCallback(uint8_t* payload, uint16_t payloadLength, uint
 /**
  * @brief Callback called when Proteus-III connection request is received
  */
-static void ProteusIII_ConnectCallback(bool success, uint8_t* btMac) { WE_DEBUG_PRINT("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x)\r\n", success ? "Connected" : "Failed to connect", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]); }
+static void ProteusIII_ConnectCallback(bool success, uint8_t* btMac) { WE_APP_PRINT("%s to device with BTMAC (0x%02x%02x%02x%02x%02x%02x)\r\n", success ? "Connected" : "Failed to connect", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5]); }
 
 /**
  * @brief Callback called when Proteus-III connection is dropped
@@ -336,33 +337,33 @@ static void ProteusIII_DisconnectCallback(ProteusIII_DisconnectReason_t reason)
 {
     static const char* reasonStrings[] = {"unknown", "connection timeout", "user terminated connection", "host terminated connection", "connection interval unacceptable", "MIC failure", "connection setup failed"};
 
-    WE_DEBUG_PRINT("Disconnected (reason: %s)\r\n", reasonStrings[reason]);
+    WE_APP_PRINT("Disconnected (reason: %s)\r\n", reasonStrings[reason]);
 }
 
 /**
  * @brief Callback called when Proteus-III Bluetooth channel has been opened
  */
-static void ProteusIII_ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload) { WE_DEBUG_PRINT("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload); }
+static void ProteusIII_ChannelOpenCallback(uint8_t* btMac, uint16_t maxPayload) { WE_APP_PRINT("Channel opened to BTMAC (0x%02x%02x%02x%02x%02x%02x) with maximum payload = %d\r\n", btMac[0], btMac[1], btMac[2], btMac[3], btMac[4], btMac[5], maxPayload); }
 
 /**
  * @brief Callback called when data has been received via Tarvos-III radio
  */
 static void TarvosIII_RxCallback(uint8_t* payload, uint8_t payload_length, uint8_t dest_network_id, uint8_t dest_address_lsb, uint8_t dest_address_msb, int8_t rssi)
 {
-    WE_DEBUG_PRINT("Received data from address (NetID:0x%02x, Addr:0x%02x%02x) with %d dBm:\r\n", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
+    WE_APP_PRINT("Received data from address (NetID:0x%02x, Addr:0x%02x%02x) with %d dBm:\r\n", dest_network_id, dest_address_lsb, dest_address_msb, rssi);
 #if false
     uint8_t i = 0;
-    WE_DEBUG_PRINT("-> 0x ");
+    WE_APP_PRINT("-> 0x ");
     for(i=0; i<payload_length; i++)
     {
-        WE_DEBUG_PRINT("%02x ", *(payload+i));
+        WE_APP_PRINT("%02x ", *(payload+i));
     }
-    WE_DEBUG_PRINT("\r\n-> ");
+    WE_APP_PRINT("\r\n-> ");
     for(i=0; i<payload_length; i++)
     {
-        WE_DEBUG_PRINT("%c", *(payload+i));
+        WE_APP_PRINT("%c", *(payload+i));
     }
-    WE_DEBUG_PRINT("\r\n");
+    WE_APP_PRINT("\r\n");
     fflush(stdout);
 #endif
     DataStorage_Create_Entry(Tarvos2ProteusBuffer, payload, payload_length);

@@ -37,11 +37,11 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {.state =
 
 void ATSIMExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATSIM example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATSIM example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATSIM_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -57,7 +57,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Request International Mobile Subscriber Identity", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("IMSI: %s\r\n", imsi);
+        WE_APP_PRINT("IMSI: %s\r\n", imsi);
     }
 
     AdrasteaI_ATSIM_ICCID_t iccid;
@@ -65,7 +65,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Request Integrated Circuit Card Identifier", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("ICCID: %s\r\n", iccid);
+        WE_APP_PRINT("ICCID: %s\r\n", iccid);
     }
 
     AdrasteaI_ATSIM_PIN_Status_t pinStatus;
@@ -73,7 +73,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Read Pin Status", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Pin Status: %d\r\n", pinStatus);
+        WE_APP_PRINT("Pin Status: %d\r\n", pinStatus);
     }
 
     ret = AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_SC, AdrasteaI_ATSIM_Lock_Mode_Lock, "2912");
@@ -84,7 +84,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Read Facility Lock", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Lock Status: %d\r\n", lockStatus);
+        WE_APP_PRINT("Lock Status: %d\r\n", lockStatus);
     }
 
     ret = AdrasteaI_ATSIM_SetFacilityLock(AdrasteaI_ATSIM_Facility_SC, AdrasteaI_ATSIM_Lock_Mode_Unlock, "2912");
@@ -95,7 +95,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Read Facility Lock", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Lock Status: %d\r\n", lockStatus);
+        WE_APP_PRINT("Lock Status: %d\r\n", lockStatus);
     }
 
     AdrasteaI_ATSIM_Restricted_Access_Response_t ras;
@@ -106,7 +106,7 @@ void ATSIMExample()
     AdrasteaI_ExamplesPrint("Restricted SIM Access", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("SW1 : %d, SW2 : %d, Response : %s\r\n", ras.sw1, ras.sw2, ras.responseRead);
+        WE_APP_PRINT("SW1 : %d, SW2 : %d, Response : %s\r\n", ras.sw1, ras.sw2, ras.responseRead);
     }
 }
 

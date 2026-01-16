@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATWebserver.h
  * @brief AT commands for Web server functionality.
  */
 
@@ -40,21 +40,38 @@ extern "C"
 {
 #endif
 
-    /**
+/**
  * @brief Webserver Response type
  */
-    typedef enum StephanoI_ATWebserver_Response_t
-    {
-        StephanoI_ATWebserver_Response_ReceivedWifiInformation = 1,
-        StephanoI_ATWebserver_Response_StationConnected = 2,
-        StephanoI_ATWebserver_Response_OTAReceiveDataBegin = 3,
-        StephanoI_ATWebserver_Response_OTAReceiveDataSuccess = 4,
-        StephanoI_ATWebserver_Response_OTAReceiveDataFailed = 5,
-    } StephanoI_ATWebserver_Response_t;
+typedef enum StephanoI_ATWebserver_Response_t
+{
+    StephanoI_ATWebserver_Response_ReceivedWifiInformation = 1,
+    StephanoI_ATWebserver_Response_StationConnected = 2,
+    StephanoI_ATWebserver_Response_OTAReceiveDataBegin = 3,
+    StephanoI_ATWebserver_Response_OTAReceiveDataSuccess = 4,
+    StephanoI_ATWebserver_Response_OTAReceiveDataFailed = 5,
+} StephanoI_ATWebserver_Response_t;
 
-    extern bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t connection_timeout);
+/**
+ * @brief Enable or disable the web server
+ *
+ * @param[in] enable: Enable or disable
+ * @param[in] server_port: Port
+ * @param[in] connection_timeout: Timeout in ms [21,60]
+ *
+ * @return True if successful, false otherwise
+ */
+extern bool StephanoI_ATWebserver_Enable(bool enable, uint16_t server_port, uint8_t connection_timeout);
 
-    extern bool StephanoI_ATWebserver_ParseResponse(char* EventArgumentsP, StephanoI_ATWebserver_Response_t* t);
+/**
+ * @brief Parses the values of the Webserver response event arguments.
+ *
+ * @param[in] EventArgumentsP: String containing arguments of the AT command
+ * @param[out] t: The parsed event data
+ *
+ * @return True if parsed successfully, false otherwise
+ */
+extern bool StephanoI_ATWebserver_ParseResponse(char* EventArgumentsP, StephanoI_ATWebserver_Response_t* t);
 
 #ifdef __cplusplus
 }

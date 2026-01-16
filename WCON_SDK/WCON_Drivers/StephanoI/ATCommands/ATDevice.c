@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATDevice.c
  * @brief AT commands for basic device functionality.
  */
 
@@ -32,11 +32,6 @@
 #include <StephanoI/StephanoI.h>
 #include <global/ATCommands.h>
 
-/**
- * @brief Tests the connection to the wireless module (using the AT command)
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_Test()
 {
     if (!StephanoI_SendRequest("AT\r\n"))
@@ -46,11 +41,6 @@ bool StephanoI_ATDevice_Test()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the version of the firmware
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetVersion()
 {
     if (!StephanoI_SendRequest("AT+GMR\r\n"))
@@ -60,11 +50,6 @@ bool StephanoI_ATDevice_GetVersion()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Resets the device by command
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_Reset()
 {
     if (!StephanoI_SendRequest("AT+RST\r\n"))
@@ -74,11 +59,6 @@ bool StephanoI_ATDevice_Reset()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Performs a factory reset of the device (using the AT+RESTORE command)
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_Restore()
 {
     if (!StephanoI_SendRequest("AT+RESTORE\r\n"))
@@ -88,13 +68,6 @@ bool StephanoI_ATDevice_Restore()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_FactoryReset), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Enable the sleep mode
- *
- * @param[in] mode Sleep mode
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_t mode)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -118,13 +91,6 @@ bool StephanoI_ATDevice_SetSleep(StephanoI_ATDevice_SleepMode_t mode)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Read the sleep mode
- *
- * @param[out] modeP Pointer to the sleep mode
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetSleep(StephanoI_ATDevice_SleepMode_t* modeP)
 {
     char responsebuffer[sizeof(StephanoI_ATDevice_SleepMode_t) + 1];
@@ -140,13 +106,6 @@ bool StephanoI_ATDevice_GetSleep(StephanoI_ATDevice_SleepMode_t* modeP)
     return StephanoI_ATDevice_ParseSleep(responsebuffer, modeP);
 }
 
-/**
- * @brief Enable the deep sleep mode
- *
- * @param[in] time_ms Sleep time in ms
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetDeepSleep(uint32_t time_ms)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -170,14 +129,6 @@ bool StephanoI_ATDevice_SetDeepSleep(uint32_t time_ms)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Define the wake-up source
- *
- * @param[in] pin_number Pin number
- * @param[in] active_high High if 'true', low otherwise
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetWakeUpSource(StephanoI_ATDevice_WakeupPin_t pin_number, bool active_high)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -209,14 +160,6 @@ bool StephanoI_ATDevice_SetWakeUpSource(StephanoI_ATDevice_WakeupPin_t pin_numbe
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the TX power
- *
- * @param[in] wifi_power Wifi TX power
- * @param[in] ble_power Bluetooth LE TX power
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetTXPower(StephanoI_ATDevice_WifiPower_t wifi_power, StephanoI_ATDevice_BluetoothLEPower_t ble_power)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -264,14 +207,6 @@ bool StephanoI_ATDevice_SetTXPower(StephanoI_ATDevice_WifiPower_t wifi_power, St
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the TX power
- *
- * @param[out] wifi_powerP Pointer to Wifi TX power
- * @param[out] ble_powerP Pointer to Bluetooth LE TX power
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetTXPower(StephanoI_ATDevice_WifiPower_t* wifi_powerP, StephanoI_ATDevice_BluetoothLEPower_t* ble_powerP)
 {
     char responsebuffer[16];
@@ -312,13 +247,6 @@ bool StephanoI_ATDevice_GetTXPower(StephanoI_ATDevice_WifiPower_t* wifi_powerP, 
     return true;
 }
 
-/**
- * @brief Switch on or off the echo
- *
- * @param[in] on Echo, true for enable, false for disable
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_EchoOn(bool on)
 {
     if (on)
@@ -338,13 +266,6 @@ bool StephanoI_ATDevice_EchoOn(bool on)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the current UART configuration
- *
- * @param[in] t UART configuration
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetCurrentUART(StephanoI_ATDevice_UART_t t)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -385,13 +306,6 @@ bool StephanoI_ATDevice_SetCurrentUART(StephanoI_ATDevice_UART_t t)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Set the default UART configuration
- *
- * @param[in] t UART configuration
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetDefaultUART(StephanoI_ATDevice_UART_t t)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -432,13 +346,6 @@ bool StephanoI_ATDevice_SetDefaultUART(StephanoI_ATDevice_UART_t t)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the default UART configuration
- *
- * @param[out] t Pointer to the configuration
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetDefaultUART(StephanoI_ATDevice_UART_t* t)
 {
     char responsebuffer[16];
@@ -485,11 +392,6 @@ bool StephanoI_ATDevice_GetDefaultUART(StephanoI_ATDevice_UART_t* t)
     return true;
 }
 
-/**
- * @brief Query all namespaces of the manufacturing user partitions
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetManufacturingUserPartitions()
 {
     if (!StephanoI_SendRequest("AT+SYSMFG?\r\n"))
@@ -500,14 +402,6 @@ bool StephanoI_ATDevice_GetManufacturingUserPartitions()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Erase the manufacturing user partitions
- *
- * @param[in] namespace Namespace
- * @param[in] key Key
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_EraseManufacturingUserPartitions(char* namespace, char* key)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -539,17 +433,6 @@ bool StephanoI_ATDevice_EraseManufacturingUserPartitions(char* namespace, char* 
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Read the manufacturing user partitions
- *
- * @param[in] namespace Namespace
- * @param[in] key Key
- * @param[in] offset Offset of the requested data
- * @param[in] length Length of the requested data
- * @param[out] t Pointer to the data to be read
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_ReadManufacturingUserPartitions(char* namespace, char* key, uint16_t offset, uint16_t length, StephanoI_ATDevice_SYSMFG_t* t)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -610,17 +493,6 @@ bool StephanoI_ATDevice_ReadManufacturingUserPartitions(char* namespace, char* k
     }
 }
 
-/**
- * @brief Write the manufacturing user partitions
- *
- * @param[in] namespace Namespace
- * @param[in] key Key
- * @param[in] type Type of data
- * @param[in] length Length of the data
- * @param[in] dataP Data
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_WriteManufacturingUserPartitions(char* namespace, char* key, StephanoI_ATDevice_SYSMFG_data_t type, uint16_t length, uint8_t* dataP)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -690,14 +562,6 @@ bool StephanoI_ATDevice_WriteManufacturingUserPartitions(char* namespace, char* 
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Parses the values of the SYSMFG event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseManufacturingUserPartitions(char* EventArgumentsP, StephanoI_ATDevice_SYSMFG_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -761,27 +625,12 @@ bool StephanoI_ATDevice_ParseManufacturingUserPartitions(char* EventArgumentsP, 
     return true;
 }
 
-/**
- * @brief Parses the values of the SYSTIMESTAMP event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out] t              The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseSystemTimestamp(char* EventArgumentsP, uint32_t* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Set the system time stamp
- *
- * @param[in] time Timestamp
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetSystemTimestamp(uint32_t time)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -805,13 +654,6 @@ bool StephanoI_ATDevice_SetSystemTimestamp(uint32_t time)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the system time stamp
- *
- * @param[in] timeP Timestamp
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetSystemTimestamp(uint32_t* timeP)
 {
     char responsebuffer[16];
@@ -828,13 +670,6 @@ bool StephanoI_ATDevice_GetSystemTimestamp(uint32_t* timeP)
     return StephanoI_ATDevice_ParseSystemTimestamp(responsebuffer, timeP);
 }
 
-/**
- * @brief Set the system store mode
- *
- * @param[in] enable True is 'enable', false is 'disable" system store mode
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_SetSystemStoremode(bool enable)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -858,13 +693,6 @@ bool StephanoI_ATDevice_SetSystemStoremode(bool enable)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the system store mode
- *
- * @param[in] enableP Pointer to the value
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetSystemStoremode(bool* enableP)
 {
     char responsebuffer[16];
@@ -881,13 +709,6 @@ bool StephanoI_ATDevice_GetSystemStoremode(bool* enableP)
     return StephanoI_ATDevice_ParseSystemStoremode(responsebuffer, enableP);
 }
 
-/**
- * @brief Get the system temperature
- *
- * @param[in] tempP Pointer to the timestamp
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_GetSystemTemp(float* tempP)
 {
     char responsebuffer[16];
@@ -904,13 +725,6 @@ bool StephanoI_ATDevice_GetSystemTemp(float* tempP)
     return StephanoI_ATDevice_ParseSystemTemp(responsebuffer, tempP);
 }
 
-/**
- * @brief Mount/Unmount the file system
- *
- * @param[in] enable True is 'enable', false is 'disable" the file system
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemSetMount(bool enable)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -934,11 +748,6 @@ bool StephanoI_ATDevice_FileSystemSetMount(bool enable)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get the file system file list
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemGetFiles()
 {
     if (!StephanoI_SendRequest("AT+FS=0,4,\".\"\r\n"))
@@ -948,13 +757,6 @@ bool StephanoI_ATDevice_FileSystemGetFiles()
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Delete a file system file
- *
- * @param[in] filename File name
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemDelete(char* filename)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -978,14 +780,6 @@ bool StephanoI_ATDevice_FileSystemDelete(char* filename)
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Get size of file system file
- *
- * @param[in] filename File name
- * @param[out] sizeP Pointer to the size
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemGetFileSize(char* filename, uint16_t* sizeP)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1015,16 +809,6 @@ bool StephanoI_ATDevice_FileSystemGetFileSize(char* filename, uint16_t* sizeP)
     return StephanoI_ATDevice_ParseFileSystemGetFilesize(responsebuffer, sizeP);
 }
 
-/**
- * @brief Read a file from the file system
- *
- * @param[in] filename File name
- * @param[in] offset Offset of the requested data
- * @param[in] length Length of the requested data
- * @param[out] t Pointer to the data to be read
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemRead(char* filename, uint16_t offset, uint16_t length, StephanoI_ATDevice_FileSystemRead_t* t)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1074,16 +858,6 @@ bool StephanoI_ATDevice_FileSystemRead(char* filename, uint16_t offset, uint16_t
     }
 }
 
-/**
- * @brief Write a file to the file system
- *
- * @param[in] filename File name
- * @param[in] offset Offset of the requested data
- * @param[in] length Length of the requested data
- * @param[in] dataP Pointer to the data to be written
- *
- * @return true if successful, false otherwise
- */
 bool StephanoI_ATDevice_FileSystemWrite(char* filename, uint16_t offset, uint16_t length, uint8_t* dataP)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -1127,28 +901,12 @@ bool StephanoI_ATDevice_FileSystemWrite(char* filename, uint16_t offset, uint16_
     return StephanoI_WaitForConfirm(StephanoI_GetTimeout(StephanoI_Timeout_General), StephanoI_CNFStatus_Success);
 }
 
-/**
- * @brief Parses the values of the system temp event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out] t              The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseSystemTemp(char* EventArgumentsP, float* t)
 {
     char* argumentsP = EventArgumentsP;
     return ATCommand_GetNextArgumentFloat(&argumentsP, t, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the SYSSTORE event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out] t              The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseSystemStoremode(char* EventArgumentsP, bool* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1161,14 +919,6 @@ bool StephanoI_ATDevice_ParseSystemStoremode(char* EventArgumentsP, bool* t)
     return true;
 }
 
-/**
- * @brief Parses the values of the get file system file size event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out] t              The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseFileSystemGetFilesize(char* EventArgumentsP, uint16_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1176,14 +926,6 @@ bool StephanoI_ATDevice_ParseFileSystemGetFilesize(char* EventArgumentsP, uint16
     return ATCommand_GetNextArgumentInt(&argumentsP, t, ATCOMMAND_INTFLAGS_SIZE16 | ATCOMMAND_INTFLAGS_UNSIGNED, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Parses the values of the file system read event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseFileSystemRead(char* EventArgumentsP, StephanoI_ATDevice_FileSystemRead_t* t)
 {
     char* argumentsP = EventArgumentsP;
@@ -1202,14 +944,6 @@ bool StephanoI_ATDevice_ParseFileSystemRead(char* EventArgumentsP, StephanoI_ATD
     return true;
 }
 
-/**
- * @brief Parses the values of the get sleep event arguments
- *
- * @param[in] EventArgumentsP String containing arguments of the AT command
- * @param[out]    t               The parsed event data
- *
- * @return true if parsed successfully, false otherwise
- */
 bool StephanoI_ATDevice_ParseSleep(char* EventArgumentsP, StephanoI_ATDevice_SleepMode_t* t)
 {
     char* argumentsP = EventArgumentsP;

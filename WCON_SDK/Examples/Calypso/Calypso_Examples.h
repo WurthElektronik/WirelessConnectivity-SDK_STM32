@@ -35,27 +35,28 @@
 #include <Calypso/ATCommands/ATEvent.h>
 #include <Calypso/Calypso.h>
 #include <global/global.h>
+#include <print.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern const char* Calypso_Examples_wlanSSID;
-    extern const char* Calypso_Examples_wlanKey;
+extern const char* Calypso_Examples_wlanSSID;
+extern const char* Calypso_Examples_wlanKey;
 
-    extern Calypso_ATEvent_Startup_t Calypso_Examples_startupEvent;
-    extern bool Calypso_Examples_startupEventReceived;
-    extern bool Calypso_Examples_ip4Acquired;
+extern Calypso_ATEvent_Startup_t Calypso_Examples_startupEvent;
+extern bool Calypso_Examples_startupEventReceived;
+extern bool Calypso_Examples_ip4Acquired;
 
-    extern Calypso_Pins_t Calypso_pins;
-    extern WE_UART_t Calypso_uart;
+extern Calypso_Pins_t Calypso_pins;
+extern WE_UART_t Calypso_uart;
 
-    extern void Calypso_Examples(void);
-    extern void Calypso_Examples_Print(char* str, bool success);
-    extern bool Calypso_Examples_WaitForStartup(uint32_t timeoutMs);
-    extern bool Calypso_Examples_WaitForIPv4Acquired(uint32_t timeoutMs);
-    extern void Calypso_Examples_EventCallback(char* eventText);
+extern void Calypso_Examples(void);
+extern void Calypso_Examples_Print(char* str, bool success);
+extern bool Calypso_Examples_WaitForStartup(uint32_t timeoutMs);
+extern bool Calypso_Examples_WaitForIPv4Acquired(uint32_t timeoutMs);
+extern void Calypso_Examples_EventCallback(char* eventText);
 
 #ifdef __cplusplus
 }

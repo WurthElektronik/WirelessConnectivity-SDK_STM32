@@ -37,11 +37,11 @@
  */
 void Calypso_Device_Example()
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATDevice example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATDevice example ***\r\n");
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -73,47 +73,47 @@ void Calypso_Device_Example()
     WE_Delay(500);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Chip ID: %s\r\n", deviceValue.general.version.chipId);
-        WE_DEBUG_PRINT("MAC Version: %s\r\n", deviceValue.general.version.MACVersion);
-        WE_DEBUG_PRINT("NWP Version: %s\r\n", deviceValue.general.version.NWPVersion);
-        WE_DEBUG_PRINT("PHY Version: %s\r\n", deviceValue.general.version.PHYVersion);
-        WE_DEBUG_PRINT("ROM Version: %s\r\n", deviceValue.general.version.ROMVersion);
-        WE_DEBUG_PRINT("Calypso firmware version: %s\r\n", deviceValue.general.version.calypsoFirmwareVersion);
+        WE_APP_PRINT("Chip ID: %s\r\n", deviceValue.general.version.chipId);
+        WE_APP_PRINT("MAC Version: %s\r\n", deviceValue.general.version.MACVersion);
+        WE_APP_PRINT("NWP Version: %s\r\n", deviceValue.general.version.NWPVersion);
+        WE_APP_PRINT("PHY Version: %s\r\n", deviceValue.general.version.PHYVersion);
+        WE_APP_PRINT("ROM Version: %s\r\n", deviceValue.general.version.ROMVersion);
+        WE_APP_PRINT("Calypso firmware version: %s\r\n", deviceValue.general.version.calypsoFirmwareVersion);
     }
 
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_Baudrate, &deviceValue);
     Calypso_Examples_Print("Get UART baud rate", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("baudrate: %lu\r\n", deviceValue.uart.baudrate);
+        WE_APP_PRINT("baudrate: %lu\r\n", deviceValue.uart.baudrate);
     }
 
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_Parity, &deviceValue);
     Calypso_Examples_Print("Get UART parity", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("parity: %u\r\n", deviceValue.uart.parity);
+        WE_APP_PRINT("parity: %u\r\n", deviceValue.uart.parity);
     }
 
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_UART, Calypso_ATDevice_GetUart_FlowControl, &deviceValue);
     Calypso_Examples_Print("Get UART flow control", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("flow control: %s\r\n", deviceValue.uart.flowControl ? "on" : "off");
+        WE_APP_PRINT("flow control: %s\r\n", deviceValue.uart.flowControl ? "on" : "off");
     }
 
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Time, &deviceValue);
     Calypso_Examples_Print("Get device time", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
+        WE_APP_PRINT("date(dd:mm:yy): %u.%u.%u time(hh:mm:ss): %u:%u:%u \r\n", deviceValue.general.time.day, deviceValue.general.time.month, deviceValue.general.time.year, deviceValue.general.time.hour, deviceValue.general.time.minute, deviceValue.general.time.second);
     }
 
     WE_Delay(100);
@@ -133,7 +133,7 @@ void Calypso_Device_Example()
     Calypso_Examples_Print("Get IoT UDID", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("IoT UDID: %s\r\n", deviceValue.iot.udid);
+        WE_APP_PRINT("IoT UDID: %s\r\n", deviceValue.iot.udid);
     }
 
     ret = Calypso_ATDevice_Sleep(2);

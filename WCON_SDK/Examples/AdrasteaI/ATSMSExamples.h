@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATSMSExample();
+extern void ATSMSExample();
 
 #ifdef __cplusplus
 }

@@ -31,11 +31,11 @@
 
 #include <MetisE/MetisE.h>
 #include <global/global.h>
-#include <global_platform_types.h>
+#include <global_platform.h>
+#include <print.h>
 #include <stdio.h>
 #include <string.h>
 
-#define METIS_E_CLOCK_KHZ 4000
 /**
  * @brief Definition of the pins
  */
@@ -63,7 +63,7 @@ static char* frameFormatString[] = {"A", "B"};
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+static void Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
 
 /**
  * @brief Callback called when data has been received via radio
@@ -71,21 +71,21 @@ static void Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n",
 static void RxCallback(MetisE_ReceivedData_t receivedData)
 {
     uint16_t i = 0;
-    WE_DEBUG_PRINT("Received wmBus frame in mode %s with frame format %s", modeString[receivedData.wmBusModeRx], frameFormatString[receivedData.wmBusModeFrameFormat - 1]);
+    WE_APP_PRINT("Received wmBus frame in mode %s with frame format %s", modeString[receivedData.wmBusModeRx], frameFormatString[receivedData.wmBusModeFrameFormat - 1]);
     if (receivedData.rssi != METIS_E_RSSIINVALID)
     {
-        WE_DEBUG_PRINT(" with %d dBm", receivedData.rssi);
+        WE_APP_PRINT(" with %d dBm", receivedData.rssi);
     }
 
     if (receivedData.timestamp != 0)
     {
-        WE_DEBUG_PRINT(" at %lu ms", receivedData.timestamp / METIS_E_CLOCK_KHZ);
+        WE_APP_PRINT(" at %lu ms", METIS_E_TICKS_TO_MS(receivedData.timestamp));
     }
 
-    WE_DEBUG_PRINT(":\r\n0x");
+    WE_APP_PRINT(":\r\n0x");
     for (i = 0; i < receivedData.payloadLength; i++)
     {
-        WE_DEBUG_PRINT("%02x ", *(receivedData.pPayload + i));
+        WE_APP_PRINT("%02x ", *(receivedData.pPayload + i));
     }
 }
 
@@ -101,7 +101,7 @@ void MetisE_Examples(void)
 
     if (false == MetisE_Init(&MetisE_uart, &MetisE_pins, RxCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     WE_Delay(10);
@@ -109,7 +109,7 @@ void MetisE_Examples(void)
     /* reset module */
     if (!MetisE_PinReset())
     {
-        WE_DEBUG_PRINT("Pin reset failed\n");
+        WE_APP_PRINT("Pin reset failed\n");
         MetisE_Deinit();
         return;
     }
@@ -117,12 +117,12 @@ void MetisE_Examples(void)
 
     uint8_t serialNr[4];
     Examples_Print("Read serial number", MetisE_GetSerialNumber(serialNr));
-    WE_DEBUG_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
+    WE_APP_PRINT("Serial number is 0x%02x%02x%02x%02x\r\n", serialNr[0], serialNr[1], serialNr[2], serialNr[3]);
     WE_Delay(500);
 
     uint8_t fwVersion[3];
     Examples_Print("Read firmware version", MetisE_GetFirmwareVersion(fwVersion));
-    WE_DEBUG_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
+    WE_APP_PRINT("Firmware version is %u.%u.%u\r\n", fwVersion[0], fwVersion[1], fwVersion[2]);
     WE_Delay(500);
 
     //MeterExample();
@@ -149,7 +149,7 @@ void MeterExample(void)
     {
         if (false == MetisE_Transmit(MetisE_wmBusMode_T_Meter, MetisE_FrameFormt_A, data, sizeof(data)))
         {
-            WE_DEBUG_PRINT("Transmission error\r\n");
+            WE_APP_PRINT("Transmission error\r\n");
         }
         WE_Delay(5000);
     }
@@ -173,7 +173,7 @@ static void GatewayExample()
 
     if (false == MetisE_ReceiveStart())
     {
-        WE_DEBUG_PRINT("Could not enter receive mode\r\n");
+        WE_APP_PRINT("Could not enter receive mode\r\n");
     }
 
     while (1)

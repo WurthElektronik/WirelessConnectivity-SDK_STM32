@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATPower.c
  * @brief MCU commands for Power functionality.
  */
 #include <AdrasteaI/ATCommands/ATDevice.h>
@@ -39,15 +39,6 @@ static const char* AdrasteaI_ATPower_Mode_Strings[AdrasteaI_ATPower_Mode_NumberO
     "shutdown",
 };
 
-/**
- * @brief Set MCU Power Mode (using the pwrMode command).
- *
- * @param[in] mode Power Mode. See AdrasteaI_ATPower_Mode_t.
- *
- * @param[in] duration Duration for sleep mode.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATPower_Mode_Duration_t duration)
 {
     AdrasteaI_Transparent_Transmit("\x04", 1);
@@ -103,13 +94,6 @@ bool AdrasteaI_ATPower_SetPowerMode(AdrasteaI_ATPower_Mode_t mode, AdrasteaI_ATP
     return true;
 }
 
-/**
- * @brief Enable MCU Sleep (using the sleepSet command).
- *
- * Note: Make sure to disable the modem before enabling sleep if you don't want the modem to keep waking up the MCU.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATPower_EnableSleep()
 {
     AdrasteaI_Transparent_Transmit("\x04", 1);

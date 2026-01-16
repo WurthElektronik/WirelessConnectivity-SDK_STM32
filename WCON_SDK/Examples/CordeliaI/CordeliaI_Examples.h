@@ -35,29 +35,30 @@
 #include <CordeliaI/ATCommands/ATEvent.h>
 #include <CordeliaI/CordeliaI.h>
 #include <global/global.h>
+#include <print.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    extern const char* CordeliaI_Examples_wlanSSID;
-    extern const char* CordeliaI_Examples_wlanKey;
-    extern CordeliaI_ATEvent_Startup_t CordeliaI_Examples_startupEvent;
-    extern CordeliaI_ATEvent_IoT_t CordeliaI_Examples_IoTEvent;
-    extern CordeliaI_ATEvent_MQTT_t CordeliaI_Examples_MQTTEvent;
-    extern CordeliaI_ATEvent_MQTTRecv_t CordeliaI_Examples_MQTTRecvEvent;
-    extern bool CordeliaI_Examples_startupEventReceived;
-    extern bool CordeliaI_Examples_ip4Acquired;
-    extern CordeliaI_Pins_t CordeliaI_pins;
-    extern WE_UART_t CordeliaI_uart;
-    extern void CordeliaI_Examples(void);
-    extern void CordeliaI_Examples_Print(char* str, bool success);
-    extern bool CordeliaI_Examples_WaitForStartup(uint32_t timeoutMs);
-    extern bool CordeliaI_Examples_WaitForIoTEnrolCompleteEvent(uint32_t timeoutMs);
-    extern bool CordeliaI_Examples_WaitForIoTConnectEvent(uint32_t timeoutMs);
-    extern bool CordeliaI_Examples_WaitForIPv4Acquired(uint32_t timeoutMs);
-    extern void CordeliaI_Examples_EventCallback(char* eventText);
+extern const char* CordeliaI_Examples_wlanSSID;
+extern const char* CordeliaI_Examples_wlanKey;
+extern CordeliaI_ATEvent_Startup_t CordeliaI_Examples_startupEvent;
+extern CordeliaI_ATEvent_IoT_t CordeliaI_Examples_IoTEvent;
+extern CordeliaI_ATEvent_MQTT_t CordeliaI_Examples_MQTTEvent;
+extern CordeliaI_ATEvent_MQTTRecv_t CordeliaI_Examples_MQTTRecvEvent;
+extern bool CordeliaI_Examples_startupEventReceived;
+extern bool CordeliaI_Examples_ip4Acquired;
+extern CordeliaI_Pins_t CordeliaI_pins;
+extern WE_UART_t CordeliaI_uart;
+extern void CordeliaI_Examples(void);
+extern void CordeliaI_Examples_Print(char* str, bool success);
+extern bool CordeliaI_Examples_WaitForStartup(uint32_t timeoutMs);
+extern bool CordeliaI_Examples_WaitForIoTEnrolCompleteEvent(uint32_t timeoutMs);
+extern bool CordeliaI_Examples_WaitForIoTConnectEvent(uint32_t timeoutMs);
+extern bool CordeliaI_Examples_WaitForIPv4Acquired(uint32_t timeoutMs);
+extern void CordeliaI_Examples_EventCallback(char* eventText);
 
 #ifdef __cplusplus
 }

@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATPacketDomainExample();
+extern void ATPacketDomainExample();
 
 #ifdef __cplusplus
 }

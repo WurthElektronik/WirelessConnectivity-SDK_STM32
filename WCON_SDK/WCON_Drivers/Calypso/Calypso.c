@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file Calypso.c
  * @brief Calypso driver source file.
  */
 #include <Calypso/ATCommands/ATDevice.h>
@@ -216,16 +216,6 @@ static Calypso_Pins_t* Calypso_pinsP = NULL;
  * @brief Uart configuration struct pointer.
  */
 static WE_UART_t* Calypso_uartP = NULL;
-
-/**
- * @brief Initializes the serial communication with the module
- *
- * @param[in] uartP:          definition of the uart connected to the module
- * @param[in] pinoutP:        definition of the gpios connected to the module
- * @param[in] eventCallback  Function pointer to event handler (optional)
-
- * @return true if successful, false otherwise
- */
 bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallback_t eventCallback)
 {
     Calypso_requestPending = false;
@@ -242,12 +232,19 @@ bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallba
 
     Calypso_pinsP = pinoutP;
     Calypso_pinsP->Calypso_Pin_Reset.type = WE_Pin_Type_Output;
+    Calypso_pinsP->Calypso_Pin_Reset.initial_value.output = WE_Pin_Level_High;
     Calypso_pinsP->Calypso_Pin_WakeUp.type = WE_Pin_Type_Output;
+    Calypso_pinsP->Calypso_Pin_WakeUp.initial_value.output = WE_Pin_Level_Low;
     Calypso_pinsP->Calypso_Pin_Boot.type = WE_Pin_Type_Output;
+    Calypso_pinsP->Calypso_Pin_Boot.initial_value.output = WE_Pin_Level_Low;
     Calypso_pinsP->Calypso_Pin_AppMode0.type = WE_Pin_Type_Output;
+    Calypso_pinsP->Calypso_Pin_AppMode0.initial_value.output = WE_Pin_Level_Low;
     Calypso_pinsP->Calypso_Pin_AppMode1.type = WE_Pin_Type_Output;
+    Calypso_pinsP->Calypso_Pin_AppMode1.initial_value.output = WE_Pin_Level_Low;
     Calypso_pinsP->Calypso_Pin_StatusInd0.type = WE_Pin_Type_Input;
+    Calypso_pinsP->Calypso_Pin_StatusInd0.initial_value.input_pull = WE_Pin_PullType_No;
     Calypso_pinsP->Calypso_Pin_StatusInd1.type = WE_Pin_Type_Input;
+    Calypso_pinsP->Calypso_Pin_StatusInd1.initial_value.input_pull = WE_Pin_PullType_No;
 
     WE_Pin_t pins[sizeof(Calypso_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -262,12 +259,6 @@ bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallba
     if (!WE_InitPins(pins, pin_count))
     {
         /* error */
-        return false;
-    }
-
-    /* Set initial pin levels */
-    if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_High) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode0, WE_Pin_Level_Low) || !WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode1, WE_Pin_Level_Low))
-    {
         return false;
     }
 
@@ -293,13 +284,24 @@ bool Calypso_Init(WE_UART_t* uartP, Calypso_Pins_t* pinoutP, Calypso_EventCallba
     return true;
 }
 
-/**
- * @brief Deinitializes the serial communication with the module.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_Deinit(void)
 {
+    WE_Pin_t pins[sizeof(Calypso_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_Reset, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_WakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_AppMode0, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_AppMode1, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_StatusInd0, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &Calypso_pinsP->Calypso_Pin_StatusInd1, sizeof(WE_Pin_t));
+
+    /* deinit pins */
+    if (!WE_DeinitPins(pins, pin_count))
+    {
+        return false;
+    }
+
     Calypso_eventCallback = NULL;
 
     Calypso_rxByteCounter = 0;
@@ -310,13 +312,6 @@ bool Calypso_Deinit(void)
     return Calypso_uartP->uartDeinit();
 }
 
-/**
- * @brief Sets the Calypso's application mode pins APP_MODE_0 and APP_MODE_1.
- *
- * @param[in] appMode Application mode to set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode)
 {
     if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode0, (0 != (appMode & 0x01)) ? WE_Pin_Level_High : WE_Pin_Level_Low))
@@ -326,11 +321,6 @@ bool Calypso_SetApplicationModePins(Calypso_ApplicationMode_t appMode)
     return WE_SetPin(Calypso_pinsP->Calypso_Pin_AppMode1, (0 != (appMode & 0x02)) ? WE_Pin_Level_High : WE_Pin_Level_Low);
 }
 
-/**
- * @brief Performs a reset of the module using the reset pin.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_PinReset(void)
 {
     if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_Low))
@@ -341,11 +331,6 @@ bool Calypso_PinReset(void)
     return WE_SetPin(Calypso_pinsP->Calypso_Pin_Reset, WE_Pin_Level_High);
 }
 
-/**
- * @brief Wakes the module up from power save mode using the wake up pin.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_PinWakeUp(void)
 {
     if (!WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_High))
@@ -356,32 +341,14 @@ bool Calypso_PinWakeUp(void)
     return WE_SetPin(Calypso_pinsP->Calypso_Pin_WakeUp, WE_Pin_Level_Low);
 }
 
-/**
- * @brief Gets the pin level
- *
- * @param[in] pin: the pin to be checked
- *
- * @param[out] pin_levelP: the pin level
- *
- * @return true if request succeeded,
- *         false otherwise
- *
- */
 bool Calypso_GetPinLevel(WE_Pin_t pin, WE_Pin_Level_t* pin_levelP) { return WE_GetPinLevel(pin, pin_levelP); }
 
-/**
- * @brief Sends the supplied AT command to the module
- *
- * @param[in] data AT command to send. Note that the command has to end with "\r\n\0".
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_SendRequest(char* data)
 {
     if (Calypso_executingEventCallback)
     {
         /* Don't allow sending AT commands from event handlers, as this will
-		 * mess up send/receive states and buffers. */
+         * mess up send/receive states and buffers. */
         return false;
     }
 
@@ -391,7 +358,7 @@ bool Calypso_SendRequest(char* data)
     Calypso_lastErrorCode = 0;
 
     /* Make sure that the time between the last confirmation received from the module
-	 * and the next command sent to the module is not shorter than Calypso_minCommandIntervalUsec */
+     * and the next command sent to the module is not shorter than Calypso_minCommandIntervalUsec */
     uint32_t t = WE_GetTickMicroseconds() - Calypso_lastConfirmTimeUsec;
     if (t < Calypso_minCommandIntervalUsec)
     {
@@ -413,26 +380,13 @@ bool Calypso_SendRequest(char* data)
         }
     }
 
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("> %s", data);
-#endif
+    WE_DEBUG_PRINT_DEBUG("> %s", data);
 
     Calypso_Transparent_Transmit(data, dataLength);
 
     return true;
 }
 
-/**
- * @brief Sends raw data to Calypso via UART.
- *
- * This function sends data immediately without any processing and is used
- * internally for sending AT commands to Calypso.
- *
- * @param[in] data Pointer to data buffer (data to be sent)
- * @param[in] dataLength Number of bytes to be sent
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_Transparent_Transmit(const char* data, uint16_t dataLength)
 {
     if ((data == NULL) || (dataLength == 0))
@@ -442,15 +396,6 @@ bool Calypso_Transparent_Transmit(const char* data, uint16_t dataLength)
     return Calypso_uartP->uartTransmit((uint8_t*)data, dataLength);
 }
 
-/**
- * @brief Waits for the response from the module after a request.
- *
- * @param[in] maxTimeMs Maximum wait time in milliseconds
- * @param[in] expectedStatus Status to wait for
- * @param[out] pOutResponse Received response text (if any) will be written to this buffer (optional)
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStatus, char* pOutResponse)
 {
     Calypso_cmdConfirmStatus = Calypso_CNFStatus_Invalid;
@@ -498,13 +443,6 @@ bool Calypso_WaitForConfirm(uint32_t maxTimeMs, Calypso_CNFStatus_t expectedStat
     return false;
 }
 
-/**
- * @brief Returns the code of the last error (if any).
- *
- * @param[out] lastErrorText Text of last error (if any). See Calypso_lastErrorText for max. buffer size.
- *
- * @return Last error code (if any)
- */
 int32_t Calypso_GetLastError(char* lastErrorText)
 {
     if (NULL != lastErrorText)
@@ -514,16 +452,6 @@ int32_t Calypso_GetLastError(char* lastErrorText)
     return Calypso_lastErrorCode;
 }
 
-/**
- * @brief Set timing parameters used by the Calypso driver.
- *
- * Note that WE_MICROSECOND_TICK needs to be defined to enable microsecond timer resolution.
- *
- * @param[in] waitTimeStepUsec Time step (microseconds) when waiting for responses from Calypso.
- * @param[in] minCommandIntervalUsec Minimum interval (microseconds) between subsequent commands sent to Calypso.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_SetTimingParameters(uint32_t waitTimeStepUsec, uint32_t minCommandIntervalUsec)
 {
     Calypso_waitTimeStepUsec = waitTimeStepUsec;
@@ -624,9 +552,7 @@ static void Calypso_HandleRxByte(uint8_t* dataP, size_t size)
  */
 static void Calypso_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
-#endif
+    WE_DEBUG_PRINT_DEBUG("< %s\r\n", rxPacket);
 
     /* Check if a custom line rx callback is specified and call it if so */
     if (NULL != Calypso_lineRxCallback)
@@ -681,7 +607,7 @@ static void Calypso_HandleRxLine(char* rxPacket, uint16_t rxLength)
         else
         {
             /* Doesn't start with o or e - copy to response text buffer, if the start
-			 * of the response matches the pending command name preceded by '+' */
+             * of the response matches the pending command name preceded by '+' */
             if (rxLength < CALYPSO_LINE_MAX_SIZE && rxLength > 1 && Calypso_rxBuffer[0] == '+' && Calypso_pendingCommandName[0] != '\0' && 0 == strncasecmp(Calypso_pendingCommandName, Calypso_rxBuffer + 1, Calypso_pendingCommandNameLength))
             {
                 /* Copy to response text buffer, taking care not to exceed buffer size */
@@ -708,33 +634,10 @@ static void Calypso_HandleRxLine(char* rxPacket, uint16_t rxLength)
     }
 }
 
-/**
- * @brief Sets the callback function which is executed if a byte has been received from Calypso.
- *
- * The default callback is Calypso_HandleRxByte().
- *
- * @param[in] callback Pointer to byte received callback function (default callback is used if NULL)
- */
 void Calypso_SetByteRxCallback(WE_UART_HandleRxByte_t callback) { byteRxCallback = (callback == NULL) ? Calypso_HandleRxByte : callback; }
 
-/**
- * @brief Sets an optional callback function which is executed if a line has been received from Calypso.
- * Can be used to intercept responses from Calypso.
- *
- * The callback function must return true if the line should not be processed by the driver
- * and false if the driver should process the line as usual.
- *
- * @param[in] callback Pointer to line received callback function
- */
 void Calypso_SetLineRxCallback(Calypso_LineRxCallback_t callback) { Calypso_lineRxCallback = callback; }
 
-/**
- * @brief Sets EOL character(s) used for interpreting responses from Calypso.
- *
- * @param[in] eol1 First EOL character
- * @param[in] eol2 Second EOL character (is only used if twoEolCharacters is true)
- * @param[in] twoEolCharacters Controls whether the two EOL characters eol1 and eol2 (true) or only eol1 (false) is used
- */
 void Calypso_SetEolCharacters(uint8_t eol1, uint8_t eol2, bool twoEolCharacters)
 {
     Calypso_eolChar1 = eol1;

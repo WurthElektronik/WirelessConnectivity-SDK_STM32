@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATGPIO.c
  * @brief AT commands for GPIO functionality.
  */
 #include <Calypso/ATCommands/ATGPIO.h>
@@ -37,16 +37,6 @@ static const char* Calypso_ATGPIO_PullType_Strings[Calypso_ATGPIO_PullType_Numbe
 
 static const char* Calypso_ATGPIO_GPIOState_Strings[Calypso_ATGPIO_GPIOState_NumberOfValues] = {"low", "high"};
 
-/**
- * @brief Get a GPIO's configuration and/or current value.
- *
- * @param[in] id ID of GPIO to be queried
- * @param[in] defaultSetting If true, the configured default values stored in the module's
- *                           flash are returned. Otherwise the current value is returned.
- * @param[out] gpio The queried data is returned in this argument
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATGPIO_Get(Calypso_ATGPIO_GPIOId_t id, bool defaultSetting, Calypso_ATGPIO_GPIO_t* gpio)
 {
     gpio->type = Calypso_ATGPIO_GPIOType_Unused;
@@ -147,15 +137,6 @@ bool Calypso_ATGPIO_Get(Calypso_ATGPIO_GPIOId_t id, bool defaultSetting, Calypso
     return false;
 }
 
-/**
- * @brief Set a GPIO's configuration and/or current value.
- *
- * @param[in] gpio GPIO configuration containing values to be set. Also includes the ID of the GPIO to be modified.
- * @param[in] save If true, the values are saved to the flash (used to set GPIO type and
- *                 default value). Otherwise, the values are not saved (used to set current value).
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATGPIO_Set(Calypso_ATGPIO_GPIO_t* gpio, bool save)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -223,14 +204,6 @@ bool Calypso_ATGPIO_Set(Calypso_ATGPIO_GPIO_t* gpio, bool save)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_GPIO), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Checks if the GPIO with the supplied ID supports the supplied GPIO function.
- *
- * @param[in] id GPIO ID
- * @param[in] type GPIO function type
- *
- * @return true if the GPIO supports the supplied GPIO function, false otherwise
- */
 bool Calypso_ATGPIO_IsFunctionSupported(Calypso_ATGPIO_GPIOId_t id, Calypso_ATGPIO_GPIOType_t type)
 {
     if (id >= Calypso_ATGPIO_GPIOId_NumberOfValues)

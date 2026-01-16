@@ -62,12 +62,12 @@ void Test_BluetoothLE_CYSPP_Connection(Skoll_I_BluetoothLE_Role_t role)
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, transparentDataHandler))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 
@@ -129,14 +129,14 @@ void Test_BluetoothLE_CYSPP_Connection(Skoll_I_BluetoothLE_Role_t role)
             states.LE.passkeyentry_requested = false;
         }
 
-        WE_DEBUG_PRINT("Waiting for channel open\r\n");
+        WE_APP_PRINT("Waiting for channel open\r\n");
         WE_Delay(5000);
     }
 
     i = 0;
     while ((Skoll_I_PinIsChannelOpen(&isChannelOpen) && (isChannelOpen)) && (i < 30))
     {
-        WE_DEBUG_PRINT("%d ", i);
+        WE_APP_PRINT("%d ", i);
         Examples_Print("Skoll_I_BluetoothLE_CYSPPTransparentTransmit", true == Skoll_I_BluetoothLE_CYSPPTransparentTransmit(sizeof(data), data));
         i++;
         WE_Delay(2500);
@@ -179,7 +179,7 @@ void Test_BluetoothLE_CYSPP_Throughput(Skoll_I_BluetoothLE_Role_t role)
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, transparentDataHandler))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -226,7 +226,7 @@ void Test_BluetoothLE_CYSPP_Throughput(Skoll_I_BluetoothLE_Role_t role)
     /* as soon as channel is open, start transmitting data */
     while (Skoll_I_PinIsChannelOpen(&isChannelOpen) && (isChannelOpen == false))
     {
-        WE_DEBUG_PRINT("Waiting for channel open\r\n");
+        WE_APP_PRINT("Waiting for channel open\r\n");
         WE_Delay(5000);
     }
 
@@ -265,12 +265,12 @@ void Test_BluetoothLE_ProteusSPPLike_Central(void)
     /* initialize and reset the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     if (false == Skoll_I_PinReset())
     {
-        WE_DEBUG_PRINT("Reset error\r\n");
+        WE_APP_PRINT("Reset error\r\n");
         return;
     }
 
@@ -286,7 +286,7 @@ void Test_BluetoothLE_ProteusSPPLike_Central(void)
     while (false == states.LE.connected)
     {
         WE_Delay(2500);
-        WE_DEBUG_PRINT("Wait for connection\r\n");
+        WE_APP_PRINT("Wait for connection\r\n");
     }
 
     /* run the profile discovery to check whether the device provides the right characteristics of the SPPlike profile */
@@ -326,7 +326,7 @@ void Test_BluetoothLE_ProteusSPPLike_Central(void)
 
     while ((Skoll_I_PinIsConnectionOpen(&isConnectionOpen) && (isConnectionOpen)) && (i < 30))
     {
-        WE_DEBUG_PRINT("%d ", i);
+        WE_APP_PRINT("%d ", i);
         data.data[1] = 0x30 + (i % 10);
         Examples_Print("gattc_write_handle", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gattc_write_handle(states.LE.conn_handle, rx_char_handle, 1, &data), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
         i++;
@@ -366,7 +366,7 @@ void Test_BluetoothLE_ProteusSPPLike_Peripheral(uint8_t run)
     /* initialize the radio module */
     if (false == Skoll_I_Init(&Skoll_I_uart, &Skoll_I_pins, eventHandler, NULL))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -385,7 +385,7 @@ void Test_BluetoothLE_ProteusSPPLike_Peripheral(uint8_t run)
             /* create profile */
             if (false == Skoll_I_PinReset())
             {
-                WE_DEBUG_PRINT("Reset error\r\n");
+                WE_APP_PRINT("Reset error\r\n");
                 return;
             }
 
@@ -397,32 +397,32 @@ void Test_BluetoothLE_ProteusSPPLike_Peripheral(uint8_t run)
             Examples_Print("p_cyspp_set_parameters", (packet = EZS_SEND_AND_WAIT(ezs_cmd_p_cyspp_set_parameters(0, 0, WE_BLUETOOTH_COMPANY_IDENTIFIER, 0, 0, 0, 1, 0, 2), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create service
-		 * /CAC,T=0,P=02,L=12,D=00281BC5D5A502003D95E51152C30100406E */
+         * /CAC,T=0,P=02,L=12,D=00281BC5D5A502003D95E51152C30100406E */
             longuint8a_t service = {.length = 0x12, .data = {0x00, 0x28, 0x1B, 0xC5, 0xD5, 0xA5, 0x02, 0x00, 0x3D, 0x95, 0xE5, 0x11, 0x52, 0xC3, 0x01, 0x00, 0x40, 0x6E}};
             Examples_Print("create service", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(0, 0x02, 0x12, &service), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create a characteristic descriptor
-		 * /CAC,T=00,P=02,L=15,D=0328 0C 1F00 1BC5D5A502003D95E51152C30200406E */
+         * /CAC,T=00,P=02,L=15,D=0328 0C 1F00 1BC5D5A502003D95E51152C30200406E */
             longuint8a_t rx_char = {.length = 0x15, .data = {0x03, 0x28, 0x0C, 0x1F, 0x00, 0x1B, 0xC5, 0xD5, 0xA5, 0x02, 0x00, 0x3D, 0x95, 0xE5, 0x11, 0x52, 0xC3, 0x02, 0x00, 0x40, 0x6E}};
             Examples_Print("create rx char", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(0, 0x02, 0x15, &rx_char), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create a characteristic value descriptor, length 0x80 (128), without initial value
-		 * /CAC,T=01,P=8F,L=80,D= */
+         * /CAC,T=01,P=8F,L=80,D= */
             longuint8a_t rx_char_value = {.length = 0x00, .data = {}};
             Examples_Print("create rx char value", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(1, 0x8F, 0x80, &rx_char_value), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create a characteristic descriptor
-		 * /CAC,T=00,P=02,L=15,D=0328 10 2100 1BC5D5A502003D95E51152C30300406E  */
+         * /CAC,T=00,P=02,L=15,D=0328 10 2100 1BC5D5A502003D95E51152C30300406E  */
             longuint8a_t tx_char = {.length = 0x15, .data = {0x03, 0x28, 0x10, 0x21, 0x00, 0x1B, 0xC5, 0xD5, 0xA5, 0x02, 0x00, 0x3D, 0x95, 0xE5, 0x11, 0x52, 0xC3, 0x03, 0x00, 0x40, 0x6E}};
             Examples_Print("create tx char", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(0, 0x02, 0x15, &tx_char), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create a characteristic value descriptor, length 0x80 (128), without initial value
-		 * /CAC,T=01,P=8B,L=80,D= */
+         * /CAC,T=01,P=8B,L=80,D= */
             longuint8a_t tx_char_value = {.length = 0x00, .data = {}};
             Examples_Print("create tx char value", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(1, 0x8B, 0x80, &tx_char_value), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 
             /* Create a CCCD, value 0
-		 * /CAC,T=00,P=0A,L=04,D=02290000 */
+         * /CAC,T=00,P=0A,L=04,D=02290000 */
             longuint8a_t tx_char_cccd = {.length = 0x04, .data = {0x02, 0x29, 0x00, 0x00}};
             Examples_Print("create tx char cccd", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_create_attr(0, 0x0A, 0x04, &tx_char_cccd), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
             WE_Delay(500);
@@ -449,14 +449,14 @@ void Test_BluetoothLE_ProteusSPPLike_Peripheral(uint8_t run)
     while (false == states.LE.connected)
     {
         WE_Delay(2500);
-        WE_DEBUG_PRINT("Wait for connection\r\n");
+        WE_APP_PRINT("Wait for connection\r\n");
     }
 
     /* wait until subscribed */
     while (false == states.LE_SPPLike.peer_is_subscribed)
     {
         WE_Delay(1000);
-        WE_DEBUG_PRINT("Wait for channel open\r\n");
+        WE_APP_PRINT("Wait for channel open\r\n");
     }
 
     /* generate data with 0x01 header, which is needed for communication with Proteus devices */
@@ -475,7 +475,7 @@ void Test_BluetoothLE_ProteusSPPLike_Peripheral(uint8_t run)
 
     while ((Skoll_I_PinIsConnectionOpen(&isConnectionOpen) && (isConnectionOpen)) && (states.LE_SPPLike.peer_is_subscribed) && (i < 30))
     {
-        WE_DEBUG_PRINT("%d ", i);
+        WE_APP_PRINT("%d ", i);
         data.data[1] = 0x30 + (i % 10);
         Examples_Print("gatts_notify_handle", (packet = EZS_SEND_AND_WAIT(ezs_cmd_gatts_notify_handle(states.LE.conn_handle, 0x0021, &data), SKOLL_I_COMMAND_TIMEOUT_MS)) != (ezs_packet_t*)NULL);
 

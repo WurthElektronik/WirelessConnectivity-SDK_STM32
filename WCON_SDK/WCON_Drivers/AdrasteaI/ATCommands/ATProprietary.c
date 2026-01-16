@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATProprietary.c
  * @brief AT commands for Proprietary functionality.
  */
 #include <AdrasteaI/ATCommands/ATProprietary.h>
@@ -44,13 +44,6 @@ static const char* AdrasteaI_ATProprietary_IP_Addr_Format_Strings[AdrasteaI_ATPr
     "IPV4V6",
 };
 
-/**
- * @brief Read Network Attachment State (using the AT%CMATT command).
- *
- * @param[out] stateP Network Attachment State is returned in this argument. See AdrasteaI_ATProprietary_Network_Attachment_State_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ReadNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t* stateP)
 {
     if (stateP == NULL)
@@ -80,13 +73,6 @@ bool AdrasteaI_ATProprietary_ReadNetworkAttachmentState(AdrasteaI_ATProprietary_
     return true;
 }
 
-/**
- * @brief Set Network Attachment State (using the AT%CMATT command).
- *
- * @param[in] state Network Attachment State. See AdrasteaI_ATProprietary_Network_Attachment_State_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_SetNetworkAttachmentState(AdrasteaI_ATProprietary_Network_Attachment_State_t state)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -116,13 +102,6 @@ bool AdrasteaI_ATProprietary_SetNetworkAttachmentState(AdrasteaI_ATProprietary_N
     return true;
 }
 
-/**
- * @brief Read Remaining PIN and PUK Attempts left (using the AT%CPININFO command).
- *
- * @param[out] attemptsP Remaining Attempts are returned in this argument. See AdrasteaI_ATProprietary_PIN_PUK_Attempts_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ReadRemainingPINPUKAttempts(AdrasteaI_ATProprietary_PIN_PUK_Attempts_t* attemptsP)
 {
     if (attemptsP == NULL)
@@ -167,17 +146,6 @@ bool AdrasteaI_ATProprietary_ReadRemainingPINPUKAttempts(AdrasteaI_ATProprietary
     return true;
 }
 
-/**
- * @brief Switch to RAT without Full Reboot (using the AT%RATACT command).
- *
- * @param[in] rat RAT. See AdrasteaI_ATProprietary_RAT_t.
- *
- * @param[in] storage RAT Storage (optional pass AdrasteaI_ATProprietary_RAT_Storage_Invalid to skip). See AdrasteaI_ATProprietary_RAT_Storage_t.
- *
- * @param[in] source RAT Source (optional pass AdrasteaI_ATProprietary_RAT_Source_Invalid to skip). See AdrasteaI_ATProprietary_RAT_Source_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_SwitchToRATWithoutFullReboot(AdrasteaI_ATProprietary_RAT_t rat, AdrasteaI_ATProprietary_RAT_Storage_t storage, AdrasteaI_ATProprietary_RAT_Source_t source)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -237,13 +205,6 @@ bool AdrasteaI_ATProprietary_SwitchToRATWithoutFullReboot(AdrasteaI_ATProprietar
     return true;
 }
 
-/**
- * @brief Read RAT Status (using the AT%RATACT command).
- *
- * @param[out] ratstatusP RAT Status is returned in this argument. See AdrasteaI_ATProprietary_RAT_Status_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ReadRATStatus(AdrasteaI_ATProprietary_RAT_Status_t* ratstatusP)
 {
     if (ratstatusP == NULL)
@@ -283,13 +244,6 @@ bool AdrasteaI_ATProprietary_ReadRATStatus(AdrasteaI_ATProprietary_RAT_Status_t*
     return true;
 }
 
-/**
- * @brief Set Boot Delay (using the AT%SETBDELAY command).
- *
- * @param[in] delay Boot Delay in seconds.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_SetBootDelay(AdrasteaI_ATProprietary_Boot_Delay_t delay)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -319,17 +273,6 @@ bool AdrasteaI_ATProprietary_SetBootDelay(AdrasteaI_ATProprietary_Boot_Delay_t d
     return true;
 }
 
-/**
- * @briefResolve Domain Name (using the AT%DNSRSLV command).
- *
- * @param[in] sessionid Session ID.
- *
- * @param[in] domain Domain Name (URL).
- *
- * @param[in] format IP Address Format (optional pass AdrasteaI_ATProprietary_IP_Addr_Format_Invalid to skip). See AdrasteaI_ATProprietary_IP_Addr_Format_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ResolveDomainName(AdrasteaI_ATCommon_Session_ID_t sessionid, AdrasteaI_ATProprietary_Domain_Name_t domain, AdrasteaI_ATProprietary_IP_Addr_Format_t format)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -377,14 +320,6 @@ bool AdrasteaI_ATProprietary_ResolveDomainName(AdrasteaI_ATCommon_Session_ID_t s
     return true;
 }
 
-/**
- * @brief Parses the value of Resolve Domain Name event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP Domain Name Resolve Result is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ParseResolveDomainNameEvent(char* pEventArguments, AdrasteaI_ATProprietary_Domain_Name_Resolve_Result_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -407,21 +342,6 @@ bool AdrasteaI_ATProprietary_ParseResolveDomainNameEvent(char* pEventArguments, 
     return true;
 }
 
-/**
- * @brief Ping an address (using the AT%PINGCMD command).
- *
- * @param[in] format IP Address Format. See AdrasteaI_ATProprietary_IP_Addr_Format_t.
- *
- * @param[in] destaddr Destination IP Address.
- *
- * @param[in] packetcount Packet Count (optional pass AdrasteaI_ATProprietary_Ping_Packet_Count_Invalid to skip).
- *
- * @param[in] packetsize Packet Size in Bytes (optional pass AdrasteaI_ATProprietary_Ping_Packet_Size_Invalid to skip).
- *
- * @param[in] timeout Ping Timeout (optional pass AdrasteaI_ATProprietary_Ping_Timeout_Invalid to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_Ping(AdrasteaI_ATProprietary_IP_Addr_Format_t format, AdrasteaI_ATCommon_IP_Addr_t destaddr, AdrasteaI_ATProprietary_Ping_Packet_Count_t packetcount, AdrasteaI_ATProprietary_Ping_Packet_Size_t packetsize, AdrasteaI_ATProprietary_Ping_Timeout_t timeout)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -503,14 +423,6 @@ bool AdrasteaI_ATProprietary_Ping(AdrasteaI_ATProprietary_IP_Addr_Format_t forma
     return true;
 }
 
-/**
- * @brief Parses the value of Ping Result event arguments.
- *
- * @param[in]  pEventArguments String containing arguments of the AT command
- * @param[out] dataP Ping Result is returned in this argument. See AdrasteaI_ATPacketDomain_PDP_Context_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ParsePingResultEvent(char* pEventArguments, AdrasteaI_ATProprietary_Ping_Result_t* dataP)
 {
     if (dataP == NULL || pEventArguments == NULL)
@@ -543,17 +455,6 @@ bool AdrasteaI_ATProprietary_ParsePingResultEvent(char* pEventArguments, Adraste
     return true;
 }
 
-/**
- * @brief Read a credential (using the AT%CERTCMD command).
- *
- * @param[in]  filename Name of file to read.
- *
- * @param[out] dataP Contents of file is read to this argument.
- *
- * @param[in]  dataMaxBufferSize Size of the buffer.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ReadCredential(AdrasteaI_ATProprietary_File_Name_t filename, char* dataP, uint16_t dataMaxBufferSize)
 {
     if (dataP == NULL)
@@ -595,17 +496,6 @@ bool AdrasteaI_ATProprietary_ReadCredential(AdrasteaI_ATProprietary_File_Name_t 
     return true;
 }
 
-/**
- * @brief Write a credential (using the AT%CERTCMD command).
- *
- * @param[in] filename Name of file to write.
- *
- * @param[in] format Format of credential. See AdrasteaI_ATProprietary_Credential_Format_t.
- *
- * @param[out] data Data to write to file.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_WriteCredential(AdrasteaI_ATProprietary_File_Name_t filename, AdrasteaI_ATProprietary_Credential_Format_t format, char* data)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -647,13 +537,6 @@ bool AdrasteaI_ATProprietary_WriteCredential(AdrasteaI_ATProprietary_File_Name_t
     return true;
 }
 
-/**
- * @brief List filenames of credentials stored (using the AT%CERTCMD command).
- *
- * @param[out] filenamesList List of credentials Stored. (Free memory from filenamesList->filenames after usage)
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ListCredentials(AdrasteaI_ATProprietary_File_Names_List_t* filenamesList)
 {
     if (filenamesList == NULL)
@@ -703,13 +586,6 @@ bool AdrasteaI_ATProprietary_ListCredentials(AdrasteaI_ATProprietary_File_Names_
     return true;
 }
 
-/**
- * @brief Delete a credential (using the AT%CERTCMD command).
- *
- * @param[in] filename Name of file to delete.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_DeleteCredential(AdrasteaI_ATProprietary_File_Name_t filename)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -739,13 +615,6 @@ bool AdrasteaI_ATProprietary_DeleteCredential(AdrasteaI_ATProprietary_File_Name_
     return true;
 }
 
-/**
- * @brief List Configured TLS Profile IDS (using the AT%CERTCFG command).
- *
- * @param[out] profileIDsList List of TLS profile IDs. (Free memory from profileIDsList->profileIDs after usage)
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ListTLSProfiles(AdrasteaI_ATProprietary_TLS_Profile_ID_List_t* profileIDsList)
 {
     if (profileIDsList == NULL)
@@ -803,25 +672,6 @@ bool AdrasteaI_ATProprietary_ListTLSProfiles(AdrasteaI_ATProprietary_TLS_Profile
     return true;
 }
 
-/**
- * @brief Add TLS Profile (using the AT%CERTCFG command).
- *
- * @param[in] profileID Profile ID of TLS Profile.
- *
- * @param[in] CA Name of CA (optional pass empty string to skip).
- *
- * @param[in] CAPath Path of CA (optional pass empty string to skip).
- *
- * @param[in] deviceCert Name of device Certificate (optional pass empty string to skip).
- *
- * @param[in] deviceKey Name of device Key (optional pass empty string to skip).
- *
- * @param[in] pskID Name of PSK ID (optional pass empty string to skip).
- *
- * @param[in] pskKey Name of PSK Key (optional pass empty string to skip).
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID, AdrasteaI_ATProprietary_File_Name_t CA, AdrasteaI_ATProprietary_File_Path_t CAPath, AdrasteaI_ATProprietary_File_Name_t deviceCert, AdrasteaI_ATProprietary_File_Name_t deviceKey, AdrasteaI_ATProprietary_File_Name_t pskID, AdrasteaI_ATProprietary_File_Name_t pskKey)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -944,13 +794,6 @@ bool AdrasteaI_ATProprietary_AddTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t p
     return true;
 }
 
-/**
- * @brief Delete TLS Profile (using the AT%CERTCFG command).
- *
- * @param[in] profileID Profile ID of TLS Profile.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_DeleteTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_t profileID)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -980,13 +823,6 @@ bool AdrasteaI_ATProprietary_DeleteTLSProfile(AdrasteaI_ATCommon_TLS_Profile_ID_
     return true;
 }
 
-/**
- * @brief Set PDN Parameters (using the AT%PDNSET command).
- *
- * @param[in] parameters PDN Parameters. See AdrasteaI_ATProprietary_PDN_Parameters_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_SetPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t parameters)
 {
     AdrasteaI_optionalParamsDelimCount = 1;
@@ -1046,13 +882,6 @@ bool AdrasteaI_ATProprietary_SetPDNParameters(AdrasteaI_ATProprietary_PDN_Parame
     return true;
 }
 
-/**
- * @brief Read PDN Parameters (using the AT%PDNSET command).
- *
- * @param[out] parameters PDN Parameters are returned in this argument. See AdrasteaI_ATProprietary_PDN_Parameters_t.
- *
- * @return true if successful, false otherwise
- */
 bool AdrasteaI_ATProprietary_ReadPDNParameters(AdrasteaI_ATProprietary_PDN_Parameters_t* parameters)
 {
     if (parameters == NULL)
@@ -1084,10 +913,14 @@ bool AdrasteaI_ATProprietary_ReadPDNParameters(AdrasteaI_ATProprietary_PDN_Param
         return false;
     }
 
-    if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, (uint8_t*)&parameters->ipFormat, AdrasteaI_ATProprietary_IP_Addr_Format_Strings, AdrasteaI_ATProprietary_IP_Addr_Format_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
+    uint8_t ip_format_index;
+
+    if (!ATCommand_GetNextArgumentEnum(&pResponseCommand, &ip_format_index, AdrasteaI_ATProprietary_IP_Addr_Format_Strings, AdrasteaI_ATProprietary_IP_Addr_Format_NumberOfValues, 30, ATCOMMAND_ARGUMENT_DELIM))
     {
         return false;
     }
+
+    parameters->ipFormat = (AdrasteaI_ATProprietary_IP_Addr_Format_t)ip_format_index;
 
     return true;
 }

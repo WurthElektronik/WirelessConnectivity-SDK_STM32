@@ -1,37 +1,15 @@
-# WirelessConnectivity-SDK_STM32
-Software development kit for Würth Elektronik eiSos wireless connectivity products, examples are provided for STM32 micro controllers.
+# Wireless Connectivity SDK
 
-Products supported by this SDK:
+**Software Development Kit to use Würth Elektronik wireless connectivity products**
 
-- Adrastea-I
-- Calypso
-- Cordelia-I
-- Daphnis-I
-- Metis (-I and -II)
-- Metis-e
-- Proteus-e
-- Proteus-II
-- Proteus-III
-- Skoll-I
-- Stephano-I
-- Tarvos-III
-- Tarvos-e
-- Telesto-III
-- Thebe-II
-- Thebe-II India (2609031181060)
-- Themisto-I
-- Thyone-e
-- Thyone-I
+![Local Image](./WCON_SDK/Doc/structure.png)
 
-For all our Legacy Products please use the previous SDK at https://github.com/WurthElektronik/WirelessConnectivity-SDK.
-The supported legacy products are:
+This SDK contains [module drivers](WCON_SDK/WCON_Drivers) and [examples](WCON_SDK/Examples) for integrating Würth Elektronik radio modules into end devices. The following products are supported by this SDK:
 
-- Proteus-I
-- Tarvos-I
-- Tarvos-II
-- Telesto-I
-- Thadeus
-- Thalassa
-- Thebe-I
-- Titania
-- Triton
+**Adrastea-I, Calypso, Cordelia-I, Daphnis-I, Metis -I, Metis-II, Metis-e, Proteus-II, Proteus-III, Proteus-IV, Proteus-e, Skoll-I, Stephano-I, Tarvos-III, Tarvos-e, Telesto-III, Thebe-II, Thebe-II India, Themisto-I, Thyone-I, Thyone-e**
+
+The [module drivers](WCON_SDK/WCON_Drivers) are hardware independent and can be ported to any host platform by copying the code. The interface to the host peripherals like UART and GPIO are used to run the [example](WCON_SDK/Examples) applications.
+This SDK contains the reference implementation of the host peripherals of STM32F4 and STM32L0, which can be easily extended or replaced.
+
+For more details, please refer to the application note [ANR008_WirelessConnectivity_Software_Development_Kit_SDK](http://www.we-online.com/ANR008).
+

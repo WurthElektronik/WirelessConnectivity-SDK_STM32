@@ -38,7 +38,7 @@
 
 #include <StephanoI/ATCommands/ATEvent.h>
 
-#include <global_platform_types.h>
+#include <global_platform.h>
 /**
  * @brief Is set to true when a startup event is received
  */
@@ -147,4 +147,4 @@ void StephanoI_Examples_EventCallback(char* eventText)
  * @param str String to print
  * @param success Variable indicating if action was ok
  */
-void StephanoI_Examples_Print(char* str, bool success) { WE_DEBUG_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }
+void StephanoI_Examples_Print(char* str, bool success) { WE_APP_PRINT("%s%s\r\n", success ? "OK    " : "NOK   ", str); }

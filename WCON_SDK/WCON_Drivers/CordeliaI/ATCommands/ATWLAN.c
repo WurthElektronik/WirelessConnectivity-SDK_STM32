@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATWLAN.c
  * @brief AT commands for WLAN functionality.
  */
 #include <CordeliaI/ATCommands/ATWLAN.h>
@@ -71,19 +71,6 @@ static bool CordeliaI_ATWLAN_ParseResponseWlanGet(CordeliaI_ATWLAN_SetID_t id, u
 
 static bool CordeliaI_ATWLAN_SendPolicyGet(CordeliaI_ATWLAN_PolicyID_t id, char** pRespondCommand);
 
-/**
- * @brief Initiates a WLAN scan (using the AT+wlanScan command).
- *
- * Note that when calling this function for the first time, an error is returned, as the module responds
- * with SL_ERROR_WLAN_GET_NETWORK_LIST_EAGAIN (-2073).
- *
- * @param[in] index Starting index (0-29)
- * @param[in] deviceCount Max. number of entries to get (max. 30)
- * @param[out] pOutValues The scan entries which the module has returned
- * @param[out] pOutNumEntries Number of entries the module has returned
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, CordeliaI_ATWLAN_ScanEntry_t* pOutValues, uint8_t* pOutNumEntries)
 {
 
@@ -133,13 +120,6 @@ bool CordeliaI_ATWLAN_Scan(uint8_t index, uint8_t deviceCount, CordeliaI_ATWLAN_
     return true;
 }
 
-/**
- * @brief Connects to a wireless network (using the AT+wlanConnect command).
- *
- * @param[in] connectArgs Connection parameters
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_Connect(CordeliaI_ATWLAN_ConnectionArguments_t connectArgs)
 {
 
@@ -165,11 +145,6 @@ bool CordeliaI_ATWLAN_Connect(CordeliaI_ATWLAN_ConnectionArguments_t connectArgs
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Disconnects from a wireless network (using the AT+disconnect command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_Disconnect()
 {
     if (!CordeliaI_SendRequest("AT+wlanDisconnect\r\n"))
@@ -179,16 +154,6 @@ bool CordeliaI_ATWLAN_Disconnect()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Adds a wireless LAN profile.
- *
- * Internally sends the AT+wlanProfileAdd command.
- *
- * @param[in] profile WLAN profile to be added.
- * @param[out] pOutIndex The index of the added profile. Can be used to access the profile.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_AddProfile(CordeliaI_ATWLAN_Profile_t profile, uint8_t* pOutIndex)
 {
 
@@ -230,14 +195,6 @@ bool CordeliaI_ATWLAN_AddProfile(CordeliaI_ATWLAN_Profile_t profile, uint8_t* pO
     return CordeliaI_ATWLAN_ParseResponseWlanAddProfile(&pRespondCommand, pOutIndex);
 }
 
-/**
- * @brief Gets a wireless LAN profile (using the AT+wlanProfileGet command).
- *
- * @param[in] index Index of the profile as returned by CordeliaI_ATWLAN_AddProfile().
- * @param[out] pOutProfile The returned WLAN profile.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_GetProfile(uint8_t index, CordeliaI_ATWLAN_Profile_t* pOutProfile)
 {
 
@@ -273,13 +230,6 @@ bool CordeliaI_ATWLAN_GetProfile(uint8_t index, CordeliaI_ATWLAN_Profile_t* pOut
     return CordeliaI_ATWLAN_ParseResponseWlanGetProfile(&pRespondCommand, pOutProfile);
 }
 
-/**
- * @brief Deletes a wireless LAN profile (using the AT+wlanProfileDel command).
- *
- * @param[in] index Index of the profile to be deleted (as returned by CordeliaI_ATWLAN_AddProfile()).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_DeleteProfile(uint8_t index)
 {
 
@@ -305,15 +255,6 @@ bool CordeliaI_ATWLAN_DeleteProfile(uint8_t index)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @briefs Reads wireless LAN settings (using the AT+wlanGet command).
- *
- * @param[in] id ID of the value to get
- * @param[in] option Option of the value to get
- * @param[out] pValues Values returned by the module
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_Get(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
@@ -346,15 +287,6 @@ bool CordeliaI_ATWLAN_Get(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI
     return CordeliaI_ATWLAN_ParseResponseWlanGet(id, option, &pRespondCommand, pValues);
 }
 
-/**
- * @brief Writes wireless LAN settings (using the AT+wlanSet command).
- *
- * @param[in] id ID of the value to set
- * @param[in] option Option of the value to set
- * @param[in] pValues Values to set
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_Set(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI_ATWLAN_Settings_t* pValues)
 {
 
@@ -380,16 +312,6 @@ bool CordeliaI_ATWLAN_Set(CordeliaI_ATWLAN_SetID_t id, uint8_t option, CordeliaI
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Set WLAN connection policy.
- *
- * Note that setting a connection policy while the device parameter
- * CordeliaI_ATDevice_GetGeneral_Persistent is set to false (0) will return an error (code -31008).
- *
- * @param[in] policy Connection policy flags. See CordeliaI_ATWLAN_PolicyConnection_t.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_SetConnectionPolicy(uint8_t policy)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -418,13 +340,6 @@ bool CordeliaI_ATWLAN_SetConnectionPolicy(uint8_t policy)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN connection policy.
- *
- * @param[out] policy Connection policy flags. See CordeliaI_ATWLAN_PolicyConnection_t.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_GetConnectionPolicy(uint8_t* policy)
 {
     *policy = 0;
@@ -445,14 +360,6 @@ bool CordeliaI_ATWLAN_GetConnectionPolicy(uint8_t* policy)
     return false;
 }
 
-/**
- * @brief Set WLAN scan policy.
- *
- * @param[in] policy Scan policy to set
- * @param[in] scanIntervalSeconds Scan interval in seconds
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_SetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t policy, uint32_t scanIntervalSeconds)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -483,14 +390,6 @@ bool CordeliaI_ATWLAN_SetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t policy, uint32
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN scan policy.
- *
- * @param[out] policy Scan policy
- * @param[out] scanIntervalSeconds Scan interval in seconds
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_GetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t* policy, uint32_t* scanIntervalSeconds)
 {
     *policy = CordeliaI_ATWLAN_PolicyScan_DisableScan;
@@ -518,14 +417,6 @@ bool CordeliaI_ATWLAN_GetScanPolicy(CordeliaI_ATWLAN_PolicyScan_t* policy, uint3
     return ATCommand_GetNextArgumentInt(&pRespondCommand, scanIntervalSeconds, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Set WLAN power management policy.
- *
- * @param[in] policy Power management policy to set
- * @param[in] maxSleepTimeMs Max. sleep time in milliseconds
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_SetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t policy, uint32_t maxSleepTimeMs)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -556,14 +447,6 @@ bool CordeliaI_ATWLAN_SetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t policy, uint32_t m
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN power management policy.
- *
- * @param[out] policy Power management policy
- * @param[out] maxSleepTimeMs Max. sleep time in milliseconds
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_GetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t* policy, uint32_t* maxSleepTimeMs)
 {
     *policy = CordeliaI_ATWLAN_PolicyPM_Normal;
@@ -591,14 +474,6 @@ bool CordeliaI_ATWLAN_GetPMPolicy(CordeliaI_ATWLAN_PolicyPM_t* policy, uint32_t*
     return ATCommand_GetNextArgumentInt(&pRespondCommand, maxSleepTimeMs, ATCOMMAND_INTFLAGS_UNSIGNED | ATCOMMAND_INTFLAGS_SIZE32 | ATCOMMAND_INTFLAGS_NOTATION_DEC, ATCOMMAND_STRING_TERMINATE);
 }
 
-/**
- * @brief Set WLAN P2P policy.
- *
- * @param[in] policy P2P policy to set
- * @param[in] value Option value
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_SetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t policy, CordeliaI_ATWLAN_PolicyP2PValue_t value)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -629,14 +504,6 @@ bool CordeliaI_ATWLAN_SetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t policy, Cordelia
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Get WLAN P2P policy.
- *
- * @param[out] policy P2P policy
- * @param[out] value Option value
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATWLAN_GetP2PPolicy(CordeliaI_ATWLAN_PolicyP2P_t* policy, CordeliaI_ATWLAN_PolicyP2PValue_t* value)
 {
     *policy = CordeliaI_ATWLAN_PolicyP2P_Negotiate;

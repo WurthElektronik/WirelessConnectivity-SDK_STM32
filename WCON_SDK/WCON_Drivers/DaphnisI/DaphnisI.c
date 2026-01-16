@@ -33,6 +33,22 @@
 #include <global/ATCommands.h>
 #include <global/global.h>
 #include <stdio.h>
+#include <string.h>
+#include <strings.h>
+
+/**
+ * @brief Max. length of sent commands and responses from DaphnisI.
+ */
+#define DAPHNISI_LINE_MAX_SIZE 512
+
+#define DAPHNISI_RESPONSE_OK "OK"     /**< String sent by module if AT command was successful */
+#define DAPHNISI_RESPONSE_ERROR "AT_" /**< String sent by module if AT command failed */
+
+/**
+ * @brief Max. length of response text (size of buffer storing responses received from DaphnisI).
+ * @see DaphnisI_currentResponseText
+ */
+#define DAPHNISI_MAX_RESPONSE_TEXT_LENGTH DAPHNISI_LINE_MAX_SIZE
 
 static void DaphnisI_HandleRxByte(uint8_t* dataP, size_t size);
 static void DaphnisI_HandleRxLine(char* rxPacket, uint16_t rxLength);
@@ -42,9 +58,14 @@ static bool DaphnisI_ATEvent_ParseEventType(char** pAtCommand, DaphnisI_ATEvent_
 
 /**
  * @brief Timeouts for responses to AT commands (milliseconds).
- * Initialization is done in DaphnisI_Init().
  */
-static uint32_t DaphnisI_timeouts[DaphnisI_Timeout_NumberOfValues] = {0};
+static uint32_t DaphnisI_timeouts[DaphnisI_Timeout_NumberOfValues] = {
+    [DaphnisI_Timeout_General] = 1000,
+#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
+    [DaphnisI_Timeout_P2P_Data] = 10000,
+    [DaphnisI_Timeout_P2P_Remote_GPIO] = 3000,
+#endif
+};
 
 /**
  * @brief Is set to true when sending an AT command and is reset to false when the response has been received.
@@ -210,9 +231,7 @@ static const ATCommand_Event_t moduleMainEvents[] = {PARENTEVENTENTRY("+CS", LoR
  */
 static void DaphnisI_HandleRxLine(char* rxPacket, uint16_t rxLength)
 {
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("< %s\r\n", rxPacket);
-#endif
+    WE_DEBUG_PRINT_DEBUG("< %s\r\n", rxPacket);
 
     if (DaphnisI_requestPending)
     {
@@ -239,16 +258,21 @@ static void DaphnisI_HandleRxLine(char* rxPacket, uint16_t rxLength)
             {
                 DaphnisI_cmdConfirmStatus = DaphnisI_CNFStatus_Failed;
                 char* rxError = rxPacket + strlen(DAPHNISI_RESPONSE_ERROR);
-                if (!ATCommand_GetNextArgumentEnum(&rxError, (uint8_t*)&DaphnisI_lastError, DaphnisI_ErrorMessage_Strings, DaphnisI_ErrorMessage_Count, 32, ATCOMMAND_STRING_TERMINATE))
+                uint8_t rxErrorIndex;
+                if (!ATCommand_GetNextArgumentEnum(&rxError, &rxErrorIndex, DaphnisI_ErrorMessage_Strings, DaphnisI_ErrorMessage_Count, 32, ATCOMMAND_STRING_TERMINATE))
                 {
                     DaphnisI_lastError = DaphnisI_ErrorMessage_ERROR;
+                }
+                else
+                {
+                    DaphnisI_lastError = (DaphnisI_ErrorMessage_t)rxErrorIndex;
                 }
             }
         }
         else
         {
             /* Copy to response text buffer, if the start
-			 * of the response matches the pending command name preceded by '+' */
+             * of the response matches the pending command name preceded by '+' */
             if (rxLength < DAPHNISI_LINE_MAX_SIZE && rxLength > 1 && DaphnisI_rxBuffer[0] == '+' && DaphnisI_pendingCommandName[0] != '\0' && 0 == strncasecmp(DaphnisI_pendingCommandName, DaphnisI_rxBuffer + 1, DaphnisI_pendingCommandNameLength))
             {
                 /* Copy to response text buffer, taking care not to exceed buffer size */
@@ -374,8 +398,11 @@ bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCal
     /* initialize the pins */
     DaphnisI_pinsP = pinoutP;
     DaphnisI_pinsP->DaphnisI_Pin_Boot.type = WE_Pin_Type_Output;
+    DaphnisI_pinsP->DaphnisI_Pin_Boot.initial_value.output = WE_Pin_Level_Low;
     DaphnisI_pinsP->DaphnisI_Pin_WakeUp.type = WE_Pin_Type_Output;
+    DaphnisI_pinsP->DaphnisI_Pin_WakeUp.initial_value.output = WE_Pin_Level_Low;
     DaphnisI_pinsP->DaphnisI_Pin_Reset.type = WE_Pin_Type_Output;
+    DaphnisI_pinsP->DaphnisI_Pin_Reset.initial_value.output = WE_Pin_Level_High;
 
     WE_Pin_t pins[sizeof(DaphnisI_Pins_t) / sizeof(WE_Pin_t)];
     uint8_t pin_count = 0;
@@ -394,12 +421,6 @@ bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCal
         return false;
     }
 
-    /* Set initial pin levels */
-    if (!WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_Boot, WE_Pin_Level_Low) || !WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_WakeUp, WE_Pin_Level_Low) || !WE_SetPin(DaphnisI_pinsP->DaphnisI_Pin_Reset, WE_Pin_Level_High))
-    {
-        return false;
-    }
-
     DaphnisI_uartP = uartP;
     if (false == DaphnisI_uartP->uartInit(DaphnisI_uartP->baudrate, DaphnisI_uartP->flowControl, DaphnisI_uartP->parity, &byteRxCallback))
     {
@@ -409,18 +430,12 @@ bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCal
     WE_Delay(10);
 
     /* reset module */
-    if (!DaphnisI_PinReset())
+    if (!(IS_WE_PIN_UNDEFINED(DaphnisI_pinsP->DaphnisI_Pin_Reset) ? DaphnisI_Reset() : DaphnisI_PinReset()))
     {
+        WE_DEBUG_PRINT_INFO("Reset failed.\r\n");
+        DaphnisI_Deinit();
         return false;
     }
-
-    /* Set response timeouts */
-    DaphnisI_timeouts[DaphnisI_Timeout_General] = 1000;
-
-#if DAPHNISI_MIN_FW_VER >= FW(1, 4, 0)
-    DaphnisI_timeouts[DaphnisI_Timeout_P2P_Data] = 10000;
-    DaphnisI_timeouts[DaphnisI_Timeout_P2P_Remote_GPIO] = 3000;
-#endif
 
     DaphnisI_FW_Version_t fw;
     DaphnisI_LoRaWAN_LL_Version_t ll;
@@ -433,7 +448,7 @@ bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCal
 
     if (FW(fw.Major, fw.Minor, fw.Patch) < DAPHNISI_MIN_FW_VER)
     {
-        WE_DEBUG_PRINT("Please update the module to the selected version.\r\n");
+        WE_DEBUG_PRINT_INFO("Please update the module to the selected version.\r\n");
         return false;
     }
 
@@ -442,6 +457,18 @@ bool DaphnisI_Init(WE_UART_t* uartP, DaphnisI_Pins_t* pinoutP, DaphnisI_EventCal
 
 bool DaphnisI_Deinit(void)
 {
+    WE_Pin_t pins[sizeof(DaphnisI_Pins_t) / sizeof(WE_Pin_t)];
+    uint8_t pin_count = 0;
+    memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_Boot, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_WakeUp, sizeof(WE_Pin_t));
+    memcpy(&pins[pin_count++], &DaphnisI_pinsP->DaphnisI_Pin_Reset, sizeof(WE_Pin_t));
+
+    /* deinit pins */
+    if (!WE_DeinitPins(pins, pin_count))
+    {
+        return false;
+    }
+
     DaphnisI_eventCallback = NULL;
 
     DaphnisI_rxByteCounter = 0;
@@ -508,7 +535,7 @@ bool DaphnisI_SendRequest(char* data)
     if (DaphnisI_executingEventCallback)
     {
         /* Don't allow sending AT commands from event handlers, as this will
-		 * mess up send/receive states and buffers. */
+         * mess up send/receive states and buffers. */
         return false;
     }
 
@@ -517,7 +544,7 @@ bool DaphnisI_SendRequest(char* data)
     DaphnisI_lastError = DaphnisI_ErrorMessage_Invalid;
 
     /* Make sure that the time between the last confirmation received from the module
-	 * and the next command sent to the module is not shorter than DaphnisI_minCommandIntervalUsec */
+     * and the next command sent to the module is not shorter than DaphnisI_minCommandIntervalUsec */
     uint32_t t = WE_GetTickMicroseconds() - DaphnisI_lastConfirmTimeUsec;
     if (t < DaphnisI_minCommandIntervalUsec)
     {
@@ -539,9 +566,7 @@ bool DaphnisI_SendRequest(char* data)
         }
     }
 
-#ifdef WE_DEBUG
-    WE_DEBUG_PRINT("> %s", data);
-#endif
+    WE_DEBUG_PRINT_DEBUG("> %s", data);
 
     DaphnisI_Transparent_Transmit(data, dataLength);
 
@@ -673,11 +698,15 @@ static bool DaphnisI_ATEvent_ParseEventType(char** pAtCommand, DaphnisI_ATEvent_
 {
     char delimiters[] = {ATCOMMAND_EVENT_DELIM, ATCOMMAND_STRING_TERMINATE};
 
-    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), (uint16_t*)pEvent))
+    uint16_t event;
+
+    if (!ATCommand_ParseEventType(pAtCommand, moduleMainEvents, delimiters, sizeof(delimiters), &event))
     {
         *pEvent = DaphnisI_ATEvent_Invalid;
         return false;
     }
+
+    *pEvent = (DaphnisI_ATEvent_t)event;
 
     return true;
 }

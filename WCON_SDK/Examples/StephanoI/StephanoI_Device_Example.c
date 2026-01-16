@@ -68,7 +68,7 @@ void StephanoI_ManufacturingUserPartitions_SubExample()
     StephanoI_Examples_Print("Get manufacturing user partitions", ret);
 
 #if 0
-	char new_server_cert[] = "-----BEGIN CERTIFICATE-----\r\n\
+    char new_server_cert[] = "-----BEGIN CERTIFICATE-----\r\n\
 MIIDLTCCAhWgAwIBAgIJAPgqhiqX1DNNMA0GCSqGSIb3DQEBCwUAMDcxCzAJBgNV\r\n\
 BAYTAlMxMQ8wDQYDVQQKDAZFU1AgUzExFzAVBgNVBAMMDkVTUCBSb290IENBIFMx\r\n\
 MB4XDTE5MDYyMTA4MDAyMloXDTI5MDYxODA4MDAyMlowNzELMAkGA1UEBhMCUzIx\r\n\
@@ -88,10 +88,10 @@ H0ltyOHkox8HGQkJv6G610ig3cxKdbxD0JwR5uh7fOG41DwC4sN2y2FTvi+xurZB\r\n\
 6ozGuZlMeFS7mFLqU5uQfi730FBJMA05DCpDhAvbFk8mzJdwBMWbqKHsGW0DlNXN\r\n\
 zA==\r\n\
 -----END CERTIFICATE-----\r\n";
-	ret = StephanoI_ATDevice_EraseManufacturingUserPartitions("server_cert", "server_cert");
-	StephanoI_Examples_Print("Erase server certificate", ret);
-	ret = StephanoI_ATDevice_WriteManufacturingUserPartitions("server_cert", "server_cert", StephanoI_ATDevice_SYSMFG_data_binary, strlen(new_server_cert), (uint8_t*)new_server_cert);
-	StephanoI_Examples_Print("Write server certificate", ret);
+    ret = StephanoI_ATDevice_EraseManufacturingUserPartitions("server_cert", "server_cert");
+    StephanoI_Examples_Print("Erase server certificate", ret);
+    ret = StephanoI_ATDevice_WriteManufacturingUserPartitions("server_cert", "server_cert", StephanoI_ATDevice_SYSMFG_data_binary, strlen(new_server_cert), (uint8_t*)new_server_cert);
+    StephanoI_Examples_Print("Write server certificate", ret);
 #endif
 
     StephanoI_ATDevice_SYSMFG_t manu;
@@ -134,11 +134,11 @@ void StephanoI_Filesystem_SubExample()
  */
 void StephanoI_Device_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI ATDevice example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI ATDevice example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -174,7 +174,7 @@ void StephanoI_Device_Example()
     StephanoI_Examples_Print("Set time stamp", ret);
     ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
     StephanoI_Examples_Print("Get time stamp", ret);
-    WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
+    WE_APP_PRINT("Time stamp = %d\r\n", (int)time);
 
     ret = StephanoI_ATDevice_SetTXPower(StephanoI_ATDevice_WifiPower_Plus20, StephanoI_ATDevice_BluetoothLEPower_None);
     StephanoI_Examples_Print("Set WiFi TX power", ret);
@@ -187,17 +187,17 @@ void StephanoI_Device_Example()
     StephanoI_ATDevice_UART_t uart;
     ret = StephanoI_ATDevice_GetDefaultUART(&uart);
     StephanoI_Examples_Print("Get default uart TX power", ret);
-    WE_DEBUG_PRINT("%d Baud\r\n", (int)uart.baudrate);
+    WE_APP_PRINT("%d Baud\r\n", (int)uart.baudrate);
 
     float temp;
     ret = StephanoI_ATDevice_GetSystemTemp(&temp);
     StephanoI_Examples_Print("Get system temperature", ret);
-    WE_DEBUG_PRINT("%.2f C\r\n", temp);
+    WE_APP_PRINT("%.2f C\r\n", temp);
 
     bool storemode;
     ret = StephanoI_ATDevice_GetSystemStoremode(&storemode);
     StephanoI_Examples_Print("Get system store mode", ret);
-    WE_DEBUG_PRINT("Storemode %s\r\n", storemode ? "enabled" : "disabled");
+    WE_APP_PRINT("Storemode %s\r\n", storemode ? "enabled" : "disabled");
 
     //StephanoI_ManufacturingUserPartitions_SubExample();
     StephanoI_Filesystem_SubExample();
@@ -214,11 +214,11 @@ void StephanoI_Device_Example()
  */
 void StephanoI_DeviceSleep_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI ATDeviceSleep example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI ATDeviceSleep example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Device_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -243,7 +243,7 @@ void StephanoI_DeviceSleep_Example()
     uint32_t time = 0;
     ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
     StephanoI_Examples_Print("Get time stamp", ret);
-    WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
+    WE_APP_PRINT("Time stamp = %d\r\n", (int)time);
 
     /* set wake-up pin to pin 10, active level to high and enable sleep mode */
     bool active_level = true;
@@ -265,7 +265,7 @@ void StephanoI_DeviceSleep_Example()
         /* do your stuff */
         ret = StephanoI_ATDevice_GetSystemTimestamp(&time);
         StephanoI_Examples_Print("Get time stamp", ret);
-        WE_DEBUG_PRINT("Time stamp = %d\r\n", (int)time);
+        WE_APP_PRINT("Time stamp = %d\r\n", (int)time);
 
         /* go to sleep */
         ret = StephanoI_SetWakeUpPin(!active_level);

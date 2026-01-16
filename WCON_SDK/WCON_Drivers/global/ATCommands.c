@@ -24,13 +24,16 @@
  */
 
 /**
- * @file
+ * @file ATCommands.c
  * @brief ATCommand driver general AT command definitions.
  */
 
 #include <global/ATCommands.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 
 char AT_commandBuffer[AT_MAX_COMMAND_BUFFER_SIZE];
 
@@ -55,7 +58,7 @@ bool ATCommand_IntToString(char* outString, uint32_t number, uint16_t intFlags)
     if (ATCOMMAND_INTFLAGS_NOTATION_HEX == (intFlags & ATCOMMAND_INTFLAGS_NOTATION))
     {
         /* HEX */
-        sprintf(outString, "0x%lx", number);
+        sprintf(outString, "0x%" PRIx32, number);
     }
     else
     {
@@ -64,12 +67,12 @@ bool ATCommand_IntToString(char* outString, uint32_t number, uint16_t intFlags)
         if (ATCOMMAND_INTFLAGS_UNSIGNED == (intFlags & ATCOMMAND_INTFLAGS_SIGN))
         {
             /* UNSIGNED */
-            sprintf(outString, "%lu", number);
+            sprintf(outString, "%" PRIu32, number);
         }
         else
         {
             /* SIGNED */
-            sprintf(outString, "%ld", *(int32_t*)&number);
+            sprintf(outString, "%" PRId32, (int32_t)number);
         }
     }
 
@@ -502,7 +505,7 @@ bool ATCommand_GetNextArgumentEnum(char** pInArguments, uint8_t* pOutArgument, c
  * @brief Gets the next string argument from the supplied AT command.
  *
  * @param[in,out]  pInArguments AT command to get argument from
- * @param[in]  length Length of the argument to copy
+ * @param[in] length Length of the argument to copy
  * @param[out] pOutArgument Argument as byte array
  * @param[in] maxLength Max. length of byte array
  *
@@ -641,7 +644,7 @@ bool ATCommand_GetNextArgumentIntWithoutQuotationMarks(char** pInArguments, void
 }
 
 /**
- * @param Gets the command name from an AT command.
+ * @brief Gets the command name from an AT command.
  *
  * @param[in,out] pInAtCmd AT command to get command name from
  * @param[in] pCmdName Command name as string

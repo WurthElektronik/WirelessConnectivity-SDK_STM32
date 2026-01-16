@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATDevice.c
  * @brief AT commands for basic device functionality.
  */
 #include <CordeliaI/ATCommands/ATDevice.h>
@@ -63,11 +63,6 @@ static bool CordeliaI_ATDevice_AddArgumentsATget(char* pAtCommand, uint8_t id, u
 static bool CordeliaI_ATDevice_AddArgumentsATset(char* pAtCommand, uint8_t id, uint8_t option, void* pValue);
 static bool CordeliaI_ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char* pAtCommand, void* pValue);
 
-/**
- * @brief Tests the connection to the wireless module (using the AT+test command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Test()
 {
     if (!CordeliaI_SendRequest("AT+test\r\n"))
@@ -77,11 +72,6 @@ bool CordeliaI_ATDevice_Test()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * Send AT command - general function
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_SendATCommand(char* atCommand)
 {
     if (!CordeliaI_SendRequest(atCommand))
@@ -91,11 +81,6 @@ bool CordeliaI_ATDevice_SendATCommand(char* atCommand)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Gets device ID
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_Get_DeviceID()
 {
     if (!CordeliaI_SendRequest("AT+get=iot,deviceid\r\n"))
@@ -105,11 +90,6 @@ bool CordeliaI_Get_DeviceID()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Starts the network processor (using the AT+start command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Start()
 {
     if (!CordeliaI_SendRequest("AT+start\r\n"))
@@ -119,13 +99,6 @@ bool CordeliaI_ATDevice_Start()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Stops the network processor (using the AT+stop command).
- *
- * @param[in] timeoutMs Timeout in milliseconds.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Stop(uint32_t timeoutMs)
 {
 
@@ -154,18 +127,12 @@ bool CordeliaI_ATDevice_Stop(uint32_t timeoutMs)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Restarts the network processor by sending an AT+stop followed by an AT+start command.
- *
- * @param[in] timeoutMs Timeout for stop command
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Restart(uint32_t timeoutMs)
 {
     if (!CordeliaI_ATDevice_Stop(timeoutMs))
     {
         /* Stop command will fail with error -2018 if the network processor is not active at
-		 * the time of processing the command. This is not considered to be an error. */
+         * the time of processing the command. This is not considered to be an error. */
         if (CordeliaI_GetLastError(NULL) != -2018)
         {
             return false;
@@ -174,11 +141,6 @@ bool CordeliaI_ATDevice_Restart(uint32_t timeoutMs)
     return CordeliaI_ATDevice_Start();
 }
 
-/**
- * @brief Reboots the device (using the AT+reboot command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Reboot()
 {
     if (!CordeliaI_SendRequest("AT+reboot\r\n"))
@@ -189,11 +151,6 @@ bool CordeliaI_ATDevice_Reboot()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Performs a factory reset of the device (using the AT+factoryReset command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_FactoryReset()
 {
     if (!CordeliaI_SendRequest("AT+factoryreset\r\n"))
@@ -204,14 +161,6 @@ bool CordeliaI_ATDevice_FactoryReset()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_FactoryReset), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Puts the wireless module into the lowest possible power mode for the supplied duration (using the AT+hibernate command).
- *
- * @param[in] timeoutSeconds Timeout until the module wakes up again.
- *                           Must be in range ATDEVICE_SLEEP_MIN_TIMEOUT <= timeoutInSeconds <= ATDEVICE_SLEEP_MAX_TIMEOUT.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Hibernate(uint32_t timeoutSeconds)
 {
 
@@ -240,15 +189,6 @@ bool CordeliaI_ATDevice_Hibernate(uint32_t timeoutSeconds)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Reads device parameters (using the AT+get command).
- *
- * @param[in] id ID of the parameter to get.
- * @param[in] option Option to get. Valid values depend on id.
- * @param[out] pValue Values returned.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Get(CordeliaI_ATDevice_GetId_t id, uint8_t option, void* pValue)
 {
     if (!CordeliaI_ATDevice_IsInputValidATget(id, option))
@@ -302,15 +242,6 @@ bool CordeliaI_ATDevice_Get(CordeliaI_ATDevice_GetId_t id, uint8_t option, void*
     return true;
 }
 
-/**
- * @brief Sets device parameters (using the AT+set command).
- *
- * @param[in] id ID of parameter to be set. Valid IDs are CordeliaI_ATDevice_GetId_General and CordeliaI_ATDevice_GetId_UART.
- * @param[in] option Option to set. Valid values depend on ID.
- * @param[out] pValues Values for the specific ID/option
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_Set(CordeliaI_ATDevice_GetId_t id, uint8_t option, void* pValue)
 {
 
@@ -333,13 +264,6 @@ bool CordeliaI_ATDevice_Set(CordeliaI_ATDevice_GetId_t id, uint8_t option, void*
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief MQTT publish argument (using the AT+wlanConnect command).
- *
- * @param[in] publishArgs Publish parameters
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_MQTT_Publish(CordeliaI_MQTT_PublishArguments_t publishArgs)
 {
 
@@ -368,11 +292,6 @@ bool CordeliaI_MQTT_Publish(CordeliaI_MQTT_PublishArguments_t publishArgs)
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Enrolls the IoT device (using the AT+iotenrol command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_IoT_Enrol()
 {
     if (!CordeliaI_SendRequest("AT+iotenrol\r\n"))
@@ -383,11 +302,6 @@ bool CordeliaI_IoT_Enrol()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Connects the IoT device (using the AT+iotconnect command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_IoT_Connect()
 {
     if (!CordeliaI_SendRequest("AT+iotconnect\r\n"))
@@ -398,11 +312,6 @@ bool CordeliaI_IoT_Connect()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Disconnects the IoT device (using the AT+iotdisconnect command).
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_IoT_Disconnect()
 {
     if (!CordeliaI_SendRequest("AT+iotdisconnect\r\n"))
@@ -413,11 +322,6 @@ bool CordeliaI_IoT_Disconnect()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Starts provisioning mode.
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_StartProvisioning()
 {
     if (!CordeliaI_SendRequest("AT+provisioningStart\r\n"))
@@ -427,15 +331,6 @@ bool CordeliaI_ATDevice_StartProvisioning()
     return CordeliaI_WaitForConfirm(CordeliaI_GetTimeout(CordeliaI_Timeout_General), CordeliaI_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Prints status flags to string (for debugging purposes).
- *
- * @param[in] flags Status flags
- * @param[out] pOutStr Output string buffer
- * @param[in] maxLength Size of output string buffer
- *
- * @return true if successful, false otherwise
- */
 bool CordeliaI_ATDevice_PrintStatusFlags(uint32_t flags, char* pOutStr, size_t maxLength)
 {
     pOutStr[0] = '\0';
@@ -1102,7 +997,7 @@ bool CordeliaI_ATDevice_ParseResponseATget(uint8_t id, uint8_t option, char* pAt
 }
 
 /**
- * @param Checks if parameters are valid for the AT+set command.
+ * @brief Checks if parameters are valid for the AT+set command.
  *
  * @param[in] id The ID of the parameter to be added
  * @param[in] option The option to be added

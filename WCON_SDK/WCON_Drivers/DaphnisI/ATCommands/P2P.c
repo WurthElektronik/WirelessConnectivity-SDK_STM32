@@ -35,6 +35,7 @@
 #include <global/ATCommands.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 static bool DaphnisI_P2P_SendPayloadString(char* string, uint8_t* payloadP, uint16_t payload_length);
 
@@ -283,7 +284,7 @@ bool DaphnisI_P2P_ParseRXDataEvent(char** pEventArguments, DaphnisI_P2P_RxData_t
         return false;
     }
 
-    *pEventArguments += (rxDataP->data_length << 2);
+    *pEventArguments += (rxDataP->data_length << 1);
 
     return true;
 }

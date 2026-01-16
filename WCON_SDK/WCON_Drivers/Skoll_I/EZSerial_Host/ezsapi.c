@@ -532,6 +532,10 @@ ezs_output_result_t ezs_cmd_va(uint16_t index, uint8_t memory, ...)
     {
         size = 0;
         pointer = 0;
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
         switch (*search++)
         {
             case T_U32:
@@ -568,6 +572,9 @@ ezs_output_result_t ezs_cmd_va(uint16_t index, uint8_t memory, ...)
                 /* should never occur, all cases covered */
                 break;
         }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
         /* check for correct type */
         if (pointer != 0)

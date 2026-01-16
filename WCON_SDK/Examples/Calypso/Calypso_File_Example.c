@@ -40,13 +40,13 @@ void Calypso_File_Example_EventCallback(char* eventText);
  */
 void Calypso_File_Example(void)
 {
-    WE_DEBUG_PRINT("*** Start of Calypso ATFile example ***\r\n");
+    WE_APP_PRINT("*** Start of Calypso ATFile example ***\r\n");
 
     bool ret = false;
 
     if (!Calypso_Init(&Calypso_uart, &Calypso_pins, &Calypso_File_Example_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -55,8 +55,8 @@ void Calypso_File_Example(void)
     Calypso_Examples_WaitForStartup(5000);
 
     /* Get version info. This retrieves Calypso's firmware version (amongst other version info) and
-	 * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
-	 * Calypso_firmwareVersionPatch for later use. */
+     * stores the firmware version in Calypso_firmwareVersionMajor, Calypso_firmwareVersionMinor and
+     * Calypso_firmwareVersionPatch for later use. */
     Calypso_ATDevice_Value_t deviceValue;
     ret = Calypso_ATDevice_Get(Calypso_ATDevice_GetId_General, Calypso_ATDevice_GetGeneral_Version, &deviceValue);
     Calypso_Examples_Print("Get device version", ret);
@@ -75,7 +75,7 @@ void Calypso_File_Example(void)
         uint16_t bytesWritten = 0;
         ret = Calypso_ATFile_Write(fileID, 0, encodeAsBase64 ? Calypso_DataFormat_Base64 : Calypso_DataFormat_Binary, encodeAsBase64, strlen(fileContent), fileContent, &bytesWritten);
         Calypso_Examples_Print("Write file", ret);
-        WE_DEBUG_PRINT("Wrote \"%s\" (length %d) in %s format\r\n", fileContent, strlen(fileContent), encodeAsBase64 ? "Base64" : "binary");
+        WE_APP_PRINT("Wrote \"%s\" (length %d) in %s format\r\n", fileContent, strlen(fileContent), encodeAsBase64 ? "Base64" : "binary");
     }
 
     ret = Calypso_ATFile_Close(fileID, NULL, NULL);
@@ -92,7 +92,7 @@ void Calypso_File_Example(void)
         Calypso_Examples_Print("Read file", ret);
         if (ret)
         {
-            WE_DEBUG_PRINT("Read \"%s\" (length %d) in %s format\r\n", fileContentReadBack, readBytes, encodeAsBase64 ? "Base64" : "binary");
+            WE_APP_PRINT("Read \"%s\" (length %d) in %s format\r\n", fileContentReadBack, readBytes, encodeAsBase64 ? "Base64" : "binary");
         }
     }
 
@@ -100,9 +100,9 @@ void Calypso_File_Example(void)
     Calypso_Examples_Print("Close file", ret);
 
     /* Get list of files stored on Calypso module. Note that the file list
-	 * entries are provided in the form of individual events of type Calypso_ATEvent_FileListEntry,
-	 * as the complete list of files might be too large to fit in the receive buffer.
-	 * In this example, the entries are processed in Calypso_File_Example_EventCallback(). */
+     * entries are provided in the form of individual events of type Calypso_ATEvent_FileListEntry,
+     * as the complete list of files might be too large to fit in the receive buffer.
+     * In this example, the entries are processed in Calypso_File_Example_EventCallback(). */
     ret = Calypso_ATFile_GetFileList();
     Calypso_Examples_Print("Get file list", ret);
 
@@ -142,12 +142,12 @@ void Calypso_File_Example_EventCallback(char* eventText)
             {
                 char propertiesStr[256] = {0};
                 Calypso_ATFile_PrintFileProperties(fileListEntry.properties, propertiesStr, sizeof(propertiesStr));
-                WE_DEBUG_PRINT("File list entry: "
-                               "Name = \"%s\", "
-                               "max. size = %lu, "
-                               "properties = \"%s\", "
-                               "blocks = %lu\r\n",
-                               fileListEntry.fileName, fileListEntry.maxFileSize, propertiesStr, fileListEntry.allocatedBlocks);
+                WE_APP_PRINT("File list entry: "
+                             "Name = \"%s\", "
+                             "max. size = %lu, "
+                             "properties = \"%s\", "
+                             "blocks = %lu\r\n",
+                             fileListEntry.fileName, fileListEntry.maxFileSize, propertiesStr, fileListEntry.allocatedBlocks);
             }
             break;
         }

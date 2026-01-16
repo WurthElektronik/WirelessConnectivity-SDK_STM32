@@ -731,7 +731,10 @@ json_value* json_parse_ex(json_settings* settings, const json_char* json, size_t
 
                                 flags = (flags & ~flag_need_comma) | flag_next;
                                 break;
-
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
                             case ',':
 
                                 if (flags & flag_need_comma)
@@ -740,7 +743,9 @@ json_value* json_parse_ex(json_settings* settings, const json_char* json, size_t
                                     break;
                                 }
                                 //fall through is intended here
-
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
                             default:
                                 sprintf(error, "%d:%d: Unexpected `%c` in object", line_and_col, b);
                                 goto e_failed;

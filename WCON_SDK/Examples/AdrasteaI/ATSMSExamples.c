@@ -37,11 +37,11 @@ static AdrasteaI_ATPacketDomain_Network_Registration_Status_t status = {.state =
 
 void ATSMSExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATSMS example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATSMS example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATSMS_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -68,12 +68,12 @@ void ATSMSExample()
 
     if (ret)
     {
-        WE_DEBUG_PRINT("Read & Delete Storage: \r\n");
-        WE_DEBUG_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.readDeleteStorageUsage.storageLocation, storageUsage.readDeleteStorageUsage.usedMessages, storageUsage.readDeleteStorageUsage.maxMessages);
-        WE_DEBUG_PRINT("Write & Send Storage: \r\n");
-        WE_DEBUG_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.writeSendStorageUsage.storageLocation, storageUsage.writeSendStorageUsage.usedMessages, storageUsage.writeSendStorageUsage.maxMessages);
-        WE_DEBUG_PRINT("Receive Storage: \r\n");
-        WE_DEBUG_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.receiveStorageUsage.storageLocation, storageUsage.receiveStorageUsage.usedMessages, storageUsage.receiveStorageUsage.maxMessages);
+        WE_APP_PRINT("Read & Delete Storage: \r\n");
+        WE_APP_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.readDeleteStorageUsage.storageLocation, storageUsage.readDeleteStorageUsage.usedMessages, storageUsage.readDeleteStorageUsage.maxMessages);
+        WE_APP_PRINT("Write & Send Storage: \r\n");
+        WE_APP_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.writeSendStorageUsage.storageLocation, storageUsage.writeSendStorageUsage.usedMessages, storageUsage.writeSendStorageUsage.maxMessages);
+        WE_APP_PRINT("Receive Storage: \r\n");
+        WE_APP_PRINT("Location: %d, Messages Used Count: %d, Messages Max Count: %d\r\n", storageUsage.receiveStorageUsage.storageLocation, storageUsage.receiveStorageUsage.usedMessages, storageUsage.receiveStorageUsage.maxMessages);
     }
 
     AdrasteaI_ATSMS_Message_Reference_t msg1ID, msg2ID;
@@ -81,14 +81,14 @@ void ATSMSExample()
     AdrasteaI_ExamplesPrint("Send Message", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Message Reference: %d\r\n", msg1ID);
+        WE_APP_PRINT("Message Reference: %d\r\n", msg1ID);
     }
 
     ret = AdrasteaI_ATSMS_SendMessageFromStorage(msgIdx, &msg2ID);
     AdrasteaI_ExamplesPrint("Send Message From Storage", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Message Reference: %d\r\n", msg2ID);
+        WE_APP_PRINT("Message Reference: %d\r\n", msg2ID);
     }
 
     ret = AdrasteaI_ATSMS_DeleteAllMessages();
@@ -123,7 +123,7 @@ void AdrasteaI_ATSMS_EventCallback(char* eventText)
             {
                 return;
             }
-            WE_DEBUG_PRINT("Message Index: %d, Message State: %d, Address: %s, Payload: %s\r\n", message.messageIndex, message.messageState, message.address, message.payload);
+            WE_APP_PRINT("Message Index: %d, Message State: %d, Address: %s, Payload: %s\r\n", message.messageIndex, message.messageState, message.address, message.payload);
             break;
         }
         case AdrasteaI_ATEvent_SMS_Message_Received:

@@ -38,11 +38,11 @@ static bool dataReceived = false;
 
 void ATSocketExample()
 {
-    WE_DEBUG_PRINT("*** Start of Adrastea-I ATSocket example ***\r\n");
+    WE_APP_PRINT("*** Start of Adrastea-I ATSocket example ***\r\n");
 
     if (!AdrasteaI_Init(&AdrasteaI_uart, &AdrasteaI_pins, &AdrasteaI_ATSocket_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -61,7 +61,7 @@ void ATSocketExample()
     AdrasteaI_ExamplesPrint("Allocate Socket", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Socket ID: %d\r\n", socketID);
+        WE_APP_PRINT("Socket ID: %d\r\n", socketID);
     }
 
     ret = AdrasteaI_ATSocket_ActivateSocket(1, AdrasteaI_ATCommon_Session_ID_Invalid);
@@ -79,7 +79,7 @@ void ATSocketExample()
     AdrasteaI_ExamplesPrint("Receive From Socket", ret);
     if (ret)
     {
-        WE_DEBUG_PRINT("Socket ID: %d, Data length: %d, Payload: %s\r\n", dataRead.socketID, dataRead.dataLength, dataRead.data);
+        WE_APP_PRINT("Socket ID: %d, Data length: %d, Payload: %s\r\n", dataRead.socketID, dataRead.dataLength, dataRead.data);
     }
 }
 

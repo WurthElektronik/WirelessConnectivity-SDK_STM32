@@ -36,7 +36,7 @@ extern "C"
 {
 #endif
 
-    extern void ATMQTTExample();
+extern void ATMQTTExample();
 
 #ifdef __cplusplus
 }

@@ -33,6 +33,7 @@
 #include <StephanoI/ATCommands/ATWifi.h>
 #include <StephanoI/StephanoI_Examples.h>
 #include <StephanoI/StephanoI_Wifi_Example.h>
+#include <inttypes.h>
 
 /**
  * @brief Contains information on last Wifi State event (if any)
@@ -81,11 +82,11 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             {
                 if (multiple_sockets_enabled)
                 {
-                    WE_DEBUG_PRINT("Multiple sockets enabled\r\n");
+                    WE_APP_PRINT("Multiple sockets enabled\r\n");
                 }
                 else
                 {
-                    WE_DEBUG_PRINT("Multiple sockets disabled\r\n");
+                    WE_APP_PRINT("Multiple sockets disabled\r\n");
                 }
             }
         }
@@ -95,12 +96,12 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATSocket_Receive_t received;
             if (StephanoI_ATSocket_ParseReceive(eventText, multiple_sockets_enabled, &received))
             {
-                WE_DEBUG_PRINT("Socket received event received: 0x");
+                WE_APP_PRINT("Socket received event received: 0x");
                 for (uint32_t i = 0; i < received.length; i++)
                 {
-                    WE_DEBUG_PRINT("%02X", received.data[i]);
+                    WE_APP_PRINT("%02X", received.data[i]);
                 }
-                WE_DEBUG_PRINT("\r\n");
+                WE_APP_PRINT("\r\n");
             }
         }
         break;
@@ -109,9 +110,9 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATSocket_Ping_t ping;
             if (StephanoI_ATSocket_ParsePing(eventText, &ping))
             {
-                WE_DEBUG_PRINT("Socket ping event received.\r\n"
-                               "Time: %lu ms\r\n",
-                               (uint32_t)ping);
+                WE_APP_PRINT("Socket ping event received.\r\n"
+                             "Time: %lu ms\r\n",
+                             (uint32_t)ping);
             }
         }
         break;
@@ -120,9 +121,9 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATSocket_DomainResolved_t domain;
             if (StephanoI_ATSocket_ParseDomainResolved(eventText, &domain))
             {
-                WE_DEBUG_PRINT("Socket domain resolved event received.\r\n"
-                               "IP: %s\r\n",
-                               domain);
+                WE_APP_PRINT("Socket domain resolved event received.\r\n"
+                             "IP: %s\r\n",
+                             domain);
             }
         }
         break;
@@ -130,10 +131,10 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATWiFi_ParseState(eventText, &StephanoI_Examples_Wifi_State))
             {
-                WE_DEBUG_PRINT("Wifi state event received.\r\n"
-                               "State: %d\r\n"
-                               "SSID: %s\r\n",
-                               (int)StephanoI_Examples_Wifi_State.state, StephanoI_Examples_Wifi_State.ssid);
+                WE_APP_PRINT("Wifi state event received.\r\n"
+                             "State: %d\r\n"
+                             "SSID: %s\r\n",
+                             (int)StephanoI_Examples_Wifi_State.state, StephanoI_Examples_Wifi_State.ssid);
             }
         }
         break;
@@ -142,12 +143,12 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATWiFi_Scan_t StephanoI_Examples_Wifi_Scan;
             if (StephanoI_ATWiFi_ParseScan(eventText, &StephanoI_Examples_Wifi_Scan))
             {
-                WE_DEBUG_PRINT("Wifi scan event received.\r\n"
-                               "SSID: %s\r\n"
-                               "Encryption: %d\r\n"
-                               "RSSI: %d\r\n"
-                               "Channel: %d\r\n",
-                               StephanoI_Examples_Wifi_Scan.ssid, StephanoI_Examples_Wifi_Scan.enc, StephanoI_Examples_Wifi_Scan.rssi, StephanoI_Examples_Wifi_Scan.channel);
+                WE_APP_PRINT("Wifi scan event received.\r\n"
+                             "SSID: %s\r\n"
+                             "Encryption: %d\r\n"
+                             "RSSI: %d\r\n"
+                             "Channel: %d\r\n",
+                             StephanoI_Examples_Wifi_Scan.ssid, StephanoI_Examples_Wifi_Scan.enc, StephanoI_Examples_Wifi_Scan.rssi, StephanoI_Examples_Wifi_Scan.channel);
             }
         }
         break;
@@ -163,11 +164,11 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATWiFi_GetIP_t StephanoI_Examples_Wifi_IP;
             if (StephanoI_ATWiFi_ParseGetIP(eventText, &StephanoI_Examples_Wifi_IP))
             {
-                WE_DEBUG_PRINT("Wifi getIP event received.\r\n"
-                               "IP: %s\r\n"
-                               "Gateway: %s\r\n"
-                               "Netmask: %s\r\n",
-                               StephanoI_Examples_Wifi_IP.IP, StephanoI_Examples_Wifi_IP.gateway, StephanoI_Examples_Wifi_IP.netmask);
+                WE_APP_PRINT("Wifi getIP event received.\r\n"
+                             "IP: %s\r\n"
+                             "Gateway: %s\r\n"
+                             "Netmask: %s\r\n",
+                             StephanoI_Examples_Wifi_IP.IP, StephanoI_Examples_Wifi_IP.gateway, StephanoI_Examples_Wifi_IP.netmask);
             }
         }
         break;
@@ -176,10 +177,10 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATWiFi_GetConnectedIPs_t t;
             if (StephanoI_ATWiFi_ParseGetConnectedIPs(eventText, &t))
             {
-                WE_DEBUG_PRINT("Wifi connected IPs event received.\r\n"
-                               "MAC: %s\r\n"
-                               "IP: %s\r\n",
-                               t.MAC, t.IP);
+                WE_APP_PRINT("Wifi connected IPs event received.\r\n"
+                             "MAC: %s\r\n"
+                             "IP: %s\r\n",
+                             t.MAC, t.IP);
             }
         }
         break;
@@ -188,9 +189,9 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATWiFi_MAC_t t;
             if (StephanoI_ATWiFi_ParseStationhasConnected(eventText, &t))
             {
-                WE_DEBUG_PRINT("Wifi station has connected event received.\r\n"
-                               "MAC: %s\r\n",
-                               t);
+                WE_APP_PRINT("Wifi station has connected event received.\r\n"
+                             "MAC: %s\r\n",
+                             t);
             }
         }
         break;
@@ -199,10 +200,10 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATWiFi_APAssignIP_t t;
             if (StephanoI_ATWiFi_ParseAPAssignIP(eventText, &t))
             {
-                WE_DEBUG_PRINT("Wifi AP assign IP event received.\r\n"
-                               "MAC: %s\r\n"
-                               "IP: %s\r\n",
-                               t.MAC, t.ip);
+                WE_APP_PRINT("Wifi AP assign IP event received.\r\n"
+                             "MAC: %s\r\n"
+                             "IP: %s\r\n",
+                             t.MAC, t.ip);
             }
         }
         break;
@@ -210,9 +211,9 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
         {
             if (StephanoI_ATWebserver_ParseResponse(eventText, &StephanoI_Examples_Webserver_State))
             {
-                WE_DEBUG_PRINT("Webserver response event received.\r\n"
-                               "Response: %d\r\n",
-                               StephanoI_Examples_Webserver_State);
+                WE_APP_PRINT("Webserver response event received.\r\n"
+                             "Response: %d\r\n",
+                             StephanoI_Examples_Webserver_State);
             }
         }
         break;
@@ -226,12 +227,12 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
             StephanoI_ATMQTT_ReceiveSubscriptions_t data;
             if (StephanoI_ATMQTT_ParseReceiveSubscriptions(eventText, &data))
             {
-                WE_DEBUG_PRINT("MQTT data received: ");
+                WE_APP_PRINT("MQTT data received: ");
                 for (uint32_t i = 0; i < data.length; i++)
                 {
-                    WE_DEBUG_PRINT("%c", data.data[i]);
+                    WE_APP_PRINT("%c", data.data[i]);
                 }
-                WE_DEBUG_PRINT("\r\n");
+                WE_APP_PRINT("\r\n");
                 free(data.data);
             }
         }
@@ -257,13 +258,13 @@ void StephanoI_Wifi_Examples_EventCallback(char* eventText)
  */
 void StephanoI_Wifi_Station_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Wifi station example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Wifi station example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -298,12 +299,12 @@ void StephanoI_Wifi_Station_Example()
     bool IPv6enable;
     ret = StephanoI_ATSocket_GetEnableIPv6(&IPv6enable);
     StephanoI_Examples_Print("IPv6 enable", ret);
-    WE_DEBUG_PRINT("IPv6 %s enabled\r\n", IPv6enable ? "is" : "is not");
+    WE_APP_PRINT("IPv6 %s enabled\r\n", IPv6enable ? "is" : "is not");
 
     uint8_t max_connections;
     ret = StephanoI_ATSocket_GetTCPSSLServerMaxConnections(&max_connections);
     StephanoI_Examples_Print("Get max connections", ret);
-    WE_DEBUG_PRINT("%d\r\n", max_connections);
+    WE_APP_PRINT("%d\r\n", max_connections);
 
     ret = StephanoI_ATSocket_SetTCPSSLServerMaxConnections(2);
     StephanoI_Examples_Print("Set max connections", ret);
@@ -347,8 +348,8 @@ void StephanoI_Wifi_Station_Example()
     StephanoI_Examples_Print("Get IP", ret);
 
 #if 0
-	ret = StephanoI_ATSocket_SetDNSServerInformation(true, "8.8.8.8");//dns.google.com;
-	StephanoI_Examples_Print("Set manual DNS", ret);
+    ret = StephanoI_ATSocket_SetDNSServerInformation(true, "8.8.8.8");//dns.google.com;
+    StephanoI_Examples_Print("Set manual DNS", ret);
 #endif
 
     StephanoI_ATSocket_DomainResolved_t domain;
@@ -358,7 +359,7 @@ void StephanoI_Wifi_Station_Example()
     StephanoI_ATSocket_Ping_t ping;
     ret = StephanoI_ATSocket_Ping("www.google.de", &ping);
     StephanoI_Examples_Print("Ping", ret);
-    WE_DEBUG_PRINT("%d ms\r\n", (int)ping);
+    WE_APP_PRINT("%d ms\r\n", (int)ping);
     WE_Delay(1000);
 
     ret = StephanoI_ATSocket_EnableSNTPServer(true, 2, "cn.ntp.org.cn");
@@ -366,7 +367,7 @@ void StephanoI_Wifi_Station_Example()
     uint32_t time;
     ret = StephanoI_ATSocket_GetSNTPTimeInterval(&time);
     StephanoI_Examples_Print("get SNTP time interval", ret);
-    WE_DEBUG_PRINT("%d s\r\n", (int)time);
+    WE_APP_PRINT("%d s\r\n", (int)time);
     ret = StephanoI_ATSocket_SetSNTPTimeInterval(time / 2);
     StephanoI_Examples_Print("set SNTP time interval", ret);
     WE_Delay(1000);
@@ -376,7 +377,7 @@ void StephanoI_Wifi_Station_Example()
         StephanoI_ATSocket_SNTP_Time_t time;
         ret = StephanoI_ATSocket_ReadSNTPTime(&time);
         StephanoI_Examples_Print("StephanoI_ATSocket_ReadSNTPTime", ret);
-        WE_DEBUG_PRINT("%s\r\n", time);
+        WE_APP_PRINT("%s\r\n", time);
         WE_Delay(5000);
     }
 
@@ -389,11 +390,11 @@ void StephanoI_Wifi_Station_Example()
  */
 void StephanoI_Wifi_AP_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI Wifi AP example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI Wifi AP example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -423,7 +424,7 @@ void StephanoI_Wifi_AP_Example()
     StephanoI_ATWiFi_Hostname_t name;
     ret = StephanoI_ATWifi_GetHostname(&name);
     StephanoI_Examples_Print("Get host name", ret);
-    WE_DEBUG_PRINT("%s\r\n", name);
+    WE_APP_PRINT("%s\r\n", name);
 
     strcpy(name, "Stephano-I");
     ret = StephanoI_ATWifi_SetHostname(name);
@@ -432,7 +433,7 @@ void StephanoI_Wifi_AP_Example()
     StephanoI_ATWifiCountryCode_t countrycode;
     ret = StephanoI_ATWifi_GetCountryCode(&countrycode);
     StephanoI_Examples_Print("Get country code", ret);
-    WE_DEBUG_PRINT("%s\r\n", countrycode.country_code);
+    WE_APP_PRINT("%s\r\n", countrycode.country_code);
 
     countrycode.policy = StephanoI_ATWifiCountryCodePolicy_Keep;
     strcpy(countrycode.country_code, "DE");
@@ -450,7 +451,7 @@ void StephanoI_Wifi_AP_Example()
     StephanoI_ATWiFi_MAC_t t;
     ret = StephanoI_ATWifi_AP_GetMAC(&t);
     StephanoI_Examples_Print("Get MAC", ret);
-    WE_DEBUG_PRINT("%s\r\n", t);
+    WE_APP_PRINT("%s\r\n", t);
     WE_Delay(500);
 
     StephanoI_ATWifiProtocolFlags_t prot;
@@ -514,7 +515,7 @@ void StephanoI_Wifi_AP_Example()
  */
 void StephanoI_Wifi_MQTT_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI MQTT example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI MQTT example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     char MQTT_test_publish_topic[] = "/WE_eiSmart/test1";
@@ -527,7 +528,7 @@ void StephanoI_Wifi_MQTT_Example()
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -589,11 +590,11 @@ void StephanoI_Wifi_MQTT_Example()
     ret = StephanoI_ATMQTT_Subscribe(0, MQTT_test_subscribe_topic, StephanoI_ATMQTT_QOS_0);
     StephanoI_Examples_Print("MQTT Subscribe", ret);
 
-    int counter = 0;
+    uint32_t counter = 0;
     char string_data[32];
     while (1)
     {
-        sprintf(string_data, "Test data #%d", counter++);
+        sprintf(string_data, "Test data #%" PRIu32, counter++);
         ret = StephanoI_ATMQTT_Publish(0, MQTT_test_publish_topic, string_data, StephanoI_ATMQTT_QOS_0, 0);
         StephanoI_Examples_Print("MQTT Publish", ret);
         WE_Delay(2500);
@@ -615,13 +616,13 @@ void StephanoI_Wifi_MQTT_Example()
  */
 void StephanoI_Wifi_HTTP_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI HTTP example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI HTTP example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -684,7 +685,7 @@ void StephanoI_Wifi_HTTP_Example()
     StephanoI_ATHTTP_Size_t size;
     ret = StephanoI_ATHTTP_GetSize("http://httpbin.org/get", &size);
     StephanoI_Examples_Print("HTTP get size", ret);
-    WE_DEBUG_PRINT("Size %d\r\n", size);
+    WE_APP_PRINT("Size %d\r\n", size);
     WE_Delay(500);
 
     StephanoI_ATHTTP_Get_t data = {.length = size, .data = NULL};
@@ -707,7 +708,7 @@ void StephanoI_Wifi_HTTP_Example()
  */
 void StephanoI_TCP_Client_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI TCP client example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI TCP client example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     char tcp_remote_host[WIFI_SSID_STRINGLEN] = "192.168.178.20";
@@ -723,7 +724,7 @@ void StephanoI_TCP_Client_Example()
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -796,7 +797,7 @@ void StephanoI_TCP_Client_Example()
  */
 void StephanoI_TCP_ClientThroughput_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI TCP throughput transmission example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI TCP throughput transmission example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     char tcp_remote_host[WIFI_SSID_STRINGLEN] = "192.168.178.20";
@@ -818,7 +819,7 @@ void StephanoI_TCP_ClientThroughput_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -834,7 +835,7 @@ void StephanoI_TCP_ClientThroughput_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_ATDevice_Restore();
@@ -848,7 +849,7 @@ void StephanoI_TCP_ClientThroughput_Example()
     /* set the UART baudrate to 3 MBaud */
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -916,11 +917,11 @@ void StephanoI_TCP_ClientThroughput_Example()
  */
 void StephanoI_Wifi_Provisioning_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI provisioning example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI provisioning example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -1035,11 +1036,11 @@ void StephanoI_Wifi_Provisioning_Example()
  */
 void StephanoI_Wifi_OTA_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI OTA example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI OTA example ***\r\n");
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -1088,7 +1089,7 @@ void StephanoI_Wifi_OTA_Example()
     /* wait until provisioning has been done and device has connected to a AP */
     while (StephanoI_Examples_Webserver_State != StephanoI_ATWebserver_Response_OTAReceiveDataSuccess)
     {
-        WE_DEBUG_PRINT("Waiting to finish OTA, state: %d\r\n", StephanoI_Examples_Webserver_State);
+        WE_APP_PRINT("Waiting to finish OTA, state: %d\r\n", StephanoI_Examples_Webserver_State);
         WE_Delay(10000);
     }
 
@@ -1108,7 +1109,7 @@ void StephanoI_Wifi_OTA_Example()
  */
 void StephanoI_TCP_Server_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI TCP server example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI TCP server example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     uint16_t tcp_host_port = 5678;
@@ -1123,7 +1124,7 @@ void StephanoI_TCP_Server_Example()
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -1180,7 +1181,7 @@ void StephanoI_TCP_Server_Example()
     uint16_t timeout;
     ret = StephanoI_ATSocket_GetTCPSSLServerTimeout(&timeout);
     StephanoI_Examples_Print("Get server timeout", ret);
-    WE_DEBUG_PRINT("%d\r\n", timeout);
+    WE_APP_PRINT("%d\r\n", timeout);
 
     ret = StephanoI_ATSocket_SetTCPSSLServerTimeout(2000);
     StephanoI_Examples_Print("Set server timeout", ret);
@@ -1217,7 +1218,7 @@ void StephanoI_TCP_Server_Example()
  */
 void StephanoI_UDP_Client_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI UDP client example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI UDP client example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     char udp_remote_host[WIFI_SSID_STRINGLEN] = "192.168.178.20";
@@ -1234,7 +1235,7 @@ void StephanoI_UDP_Client_Example()
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 
@@ -1310,7 +1311,7 @@ void StephanoI_UDP_Client_Example()
  */
 void StephanoI_UDP_ClientThroughput_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI UDP throughput example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI UDP throughput example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     char udp_remote_host[WIFI_SSID_STRINGLEN] = "192.168.178.20";
@@ -1333,7 +1334,7 @@ void StephanoI_UDP_ClientThroughput_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -1349,7 +1350,7 @@ void StephanoI_UDP_ClientThroughput_Example()
     StephanoI_uart.flowControl = WE_FlowControl_RTSAndCTS;
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_ATDevice_Restore();
@@ -1363,7 +1364,7 @@ void StephanoI_UDP_ClientThroughput_Example()
     /* set the UART baudrate to 3 MBaud */
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
     ret = StephanoI_PinReset();
@@ -1430,7 +1431,7 @@ void StephanoI_UDP_ClientThroughput_Example()
  */
 void StephanoI_SSL_Server_Example()
 {
-    WE_DEBUG_PRINT("*** Start of StephanoI SSL server example ***\r\n");
+    WE_APP_PRINT("*** Start of StephanoI SSL server example ***\r\n");
     char target_network_ssid[WIFI_SSID_STRINGLEN] = "FRITZ!Box LTE";
     char target_network_password[WIFI_PWD_STRINGLEN] = "2314-5467-3428";
     uint16_t tcp_host_port = 5678;
@@ -1448,7 +1449,7 @@ void StephanoI_SSL_Server_Example()
 
     if (!StephanoI_Init(&StephanoI_uart, &StephanoI_pins, &StephanoI_Wifi_Examples_EventCallback))
     {
-        WE_DEBUG_PRINT("Initialization error\r\n");
+        WE_APP_PRINT("Initialization error\r\n");
         return;
     }
 

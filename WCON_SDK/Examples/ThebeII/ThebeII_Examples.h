@@ -38,7 +38,7 @@ extern "C"
 {
 #endif
 
-    extern void ThebeII_Examples(void);
+extern void ThebeII_Examples(void);
 
 #ifdef __cplusplus
 }

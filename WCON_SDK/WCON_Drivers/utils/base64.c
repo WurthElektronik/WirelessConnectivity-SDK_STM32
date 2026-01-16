@@ -42,18 +42,6 @@ static const uint8_t base64DecTable[123] = {0, 0, 0, 0, 0, 0, 0,  0,  0,  0,  0,
                                             0, 0, 0, 0, 0, 0, 0,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,                                                                                        /* A-Z */
                                             0, 0, 0, 0, 0, 0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};                                                                                           /* a-z */
 
-/**
- * @brief Get Base64 decoded buffer size.
- *
- * This routine calculates the expected raw data buffer size
- * for the given Base64 buffer and buffer size.
- *
- * @param[in] inputData Source buffer holding the base64 data
- * @param[in] inputLength Length of base64 data without termination character
- * @param[out] outputLengthP Pointer to calculated length of decoded data and the termination character
- *
- * @return true if successful, false otherwise.
- */
 bool Base64_GetDecBufSize(uint8_t* inputData, uint32_t inputLength, uint32_t* outputLengthP)
 {
     if ((inputData == NULL) || (outputLengthP == NULL))
@@ -80,17 +68,6 @@ bool Base64_GetDecBufSize(uint8_t* inputData, uint32_t inputLength, uint32_t* ou
     return true;
 }
 
-/**
- * @brief Get Base64 encoded buffer size.
- *
- * This routine calculates the expected Base64 buffer size
- * for the given raw data size.
- *
- * @param[in] inputLength Length of the raw data
- * @param[out] outputLengthP Pointer to calculated length of encoded data and the termination character
- *
- * @return true if successful, false otherwise.
- */
 bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t* outputLengthP)
 {
     if (outputLengthP == NULL)
@@ -104,21 +81,6 @@ bool Base64_GetEncBufSize(uint32_t inputLength, uint32_t* outputLengthP)
     return true;
 }
 
-/**
- * @brief Decode Base64 data.
- *
- * This routine decodes the supplied data in Base64 format to raw data
- * and writes it to the output buffer (outputData, must be pre-allocated).
- * The size of the output buffer is also returned.
- *
- * @param[in] inputData Source buffer (holding the Base64 data to be decoded)
- * @param[in] inputLength Source buffer size
- * @param[out] outputData Destination buffer (will contain the decoded data)
- * @param[in,out] outputLength As input it is the size of the buffer allocated for outputData and it will
- * 				  be updated with the actual output length
- *
- * @return true if successful, false otherwise
- */
 bool Base64_Decode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength)
 {
     if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))
@@ -175,24 +137,6 @@ bool Base64_Decode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData
     return true;
 }
 
-/**
- * @brief Encodes raw data to Base64 format.
- *
- * This routine encodes the supplied raw data to base64 format and writes it to the
- * output buffer (outputData, must be pre-allocated).
- * The size of the output buffer is also returned.
- *
- * Note that the data is returned as a null terminated string, the destination
- * buffer must have size Base64_GetEncBufSize.
- *
- * @param[in] inputData Source buffer holding the raw data
- * @param[in] inputLength Source buffer size
- * @param[out] outputData Destination buffer (will contain the Base64 encoded data)
- * @param[in,out] outputLength As input it is the size of the buffer allocated for outputData and it will
- * 			   	  be updated with the actual output length
- *
- * @return true if successful, false otherwise
- */
 bool Base64_Encode(uint8_t* inputData, uint32_t inputLength, uint8_t* outputData, uint32_t* outputLength)
 {
     if ((inputData == NULL) || (outputData == NULL) || (outputLength == NULL))

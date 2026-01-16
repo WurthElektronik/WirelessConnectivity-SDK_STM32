@@ -24,7 +24,7 @@
  */
 
 /**
- * @file
+ * @file ATNetCfg.c
  * @brief AT commands for network configuration.
  */
 #include <Calypso/ATCommands/ATNetCfg.h>
@@ -43,13 +43,6 @@ static const char* Calypso_ATNetCfg_IPv4MethodStrings[Calypso_ATNetCfg_IPv4Metho
 
 static const char* Calypso_ATNetCfg_IPv6MethodStrings[Calypso_ATNetCfg_IPv6Method_NumberOfValues] = {"UNKNOWN", "STATIC", "STATELESS", "STATEFUL"};
 
-/**
- * @brief Enables or disables network interface modes.
- *
- * @param[in] modes Flags of modes to enable. See Calypso_ATNetCfg_InterfaceMode_t. Set to Calypso_ATNetCfg_InterfaceMode_None to disable all modes.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetInterfaceModes(uint16_t modes)
 {
     char* pRequestCommand = AT_commandBuffer;
@@ -73,13 +66,6 @@ bool Calypso_ATNetCfg_SetInterfaceModes(uint16_t modes)
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Returns the device's MAC address.
- *
- * @param[out] macAddress The returned MAC address. Must be a byte array of size 6.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetMacAddress(uint8_t macAddress[6])
 {
     if (NULL == macAddress)
@@ -122,13 +108,6 @@ bool Calypso_ATNetCfg_GetMacAddress(uint8_t macAddress[6])
     return true;
 }
 
-/**
- * @brief Sets the device's MAC address.
- *
- * @param[in] macAddress The MAC address to be set. Must be a byte array of size 6.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetMacAddress(uint8_t macAddress[6])
 {
     if (NULL == macAddress)
@@ -157,52 +136,12 @@ bool Calypso_ATNetCfg_SetMacAddress(uint8_t macAddress[6])
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Returns the device's IPv4 station address and other IPv4 info (subnet mask, gateway, DNS).
- *
- * This is the configuration used when the device is used as a WLAN station
- * (use Calypso_ATNetCfg_GetIPv4AddressAP() for getting AP configuration).
- *
- * @param[out] ipConfig The returned IPv4 configuration.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetIPv4AddressStation(Calypso_ATNetCfg_IPv4Config_t* ipConfig) { return Calypso_ATNetCfg_GetIPv4Address(ipConfig, false); }
 
-/**
- * @brief Sets the device's IPv4 station address and other IPv4 info (subnet mask, gateway, DNS).
- *
- * This is the configuration used when the device is used as a WLAN station
- * (use Calypso_ATNetCfg_SetIPv4AddressAP() for setting AP configuration).
- *
- * @param[in] ipConfig The IPv4 configuration to be set.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetIPv4AddressStation(Calypso_ATNetCfg_IPv4Config_t* ipConfig) { return Calypso_ATNetCfg_SetIPv4Address(ipConfig, false); }
 
-/**
- * @brief Returns the device's IPv4 access point address and other IPv4 info (subnet mask, gateway, DNS).
- *
- * This is the configuration used when the device is used as a WLAN access point
- * (use Calypso_ATNetCfg_GetIPv4AddressStation() for getting station configuration).
- *
- * @param[out] ipConfig The returned IPv4 configuration.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetIPv4AddressAP(Calypso_ATNetCfg_IPv4Config_t* ipConfig) { return Calypso_ATNetCfg_GetIPv4Address(ipConfig, true); }
 
-/**
- * @brief Sets the device's IPv4 access point address and other IPv4 info (subnet mask, gateway, DNS).
- *
- * This is the configuration used when the device is used as a WLAN access point
- * (use Calypso_ATNetCfg_SetIPv4AddressStation() for setting station configuration).
- *
- * @param[in] ipConfig The IPv4 configuration to be set.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetIPv4AddressAP(Calypso_ATNetCfg_IPv4Config_t* ipConfig) { return Calypso_ATNetCfg_SetIPv4Address(ipConfig, true); }
 
 /**
@@ -353,40 +292,12 @@ bool Calypso_ATNetCfg_SetIPv4Address(Calypso_ATNetCfg_IPv4Config_t* ipConfig, bo
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Returns the device's local IPv6 configuration.
- *
- * @param[out] ipConfig The returned IPv6 configuration
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetIPv6AddressLocal(Calypso_ATNetCfg_IPv6Config_t* ipConfig) { return Calypso_ATNetCfg_GetIPv6Address(ipConfig, false); }
 
-/**
- * @brief Sets the device's local IPv6 configuration.
- *
- * @param[in] ipConfig The IPv6 configuration to be set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetIPv6AddressLocal(Calypso_ATNetCfg_IPv6Config_t* ipConfig) { return Calypso_ATNetCfg_SetIPv6Address(ipConfig, false); }
 
-/**
- * @brief Returns the device's global IPv6 configuration.
- *
- * @param[out] ipConfig The returned IPv6 configuration
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetIPv6AddressGlobal(Calypso_ATNetCfg_IPv6Config_t* ipConfig) { return Calypso_ATNetCfg_GetIPv6Address(ipConfig, true); }
 
-/**
- * @brief Sets the device's global IPv6 configuration.
- *
- * @param[in] ipConfig The IPv6 configuration to be set
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetIPv6AddressGlobal(Calypso_ATNetCfg_IPv6Config_t* ipConfig) { return Calypso_ATNetCfg_SetIPv6Address(ipConfig, true); }
 
 /**
@@ -500,13 +411,6 @@ bool Calypso_ATNetCfg_SetIPv6Address(Calypso_ATNetCfg_IPv6Config_t* ipConfig, bo
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Disconnects the station with the supplied MAC address. Only works in AP mode.
- *
- * @param[in] macAddress MAC address of the station to disconnect from. Must be a byte array of size 6.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
 {
     if (NULL == macAddress)
@@ -535,13 +439,6 @@ bool Calypso_ATNetCfg_DisconnectApStation(uint8_t macAddress[6])
     return Calypso_WaitForConfirm(Calypso_GetTimeout(Calypso_Timeout_General), Calypso_CNFStatus_Success, NULL);
 }
 
-/**
- * @brief Returns the secondary DNS server address.
- *
- * @param[out] dns2ndServerAddress The returned secondary DNS server address.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
 {
     if (NULL == dns2ndServerAddress)
@@ -576,13 +473,6 @@ bool Calypso_ATNetCfg_GetIPv4DnsClient(char dns2ndServerAddress[16])
     return ATCommand_GetNextArgumentString(&pRespondCommand, dns2ndServerAddress, ATCOMMAND_STRING_TERMINATE, 16);
 }
 
-/**
- * @brief Sets the secondary DNS server address.
- *
- * @param[out] dns2ndServerAddress The secondary DNS server address to be set.
- *
- * @return true if successful, false otherwise
- */
 bool Calypso_ATNetCfg_SetIPv4DnsClient(const char dns2ndServerAddress[16])
 {
     if (NULL == dns2ndServerAddress)
